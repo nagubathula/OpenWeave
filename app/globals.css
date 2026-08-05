@@ -1,0 +1,649 @@
+/* ==========================================================================
+   PencilDraw Next.js Design System & Modern UI Styles
+   ========================================================================== */
+
+:root {
+  /* Color Palette - Dark Glassmorphism */
+  --bg-dark: #0f1117;
+  --bg-canvas: #161822;
+  --panel-bg: rgba(22, 26, 38, 0.85);
+  --panel-border: rgba(255, 255, 255, 0.08);
+  --panel-glass: rgba(255, 255, 255, 0.03);
+  --surface-hover: rgba(255, 255, 255, 0.06);
+  --surface-active: rgba(255, 255, 255, 0.12);
+
+  /* Primary Accent Colors */
+  --accent-primary: #6366f1;
+  --accent-primary-hover: #4f46e5;
+  --accent-secondary: #ec4899;
+  --accent-cyan: #06b6d4;
+  --accent-green: #10b981;
+  --accent-yellow: #f59e0b;
+
+  /* Typography */
+  --text-main: #f3f4f6;
+  --text-muted: #9ca3af;
+  --text-dim: #6b7280;
+  
+  --font-sans: var(--font-inter), -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-heading: var(--font-outfit), sans-serif;
+  --font-hand: var(--font-caveat), cursive;
+  --font-mono: var(--font-fira-code), monospace;
+
+  /* UI Dimensions */
+  --header-height: 52px;
+  --toolbar-height: 52px;
+  --sidebar-width: 280px;
+
+  /* Effects */
+  --shadow-lg: 0 10px 30px -5px rgba(0, 0, 0, 0.5), 0 0 15px rgba(99, 102, 241, 0.1);
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
+  --blur-glass: blur(16px);
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-full: 9999px;
+  --transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Base Reset */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+body, html {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  font-family: var(--font-sans);
+  background-color: var(--bg-dark);
+  color: var(--text-main);
+  -webkit-font-smoothing: antialiased;
+}
+
+#app-workspace {
+  display: flex;
+  flex-direction: column;
+  width: 100vw;
+  height: 100vh;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Header Navigation Bar */
+.header-nav {
+  height: var(--header-height);
+  background: var(--panel-bg);
+  backdrop-filter: var(--blur-glass);
+  -webkit-backdrop-filter: var(--blur-glass);
+  border-bottom: 1px solid var(--panel-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  z-index: 100;
+}
+
+.brand-section {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.brand-logo {
+  width: 32px;
+  height: 32px;
+  background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  box-shadow: 0 2px 10px rgba(99, 102, 241, 0.4);
+}
+
+.brand-title {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 1.1rem;
+  background: linear-gradient(90deg, #fff, #9ca3af);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.brand-badge {
+  font-size: 0.65rem;
+  padding: 2px 6px;
+  background: rgba(99, 102, 241, 0.2);
+  color: var(--accent-primary);
+  border: 1px solid rgba(99, 102, 241, 0.4);
+  border-radius: var(--radius-full);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.project-name-input {
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-main);
+  font-family: var(--font-sans);
+  font-size: 0.9rem;
+  font-weight: 500;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  transition: var(--transition);
+}
+
+.project-name-input:hover, .project-name-input:focus {
+  background: var(--surface-hover);
+  border-color: var(--panel-border);
+  outline: none;
+}
+
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.nav-btn {
+  background: var(--panel-glass);
+  border: 1px solid var(--panel-border);
+  color: var(--text-main);
+  padding: 6px 12px;
+  border-radius: var(--radius-md);
+  font-size: 0.82rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.nav-btn:hover {
+  background: var(--surface-hover);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.nav-btn.primary {
+  background: var(--accent-primary);
+  border-color: var(--accent-primary-hover);
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+}
+
+.nav-btn.primary:hover {
+  background: var(--accent-primary-hover);
+}
+
+/* Main Workspace Layout */
+.workspace-body {
+  flex: 1;
+  display: flex;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Sidebar Common */
+.sidebar {
+  width: var(--sidebar-width);
+  background: var(--panel-bg);
+  backdrop-filter: var(--blur-glass);
+  -webkit-backdrop-filter: var(--blur-glass);
+  border-right: 1px solid var(--panel-border);
+  display: flex;
+  flex-direction: column;
+  z-index: 90;
+  transition: var(--transition);
+}
+
+.sidebar.right-sidebar {
+  border-right: none;
+  border-left: 1px solid var(--panel-border);
+}
+
+.sidebar.collapsed {
+  width: 0;
+  overflow: hidden;
+  border: none;
+}
+
+/* Sidebar Tabs */
+.sidebar-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--panel-border);
+  padding: 6px;
+  gap: 4px;
+}
+
+.tab-btn {
+  flex: 1;
+  padding: 8px;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  font-weight: 500;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: var(--transition);
+}
+
+.tab-btn:hover {
+  color: var(--text-main);
+  background: var(--surface-hover);
+}
+
+.tab-btn.active {
+  color: #fff;
+  background: var(--surface-active);
+  font-weight: 600;
+}
+
+.sidebar-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px;
+}
+
+/* Canvas Area */
+.canvas-container {
+  flex: 1;
+  position: relative;
+  background-color: var(--bg-canvas);
+  overflow: hidden;
+  cursor: default;
+}
+
+.main-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.canvas-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+/* Text Editor Canvas Overlay */
+.canvas-text-editor {
+  position: absolute;
+  background: transparent;
+  border: 1px dashed var(--accent-primary);
+  outline: none;
+  color: var(--text-main);
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+  line-height: inherit;
+  padding: 2px 4px;
+  resize: none;
+  overflow: hidden;
+  pointer-events: auto;
+  z-index: 200;
+}
+
+/* Floating Dock Toolbar */
+.floating-toolbar {
+  position: absolute;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--panel-bg);
+  backdrop-filter: var(--blur-glass);
+  -webkit-backdrop-filter: var(--blur-glass);
+  border: 1px solid var(--panel-border);
+  padding: 6px;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  z-index: 100;
+}
+
+.tool-divider {
+  width: 1px;
+  height: 24px;
+  background: var(--panel-border);
+  margin: 0 4px;
+}
+
+.tool-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  position: relative;
+  transition: var(--transition);
+}
+
+.tool-btn:hover {
+  background: var(--surface-hover);
+  color: var(--text-main);
+}
+
+.tool-btn.active {
+  background: var(--accent-primary);
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.4);
+}
+
+.shortcut-badge {
+  position: absolute;
+  bottom: 2px;
+  right: 3px;
+  font-size: 0.55rem;
+  font-family: var(--font-mono);
+  opacity: 0.6;
+}
+
+/* Inspector Panel Sections */
+.inspector-section {
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--panel-border);
+  padding-bottom: 16px;
+}
+
+.inspector-section:last-child {
+  border-bottom: none;
+}
+
+.section-title {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.property-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+.property-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.property-field label {
+  font-size: 0.72rem;
+  color: var(--text-dim);
+}
+
+.input-with-unit {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-with-unit input {
+  width: 100%;
+  background: var(--panel-glass);
+  border: 1px solid var(--panel-border);
+  color: var(--text-main);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  padding: 6px 8px;
+  border-radius: var(--radius-sm);
+  outline: none;
+  transition: var(--transition);
+}
+
+.input-with-unit input:focus {
+  border-color: var(--accent-primary);
+  background: rgba(99, 102, 241, 0.05);
+}
+
+/* Color Picker Control */
+.color-picker-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.color-swatch-input {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--panel-border);
+  cursor: pointer;
+  background: transparent;
+  padding: 0;
+  overflow: hidden;
+}
+
+.color-swatch-input::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+
+.color-swatch-input::-webkit-color-swatch {
+  border: none;
+  border-radius: var(--radius-sm);
+}
+
+/* Preset Swatches */
+.preset-swatches {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+
+.swatch-item {
+  width: 20px;
+  height: 20px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  border: 1px solid rgba(255,255,255,0.1);
+  transition: var(--transition);
+}
+
+.swatch-item:hover {
+  transform: scale(1.15);
+}
+
+/* Alignment Controls */
+.align-group {
+  display: flex;
+  gap: 4px;
+  justify-content: space-between;
+}
+
+.align-btn {
+  flex: 1;
+  height: 30px;
+  background: var(--panel-glass);
+  border: 1px solid var(--panel-border);
+  color: var(--text-muted);
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.align-btn:hover {
+  background: var(--surface-hover);
+  color: var(--text-main);
+}
+
+/* Layers List Item */
+.layer-tree {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.layer-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 8px;
+  border-radius: var(--radius-sm);
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.layer-item:hover {
+  background: var(--surface-hover);
+  color: var(--text-main);
+}
+
+.layer-item.selected {
+  background: rgba(99, 102, 241, 0.15);
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  color: #fff;
+  font-weight: 500;
+}
+
+.layer-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.layer-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  opacity: 0.6;
+}
+
+.layer-item:hover .layer-actions {
+  opacity: 1;
+}
+
+.icon-btn-tiny {
+  background: transparent;
+  border: none;
+  color: var(--text-dim);
+  cursor: pointer;
+  padding: 2px;
+  border-radius: 4px;
+}
+
+.icon-btn-tiny:hover {
+  color: var(--text-main);
+  background: var(--surface-hover);
+}
+
+/* UI Stencil Drawer Grid */
+.stencil-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+.stencil-card {
+  background: var(--panel-glass);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius-md);
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.stencil-card:hover {
+  background: var(--surface-hover);
+  border-color: var(--accent-primary);
+  transform: translateY(-2px);
+}
+
+.stencil-icon {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent-primary);
+}
+
+.stencil-name {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+/* Toast Container */
+#toast-container {
+  position: fixed;
+  bottom: 84px;
+  right: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 500;
+}
+
+.toast {
+  background: var(--panel-bg);
+  backdrop-filter: var(--blur-glass);
+  border: 1px solid var(--panel-border);
+  color: var(--text-main);
+  padding: 10px 16px;
+  border-radius: var(--radius-md);
+  font-size: 0.82rem;
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  animation: toastIn 0.25s ease-out forwards;
+}
+
+@keyframes toastIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
