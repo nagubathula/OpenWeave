@@ -1,7 +1,7 @@
 import { useActiveElement } from '@vueuse/core'
 import { computed } from 'vue'
 
-import { useEditorCommands, useViewportKind } from '@openweave/vue'
+import { useEditorCommands, useViewportKind } from '@openweave/react'
 
 import { useAIChat } from '@/app/ai/chat/use'
 import { useEditorStore } from '@/app/editor/active-store'

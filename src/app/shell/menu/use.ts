@@ -1,7 +1,7 @@
 import { tryOnScopeDispose } from '@vueuse/core'
 
-import { useEditorCommands, useI18n } from '@openweave/vue'
-import type { EditorCommandId } from '@openweave/vue'
+import { useEditorCommands, useI18n } from '@openweave/react'
+import type { EditorCommandId } from '@openweave/react'
 
 import { useEditorStore } from '@/app/editor/active-store'
 import { openSettingsDialog } from '@/app/settings/dialog'

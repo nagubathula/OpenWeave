@@ -1,9 +1,5 @@
-import {
-  parse,
-  type CSSGroupingRuleLike,
-  type CSSStyleDeclarationLike,
-  type CSSStyleRuleLike
-} from '@acemir/cssom'
+import * as cssom from '@acemir/cssom'
+import type { CSSGroupingRuleLike, CSSStyleDeclarationLike, CSSStyleRuleLike } from '@acemir/cssom'
 
 import type { DesignDocument, DesignElement, DesignNode, DesignStyleDeclaration } from './types'
 
@@ -70,7 +66,7 @@ function collectStyleRules(rules: unknown[]): CSSStyleRuleLike[] {
 
 function parseRules(cssText: string): ParsedHeadlessCSS {
   let order = 0
-  const sheet = parse(cssText)
+  const sheet = cssom.parse(cssText)
   const styleRules = collectStyleRules(sheet.cssRules)
   const customProperties = collectCustomProperties(styleRules)
   const rules = styleRules.flatMap((rule) => {

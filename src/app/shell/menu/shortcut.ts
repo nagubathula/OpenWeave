@@ -1,4 +1,4 @@
-import { editorCommandMetadata, formatShortcut } from '@openweave/vue'
+import { editorCommandMetadata, formatShortcut } from '@openweave/react'
 
 import type { AppMenuActionItem, AppMenuEntry } from '@/app/shell/menu/schema'
 import { APP_MENU_SCHEMA } from '@/app/shell/menu/schema'

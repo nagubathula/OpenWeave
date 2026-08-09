@@ -1,4 +1,4 @@
-import type { MenuActionNode, MenuEntry } from '@openweave/vue'
+import type { MenuActionNode, MenuEntry } from '@openweave/react'
 
 export function isMenuSeparator(entry: MenuEntry) {
   return 'separator' in entry && entry.separator

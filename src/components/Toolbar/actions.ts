@@ -1,17 +1,18 @@
-import { computed } from 'vue'
-import type { Ref } from 'vue'
-import IconArrowDownToLine from '~icons/lucide/arrow-down-to-line'
-import IconArrowUpToLine from '~icons/lucide/arrow-up-to-line'
-import IconClipboard from '~icons/lucide/clipboard'
-import IconCopy from '~icons/lucide/copy'
-import IconCopyPlus from '~icons/lucide/copy-plus'
-import IconGroup from '~icons/lucide/group'
-import IconLock from '~icons/lucide/lock'
-import IconScissors from '~icons/lucide/scissors'
-import IconTrash2 from '~icons/lucide/trash-2'
-import IconUngroup from '~icons/lucide/ungroup'
+import { useMemo } from 'react'
+import {
+  ArrowDownToLine,
+  ArrowUpToLine,
+  Clipboard,
+  Copy,
+  CopyPlus,
+  Group,
+  Lock,
+  Scissors,
+  Trash2,
+  Ungroup
+} from 'lucide-react'
 
-import type { useEditorCommands } from '@openweave/vue'
+import type { useEditorCommands } from '@openweave/react'
 
 import type { EditorStore } from '@/app/editor/active-store'
 import type { ToolbarActionItem } from '@/components/Toolbar/types'
@@ -19,53 +20,53 @@ import type { ToolbarActionItem } from '@/components/Toolbar/types'
 type ToolbarActionOptions = {
   store: EditorStore
   getCommand: ReturnType<typeof useEditorCommands>['getCommand']
-  menu: Ref<{ copy: string; paste: string; cut: string; front: string; back: string; lock: string }>
+  menu: { copy: string; paste: string; cut: string; front: string; back: string; lock: string }
 }
 
 export function useToolbarActions({ store, getCommand, menu }: ToolbarActionOptions) {
-  const editActions = computed<ToolbarActionItem[]>(() => [
-    { icon: IconCopy, label: menu.value.copy, action: () => void store.mobileCopy() },
-    { icon: IconClipboard, label: menu.value.paste, action: () => store.mobilePaste() },
-    { icon: IconScissors, label: menu.value.cut, action: () => void store.mobileCut() },
+  const editActions = useMemo<ToolbarActionItem[]>(() => [
+    { icon: Copy, label: menu.copy, action: () => void store.mobileCopy() },
+    { icon: Clipboard, label: menu.paste, action: () => store.mobilePaste() },
+    { icon: Scissors, label: menu.cut, action: () => void store.mobileCut() },
     {
-      icon: IconCopyPlus,
+      icon: CopyPlus,
       label: getCommand('selection.duplicate').label,
       action: () => getCommand('selection.duplicate').run()
     },
     {
-      icon: IconTrash2,
+      icon: Trash2,
       label: getCommand('selection.delete').label,
       action: () => getCommand('selection.delete').run()
     }
-  ])
+  ], [store, menu, getCommand])
 
-  const arrangeActions = computed<ToolbarActionItem[]>(() => [
+  const arrangeActions = useMemo<ToolbarActionItem[]>(() => [
     {
-      icon: IconArrowUpToLine,
-      label: menu.value.front,
+      icon: ArrowUpToLine,
+      label: menu.front,
       action: () => getCommand('selection.bringToFront').run()
     },
     {
-      icon: IconArrowDownToLine,
-      label: menu.value.back,
+      icon: ArrowDownToLine,
+      label: menu.back,
       action: () => getCommand('selection.sendToBack').run()
     },
     {
-      icon: IconGroup,
+      icon: Group,
       label: getCommand('selection.group').label,
       action: () => getCommand('selection.group').run()
     },
     {
-      icon: IconUngroup,
+      icon: Ungroup,
       label: getCommand('selection.ungroup').label,
       action: () => getCommand('selection.ungroup').run()
     },
     {
-      icon: IconLock,
-      label: menu.value.lock,
+      icon: Lock,
+      label: menu.lock,
       action: () => getCommand('selection.toggleLock').run()
     }
-  ])
+  ], [menu, getCommand])
 
   return { editActions, arrangeActions }
 }

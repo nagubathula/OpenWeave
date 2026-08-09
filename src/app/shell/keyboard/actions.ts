@@ -1,7 +1,7 @@
 import type { Ref } from 'vue'
 
 import { opacityFromBuffer } from '@openweave/core/editor'
-import type { useEditorCommands, useViewportKind } from '@openweave/vue'
+import type { useEditorCommands, useViewportKind } from '@openweave/react'
 
 import type { EditorStore } from '@/app/editor/active-store'
 

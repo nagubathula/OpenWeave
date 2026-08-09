@@ -23,6 +23,7 @@ lerna-debug.log*
 !.env.example
 *.local
 Caddyfile.dev
+.next
 
 # Editors, IDEs, and OS metadata
 .DS_Store

@@ -1,8 +1,8 @@
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 
-import type { MenuEntry } from '@openweave/vue'
-import { useEditorCommands, useI18n } from '@openweave/vue'
+import type { MenuEntry } from '@openweave/react'
+import { useEditorCommands, useI18n } from '@openweave/react'
 
 import { useEditorStore } from '@/app/editor/active-store'
 import { openSettingsDialog } from '@/app/settings/dialog'

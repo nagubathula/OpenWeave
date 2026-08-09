@@ -1,25 +1,28 @@
-import type { Component } from 'vue'
-import IconCircle from '~icons/lucide/circle'
-import IconColumns from '~icons/lucide/columns-3'
-import IconComponentSet from '~icons/lucide/component'
-import IconComponent from '~icons/lucide/diamond'
-import IconFrame from '~icons/lucide/frame'
-import IconGrid from '~icons/lucide/grid-3x3'
-import IconGroup from '~icons/lucide/group'
-import IconHand from '~icons/lucide/hand'
-import IconSection from '~icons/lucide/layout-grid'
-import IconMinus from '~icons/lucide/minus'
-import IconMousePointer from '~icons/lucide/mouse-pointer'
-import IconPenTool from '~icons/lucide/pen-tool'
-import IconRows from '~icons/lucide/rows-3'
-import IconSquare from '~icons/lucide/square'
-import IconStar from '~icons/lucide/star'
-import IconTriangle from '~icons/lucide/triangle'
-import IconType from '~icons/lucide/type'
+import React from 'react'
+import {
+  Circle as IconCircle,
+  Columns3 as IconColumns,
+  Component as IconComponentSet,
+  Diamond as IconComponent,
+  Frame as IconFrame,
+  Grid3X3 as IconGrid,
+  Group as IconGroup,
+  Hand as IconHand,
+  LayoutGrid as IconSection,
+  Minus as IconMinus,
+  MousePointer2 as IconMousePointer,
+  PenTool as IconPenTool,
+  Rows3 as IconRows,
+  Square as IconSquare,
+  Star as IconStar,
+  Triangle as IconTriangle,
+  Type as IconType,
+  LucideIcon
+} from 'lucide-react'
 
 import type { Tool } from '@/app/editor/session'
 
-export const toolIcons: Record<Tool, Component> = {
+export const toolIcons: Record<Tool, LucideIcon> = {
   SELECT: IconMousePointer,
   FRAME: IconFrame,
   SECTION: IconSection,
@@ -33,7 +36,7 @@ export const toolIcons: Record<Tool, Component> = {
   HAND: IconHand
 }
 
-export const NODE_ICONS: Partial<Record<string, typeof IconSquare>> = {
+export const NODE_ICONS: Partial<Record<string, LucideIcon>> = {
   SECTION: IconSection,
   ELLIPSE: IconCircle,
   FRAME: IconFrame,
@@ -47,7 +50,7 @@ export const NODE_ICONS: Partial<Record<string, typeof IconSquare>> = {
   RECTANGLE: IconSquare
 }
 
-export const AUTO_LAYOUT_ICONS: Partial<Record<string, typeof IconSquare>> = {
+export const AUTO_LAYOUT_ICONS: Partial<Record<string, LucideIcon>> = {
   VERTICAL: IconRows,
   HORIZONTAL: IconColumns,
   GRID: IconGrid

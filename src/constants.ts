@@ -1,6 +1,6 @@
 import { IS_BROWSER, IS_TAURI } from '@openweave/core/constants'
 
-import ACP_DESIGN_CONTEXT from '@/app/ai/acp/design-context.md'
+import ACP_DESIGN_CONTEXT from '@/app/ai/acp/design-context'
 
 export {
   IS_BROWSER,

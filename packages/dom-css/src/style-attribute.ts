@@ -1,10 +1,10 @@
-import { parse } from '@acemir/cssom'
+import * as cssom from '@acemir/cssom'
 import type { CSSStyleRuleLike } from '@acemir/cssom'
 
 import type { DesignStyleDeclaration } from './types'
 
 function firstStyleRule(cssText: string): CSSStyleRuleLike | null {
-  const [rule] = parse(cssText).cssRules
+  const [rule] = cssom.parse(cssText).cssRules
   if (!rule || typeof rule !== 'object' || !('style' in rule)) return null
   return rule as CSSStyleRuleLike
 }

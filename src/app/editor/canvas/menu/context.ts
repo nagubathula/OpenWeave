@@ -1,6 +1,7 @@
-import { computed, type Ref } from 'vue'
+import { useMemo } from 'react'
 
-import { formatShortcut, type Editor, type MenuEntry } from '@openweave/vue'
+import { formatShortcut } from '@openweave/react'
+import type { Editor, MenuEntry } from '@openweave/core/editor'
 
 import type { createCanvasMenuActions } from '@/app/editor/canvas/menu/actions'
 import {
@@ -83,25 +84,25 @@ function copyPasteAsEntry(
 }
 
 export function useCanvasContextMenu(
-  baseEntries: Ref<MenuEntry[]>,
-  hasSelection: Ref<boolean>,
+  baseEntries: MenuEntry[],
+  hasSelection: boolean,
   editor: Editor,
   actions: CanvasMenuActions,
-  labels: Ref<CanvasCopyLabels>
+  labels: CanvasCopyLabels
 ) {
-  return computed<MenuEntry[]>(() => {
-    const entries = withoutStaticSelectionCommands(baseEntries.value)
-    if (!hasSelection.value) return entries
+  return useMemo<MenuEntry[]>(() => {
+    const entries = withoutStaticSelectionCommands(baseEntries)
+    if (!hasSelection) return entries
     if (actions.canVectorizeImage()) {
       entries.push(
         { separator: true },
         {
-          label: labels.value.convertToVector,
+          label: labels.convertToVector,
           testId: CANVAS_VECTORIZE_TEST_ID,
           action: runAsync(actions.vectorizeImage)
         }
       )
     }
-    return [...entries, { separator: true }, copyPasteAsEntry(editor, actions, labels.value)]
-  })
+    return [...entries, { separator: true }, copyPasteAsEntry(editor, actions, labels)]
+  }, [baseEntries, hasSelection, editor, actions, labels])
 }

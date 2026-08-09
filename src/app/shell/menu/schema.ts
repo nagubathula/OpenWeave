@@ -1,4 +1,4 @@
-import type { EditorCommandId } from '@openweave/vue'
+import type { EditorCommandId } from '@openweave/react'
 
 export type AppMenuTarget = 'all' | 'browser' | 'native'
 

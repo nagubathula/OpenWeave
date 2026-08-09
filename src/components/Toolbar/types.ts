@@ -1,12 +1,10 @@
-import type { Component } from 'vue'
-
-import type { Tool } from '@openweave/vue'
-
+import type React from 'react'
+import type { Tool } from '@openweave/react'
 import type { ComponentUI } from '@/components/ui/types'
 import type { ToolbarTheme } from '@/theme/toolbar'
 
 export interface ToolbarActionItem {
-  icon: Component
+  icon: React.ElementType
   label: string
   action: () => void
 }
@@ -14,4 +12,4 @@ export interface ToolbarActionItem {
 export type ToolbarUI = ComponentUI<ToolbarTheme>
 
 export type ToolLabels = Record<Tool, string>
-export type ToolIconMap = Record<Tool, Component>
+export type ToolIconMap = Record<Tool, React.ElementType>

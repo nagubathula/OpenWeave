@@ -1,4 +1,4 @@
-import { CSSFontFaceRule } from '@acemir/cssom'
+import * as cssom from '@acemir/cssom'
 import { parseFragment, serialize, type DefaultTreeAdapterTypes } from 'parse5'
 
 import { decodeBase64 } from '@openweave/core/bytes'
@@ -219,7 +219,7 @@ function fontSourceValue(asset: WebFontFaceAsset): string {
 }
 
 function fontFaceCSS(asset: WebFontFaceAsset): string {
-  const rule = new CSSFontFaceRule()
+  const rule = new cssom.CSSFontFaceRule()
   rule.style.setProperty('font-family', JSON.stringify(asset.family))
   rule.style.setProperty('src', fontSourceValue(asset))
   rule.style.setProperty('font-weight', serializeFontWeight(asset.weight))

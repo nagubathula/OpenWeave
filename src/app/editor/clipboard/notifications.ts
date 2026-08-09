@@ -1,5 +1,5 @@
 import type { ClipboardImageResolution, Editor } from '@openweave/core/editor'
-import { dialogMessages } from '@openweave/vue'
+import { dialogMessages } from '@openweave/react'
 
 import { toast } from '@/app/shell/ui'
 

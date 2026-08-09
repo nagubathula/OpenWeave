@@ -1,27 +1,20 @@
-import { shallowRef, triggerRef } from 'vue'
-
 import type { EditorStore } from '@/app/editor/session'
 
 export type { EditorStore }
 
-const storeRef = shallowRef<EditorStore>()
-
-export function useActiveEditorStoreRef() {
-  return storeRef
-}
+let activeStore: EditorStore | undefined
 
 export function setActiveEditorStore(store: EditorStore) {
-  storeRef.value = store
-  triggerRef(storeRef)
+  activeStore = store
 }
 
 export function getActiveEditorStore(): EditorStore {
-  if (!storeRef.value) throw new Error('Editor store not provided')
-  return storeRef.value
+  if (!activeStore) throw new Error('Editor store not provided')
+  return activeStore
 }
 
 export function getActiveEditorStoreOrNull(): EditorStore | null {
-  return storeRef.value ?? null
+  return activeStore ?? null
 }
 
 const storeProxy = new Proxy({} as EditorStore, {

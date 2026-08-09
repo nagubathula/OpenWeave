@@ -1,4 +1,4 @@
-import type { TestId } from '@openweave/vue'
+import type { TestId } from '@openweave/react'
 
 export type CanvasContextActionId =
   | 'copy-as-text'

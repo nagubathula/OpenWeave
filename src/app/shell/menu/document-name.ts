@@ -1,6 +1,6 @@
 import { computed } from 'vue'
 
-import { useInlineRename } from '@openweave/vue'
+import { useInlineRename } from '@openweave/react'
 
 import type { EditorStore } from '@/app/editor/active-store'
 

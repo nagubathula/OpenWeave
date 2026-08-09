@@ -2,8 +2,8 @@ import { tinykeys } from 'tinykeys'
 import type { KeyBindingMap } from 'tinykeys'
 import { onScopeDispose } from 'vue'
 
-import { editorCommandMetadata } from '@openweave/vue'
-import type { EditorCommandId } from '@openweave/vue'
+import { editorCommandMetadata } from '@openweave/react'
+import type { EditorCommandId } from '@openweave/react'
 
 import { requestRenameSelection } from '@/app/editor/selection/rename-dialog'
 import { TOOL_SHORTCUTS } from '@/app/editor/session'

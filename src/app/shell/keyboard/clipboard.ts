@@ -1,6 +1,6 @@
 import { useEventListener } from '@vueuse/core'
 
-import { extractImageFilesFromClipboard } from '@openweave/vue'
+import { extractImageFilesFromClipboard } from '@openweave/react'
 
 import type { EditorStore } from '@/app/editor/active-store'
 import {

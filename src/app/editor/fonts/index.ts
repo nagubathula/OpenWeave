@@ -12,7 +12,7 @@ import {
   type WebFontProviderId
 } from '@openweave/core/text'
 import type { SceneGraph } from '@openweave/scene-graph'
-import { dialogMessages } from '@openweave/vue'
+import { dialogMessages } from '@openweave/react'
 
 import {
   clearDownloadedFontCache as clearTauriDownloadedFontCache,
