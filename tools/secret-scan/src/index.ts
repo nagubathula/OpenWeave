@@ -19,9 +19,14 @@ function run(command: string, args: string[]): Bun.SpawnSyncReturns<Buffer> | nu
 
 const proc = run('gitleaks', gitleaksArgs) ?? run('go', ['run', GITLEAKS_MODULE, ...gitleaksArgs])
 
-if (!proc?.success) {
+if (!proc) {
+  console.log('Secret scan skipped (neither gitleaks nor go installed).')
+  process.exit(0)
+}
+
+if (!proc.success) {
   console.error('Secret scan failed.')
-  process.exit(proc?.exitCode || 1)
+  process.exit(proc.exitCode || 1)
 }
 
 console.log('Secret scan passed.')
