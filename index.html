@@ -1,62 +1,81 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PencilDraw - OpenPencil x tldraw Hybrid Infinite Canvas</title>
-  <meta name="description" content="A powerful hybrid infinite canvas combining fast whiteboarding, freehand sketching, smart connectors, and precision UI vector wireframing.">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700&family=Caveat:wght@600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/src/style.css">
-</head>
-<body class="dark-theme">
-  <div id="app">
-    <!-- Header Navigation -->
-    <header id="header-nav"></header>
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+    <link rel="icon" type="image/png" sizes="128x128" href="/favicon-128.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <meta name="theme-color" content="#1e1e1e" />
+    <title>OpenWeave</title>
+    <style>
+      :root {
+        --loader-bg: #1e1e1e;
+        --loader-fg: 255, 255, 255;
+      }
+      @media (prefers-color-scheme: light) {
+        :root {
+          --loader-bg: #f3f4f6;
+          --loader-fg: 32, 33, 36;
+        }
+      }
+      html[data-theme='dark'] {
+        --loader-bg: #1e1e1e;
+        --loader-fg: 255, 255, 255;
+      }
+      html[data-theme='light'] {
+        --loader-bg: #f3f4f6;
+        --loader-fg: 32, 33, 36;
+      }
+      body { margin: 0; background: var(--loader-bg); }
+      #boot-splash {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        color: rgb(var(--loader-fg));
+        background: var(--loader-bg);
+      }
+      #boot-splash svg { width: 32px; height: 32px; opacity: 0.45; }
+      #boot-splash .bar {
+        position: absolute;
+        bottom: 50%;
+        left: 50%;
+        transform: translate(-50%, 40px);
+        width: 100px;
+        height: 2px;
+        background: rgba(var(--loader-fg), 0.08);
+        border-radius: 1px;
+        overflow: hidden;
+      }
+      #boot-splash .bar::after {
+        content: '';
+        display: block;
+        height: 100%;
+        width: 40%;
+        background: rgba(var(--loader-fg), 0.25);
+        border-radius: 1px;
+        animation: slide 1s ease-in-out infinite;
+      }
+      @keyframes slide {
+        0% { transform: translateX(-100%); }
+        100% { transform: translateX(350%); }
+      }
+    </style>
+  </head>
 
-    <!-- Main Workspace Area -->
-    <div id="workspace">
-      <!-- Left Sidebar: Layers & Components -->
-      <aside id="left-sidebar" class="sidebar collapsed">
-        <div class="sidebar-tabs">
-          <button class="tab-btn active" data-tab="layers">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
-            Layers
-          </button>
-          <button class="tab-btn" data-tab="library">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
-            UI Stencils
-          </button>
-        </div>
-        <div class="sidebar-content">
-          <div id="layers-panel" class="tab-content active"></div>
-          <div id="library-panel" class="tab-content"></div>
-        </div>
-      </aside>
-
-      <!-- Canvas Container -->
-      <main id="canvas-container">
-        <canvas id="main-canvas"></canvas>
-        <div id="canvas-overlay"></div>
-      </main>
-
-      <!-- Right Sidebar: Inspector Panel -->
-      <aside id="right-sidebar" class="sidebar">
-        <div id="inspector-panel"></div>
-      </aside>
+  <body>
+    <div id="app">
+      <div id="boot-splash">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="m15.232 5.232 3.536 3.536m-2.036-5.036a2.5 2.5 0 0 1 3.536 3.536L6.5 21.036H3v-3.572L16.732 3.732Z"/>
+        </svg>
+        <div class="bar"></div>
+      </div>
     </div>
-
-    <!-- Floating Dock Toolbar -->
-    <nav id="floating-toolbar"></nav>
-
-    <!-- Context Menu -->
-    <div id="context-menu" class="context-menu hidden"></div>
-
-    <!-- Toast & Dialog Overlay -->
-    <div id="toast-container"></div>
-  </div>
-
-  <script type="module" src="/src/main.js"></script>
-</body>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
 </html>

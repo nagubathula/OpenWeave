@@ -1,0 +1,28 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ESNext", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "strict": true,
+    "declaration": true,
+    "declarationDir": "./dist",
+    "outDir": "./dist",
+    "rootDir": ".",
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "jsx": "react-jsx",
+    "jsxImportSource": "@openweave/dom-css",
+    "types": ["bun"],
+    "paths": {
+      "#dom-css/*": ["./src/*"],
+      "@openweave/dom-css": ["./src/index.ts"],
+      "@openweave/dom-css/browser": ["./src/browser.ts"],
+      "@openweave/dom-css/jsx-runtime": ["./src/jsx/runtime.ts"],
+      "@openweave/dom-css/jsx-dev-runtime": ["./src/jsx/dev-runtime.ts"]
+    }
+  },
+  "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.d.ts"],
+  "exclude": ["node_modules", "dist"]
+}

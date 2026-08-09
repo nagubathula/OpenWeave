@@ -1,0 +1,8 @@
+{
+  "name": "@openweave/pr-review-guidance",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "bun test tests"
+  }
+}

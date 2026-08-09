@@ -1,0 +1,26 @@
+import { type ComputedRef, type InjectionKey, type Ref, inject, provide } from 'vue'
+
+import type { Editor, EditorToolDef, Tool } from '@openweave/core/editor'
+
+export interface ToolbarContext {
+  editor: Editor
+  tools: EditorToolDef[]
+  activeTool: ComputedRef<Tool>
+  flyoutSelections: ReadonlyMap<Tool, Tool>
+  expandedFlyout: Ref<Tool | null>
+  setTool: (tool: Tool) => void
+  toggleFlyout: (tool: Tool) => void
+  closeFlyout: () => void
+}
+
+export const TOOLBAR_KEY: InjectionKey<ToolbarContext> = Symbol('toolbar')
+
+export function provideToolbar(ctx: ToolbarContext) {
+  provide(TOOLBAR_KEY, ctx)
+}
+
+export function useToolbar(): ToolbarContext {
+  const ctx = inject(TOOLBAR_KEY)
+  if (!ctx) throw new Error('[openweave] useToolbar() called outside <ToolbarRoot>')
+  return ctx
+}

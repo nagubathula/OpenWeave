@@ -1,0 +1,5 @@
+{
+  "name": "@openweave/tauri-menu-tools",
+  "private": true,
+  "type": "module"
+}
