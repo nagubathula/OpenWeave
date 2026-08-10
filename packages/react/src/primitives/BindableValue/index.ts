@@ -7,6 +7,5 @@ export type {
   BindableValueContext,
   BindableValueRootProps,
   BindableValueSlotProps,
-  BindableValueStateAttrs,
-  BindableValueTriggerProps
+  BindableValueStateAttrs
 } from './types'

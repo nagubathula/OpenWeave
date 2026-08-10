@@ -20,7 +20,7 @@ export function ColorInputRoot({
 }: ColorInputRootProps) {
   const model = useColorModel({
     color,
-    okhcl,
+    okhcl: okhcl?.okhcl ?? null,
     onUpdate
   })
 

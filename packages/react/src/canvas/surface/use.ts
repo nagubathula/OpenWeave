@@ -1,5 +1,5 @@
 import type { CanvasKit } from 'canvaskit-wasm'
-import type { RefObject } from 'react'
+import { useMemo, useRef, type RefObject } from 'react'
 
 import type { Editor } from '@openweave/core/editor'
 
@@ -26,38 +26,54 @@ export function useCanvas(
 ) {
   // Canvas surface code expects a .value accessor (Vue-style).
   // Wrap the React .current ref into a .value adapter.
-  const canvasRefAdapter = {
-    get value() { return canvasRef.current }
-  }
+  const canvasRefAdapter = useMemo(
+    () => ({ get value() { return canvasRef.current } }),
+    [canvasRef]
+  )
 
-  let ck: CanvasKit | null = null
-  const lifecycle: { destroyed: boolean } = { destroyed: false }
-  const isDestroyed = () => lifecycle.destroyed
+  // CanvasKit handle and lifecycle flag must stay stable across renders — the
+  // init effect writes them, and the render loop/renderNow read them.
+  const ckRef = useRef<CanvasKit | null>(null)
+  const lifecycleRef = useRef<{ destroyed: boolean }>({ destroyed: false })
+
+  // `createRulerVisibility` calls a hook, so it must run every render; expose the
+  // latest through a ref so the stable surface can read it.
   const shouldShowRulers = createRulerVisibility(options)
+  const shouldShowRulersRef = useRef(shouldShowRulers)
+  shouldShowRulersRef.current = shouldShowRulers
 
-  const surface = createCanvasSurfaceManager({
-    editor,
-    canvasRef: canvasRefAdapter,
-    options,
-    getCanvasKit: () => ck,
-    isDestroyed,
-    shouldShowRulers
-  })
+  // The surface manager owns the SkiaRenderer, GL surface, and render loop. It
+  // MUST be a single stable instance: the init effect sets its renderer, and the
+  // render loop + returned renderNow must read that same instance. Recreating it
+  // per render (the previous behavior) left the render loop pointed at an
+  // instance whose renderer was never initialized, so nothing ever painted.
+  const surfaceRef = useRef<ReturnType<typeof createCanvasSurfaceManager> | null>(null)
+  if (!surfaceRef.current) {
+    surfaceRef.current = createCanvasSurfaceManager({
+      editor,
+      canvasRef: canvasRefAdapter,
+      options,
+      getCanvasKit: () => ckRef.current,
+      isDestroyed: () => lifecycleRef.current.destroyed,
+      shouldShowRulers: () => shouldShowRulersRef.current()
+    })
+  }
+  const surface = surfaceRef.current
 
   useCanvasSurfaceLifecycle({
     canvasRef: canvasRefAdapter,
     surface,
-    lifecycle,
-    getCanvasKitValue: () => ck,
+    lifecycle: lifecycleRef.current,
+    getCanvasKitValue: () => ckRef.current,
     setCanvasKit: (value) => {
-      ck = value
+      ckRef.current = value
     },
     onReady: options?.onReady
   })
 
-  const { hitTestSectionTitle, hitTestComponentLabel, hitTestFrameTitle } = createCanvasHitTests(
-    editor,
-    surface.getRenderer
+  const { hitTestSectionTitle, hitTestComponentLabel, hitTestFrameTitle } = useMemo(
+    () => createCanvasHitTests(editor, surface.getRenderer),
+    [editor, surface]
   )
 
   return {

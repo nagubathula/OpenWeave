@@ -13,8 +13,8 @@ function createNumberFieldPart(part: NumberFieldPartName) {
       return () =>
         h(
           'span',
-          { ...attrs, ...ctx.stateAttrs.value, 'data-slot': part },
-          slots.default?.(ctx.slotProps.value)
+          { ...attrs, ...ctx.stateAttrs, 'data-slot': part },
+          slots.default?.(ctx.slotProps)
         )
     }
   })

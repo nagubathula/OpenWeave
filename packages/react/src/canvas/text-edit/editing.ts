@@ -1,5 +1,5 @@
 import { useIntervalFn } from '@vueuse/core'
-import type { ShallowRef } from 'vue'
+import type { RefObject } from 'react'
 
 import type { Editor } from '@openweave/core/editor'
 import { adjustRunsForDelete, adjustRunsForInsert } from '@openweave/core/text'
@@ -29,7 +29,7 @@ export function createCaretBlink(store: Editor) {
 }
 
 type TextCompositionOptions = {
-  textareaRef: ShallowRef<HTMLTextAreaElement | null>
+  textareaRef: RefObject<HTMLTextAreaElement | null>
   getEditingNode: () => SceneNode | null
   insertText: (text: string, node: SceneNode) => void
   replaceComposedText: (text: string, node: SceneNode) => void
@@ -68,7 +68,7 @@ export function createTextCompositionHandlers({
   }
 
   function onCompositionEnd(e: CompositionEvent) {
-    const finalText = textareaRef.value?.value || e.data || ''
+    const finalText = textareaRef.current?.value || e.data || ''
     isComposing = false
     const node = getEditingNode()
     if (!node) {
@@ -84,12 +84,12 @@ export function createTextCompositionHandlers({
       restoreComposition(node)
       finishComposition()
     }
-    if (textareaRef.value) textareaRef.value.value = ''
+    if (textareaRef.current) textareaRef.current.value = ''
     resetBlink()
   }
 
   function onInput() {
-    const el = textareaRef.value
+    const el = textareaRef.current
     if (!el) return
 
     if (isComposing) {

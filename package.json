@@ -28,9 +28,9 @@
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
     "tauri": "tauri",
-    "lint": "bun run lint:structure && oxlint -c oxlint.json --type-aware --type-check src/ packages/scene-graph/src/ packages/core/src/ packages/vue/src/ packages/cli/src/ packages/mcp/src/ packages/dom-css/src/ packages/pen/src/ packages/kiwi/src/ packages/fig/src/",
-    "lint:structure": "oxlint -c oxlint.json vite.config.ts vite/ .storybook/ src/ packages/scene-graph/src/ packages/scene-graph/scripts/ packages/core/src/ packages/vue/src/ packages/cli/src/ packages/mcp/src/ packages/dom-css/src/ packages/dom-css/tests/ packages/dom-css/scripts/ packages/pen/src/ packages/pen/scripts/ packages/kiwi/src/ packages/kiwi/tests/ packages/kiwi/scripts/ packages/fig/src/ packages/fig/tests/ packages/fig/scripts/ tests/ scripts/ tools/",
-    "format": "oxfmt --write .oxfmtrc.json vite.config.ts vite/ .storybook/ src/ packages/scene-graph/src/ packages/scene-graph/scripts/ packages/core/src/ packages/cli/src/ packages/mcp/src/ packages/vue/src/ packages/dom-css/src/ packages/dom-css/tests/ packages/dom-css/scripts/ packages/pen/src/ packages/pen/scripts/ packages/kiwi/src/ packages/kiwi/tests/ packages/kiwi/scripts/ packages/fig/src/ packages/fig/tests/ packages/fig/scripts/ tests scripts/ tools/",
+    "lint": "bun run lint:structure && oxlint -c oxlint.json --type-aware --type-check src/ packages/scene-graph/src/ packages/core/src/ packages/react/src/ packages/cli/src/ packages/mcp/src/ packages/dom-css/src/ packages/pen/src/ packages/kiwi/src/ packages/fig/src/",
+    "lint:structure": "oxlint -c oxlint.json vite.config.ts vite/ .storybook/ src/ packages/scene-graph/src/ packages/scene-graph/scripts/ packages/core/src/ packages/react/src/ packages/cli/src/ packages/mcp/src/ packages/dom-css/src/ packages/dom-css/tests/ packages/dom-css/scripts/ packages/pen/src/ packages/pen/scripts/ packages/kiwi/src/ packages/kiwi/tests/ packages/kiwi/scripts/ packages/fig/src/ packages/fig/tests/ packages/fig/scripts/ tests/ scripts/ tools/",
+    "format": "oxfmt --write .oxfmtrc.json vite.config.ts vite/ .storybook/ src/ packages/scene-graph/src/ packages/scene-graph/scripts/ packages/core/src/ packages/cli/src/ packages/mcp/src/ packages/react/src/ packages/dom-css/src/ packages/dom-css/tests/ packages/dom-css/scripts/ packages/pen/src/ packages/pen/scripts/ packages/kiwi/src/ packages/kiwi/tests/ packages/kiwi/scripts/ packages/fig/src/ packages/fig/tests/ packages/fig/scripts/ tests scripts/ tools/",
     "format:check": "bun run format && status=$(git status --porcelain -uall) && test -z \"$status\" || (echo \"$status\" && exit 1)",
     "check": "bun run build:packages && bun run lint && tsgo --noEmit && bun run check:react && bun run check:i18n && bun run check:packages && bun run check:deps && bun run check:audit && bun run check:secrets && bun run check:monorepo && bun run check:arch && bun run test:type-shapes && bun run test:tools && bun run test:dupes",
     "check:deps": "knip --include unlisted,unresolved,binaries",
@@ -62,6 +62,7 @@
     "generate:tauri-menu": "bun tools/tauri-menu/src/generate.ts"
   },
   "dependencies": {
+    "@acemir/cssom": "^0.9.31",
     "@ai-sdk/anthropic": "^3.0.74",
     "@ai-sdk/deepseek": "^2.0.34",
     "@ai-sdk/google": "^3.0.67",
@@ -162,6 +163,7 @@
     "oxlint": "^1.50.0",
     "oxlint-tsgolint": "^0.16.0",
     "publint": "0.3.20",
+    "raw-loader": "^4.0.2",
     "sherif": "1.12.0",
     "steiger": "^0.5.12",
     "storybook": "^10.4.0",

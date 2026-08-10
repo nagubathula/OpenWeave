@@ -1,10 +1,16 @@
-import { inject, type InjectionKey } from 'vue'
+import { createContext, useContext } from 'react'
 
 import type { useCollab } from '@/app/collab/use'
 
 export type CollabReturn = ReturnType<typeof useCollab>
-export const COLLAB_KEY = Symbol('collab') as InjectionKey<CollabReturn>
 
-export function useCollabInjected() {
-  return inject(COLLAB_KEY)
+/**
+ * React context carrying the active collaboration (multiplayer) session.
+ * `null` when collaboration is not active — consumers guard with `?.`.
+ */
+export const CollabContext = createContext<CollabReturn | null>(null)
+export const CollabProvider = CollabContext.Provider
+
+export function useCollabInjected(): CollabReturn | null {
+  return useContext(CollabContext)
 }

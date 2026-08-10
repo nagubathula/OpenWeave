@@ -1,4 +1,4 @@
-import type { Component } from 'vue'
+import type { ComponentType } from 'react'
 
 import type { EditorCommandId } from '#react/editor/commands/types'
 import type { TestId } from '#react/testing/test-id'
@@ -7,7 +7,7 @@ export interface MenuActionNode {
   separator?: false
   id?: EditorCommandId
   label: string
-  icon?: Component
+  icon?: ComponentType
   shortcut?: string
   action?: () => void
   disabled?: boolean

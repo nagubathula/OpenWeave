@@ -1,4 +1,4 @@
-import React, { ElementType } from 'react'
+import type React from 'react'
 
 export type PropertyGridColumns = 1 | 2 | 3
 export type PropertyGridDistribution = 'equal' | 'wide-first'

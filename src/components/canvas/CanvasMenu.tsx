@@ -1,4 +1,4 @@
-import React, { ComponentType } from 'react'
+import React, { type ComponentType } from 'react'
 import * as ContextMenu from '@radix-ui/react-context-menu'
 import {
   Combine as IconCombine,
@@ -28,7 +28,7 @@ import { canvasMenuItemClass, canvasMenuShortcutClass } from '@/app/editor/canva
 import AppShortcutText from '@/components/ui/AppShortcutText'
 import { menu, useMenuUI } from '@/components/ui/menu'
 
-const booleanCommandIcons: Partial<Record<EditorCommandId, ComponentType<any>>> = {
+const booleanCommandIcons: Partial<Record<EditorCommandId, ComponentType<{ className?: string }>>> = {
   'selection.booleanUnion': IconCombine,
   'selection.booleanSubtract': IconCopyMinus,
   'selection.booleanIntersect': IconSquaresIntersect,
@@ -42,7 +42,7 @@ function contextCommandTestId(id?: EditorCommandId): string | undefined {
   return id ? editorCommandMetadata(id).contextTestId : undefined
 }
 
-function contextCommandIcon(id?: EditorCommandId): ComponentType<any> | undefined {
+function contextCommandIcon(id?: EditorCommandId): ComponentType<{ className?: string }> | undefined {
   if (!id) return undefined
   return booleanCommandIcons[id]
 }
@@ -55,7 +55,7 @@ export default function CanvasMenu() {
   const { canvasMenu } = useMenuModel()
   const { menu: t } = useI18n()
 
-  const canvasMenuActions = createCanvasMenuActions(store, selectedIds)
+  const canvasMenuActions = createCanvasMenuActions(store, Array.from(selectedIds))
   const { execCommand } = canvasMenuActions
   const contextMenu = useCanvasContextMenu(canvasMenu, hasSelection, editor, canvasMenuActions, t)
 
@@ -74,7 +74,7 @@ export default function CanvasMenu() {
   }
 
   return (
-    <ContextMenu.Content className={cls.menu} sideOffset={2} align="start">
+    <ContextMenu.Content className={cls.menu}>
       <ContextMenu.Item
         data-test-id="context-copy"
         className={cls.item}
@@ -105,7 +105,7 @@ export default function CanvasMenu() {
         data-test-id="context-paste-to-replace"
         className={cls.item}
         disabled={!hasSelection}
-        onSelect={() => canvasMenuActions.pasteToReplace()}
+        onSelect={() => { void canvasMenuActions.pasteToReplace() }}
       >
         <span>{t.pasteToReplace}</span>
       </ContextMenu.Item>
@@ -133,43 +133,44 @@ export default function CanvasMenu() {
       </ContextMenu.Item>
 
       {contextMenu.map((item, i) => {
-        if (item.separator) {
+        const node = item as any
+        if (node.separator) {
           return <ContextMenu.Separator key={`menu-${i}`} className={cls.sep} />
         }
 
-        if (item.sub) {
+        if (node.sub) {
           return (
             <ContextMenu.Sub key={`menu-${i}`}>
-              <ContextMenu.SubTrigger data-test-id={item.testId} className={cls.item}>
-                <span>{item.label}</span>
+              <ContextMenu.SubTrigger data-test-id={node.testId} className={cls.item}>
+                <span>{node.label}</span>
                 <span className="text-sm text-muted">›</span>
               </ContextMenu.SubTrigger>
               <ContextMenu.Portal>
                 <ContextMenu.SubContent className={cls.submenu}>
-                  {item.sub.map((sub, j) => {
-                    const SubIcon = contextCommandIcon(sub.id)
+                  {node.sub.map((subItem: any, j: number) => {
+                    const SubIcon = contextCommandIcon(subItem.id)
                     return (
                       <ContextMenu.Item
                         key={j}
                         className={cls.item}
-                        data-test-id={sub.separator ? undefined : sub.testId}
-                        disabled={sub.separator ? true : sub.disabled}
+                        data-test-id={subItem.separator ? undefined : subItem.testId}
+                        disabled={subItem.separator ? true : subItem.disabled}
                         onSelect={(e) => {
-                          if (!sub.separator && sub.action) {
-                            sub.action()
+                          if (!subItem.separator && subItem.action) {
+                            subItem.action()
                           } else {
                             e.preventDefault()
                           }
                         }}
                       >
-                        {!sub.separator && (
+                        {!subItem.separator && (
                           <>
                             <span className="flex min-w-0 flex-1 items-center gap-2">
                               {SubIcon && <SubIcon className="size-3.5 shrink-0 text-muted" />}
-                              <span className="truncate">{sub.label}</span>
+                              <span className="truncate">{subItem.label}</span>
                             </span>
-                            {sub.shortcut && (
-                              <AppShortcutText>{sub.shortcut}</AppShortcutText>
+                            {subItem.shortcut && (
+                              <AppShortcutText>{subItem.shortcut}</AppShortcutText>
                             )}
                           </>
                         )}
@@ -182,16 +183,16 @@ export default function CanvasMenu() {
           )
         }
 
-        const ItemIcon = contextCommandIcon(item.id)
+        const ItemIcon = contextCommandIcon(node.id)
         return (
           <ContextMenu.Item
             key={`menu-${i}`}
-            data-test-id={item.testId ?? contextCommandTestId(item.id)}
-            className={canvasMenuItemClass(item.label, cls)}
-            disabled={item.disabled}
+            data-test-id={node.testId ?? contextCommandTestId(node.id)}
+            className={canvasMenuItemClass(node.label, cls)}
+            disabled={node.disabled}
             onSelect={(e) => {
-              if (item.action) {
-                item.action()
+              if (node.action) {
+                node.action()
               } else {
                 e.preventDefault()
               }
@@ -199,11 +200,11 @@ export default function CanvasMenu() {
           >
             <span className="flex min-w-0 flex-1 items-center gap-2">
               {ItemIcon && <ItemIcon className="size-3.5 shrink-0 text-muted" />}
-              <span className="truncate">{item.label}</span>
+              <span className="truncate">{node.label}</span>
             </span>
-            {item.shortcut && (
-              <span className={`text-[11px] ${canvasMenuShortcutClass(item.label)}`}>
-                {item.shortcut}
+            {node.shortcut && (
+              <span className={`text-[11px] ${canvasMenuShortcutClass(node.label)}`}>
+                {node.shortcut}
               </span>
             )}
           </ContextMenu.Item>

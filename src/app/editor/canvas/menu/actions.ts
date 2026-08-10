@@ -1,5 +1,4 @@
 import { useClipboard } from '@vueuse/core'
-import type { Ref } from 'vue'
 
 import { nodeToXPath } from '@openweave/core/xpath'
 
@@ -17,11 +16,11 @@ function toArrayBuffer(data: Uint8Array): ArrayBuffer {
   return bytes.buffer
 }
 
-export function createCanvasMenuActions(store: EditorStore, selectedIds: Ref<Set<string>>) {
+export function createCanvasMenuActions(store: EditorStore, selectedIds: string[]) {
   const { copy } = useClipboard()
 
   function ids() {
-    return [...selectedIds.value]
+    return selectedIds
   }
 
   function execCommand(cmd: 'copy' | 'cut' | 'paste') {
@@ -78,7 +77,7 @@ export function createCanvasMenuActions(store: EditorStore, selectedIds: Ref<Set
     copyXPath,
     copyAsPNG,
     canVectorizeImage: () => {
-      void selectedIds.value
+      void selectedIds
       return canVectorizeImageNode(store)
     },
     vectorizeImage: async () => {

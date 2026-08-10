@@ -1,27 +1,20 @@
-import type { Ref } from 'vue'
-
 import type { Editor } from '@openweave/core/editor'
 import type { Effect, SceneNode } from '@openweave/scene-graph'
 import type { Color } from '@openweave/scene-graph/primitives'
 
-import { useI18n } from '#react/i18n/useI18n.js'
-
 type EffectType = Effect['type']
 
-const { panels } = useI18n()
+export const EFFECT_TYPES: EffectType[] = [
+  'DROP_SHADOW',
+  'INNER_SHADOW',
+  'LAYER_BLUR',
+  'BACKGROUND_BLUR',
+  'FOREGROUND_BLUR'
+]
 
-const EFFECT_LABELS: Record<string, string> = {
-  DROP_SHADOW: panels.value.dropShadow,
-  INNER_SHADOW: panels.value.innerShadow,
-  LAYER_BLUR: panels.value.layerBlur,
-  BACKGROUND_BLUR: panels.value.backgroundBlur,
-  FOREGROUND_BLUR: panels.value.foregroundBlur
-}
-
-export const EFFECT_TYPES = Object.keys(EFFECT_LABELS) as EffectType[]
 export const EFFECT_OPTIONS = EFFECT_TYPES.map((t) => ({
   value: t,
-  label: EFFECT_LABELS[t]
+  label: t.replace('_', ' ')
 }))
 
 export function isShadow(type: string) {
@@ -46,12 +39,12 @@ export interface EffectEditSnapshot {
 
 export function createEffectEditActions(
   editor: Editor,
-  effectsBeforeScrub: Ref<EffectEditSnapshot | null>
+  effectsBeforeScrub: { current: EffectEditSnapshot | null }
 ) {
   function scrubEffect(node: SceneNode | null, index: number, changes: Partial<Effect>) {
     if (!node) return
-    if (!effectsBeforeScrub.value) {
-      effectsBeforeScrub.value = {
+    if (!effectsBeforeScrub.current) {
+      effectsBeforeScrub.current = {
         effects: node.effects.map((e) => ({
           ...e,
           color: { ...e.color },
@@ -68,8 +61,8 @@ export function createEffectEditActions(
 
   function commitEffect(node: SceneNode | null, index: number, changes: Partial<Effect>) {
     if (!node) return
-    const previous = effectsBeforeScrub.value
-    effectsBeforeScrub.value = null
+    const previous = effectsBeforeScrub.current
+    effectsBeforeScrub.current = null
     const effects = [...node.effects]
     effects[index] = { ...effects[index], ...changes }
     editor.updateNode(node.id, { effects })
@@ -86,7 +79,7 @@ export function createEffectEditActions(
   return { scrubEffect, commitEffect }
 }
 
-export function createEffectControlActions(expandedIndex: Ref<number | null>) {
+export function createEffectControlActions(expandedIndexState: { value: number | null; setValue: (v: number | null) => void }) {
   function updateType(
     patch: (index: number, changes: Partial<Effect>) => void,
     node: SceneNode | null,
@@ -114,8 +107,8 @@ export function createEffectControlActions(expandedIndex: Ref<number | null>) {
   }
 
   function adjustExpandedAfterRemove(index: number) {
-    if (expandedIndex.value === index) expandedIndex.value = null
-    else if (expandedIndex.value !== null && expandedIndex.value > index) expandedIndex.value--
+    if (expandedIndexState.value === index) expandedIndexState.setValue(null)
+    else if (expandedIndexState.value !== null && expandedIndexState.value > index) expandedIndexState.setValue(expandedIndexState.value - 1)
   }
 
   function handleRemove(removeFn: (index: number) => void, index: number) {
@@ -124,7 +117,7 @@ export function createEffectControlActions(expandedIndex: Ref<number | null>) {
   }
 
   function toggleExpand(index: number) {
-    expandedIndex.value = expandedIndex.value === index ? null : index
+    expandedIndexState.setValue(expandedIndexState.value === index ? null : index)
   }
 
   return { updateType, updateColor, handleRemove, adjustExpandedAfterRemove, toggleExpand }

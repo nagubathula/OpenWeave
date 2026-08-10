@@ -1,4 +1,4 @@
-import React, { useMemo, useCallback, type ElementType } from 'react'
+import React, { useCallback, type ElementType } from 'react'
 import { colorToCSS, colorToHexRaw } from '@openweave/core/color'
 import { Slot } from '@radix-ui/react-slot'
 

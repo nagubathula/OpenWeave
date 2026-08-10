@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState, useEffect } from 'react'
+import React, { useMemo, useRef } from 'react'
 import {
   AUTO_LAYOUT_PADDING_EDITOR_OFFSET_X,
   AUTO_LAYOUT_PADDING_EDITOR_OFFSET_Y
@@ -18,21 +18,8 @@ import { useCollabInjected } from '@/app/collab/use'
 import { useEditorStore } from '@/app/editor/active-store'
 import { useCanvasCollaborationAwareness } from '@/app/editor/canvas/collaboration-awareness'
 import { createCanvasContextSelection } from '@/app/editor/canvas/context-selection'
-import {
-  PanelBottom as IconLucidePanelBottom,
-  PanelLeft as IconLucidePanelLeft,
-  PanelRight as IconLucidePanelRight,
-  PanelTop as IconLucidePanelTop,
-  Pencil as IconLucidePencilLine
-} from 'lucide-react'
+import { Pencil as IconLucidePencilLine } from 'lucide-react'
 import CanvasMenu from './canvas/CanvasMenu'
-
-const paddingSideIcons = {
-  top: IconLucidePanelTop,
-  right: IconLucidePanelRight,
-  bottom: IconLucidePanelBottom,
-  left: IconLucidePanelLeft
-}
 
 export default function EditorCanvas() {
   const store = useEditorStore()
@@ -88,8 +75,7 @@ export default function EditorCanvas() {
     return { x: abs.x + node.width - node.paddingRight / 2, y: abs.y + node.height / 2 }
   }, [autoLayoutPaddingEdit, store.graph])
 
-  const paddingEditorReference = useCanvasVirtualReference(canvasRef, store, paddingEditorAnchor)
-  const PaddingEditorIcon = autoLayoutPaddingEdit ? paddingSideIcons[autoLayoutPaddingEdit.side] : IconLucidePanelTop
+  useCanvasVirtualReference(canvasRef, store, paddingEditorAnchor)
 
   const cursor = toolCursor(store.state.activeTool, cursorOverride)
 
@@ -122,10 +108,9 @@ export default function EditorCanvas() {
 
           <Popover.Root open={!!autoLayoutPaddingEdit}>
             <Popover.Portal>
-              {autoLayoutPaddingEdit && paddingEditorReference && (
+              {autoLayoutPaddingEdit && (
                 <Popover.Content
-                  // @ts-ignore
-                  onInteractOutside={(e) => {
+                  onInteractOutside={() => {
                     commitAutoLayoutPaddingEdit(autoLayoutPaddingEdit.value)
                   }}
                   onEscapeKeyDown={(e) => {

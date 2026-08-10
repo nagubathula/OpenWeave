@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo, type ReactNode } from 'react'
+import React, { useState, useCallback, useMemo } from 'react'
 import * as Collapsible from '@radix-ui/react-collapsible'
 import { PropertySectionProvider } from './context'
 import type {
@@ -13,7 +13,7 @@ export function PropertySectionRoot({
   defaultOpen = true,
   empty: emptyProp = false,
   disabled: disabledProp = false,
-  unmountOnHide = false,
+  unmountOnHide: _unmountOnHide = false,
   onOpenChange,
   asChild,
   children,

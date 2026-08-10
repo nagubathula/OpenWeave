@@ -22,7 +22,7 @@ type CanvasMenuTranslations = {
 
 export type CanvasMenuOptions = {
   commandMenuItem: CommandMenuItem
-  otherPages: ReturnType<typeof useEditorCommands>['otherPages']['value']
+  otherPages: ReturnType<typeof useEditorCommands>['otherPages']
   moveSelectionToPage: ReturnType<typeof useEditorCommands>['moveSelectionToPage']
   selection: SelectionState
   t: CanvasMenuTranslations
@@ -57,7 +57,7 @@ function separator(): MenuSeparatorNode {
 }
 
 function moveToPageItem({ otherPages, moveSelectionToPage, selection, t }: CanvasMenuOptions) {
-  if (!selection.hasSelection.value || otherPages.length === 0) return []
+  if (!selection.hasSelection || !otherPages || otherPages.length === 0) return []
   const sub = otherPages.map((page) => ({
     label: page.name,
     action: () => moveSelectionToPage(page.id)
@@ -67,20 +67,20 @@ function moveToPageItem({ otherPages, moveSelectionToPage, selection, t }: Canva
 
 function componentItems({ commandMenuItem, selection }: CanvasMenuOptions): MenuEntry[] {
   return [
-    selection.isComponent.value
+    selection.isComponent
       ? commandMenuItem('selection.createInstance')
       : commandMenuItem('selection.createComponent')
   ]
 }
 
 function componentSetItems({ commandMenuItem, selection }: CanvasMenuOptions): MenuEntry[] {
-  return selection.canCreateComponentSet.value
+  return selection.canCreateComponentSet
     ? [commandMenuItem('selection.createComponentSet')]
     : []
 }
 
 function instanceItems({ commandMenuItem, selection }: CanvasMenuOptions): MenuEntry[] {
-  return selection.isInstance.value
+  return selection.isInstance
     ? [commandMenuItem('selection.goToMainComponent'), commandMenuItem('selection.detachInstance')]
     : []
 }
@@ -96,7 +96,7 @@ function conditionalCommand(command: CanvasMenuCommand, options: CanvasMenuOptio
     case 'selection.instanceActions':
       return instanceItems(options)
     case 'selection.ungroupWhenGroup':
-      return options.selection.isGroup.value ? [options.commandMenuItem('selection.ungroup')] : []
+      return options.selection.isGroup ? [options.commandMenuItem('selection.ungroup')] : []
     default:
       return [options.commandMenuItem(command)]
   }

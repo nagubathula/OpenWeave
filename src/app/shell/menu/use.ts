@@ -68,7 +68,8 @@ export function useMenu() {
       store.state.autosaveEnabled = !store.state.autosaveEnabled
     },
     ...createSelectionMenuActions(store),
-    'check-updates': () => void checkForAppUpdate({ messages: dialogs }),
+    // oxlint-disable-next-line openweave/no-broad-double-cast
+    'check-updates': () => void checkForAppUpdate({ messages: { value: dialogs } as unknown as Parameters<typeof checkForAppUpdate>[0]['messages'] }),
     settings: openSettingsDialog,
     ...createSharedEditorMenuActions(setTheme)
   }

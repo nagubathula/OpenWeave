@@ -35,12 +35,10 @@ export function useEditorCommands() {
   // shape { value: Record<string,string> }. Wrap the nanostores value to match.
   const t = useMemo(() => ({ value: tRaw }), [tRaw])
 
-  const otherPagesArray = useMemo(() =>
+  const otherPages = useMemo(() =>
     pages.filter((page) => page.id !== editor.state.currentPageId),
     [pages, editor.state.currentPageId]
   )
-  // Context types otherPages as ComputedRef; wrap as a ref-like object.
-  const otherPages = useMemo(() => ({ value: otherPagesArray }), [otherPagesArray])
 
   function moveSelectionToPage(pageId: string) {
     if (!capabilities.canMoveToPage) return
@@ -57,7 +55,7 @@ export function useEditorCommands() {
     selection,
     capabilities,
     messages: t,
-    otherPages: otherPages as any,
+    otherPages,
     moveSelectionToPage,
     getOpacityTarget: () => opacityTarget.current
   }), [editor, selection, capabilities, t, otherPages, opacityTarget])

@@ -1,4 +1,4 @@
-import { useMemo, useRef, useCallback } from 'react'
+import { useRef, useCallback } from 'react'
 
 import type { Editor } from '@openweave/core/editor'
 import type { Effect, Fill, SceneNode, Stroke } from '@openweave/scene-graph'
@@ -6,7 +6,7 @@ import type { Effect, Fill, SceneNode, Stroke } from '@openweave/scene-graph'
 import { useSceneComputed } from '#react/internal/scene-computed/use'
 
 export const MIXED = Symbol('mixed')
-export type MixedValue<T> = T | typeof MIXED
+export type MixedValue<T> = T | typeof MIXED | symbol
 
 export type ArrayItem = Fill | Stroke | Effect | Record<string, unknown>
 
@@ -131,7 +131,7 @@ export function useNodePropArrayActions({
     label: string
   ) => {
     for (const n of targetNodes()) {
-      const arr = [...(n[key] as any[])]
+      const arr = [...(n[key] as ArrayItem[])]
       arr[index] = { ...arr[index], ...patch } as (typeof arr)[number]
       store.updateNodeWithUndo(n.id, { [key]: arr } as Partial<SceneNode>, label)
     }
@@ -151,7 +151,7 @@ export function useNodePropArrayActions({
     for (const n of targetNodes()) {
       const items = n[key] as Array<{ visible: boolean }>
       if (!items[index]) continue
-      const arr = [...(n[key] as any[])]
+      const arr = [...(n[key] as ArrayItem[])]
       arr[index] = { ...arr[index], visible: !items[index].visible }
       store.updateNodeWithUndo(
         n.id,

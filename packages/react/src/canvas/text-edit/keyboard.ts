@@ -1,3 +1,5 @@
+import type { RefObject } from 'react'
+
 import type { Editor } from '@openweave/core/editor'
 import type { SceneNode } from '@openweave/scene-graph'
 
@@ -5,7 +7,7 @@ import { extendSelectionForDeletion, handleNavigationKey } from './navigation'
 
 type TextKeyboardOptions = {
   store: Editor
-  canvasRef: { value: HTMLCanvasElement | null }
+  canvasRef: RefObject<HTMLCanvasElement | null>
   getEditingNode: () => SceneNode | null
   isComposing: () => boolean
   insertText: (text: string, node: SceneNode) => void
@@ -50,7 +52,7 @@ export function createTextKeyDownHandler(options: TextKeyboardOptions) {
 
     if (e.code === 'Escape') {
       options.store.commitTextEdit()
-      options.canvasRef.value?.focus()
+      options.canvasRef.current?.focus()
       e.preventDefault()
       return
     }

@@ -185,9 +185,9 @@ export function NumberFieldRoot({
   const stopScrubListeners = useCallback(() => {
     const iState = interactionRef.current
     const target = iState.scrubTarget ?? document
-    if (iState.stopMove) target.removeEventListener('pointermove', iState.stopMove as any)
-    if (iState.stopUp) target.removeEventListener('pointerup', iState.stopUp as any)
-    if (iState.stopCancel) target.removeEventListener('pointercancel', iState.stopCancel as any)
+    if (iState.stopMove) target.removeEventListener('pointermove', iState.stopMove as EventListener)
+    if (iState.stopUp) target.removeEventListener('pointerup', iState.stopUp as EventListener)
+    if (iState.stopCancel) target.removeEventListener('pointercancel', iState.stopCancel as EventListener)
     
     iState.stopMove = undefined
     iState.stopUp = undefined
@@ -262,9 +262,9 @@ export function NumberFieldRoot({
     iState.stopUp = onUp
     iState.stopCancel = onCancel
 
-    listenerTarget.addEventListener('pointermove', onMove as any)
-    listenerTarget.addEventListener('pointerup', onUp as any)
-    listenerTarget.addEventListener('pointercancel', onCancel as any)
+    listenerTarget.addEventListener('pointermove', onMove as EventListener)
+    listenerTarget.addEventListener('pointerup', onUp as EventListener)
+    listenerTarget.addEventListener('pointercancel', onCancel as EventListener)
   }, [canMutate, beginInteraction, numericValue, requestMutation, stepValue, sensitivity, updateValue, stopScrubListeners, restoreInteractionValue, binding?.actions, startEdit, workingValue, onCommit])
 
   const stepValueFromKeyboard = useCallback((event: React.KeyboardEvent) => {

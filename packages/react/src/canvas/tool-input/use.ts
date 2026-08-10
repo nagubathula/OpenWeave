@@ -1,5 +1,3 @@
-import type { Ref } from 'vue'
-
 import type { Editor } from '@openweave/core/editor'
 
 import { startPenInput } from '#react/canvas/pen-input/use'
@@ -17,7 +15,7 @@ type ToolMouseDownOptions = {
   sy: number
   editor: Editor
   hitFns: HitTestFns
-  cursorOverride: Ref<string | null>
+  cursorOverride: (value: string | null) => void
   setDrag: (d: DragState) => void
   tryStartRotation: (cx: number, cy: number) => boolean
   handleTextEditClick: (cx: number, cy: number, shiftKey: boolean) => boolean

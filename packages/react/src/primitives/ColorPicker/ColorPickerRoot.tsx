@@ -23,7 +23,7 @@ export function ColorPickerRoot({
   color,
   label = 'Edit color',
   ui,
-  onUpdate,
+  onUpdate: _onUpdate,
   onOpenChange,
   onCancel,
   trigger,

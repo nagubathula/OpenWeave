@@ -20,7 +20,7 @@ export function duplicateAndDrag(
     if (!source) continue
     const parentId = source.parentId ?? editor.state.currentPageId
     const clone = editor.graph.cloneTree(id, parentId, {
-      name: source.name + panels.value.nodeCopyString || ' copy'
+      name: source.name + (panels.nodeCopyString || ' copy')
     })
     if (!clone) continue
     newIds.push(clone.id)

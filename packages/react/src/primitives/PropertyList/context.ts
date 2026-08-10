@@ -1,6 +1,7 @@
 import { createContext, useContext } from 'react'
 import type { PropertyListContext, PropertyListKey } from './types'
 
+// oxlint-disable-next-line typescript-eslint/no-explicit-any
 const PropertyListReactContext = createContext<PropertyListContext<any> | null>(null)
 
 export function usePropertyList<K extends PropertyListKey>(): PropertyListContext<K> {

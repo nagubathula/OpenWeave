@@ -1,4 +1,4 @@
-import React, { type ReactNode } from 'react'
+import React from 'react'
 import * as Collapsible from '@radix-ui/react-collapsible'
 
 import { usePropertySection } from './context'

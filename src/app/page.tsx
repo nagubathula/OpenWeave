@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react'
 import { EditorProvider } from '@openweave/react'
 import { EditorLayout } from '@/components/layout/EditorLayout'
 import { createEditorStore } from '@/app/editor/session'
-import { getActiveEditorStoreOrNull, setActiveEditorStore, useEditorStore } from '@/app/editor/active-store'
+import { getActiveEditorStoreOrNull, setActiveEditorStore } from '@/app/editor/active-store'
 
 export default function Page() {
   const [isReady, setIsReady] = useState(false)
@@ -18,10 +18,11 @@ export default function Page() {
     setIsReady(true)
   }, [])
 
-  if (!isReady) return null
+  const store = getActiveEditorStoreOrNull()
+  if (!isReady || !store) return null
 
   return (
-    <EditorProvider value={getActiveEditorStoreOrNull()!}>
+    <EditorProvider value={store}>
       <EditorLayout />
     </EditorProvider>
   )

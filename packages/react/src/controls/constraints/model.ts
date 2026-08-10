@@ -4,7 +4,7 @@ import type { MIXED } from '#react/controls/node-props/use'
 
 export type ConstraintAxis = 'horizontal' | 'vertical'
 export type ConstraintEdge = 'leading' | 'trailing'
-export type ConstraintValue = ConstraintType | typeof MIXED
+export type ConstraintValue = ConstraintType | typeof MIXED | symbol
 
 const CONSTRAINT_PARENT_TYPES = new Set<SceneNode['type']>([
   'FRAME',

@@ -1,5 +1,5 @@
 import type { Color } from '@openweave/scene-graph/primitives'
-import type { BindableValueActions, BindingTarget } from '@openweave/vue'
+import type { BindableValueActions, BindingTarget } from '@openweave/react'
 
 export type PaintBindingKind = 'fills' | 'strokes'
 

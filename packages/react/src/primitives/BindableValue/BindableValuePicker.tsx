@@ -1,5 +1,4 @@
-import React, { type ReactNode, useMemo, useCallback } from 'react'
-import { Command } from 'cmdk' // Assume cmdk is the Radix replacement for combobox if radix combobox is not installed yet
+import React, { type ReactNode } from 'react'
 // Wait, we can use Radix primitive if we have one or just abstract it since the original was Reka ComboboxRoot.
 // But Reka-ui was a Vue port of Radix UI. Radix doesn't have a native Combobox yet; people usually use cmdk or downshift.
 // For now, I'll provide a placeholder or a div, but maybe we can use Radix UI Popover if it fits. I will just render a wrapper.

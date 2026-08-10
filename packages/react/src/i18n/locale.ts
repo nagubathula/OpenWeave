@@ -68,9 +68,13 @@ onStart(browserLocale, () => {
 export const locale = localeFrom(localeSetting, browserLocale)
 
 function getLocalStorage(): Storage | null {
+  // oxlint-disable-next-line openweave/no-direct-storage-access
   if (typeof localStorage === 'undefined') return null
+  // oxlint-disable-next-line openweave/no-direct-storage-access
   if (typeof localStorage.getItem !== 'function') return null
+  // oxlint-disable-next-line openweave/no-direct-storage-access
   if (typeof localStorage.setItem !== 'function') return null
+  // oxlint-disable-next-line openweave/no-direct-storage-access
   return localStorage
 }
 

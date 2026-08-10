@@ -1,4 +1,4 @@
-import { computed, type ComputedRef, type Ref } from 'vue'
+import { computed, type Ref } from 'vue'
 
 import { BLACK } from '@openweave/core/constants'
 import type { Editor } from '@openweave/core/editor'
@@ -27,7 +27,7 @@ export const DEFAULT_STROKE: Stroke = {
 }
 
 export interface StrokeGeometryStateInput {
-  nodes: ComputedRef<SceneNode[]>
+  nodes: SceneNode[]
   merged: <K extends keyof SceneNode>(key: K) => MixedValue<SceneNode[K]>
 }
 
@@ -41,7 +41,7 @@ export interface StrokeGeometryActions {
 export function createStrokeGeometryState({ nodes, merged }: StrokeGeometryStateInput) {
   return {
     advancedActive: computed(
-      () => nodes.value.length > 0 && nodes.value.every((node) => node.strokes.length > 0)
+      () => nodes.length > 0 && nodes.every((node) => node.strokes.length > 0)
     ),
     cap: computed(() => merged('strokeCap')),
     join: computed(() => merged('strokeJoin')),
@@ -51,12 +51,12 @@ export function createStrokeGeometryState({ nodes, merged }: StrokeGeometryState
 
 export function createStrokeGeometryActions(
   editor: Editor,
-  nodes: ComputedRef<SceneNode[]>
+  nodes: SceneNode[]
 ): StrokeGeometryActions {
   const originalMiterLimits = new Map<string, number>()
 
   function runForSelection(label: string, action: (node: SceneNode) => void) {
-    const selected = nodes.value
+    const selected = nodes
     const run = () => selected.forEach(action)
     if (selected.length > 1) editor.undo.runBatch(label, run)
     else run()
@@ -83,7 +83,7 @@ export function createStrokeGeometryActions(
   }
 
   function updateMiterLimit(value: number) {
-    for (const node of nodes.value) {
+    for (const node of nodes) {
       if (!originalMiterLimits.has(node.id)) originalMiterLimits.set(node.id, node.strokeMiterLimit)
       editor.updateNode(node.id, { strokeMiterLimit: Math.max(1, value) })
     }

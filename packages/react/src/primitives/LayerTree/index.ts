@@ -1,6 +1,6 @@
 export { default as LayerTreeRoot } from './LayerTreeRoot'
 export { default as LayerTreeItem } from './LayerTreeItem'
-export { provideLayerTree, useLayerTree } from './context'
+export { useLayerTree } from './context'
 export type {
   LayerNode,
   LayerRow,

@@ -1,7 +1,7 @@
 import { createContext, useContext } from 'react'
 import type { BindableValueContext } from './types'
 
-const BindableValueReactContext = createContext<BindableValueContext<any> | null>(null)
+const BindableValueReactContext = createContext<BindableValueContext<unknown> | null>(null)
 
 export function useBindableValue<V>(): BindableValueContext<V> {
   const context = useContext(BindableValueReactContext)

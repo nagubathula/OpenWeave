@@ -1,78 +1,89 @@
-import { onClickOutside } from '@vueuse/core'
-import { nextTick, ref, type Ref } from 'vue'
-
+import React, { useState, useRef, useCallback, useEffect } from 'react'
 import { blurTarget } from '#react/shared/dom-events'
 
 export interface InlineRenameState<T extends string> {
-  editingId: Ref<T | null>
+  editingId: T | null
   start: (id: T, currentName: string) => void
-  focusInput: (input: HTMLInputElement | null) => Promise<void>
-  commit: (id: T, eventOrInput: Event | HTMLInputElement) => void
+  focusInput: (input: HTMLInputElement | null) => void
+  commit: (id: T, eventOrInput: React.SyntheticEvent<HTMLInputElement> | HTMLInputElement | Event) => void
   cancel: () => void
-  onKeydown: (e: KeyboardEvent) => void
+  onKeydown: (e: React.KeyboardEvent<HTMLInputElement> | KeyboardEvent) => void
 }
 
 export function useInlineRename<T extends string>(
   onCommit: (id: T, newName: string) => void
 ): InlineRenameState<T> {
-  const editingId: Ref<T | null> = ref(null)
-  const inputRef: Ref<HTMLInputElement | null> = ref(null)
-  let originalName = ''
-  let cleanupOutsideClick: (() => void) | undefined
+  const [editingId, setEditingId] = useState<T | null>(null)
+  const originalNameRef = useRef('')
+  const inputRef = useRef<HTMLInputElement | null>(null)
 
-  function start(id: T, currentName: string) {
-    editingId.value = id
-    originalName = currentName
-  }
+  const start = useCallback((id: T, currentName: string) => {
+    originalNameRef.current = currentName
+    setEditingId(id)
+  }, [])
 
-  async function focusInput(input: HTMLInputElement | null) {
-    if (input === inputRef.value) return
-    inputRef.value = input
-    cleanupOutsideClick?.()
-    if (input) {
-      cleanupOutsideClick = onClickOutside(inputRef, () => input.blur())
-    }
-    await nextTick()
-    input?.focus()
-    input?.select()
-  }
-
-  function commit(id: T, eventOrInput: Event | HTMLInputElement) {
-    if (editingId.value !== id) return
-    let input: HTMLInputElement | null
-    if (eventOrInput instanceof HTMLInputElement) {
-      input = eventOrInput
-    } else {
-      input = eventOrInput.target instanceof HTMLInputElement ? eventOrInput.target : null
-    }
+  const focusInput = useCallback((input: HTMLInputElement | null) => {
     if (!input) return
-    const value = input.value.trim()
-    if (value && value !== originalName) {
-      onCommit(id, value)
-    }
-    editingId.value = null
-    inputRef.value = null
-    cleanupOutsideClick?.()
-    cleanupOutsideClick = undefined
-  }
+    inputRef.current = input
+    requestAnimationFrame(() => {
+      input.focus()
+      input.select()
+    })
+  }, [])
 
-  function cancel() {
-    editingId.value = null
-    inputRef.value = null
-    cleanupOutsideClick?.()
-    cleanupOutsideClick = undefined
-  }
+  const cancel = useCallback(() => {
+    setEditingId(null)
+    inputRef.current = null
+  }, [])
 
-  function onKeydown(e: KeyboardEvent) {
-    if (e.code === 'Enter') {
-      blurTarget(e)
-      return
-    }
+  const commit = useCallback(
+    (id: T, eventOrInput: React.SyntheticEvent<HTMLInputElement> | HTMLInputElement | Event) => {
+      let input: HTMLInputElement | null = null
+      if (eventOrInput instanceof HTMLInputElement) {
+        input = eventOrInput
+      } else if ('currentTarget' in eventOrInput && eventOrInput.currentTarget instanceof HTMLInputElement) {
+        input = eventOrInput.currentTarget
+      } else if ('target' in eventOrInput && eventOrInput.target instanceof HTMLInputElement) {
+        input = eventOrInput.target as HTMLInputElement
+      }
 
-    if (e.code === 'Escape') {
-      cancel()
+      if (!input) return
+      const value = input.value.trim()
+      if (value && value !== originalNameRef.current) {
+        onCommit(id, value)
+      }
+      setEditingId(null)
+      inputRef.current = null
+    },
+    [onCommit]
+  )
+
+  const onKeydown = useCallback(
+    (e: React.KeyboardEvent<HTMLInputElement> | KeyboardEvent) => {
+      if (e.key === 'Enter') {
+        blurTarget('nativeEvent' in e ? e.nativeEvent : e)
+        return
+      }
+
+      if (e.key === 'Escape') {
+        cancel()
+      }
+    },
+    [cancel]
+  )
+
+  useEffect(() => {
+    if (!editingId || !inputRef.current) return
+    const handleClickOutside = (e: MouseEvent) => {
+      if (inputRef.current && !inputRef.current.contains(e.target as Node)) {
+        inputRef.current.blur()
+      }
     }
-  }
+    document.addEventListener('pointerdown', handleClickOutside)
+    return () => {
+      document.removeEventListener('pointerdown', handleClickOutside)
+    }
+  }, [editingId])
 
   return { editingId, start, focusInput, commit, cancel, onKeydown }
 }

@@ -1,4 +1,4 @@
-import { computed, type ComputedRef, type Ref } from 'vue'
+import { useMemo, type RefObject } from 'react'
 
 import type { Editor } from '@openweave/core/editor'
 import type { Vector } from '@openweave/scene-graph/primitives'
@@ -8,26 +8,22 @@ type CanvasVirtualReference = {
 }
 
 export function useCanvasVirtualReference(
-  canvasRef: Ref<HTMLElement | null>,
+  canvasRef: RefObject<HTMLElement | null>,
   editor: Editor,
-  anchor: ComputedRef<Vector | null>
-) {
-  return computed<CanvasVirtualReference | null>(() => {
-    const point = anchor.value
-    const canvas = canvasRef.value
-    if (!point || !canvas) return null
-
-    const zoom = editor.state.zoom
-    const panX = editor.state.panX
-    const panY = editor.state.panY
+  anchor: Vector | null
+): CanvasVirtualReference | null {
+  return useMemo<CanvasVirtualReference | null>(() => {
+    if (!anchor) return null
 
     return {
       getBoundingClientRect() {
+        const canvas = canvasRef.current
+        if (!canvas) return new DOMRect(0, 0, 0, 0)
         const rect = canvas.getBoundingClientRect()
-        const x = rect.left + point.x * zoom + panX
-        const y = rect.top + point.y * zoom + panY
+        const x = rect.left + anchor.x * editor.state.zoom + editor.state.panX
+        const y = rect.top + anchor.y * editor.state.zoom + editor.state.panY
         return new DOMRect(x, y, 0, 0)
       }
     }
-  })
+  }, [anchor, canvasRef, editor])
 }

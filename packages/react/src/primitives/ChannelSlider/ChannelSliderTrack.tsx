@@ -1,15 +1,18 @@
-import React, { type ElementType, type ReactNode } from 'react'
+import React, { type ReactNode } from 'react'
 import * as Slider from '@radix-ui/react-slider'
 
 import { useChannelSlider } from './context'
-import type { ChannelSliderPartProps } from './types'
+import type { ChannelSliderPartProps, ChannelSliderRootSlotProps } from './types'
 
 export function ChannelSliderTrack({
   as: Component = 'span',
   asChild = false,
   children,
   ...props
-}: ChannelSliderPartProps & Omit<React.HTMLAttributes<HTMLSpanElement>, 'children'>) {
+}: Omit<ChannelSliderPartProps, 'children'> &
+  Omit<React.HTMLAttributes<HTMLSpanElement>, 'children'> & {
+    children?: ReactNode | ((props: ChannelSliderRootSlotProps) => ReactNode)
+  }) {
   const ctx = useChannelSlider()
 
   const renderedChildren = typeof children === 'function' ? children(ctx.slotProps) : children

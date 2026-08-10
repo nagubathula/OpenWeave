@@ -1,3 +1,4 @@
+import type React from 'react'
 import { useClipboard } from '@vueuse/core'
 import { computed, inject, provide, proxyRefs } from 'vue'
 import type { InjectionKey, ShallowUnwrapRef } from 'vue'
@@ -8,7 +9,7 @@ import IconImageDown from '~icons/lucide/image-down'
 import IconSave from '~icons/lucide/save'
 import IconZoomIn from '~icons/lucide/zoom-in'
 
-import { useEditorCommands, useI18n } from '@openweave/vue'
+import { useEditorCommands, useI18n } from '@openweave/react'
 
 import { DEFAULT_COLLAB_STATE, useCollabInjected } from '@/app/collab/use'
 import { useEditorStore } from '@/app/editor/active-store'
@@ -19,6 +20,10 @@ import type { ToolbarActionItem } from '@/components/Toolbar/types'
 import { getShareUrl } from '@/constants'
 
 type MenuAction = ToolbarActionItem
+
+function asElementType(icon: unknown): React.ElementType {
+  return icon as React.ElementType
+}
 
 function createMobileHudContext() {
   const router = useRouter()
@@ -37,14 +42,14 @@ function createMobileHudContext() {
 
   const menuItems: MenuAction[] = [
     {
-      icon: IconFilePlus,
+      icon: asElementType(IconFilePlus),
       label: 'New',
       action: () => void import('@/app/tabs').then((m) => m.createTab())
     },
-    { icon: IconFolderOpen, label: 'Open…', action: () => void openFileDialog() },
-    { icon: IconSave, label: 'Save', action: () => void store.saveFigFile() },
-    { icon: IconImageDown, label: 'Export…', action: () => void store.exportSelection(1, 'png') },
-    { icon: IconZoomIn, label: 'Zoom to fit', action: () => getCommand('view.zoomFit').run() }
+    { icon: asElementType(IconFolderOpen), label: 'Open…', action: () => void openFileDialog() },
+    { icon: asElementType(IconSave), label: 'Save', action: () => void store.saveFigFile() },
+    { icon: asElementType(IconImageDown), label: 'Export…', action: () => void store.exportSelection(1, 'png') },
+    { icon: asElementType(IconZoomIn), label: 'Zoom to fit', action: () => getCommand('view.zoomFit').run() }
   ]
 
   function undo() {

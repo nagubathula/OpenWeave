@@ -16,11 +16,6 @@ export type AlignCell = { primary: LayoutAlign; counter: LayoutCounterAlign }
 
 type GridTrackProp = 'gridTemplateColumns' | 'gridTemplateRows'
 
-type LayoutPanelStrings = {
-  sizingFixed: string
-  sizingHug: string
-  sizingFill: string
-}
 
 export type LayoutAxis = 'width' | 'height'
 export type SizeLimitProp = 'minWidth' | 'maxWidth' | 'minHeight' | 'maxHeight'

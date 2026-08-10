@@ -1,4 +1,4 @@
-import { useEffect, useRef, type RefObject } from 'react'
+import { useEffect, useRef, useState, type RefObject } from 'react'
 
 import type { Editor } from '@openweave/core/editor'
 import type { SceneNode } from '@openweave/scene-graph'
@@ -24,6 +24,13 @@ import { updateHoverCursor } from '#react/shared/input/select'
 import { useSpaceHeld } from '#react/shared/input/space-key'
 import type { DragState } from '#react/shared/input/types'
 
+export interface AutoLayoutPaddingEditState {
+  nodeId: string
+  side: 'top' | 'right' | 'bottom' | 'left'
+  value: number
+  previous: number
+}
+
 /**
  * Wires pointer and mouse interaction to an OpenWeave canvas.
  *
@@ -40,13 +47,8 @@ export function useCanvasInput(
   onCursorMove?: (cx: number, cy: number) => void
 ) {
   const drag = useRef<DragState | null>(null)
-  const cursorOverride = useRef<string | null>(null)
-  const autoLayoutPaddingEdit = useRef<{
-    nodeId: string
-    side: 'top' | 'right' | 'bottom' | 'left'
-    value: number
-    previous: number
-  } | null>(null)
+  const [cursorOverride, setCursorOverride] = useState<string | null>(null)
+  const [autoLayoutPaddingEdit, setAutoLayoutPaddingEdit] = useState<AutoLayoutPaddingEditState | null>(null)
   const selectedIdsBeforeClickSequence = useRef<ReadonlySet<string>>(new Set())
   const spaceHeld = useSpaceHeld()
   const { recordClick, getClickCount } = createClickCounter()
@@ -104,41 +106,38 @@ export function useCanvasInput(
     const node = editor.graph.getNode(hover.nodeId)
     if (!node) return false
     const value = paddingValue(node, hover.side)
-    autoLayoutPaddingEdit.current = {
+    setAutoLayoutPaddingEdit({
       nodeId: node.id,
       side: hover.side,
       value,
       previous: value
-    }
+    })
     e.preventDefault()
     e.stopPropagation()
     return true
   }
 
   function updateAutoLayoutPaddingEdit(value: number) {
-    const edit = autoLayoutPaddingEdit.current
-    if (!edit || !Number.isFinite(value)) return
+    if (!autoLayoutPaddingEdit || !Number.isFinite(value)) return
     const next = Math.max(0, value)
-    autoLayoutPaddingEdit.current = { ...edit, value: next }
-    editor.updateNode(edit.nodeId, { [paddingKey(edit.side)]: next })
+    setAutoLayoutPaddingEdit({ ...autoLayoutPaddingEdit, value: next })
+    editor.updateNode(autoLayoutPaddingEdit.nodeId, { [paddingKey(autoLayoutPaddingEdit.side)]: next })
   }
 
   function commitAutoLayoutPaddingEdit(value: number) {
-    const edit = autoLayoutPaddingEdit.current
-    if (!edit || !Number.isFinite(value)) {
-      autoLayoutPaddingEdit.current = null
+    if (!autoLayoutPaddingEdit || !Number.isFinite(value)) {
+      setAutoLayoutPaddingEdit(null)
       return
     }
     const next = Math.max(0, value)
-    editor.updateNode(edit.nodeId, { [paddingKey(edit.side)]: edit.previous })
-    editor.updateNodeWithUndo(edit.nodeId, { [paddingKey(edit.side)]: next }, 'Update padding')
-    autoLayoutPaddingEdit.current = null
+    editor.updateNode(autoLayoutPaddingEdit.nodeId, { [paddingKey(autoLayoutPaddingEdit.side)]: autoLayoutPaddingEdit.previous })
+    editor.updateNodeWithUndo(autoLayoutPaddingEdit.nodeId, { [paddingKey(autoLayoutPaddingEdit.side)]: next }, 'Update padding')
+    setAutoLayoutPaddingEdit(null)
   }
 
   function cancelAutoLayoutPaddingEdit() {
-    const edit = autoLayoutPaddingEdit.current
-    if (edit) editor.updateNode(edit.nodeId, { [paddingKey(edit.side)]: edit.previous })
-    autoLayoutPaddingEdit.current = null
+    if (autoLayoutPaddingEdit) editor.updateNode(autoLayoutPaddingEdit.nodeId, { [paddingKey(autoLayoutPaddingEdit.side)]: autoLayoutPaddingEdit.previous })
+    setAutoLayoutPaddingEdit(null)
   }
 
   function onDblClick(e: MouseEvent) {
@@ -147,17 +146,18 @@ export function useCanvasInput(
   }
 
   function onMouseDown(e: MouseEvent) {
-    const paddingEdit = autoLayoutPaddingEdit.current
-    if (paddingEdit) {
-      commitAutoLayoutPaddingEdit(paddingEdit.value)
+    if (autoLayoutPaddingEdit) {
+      commitAutoLayoutPaddingEdit(autoLayoutPaddingEdit.value)
     }
     if (!editor.state.editingTextId) canvasRef.current?.focus()
     editor.setHoveredNode(null)
     const { sx, sy, cx, cy } = getCoords(e)
 
     const selectedIdsBeforeMouseDown = new Set(editor.state.selectedIds)
-    const clickCount = recordClick(sx, sy)
-    if (clickCount === 1) selectedIdsBeforeClickSequence.current = selectedIdsBeforeMouseDown
+    if (recordClick(sx, sy) === 1) {
+      selectedIdsBeforeClickSequence.current = selectedIdsBeforeMouseDown
+    }
+
     handleToolMouseDown({
       event: e,
       cx,
@@ -166,7 +166,7 @@ export function useCanvasInput(
       sy,
       editor,
       hitFns,
-      cursorOverride: cursorOverride.current ?? undefined,
+      cursorOverride: setCursorOverride,
       setDrag,
       tryStartRotation,
       handleTextEditClick
@@ -174,36 +174,25 @@ export function useCanvasInput(
   }
 
   function onMouseMove(e: MouseEvent) {
-    if (onCursorMove) {
-      const { cx, cy } = getCoords(e)
-      onCursorMove(cx, cy)
-    }
+    const { sx, sy, cx, cy } = getCoords(e)
+    onCursorMove?.(cx, cy)
 
     if (!drag.current) {
-      const { cx, cy } = getCoords(e)
       updatePenHover(cx, cy, editor)
-    }
-
-    if (!drag.current) {
-      const { cx, cy } = getCoords(e)
       updateNodeEditHover(editor, cx, cy)
+      if (editor.state.activeTool === 'SELECT') {
+        setCursorOverride(updateHoverCursor(cx, cy, editor, hitFns))
+        editor.setAutoLayoutHover(resolveAutoLayoutHover(cx, cy, editor))
+      }
+      return
     }
 
-    if (!drag.current && editor.state.activeTool === 'SELECT') {
-      const { cx, cy } = getCoords(e)
-      cursorOverride.current = updateHoverCursor(cx, cy, editor, hitFns)
-      editor.setAutoLayoutHover(resolveAutoLayoutHover(cx, cy, editor))
-    }
-
-    if (!drag.current) return
     const d = drag.current
 
     if (d.type === 'pan') {
       handlePanMove(d, e)
       return
     }
-
-    const { sx, sy, cx, cy } = getCoords(e)
 
     if (d.type === 'rotate') {
       handleRotateMove(d, cx, cy, e.shiftKey)
@@ -278,19 +267,20 @@ export function useCanvasInput(
     else if (d.type === 'marquee') editor.setMarquee(null)
 
     drag.current = null
-    cursorOverride.current = null
+    setCursorOverride(null)
   }
 
   useEffect(() => {
     const canvas = canvasRef.current
     if (!canvas) return
+    const onMouseLeave = () => {
+      if (!drag.current) editor.setHoveredNode(null)
+    }
     canvas.addEventListener('dblclick', onDblClick)
     canvas.addEventListener('mousedown', onMouseDown)
     canvas.addEventListener('mousemove', onMouseMove)
     canvas.addEventListener('mouseup', onMouseUp)
-    canvas.addEventListener('mouseleave', () => {
-      if (!drag.current) editor.setHoveredNode(null)
-    })
+    canvas.addEventListener('mouseleave', onMouseLeave)
     const onWindowMouseUp = () => { if (drag.current) onMouseUp() }
     window.addEventListener('mouseup', onWindowMouseUp)
     return () => {
@@ -298,13 +288,11 @@ export function useCanvasInput(
       canvas.removeEventListener('mousedown', onMouseDown)
       canvas.removeEventListener('mousemove', onMouseMove)
       canvas.removeEventListener('mouseup', onMouseUp)
-      canvas.removeEventListener('mouseleave', () => {
-        if (!drag.current) editor.setHoveredNode(null)
-      })
+      canvas.removeEventListener('mouseleave', onMouseLeave)
       window.removeEventListener('mouseup', onWindowMouseUp)
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [autoLayoutPaddingEdit])
 
   setupPanZoom(canvasRef, editor, drag, onMouseDown, onMouseMove, onMouseUp)
   return {

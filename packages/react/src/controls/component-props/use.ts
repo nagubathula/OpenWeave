@@ -9,7 +9,6 @@ import {
   type ComponentPropertyControl,
   type ComponentPropertyOption
 } from '#react/controls/component-props/model'
-import { MIXED } from '#react/controls/node-props/helpers'
 import { useEditor } from '#react/editor/context'
 import { useSceneComputed } from '#react/internal/scene-computed/use'
 
@@ -30,23 +29,23 @@ export function useComponentProperties() {
   const selectedCount = computed(() => editor.state.selectedIds.size)
   const definitionSets = useSceneComputed(() => {
     void editor.state.sceneVersion
-    return instances.value.map((instance) =>
+    return instances.map((instance) =>
       editor.getInstanceComponentPropertyDefinitions(instance.id)
     )
   })
-  const definitions = computed(() => compatibleComponentPropertyDefinitions(definitionSets.value))
+  const definitions = computed(() => compatibleComponentPropertyDefinitions(definitionSets))
   const active = computed(
     () =>
-      instances.value.length > 0 &&
-      instances.value.length === selectedCount.value &&
+      instances.length > 0 &&
+      instances.length === selectedCount.value &&
       definitions.value.length > 0
   )
   const controls = useSceneComputed<ComponentPropertyControl[]>(() => {
     void editor.state.sceneVersion
-    if (!active.value || instances.value.length === 0) return []
-    const firstInstance = instances.value[0]
+    if (!active.value || instances.length === 0) return []
+    const firstInstance = instances[0]
     return definitions.value.map((definition) => {
-      const values = instances.value.map((instance) =>
+      const values = instances.map((instance) =>
         editor.getInstanceComponentPropertyValue(instance.id, definition)
       )
       const value = mergedComponentPropertyValue(values)
@@ -57,7 +56,7 @@ export function useComponentProperties() {
         options = instanceSwapOptions(
           [...editor.graph.getAllNodes()],
           definition,
-          value === MIXED ? '' : value
+          typeof value === 'string' ? value : ''
         )
       }
       return {
@@ -72,7 +71,7 @@ export function useComponentProperties() {
 
   function setValue(propertyId: string, value: string) {
     if (!active.value) return
-    const targets = [...instances.value]
+    const targets = [...instances]
     const definition = definitions.value.find((item) => item.id === propertyId)
     if (!definition) return
     const label = `Change ${definition.name}`

@@ -5,7 +5,7 @@ import type { RulerTheme } from '@openweave/core/canvas'
 import { parseColor } from '@openweave/core/color'
 import { IS_BROWSER } from '@openweave/core/constants'
 
-import { getActiveEditorStoreOrNull, useActiveEditorStoreRef } from '@/app/editor/active-store'
+import { getActiveEditorStoreOrNull } from '@/app/editor/active-store'
 
 export type AppTheme = 'dark' | 'light' | 'auto'
 
@@ -53,8 +53,7 @@ export function useAppTheme() {
 
   // Editors may mount after the theme was applied; push the canvas (ruler)
   // theme whenever the active editor changes so rulers always match.
-  const activeStoreRef = useActiveEditorStoreRef()
-  watch([activeStoreRef, resolvedTheme], () => updateCanvasTheme(), { flush: 'post' })
+  watch([resolvedTheme], () => updateCanvasTheme(), { flush: 'post' })
 
   const isLight = computed(() => resolvedTheme.value === 'light')
 

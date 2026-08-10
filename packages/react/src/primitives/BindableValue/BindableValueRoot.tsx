@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react'
 
-import type { BindingProvider, BindingTarget } from '#react/controls/binding-provider/types'
+import type { BindingTarget } from '#react/controls/binding-provider/types'
 import { BindableValueProvider } from './context'
 import type {
   BindableValueActions,
@@ -90,7 +90,7 @@ export function BindableValueRoot<V = unknown>({
       closePicker: () => setOpen(false),
       togglePicker: () => setOpen((prev) => !prev),
       setSearchTerm,
-      beginMutation: (source) => {
+      beginMutation: (_source) => {
         const iState = interactionRef.current
         if (iState.active) return true
         const startedUnbound = state === 'unbound'

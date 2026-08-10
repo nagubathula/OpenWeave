@@ -1,3 +1,4 @@
+import { useState, useRef, useEffect, useCallback } from 'react'
 import {
   attachInstruction,
   extractInstruction,
@@ -10,7 +11,6 @@ import {
   dropTargetForElements,
   monitorForElements
 } from '@atlaskit/pragmatic-drag-and-drop/element/adapter'
-import { onScopeDispose, ref } from 'vue'
 
 export type FlatReorderAxis = 'vertical' | 'horizontal'
 export type FlatReorderInstruction = Extract<
@@ -57,106 +57,115 @@ export function useFlatReorderDrag<TItem extends FlatReorderItem>({
   axis = 'vertical',
   getId = (item) => item.id
 }: UseFlatReorderDragOptions<TItem>) {
-  const draggingId = ref<string | null>(null)
-  const instruction = ref<FlatReorderInstruction | null>(null)
-  const instructionTargetId = ref<string | null>(null)
-  const registered = new Map<string, RegisteredItem>()
+  const [draggingId, setDraggingId] = useState<string | null>(null)
+  const [instruction, setInstruction] = useState<FlatReorderInstruction | null>(null)
+  const [instructionTargetId, setInstructionTargetId] = useState<string | null>(null)
+  const registeredRef = useRef<Map<string, RegisteredItem>>(new Map())
 
-  function clearInstruction() {
-    instruction.value = null
-    instructionTargetId.value = null
-  }
+  const clearInstruction = useCallback(() => {
+    setInstruction(null)
+    setInstructionTargetId(null)
+  }, [])
 
-  function cleanupItem(id: string) {
-    registered.get(id)?.cleanup()
-    registered.delete(id)
-  }
+  const cleanupItem = useCallback((id: string) => {
+    registeredRef.current.get(id)?.cleanup()
+    registeredRef.current.delete(id)
+  }, [])
 
-  function setupItem(element: HTMLElement | null, item: () => FlatReorderItem) {
-    const { id } = item()
-    const current = registered.get(id)
-    if (current?.element === element) return
+  const setupItem = useCallback(
+    (element: HTMLElement | null, item: () => FlatReorderItem) => {
+      const { id } = item()
+      const current = registeredRef.current.get(id)
+      if (current?.element === element) return
 
-    cleanupItem(id)
-    if (!element) return
+      cleanupItem(id)
+      if (!element) return
 
-    const cleanup = combine(
-      draggable({
-        element,
-        getInitialData: () => ({ id }),
-        onDragStart: () => {
-          draggingId.value = id
-        },
-        onDrop: () => {
-          draggingId.value = null
-        }
-      }),
-      dropTargetForElements({
-        element,
-        getData: ({ input, element: target }) =>
-          attachInstruction(
-            { id },
-            {
-              input,
-              element: target,
-              axis,
-              operations: {
-                'reorder-before': 'available',
-                'reorder-after': 'available'
-              }
-            }
-          ),
-        canDrop: ({ source }) => source.data.id !== id,
-        onDrag: ({ self }) => {
-          const nextInstruction = extractInstruction(self.data)
-          if (!isFlatReorderInstruction(nextInstruction)) {
-            clearInstruction()
-            return
+      const cleanup = combine(
+        draggable({
+          element,
+          getInitialData: () => ({ id }),
+          onDragStart: () => {
+            setDraggingId(id)
+          },
+          onDrop: () => {
+            setDraggingId(null)
           }
-          instruction.value = nextInstruction
-          instructionTargetId.value = id
-        },
-        onDragLeave: clearInstruction,
-        onDrop: clearInstruction,
-        getIsSticky: () => true
-      })
-    )
+        }),
+        dropTargetForElements({
+          element,
+          getData: ({ input, element: target }) =>
+            attachInstruction(
+              { id },
+              {
+                input,
+                element: target,
+                axis,
+                operations: {
+                  'reorder-before': 'available',
+                  'reorder-after': 'available'
+                }
+              }
+            ),
+          canDrop: ({ source }) => source.data.id !== id,
+          onDrag: ({ self }) => {
+            const nextInstruction = extractInstruction(self.data)
+            if (!isFlatReorderInstruction(nextInstruction)) {
+              clearInstruction()
+              return
+            }
+            setInstruction(nextInstruction)
+            setInstructionTargetId(id)
+          },
+          onDragLeave: clearInstruction,
+          onDrop: clearInstruction,
+          getIsSticky: () => true
+        })
+      )
 
-    registered.set(id, { element, cleanup })
-  }
+      registeredRef.current.set(id, { element, cleanup })
+    },
+    [axis, cleanupItem, clearInstruction]
+  )
 
-  const cleanupMonitor = monitorForElements({
-    onDrop: ({ source, location }) => {
-      const target = location.current.dropTargets.at(0)
-      if (!target) return
+  useEffect(() => {
+    const cleanupMonitor = monitorForElements({
+      onDrop: ({ source, location }) => {
+        const target = location.current.dropTargets.at(0)
+        if (!target) return
 
-      const sourceId = typeof source.data.id === 'string' ? source.data.id : null
-      const targetId = typeof target.data.id === 'string' ? target.data.id : null
-      if (!sourceId || !targetId || sourceId === targetId) return
+        const sourceId = typeof source.data.id === 'string' ? source.data.id : null
+        const targetId = typeof target.data.id === 'string' ? target.data.id : null
+        if (!sourceId || !targetId || sourceId === targetId) return
 
-      const dropInstruction = extractInstruction(target.data)
-      if (!isFlatReorderInstruction(dropInstruction)) return
+        const dropInstruction = extractInstruction(target.data)
+        if (!isFlatReorderInstruction(dropInstruction)) return
 
-      const currentItems = items()
-      const startIndex = currentItems.findIndex((item) => getId(item) === sourceId)
-      const indexOfTarget = currentItems.findIndex((item) => getId(item) === targetId)
-      const targetIndex = getReorderDestinationIndex({
-        startIndex,
-        indexOfTarget,
-        axis,
-        closestEdgeOfTarget: edgeForInstruction(dropInstruction, axis)
-      })
+        const currentItems = items()
+        const startIndex = currentItems.findIndex((item) => getId(item) === sourceId)
+        const indexOfTarget = currentItems.findIndex((item) => getId(item) === targetId)
+        const targetIndex = getReorderDestinationIndex({
+          startIndex,
+          indexOfTarget,
+          axis,
+          closestEdgeOfTarget: edgeForInstruction(dropInstruction, axis)
+        })
 
-      if (targetIndex !== startIndex) onMove(sourceId, targetIndex)
-      draggingId.value = null
-      clearInstruction()
+        if (targetIndex !== startIndex) onMove(sourceId, targetIndex)
+        setDraggingId(null)
+        clearInstruction()
+      }
+    })
+
+    const registered = registeredRef.current
+    return () => {
+      cleanupMonitor()
+      for (const id of registered.keys()) {
+        registered.get(id)?.cleanup()
+      }
+      registered.clear()
     }
-  })
-
-  onScopeDispose(() => {
-    cleanupMonitor()
-    for (const id of registered.keys()) cleanupItem(id)
-  })
+  }, [axis, getId, items, onMove, clearInstruction])
 
   return {
     draggingId,

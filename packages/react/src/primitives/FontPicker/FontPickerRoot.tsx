@@ -1,13 +1,12 @@
-import React, { useRef, useEffect } from 'react'
 import * as Popover from '@radix-ui/react-popover'
+import React, { useEffect, useRef } from 'react'
 
+import type { FontPickerUI } from './types'
 import {
   useFontPicker,
   type FontAccessController,
   type FontFamilyOption
 } from './useFontPicker'
-
-import type { FontPickerUI } from './types'
 
 export interface FontPickerRootProps {
   modelValue: string
@@ -35,7 +34,7 @@ export function FontPickerRoot({
   trigger
 }: FontPickerRootProps) {
   const inputRef = useRef<HTMLInputElement>(null)
-  
+
   const {
     searchTerm,
     open,
@@ -66,6 +65,40 @@ export function FontPickerRoot({
       <span className="truncate">{modelValue}</span>
     </button>
   )
+
+  function renderEmptyState() {
+    if (searchTerm) {
+      return (
+        <div className={ui?.empty}>
+          {emptySearchText ?? 'No fonts found'}
+        </div>
+      )
+    }
+
+    return (
+      <div className={ui?.empty}>
+        <div>
+          {accessState === 'prompt' && <p>Allow local font access to browse installed fonts.</p>}
+          {accessState === 'denied' && <p>Local font access is blocked for this site.</p>}
+          {accessState === 'unsupported' && <p>Local fonts are not available in this browser.</p>}
+          {accessState !== 'prompt' && accessState !== 'denied' && accessState !== 'unsupported' && (
+            <p>{emptyFontsText ?? 'No local fonts available.'}</p>
+          )}
+          {emptyFontsHint && <p className="mt-1">{emptyFontsHint}</p>}
+          {accessState === 'prompt' && (
+            <button
+              type="button"
+              className={ui?.emptyAction}
+              disabled={loading}
+              onClick={requestAccess}
+            >
+              {loading ? 'Loading...' : 'Allow local fonts'}
+            </button>
+          )}
+        </div>
+      </div>
+    )
+  }
 
   return (
     <Popover.Root open={open} onOpenChange={setOpen}>
@@ -105,33 +138,7 @@ export function FontPickerRoot({
                   <span className="truncate">{option.family}</span>
                 </div>
               ))
-            ) : searchTerm ? (
-              <div className={ui?.empty}>
-                {emptySearchText ?? 'No fonts found'}
-              </div>
-            ) : (
-              <div className={ui?.empty}>
-                <div>
-                  {accessState === 'prompt' && <p>Allow local font access to browse installed fonts.</p>}
-                  {accessState === 'denied' && <p>Local font access is blocked for this site.</p>}
-                  {accessState === 'unsupported' && <p>Local fonts are not available in this browser.</p>}
-                  {accessState !== 'prompt' && accessState !== 'denied' && accessState !== 'unsupported' && (
-                    <p>{emptyFontsText ?? 'No local fonts available.'}</p>
-                  )}
-                  {emptyFontsHint && <p className="mt-1">{emptyFontsHint}</p>}
-                  {accessState === 'prompt' && (
-                    <button
-                      type="button"
-                      className={ui?.emptyAction}
-                      disabled={loading}
-                      onClick={requestAccess}
-                    >
-                      {loading ? 'Loading...' : 'Allow local fonts'}
-                    </button>
-                  )}
-                </div>
-              </div>
-            )}
+            ) : renderEmptyState()}
           </div>
         </Popover.Content>
       </Popover.Portal>

@@ -1,7 +1,7 @@
 import React, { type ReactNode } from 'react'
 import { useNumberField } from './context'
 
-export interface NumberFieldValueProps extends React.HTMLAttributes<HTMLSpanElement> {
+export interface NumberFieldValueProps extends Omit<React.HTMLAttributes<HTMLSpanElement>, 'children'> {
   children?: ReactNode | ((props: { value: string; [key: string]: any }) => ReactNode)
 }
 

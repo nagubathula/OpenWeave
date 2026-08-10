@@ -1,16 +1,17 @@
 import React, { useMemo, useCallback } from 'react'
 import { MIXED, useNodeProps } from '#react/controls/node-props/use'
+import type { MixedValue } from '#react/controls/node-props/use'
 import type { SceneNode } from '@openweave/scene-graph'
 
 export interface PositionControlsRootSlotProps {
   active: boolean
   isMulti: boolean
   ids: string[]
-  xValue: number | typeof MIXED
-  yValue: number | typeof MIXED
-  wValue: number | typeof MIXED
-  hValue: number | typeof MIXED
-  rotationValue: number | typeof MIXED
+  xValue: MixedValue<number>
+  yValue: MixedValue<number>
+  wValue: MixedValue<number>
+  hValue: MixedValue<number>
+  rotationValue: MixedValue<number>
   mixed: typeof MIXED
   actions: {
     updateProp: (key: keyof SceneNode, value: number) => void

@@ -1,6 +1,6 @@
 import { useSyncExternalStore, useCallback, useRef } from 'react'
 
-import { useEditor } from '../../editor/context'
+import { useEditor } from '#react/editor/context'
 
 /**
  * Convenience wrapper for scene-derived computed state in React.

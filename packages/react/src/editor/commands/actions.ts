@@ -9,7 +9,7 @@ export function createEditorCommandActions(commands: Record<EditorCommandId, Edi
 
   function runCommand(id: EditorCommandId) {
     const command = commands[id]
-    if (command.enabled.value) command.run()
+    if (command.enabled) command.run()
   }
 
   function menuItem(
@@ -22,7 +22,7 @@ export function createEditorCommandActions(commands: Record<EditorCommandId, Edi
       label: command.label,
       shortcut: formatShortcut(shortcut),
       get disabled() {
-        return !command.enabled.value
+        return !command.enabled
       },
       action: () => runCommand(id)
     }

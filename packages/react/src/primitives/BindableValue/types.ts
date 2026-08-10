@@ -1,4 +1,4 @@
-import type { ReactNode, ComponentPropsWithoutRef, ElementType } from 'react'
+import type { ReactNode } from 'react'
 import type { Variable } from '@openweave/scene-graph'
 import type {
   BindingMutationSource,

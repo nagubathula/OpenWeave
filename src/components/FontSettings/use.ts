@@ -5,7 +5,7 @@ import type {
   LocalFontAccessState,
   WebFontProviderId
 } from '@openweave/core/text'
-import { useI18n } from '@openweave/vue'
+import { useI18n } from '@openweave/react'
 
 import {
   clearDownloadedFontCache,
@@ -55,10 +55,10 @@ export function useFontSettings(actions: FontSettingsActions = defaultActions) {
   const fontProviderSettings = actions.fontProviderSettings
 
   const accessStateLabel = computed(() => {
-    if (accessState.value === 'granted') return dialogs.value.enabled
-    if (accessState.value === 'denied') return dialogs.value.denied
-    if (accessState.value === 'unsupported') return dialogs.value.unavailable
-    return dialogs.value.notRequested
+    if (accessState.value === 'granted') return dialogs.enabled
+    if (accessState.value === 'denied') return dialogs.denied
+    if (accessState.value === 'unsupported') return dialogs.unavailable
+    return dialogs.notRequested
   })
 
   const cacheSize = computed(() => {
@@ -67,7 +67,7 @@ export function useFontSettings(actions: FontSettingsActions = defaultActions) {
   })
 
   const cacheUpdatedLabel = computed(() => {
-    if (cacheUpdatedAt.value === null) return dialogs.value.never
+    if (cacheUpdatedAt.value === null) return dialogs.never
     return new Date(cacheUpdatedAt.value).toLocaleDateString()
   })
 
@@ -94,10 +94,10 @@ export function useFontSettings(actions: FontSettingsActions = defaultActions) {
     try {
       await actions.requestLocalFontAccess()
       accessState.value = actions.localFontAccessState()
-      status.value = dialogs.value.localFontAccessEnabled
+      status.value = dialogs.localFontAccessEnabled
     } catch {
       accessState.value = actions.localFontAccessState()
-      status.value = dialogs.value.localFontAccessNotGranted
+      status.value = dialogs.localFontAccessNotGranted
     } finally {
       busyAction.value = null
     }
@@ -106,15 +106,15 @@ export function useFontSettings(actions: FontSettingsActions = defaultActions) {
   function setOnlineFontsEnabled(enabled: boolean) {
     onlineFontsEnabled.value = enabled
     status.value = enabled
-      ? dialogs.value.onlineFontProvidersEnabled
-      : dialogs.value.onlineFontProvidersDisabled
+      ? dialogs.onlineFontProvidersEnabled
+      : dialogs.onlineFontProvidersDisabled
   }
 
   function setFontProviderEnabled(provider: WebFontProviderId, enabled: boolean) {
     fontProviderSettings.value = { ...fontProviderSettings.value, [provider]: enabled }
     status.value = enabled
-      ? dialogs.value.fontProviderEnabled({ provider })
-      : dialogs.value.fontProviderDisabled({ provider })
+      ? dialogs.fontProviderEnabled({ provider })
+      : dialogs.fontProviderDisabled({ provider })
   }
 
   async function downloadFallbacks() {
@@ -123,9 +123,9 @@ export function useFontSettings(actions: FontSettingsActions = defaultActions) {
     try {
       await actions.predownloadFallbackFonts()
       await refreshSummary()
-      status.value = dialogs.value.fallbackFontsDownloaded
+      status.value = dialogs.fallbackFontsDownloaded
     } catch {
-      status.value = dialogs.value.fallbackFontsDownloadFailed
+      status.value = dialogs.fallbackFontsDownloadFailed
     } finally {
       busyAction.value = null
     }
@@ -137,9 +137,9 @@ export function useFontSettings(actions: FontSettingsActions = defaultActions) {
     try {
       await actions.clearDownloadedFontCache()
       await refreshSummary()
-      status.value = dialogs.value.downloadedFontCacheCleared
+      status.value = dialogs.downloadedFontCacheCleared
     } catch {
-      status.value = dialogs.value.downloadedFontCacheClearFailed
+      status.value = dialogs.downloadedFontCacheClearFailed
     } finally {
       busyAction.value = null
     }

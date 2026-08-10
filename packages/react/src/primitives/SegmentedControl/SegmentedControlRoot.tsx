@@ -16,6 +16,7 @@ export function SegmentedControlRoot({
   rovingFocus = true,
   loop = true,
   children,
+  dir,
   ...props
 }: SegmentedControlRootProps & Omit<React.HTMLAttributes<HTMLDivElement>, 'children' | 'defaultValue'>) {
   const selected = useCallback(
@@ -61,6 +62,7 @@ export function SegmentedControlRoot({
   )
 
   const renderedChildren = typeof children === 'function' ? children({ mode, modelValue }) : children
+  const direction = (dir === 'ltr' || dir === 'rtl' ? dir : undefined) as 'ltr' | 'rtl' | undefined
 
   if (mode === 'single') {
     return (
@@ -73,6 +75,7 @@ export function SegmentedControlRoot({
           disabled={disabled}
           rovingFocus={rovingFocus}
           loop={loop}
+          dir={direction}
           data-slot="root"
           data-mode="single"
           {...props}
@@ -94,6 +97,7 @@ export function SegmentedControlRoot({
           disabled={disabled}
           rovingFocus={rovingFocus}
           loop={loop}
+          dir={direction}
           data-slot="root"
           data-mode="multiple"
           {...props}
@@ -109,6 +113,7 @@ export function SegmentedControlRoot({
       <RovingFocus.Root
         orientation={orientation}
         loop={loop}
+        dir={direction}
         data-slot="root"
         data-mode="action"
         {...(props as any)}

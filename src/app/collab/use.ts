@@ -12,7 +12,7 @@ import { DEFAULT_COLLAB_STATE, type CollabState, type RemotePeer } from '@/app/c
 import { createYjsGraphSync } from '@/app/collab/yjs-sync'
 import type { EditorStore } from '@/app/editor/active-store'
 
-export { COLLAB_KEY, useCollabInjected } from '@/app/collab/context'
+export { CollabContext, CollabProvider, useCollabInjected } from '@/app/collab/context'
 export { DEFAULT_COLLAB_STATE }
 export type { CollabState, RemotePeer }
 

@@ -1,4 +1,4 @@
-import { ref } from 'vue'
+import { useRef, useState } from 'react'
 
 import {
   EFFECT_OPTIONS,
@@ -19,10 +19,13 @@ import { useEditor } from '#react/editor/context'
 export function useEffectsControls() {
   const editor = useEditor()
 
-  const expandedIndex = ref<number | null>(null)
-  const effectsBeforeScrub = ref<EffectEditSnapshot | null>(null)
+  const [expandedIndex, setExpandedIndex] = useState<number | null>(null)
+  const effectsBeforeScrub = useRef<EffectEditSnapshot | null>(null)
   const editActions = createEffectEditActions(editor, effectsBeforeScrub)
-  const controlActions = createEffectControlActions(expandedIndex)
+  const controlActions = createEffectControlActions({
+    value: expandedIndex,
+    setValue: setExpandedIndex
+  })
 
   return {
     expandedIndex,

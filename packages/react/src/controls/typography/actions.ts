@@ -166,7 +166,7 @@ export function useTypographyActions({
     if (!propBeforePreviewRef.current || propBeforePreviewRef.current.key !== key) {
       propBeforePreviewRef.current = {
         key,
-        value: (node as any)[key],
+        value: Reflect.get(node, key) as SceneNode[keyof SceneNode],
         textStyleId: node.textStyleId
       }
     }

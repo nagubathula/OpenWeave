@@ -7,7 +7,7 @@ import { ACP_AGENTS } from '@openweave/core/constants'
 import type { ACPAgentID, AIProviderID } from '@openweave/core/constants'
 
 import { resolveLanguageModelID } from '@/app/ai/chat/model'
-import SYSTEM_PROMPT from '@/app/ai/chat/system-prompt.md?raw'
+import SYSTEM_PROMPT from '@/app/ai/chat/system-prompt.md'
 import { createAIModelRuntime } from '@/app/ai/models'
 import { MAX_AGENT_STEPS, createAITools, recordStepUsage, resetRunSteps } from '@/app/ai/tools'
 import type { getActiveEditorStore } from '@/app/editor/active-store'

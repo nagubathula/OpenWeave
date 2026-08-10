@@ -1,4 +1,4 @@
-import type { LayerDragInstruction } from '@openweave/vue'
+import type { LayerDragInstruction } from '@openweave/react'
 
 export interface LayerTreeItemActions {
   select: (additive: boolean) => void

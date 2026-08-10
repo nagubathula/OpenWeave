@@ -1,4 +1,4 @@
-import { ref } from 'vue'
+import { useRef } from 'react'
 
 import type { ColorFieldFormat } from '#react/controls/color-model/types'
 import {
@@ -13,13 +13,13 @@ import { useEditor } from '#react/editor/context'
 
 export function useOkHCL() {
   const editor = useEditor()
-  const fieldFormats = ref(new Map<string, ColorFieldFormat>())
+  const fieldFormatsRef = useRef(new Map<string, ColorFieldFormat>())
 
   const { ensureFillOkHCL, ensureStrokeOkHCL, updateFillOkHCL, updateStrokeOkHCL } =
     createOkHCLActions(editor)
   const { getFillPreviewInfo, getStrokePreviewInfo } = createOkHCLPreviewHelpers(editor)
   const { getFieldFormat, setFillFieldFormat, setStrokeFieldFormat } = createOkHCLFieldFormats(
-    fieldFormats,
+    fieldFormatsRef,
     ensureFillOkHCL,
     ensureStrokeOkHCL
   )
@@ -37,3 +37,5 @@ export function useOkHCL() {
     fieldOptions: OKHCL_FIELD_OPTIONS
   }
 }
+
+export type OkHCLControls = ReturnType<typeof useOkHCL>

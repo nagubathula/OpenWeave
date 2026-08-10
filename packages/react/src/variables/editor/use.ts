@@ -1,5 +1,5 @@
-import { useVueTable, getCoreRowModel } from '@tanstack/vue-table'
-import { computed, type Component } from 'vue'
+import { useMemo } from 'react'
+import { useReactTable, getCoreRowModel } from '@tanstack/react-table'
 
 import { useVariablesDialogState } from '#react/variables/dialog/use'
 import { useVariablesTable } from '#react/variables/table/use'
@@ -10,13 +10,13 @@ import { useVariablesTable } from '#react/variables/table/use'
  */
 export function useVariablesEditor(options: {
   /** Component used for color variable editing. */
-  colorInput: Component
+  colorInput: React.ElementType
   /** Icon map keyed by variable resolved type. */
-  icons: Record<string, Component>
+  icons: Record<string, React.ElementType>
   /** Fallback icon when no specific icon matches a variable type. */
-  fallbackIcon: Component
+  fallbackIcon: React.ElementType
   /** Icon used for destructive remove actions. */
-  deleteIcon: Component
+  deleteIcon: React.ElementType
 }) {
   const ctx = useVariablesDialogState()
 
@@ -34,13 +34,12 @@ export function useVariablesEditor(options: {
     deleteIcon: options.deleteIcon
   })
 
-  const table = useVueTable({
-    get data() {
-      return ctx.variables.value
-    },
-    get columns() {
-      return columns.value
-    },
+  const tableData = ctx.variables
+  const tableColumns = columns
+
+  const table = useReactTable({
+    data: tableData,
+    columns: tableColumns,
     columnResizeMode: 'onChange',
     getCoreRowModel: getCoreRowModel(),
     defaultColumn: {
@@ -50,7 +49,7 @@ export function useVariablesEditor(options: {
     getRowId: (row) => row.id
   })
 
-  const hasCollections = computed(() => ctx.collections.value.length > 0)
+  const hasCollections = useMemo(() => ctx.collections.length > 0, [ctx.collections])
 
   return {
     ...ctx,

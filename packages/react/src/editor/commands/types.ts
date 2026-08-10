@@ -1,4 +1,4 @@
-import type { Component, ComputedRef } from 'vue'
+import type { ComponentType } from 'react'
 
 export type EditorCommandId =
   | 'edit.undo'
@@ -43,11 +43,12 @@ export type EditorCommandId =
 export interface EditorCommand {
   id: EditorCommandId
   label: string
-  enabled: ComputedRef<boolean>
+  enabled: boolean
   run: () => void
 }
 
 export interface EditorCommandMenuItem {
+  separator?: false
   id?: EditorCommandId
   label: string
   shortcut?: string
@@ -55,7 +56,7 @@ export interface EditorCommandMenuItem {
   disabled?: boolean
   checked?: boolean
   onCheckedChange?: (checked: boolean) => void
-  icon?: Component
+  icon?: ComponentType
 }
 
 export interface EditorCommandMenuSeparator {

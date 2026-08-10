@@ -1,4 +1,3 @@
-import React from 'react'
 import {
   Circle as IconCircle,
   Columns3 as IconColumns,
@@ -17,7 +16,7 @@ import {
   Star as IconStar,
   Triangle as IconTriangle,
   Type as IconType,
-  LucideIcon
+  type LucideIcon
 } from 'lucide-react'
 
 import type { Tool } from '@/app/editor/session'

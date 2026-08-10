@@ -27,16 +27,16 @@ export function useOpenWeaveBindingProvider<V>(
   const { contains } = useFilter({ sensitivity: 'base' })
 
   function listVariables(): Variable[] {
-    return variables.value
+    return variables
   }
 
   function filterVariables(term: string): Variable[] {
-    if (!term) return variables.value
-    return variables.value.filter((variable) => contains(variable.name, term))
+    if (!term) return variables
+    return variables.filter((variable) => contains(variable.name, term))
   }
 
   function getBound(target: BindingTarget): Variable | undefined {
-    void revision.value
+    void revision
     const variableId = editor.getNode(target.nodeId)?.boundVariables[target.path]
     return variableId ? editor.getVariable(variableId) : undefined
   }

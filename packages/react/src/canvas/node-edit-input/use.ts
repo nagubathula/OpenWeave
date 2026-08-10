@@ -1,4 +1,4 @@
-import type { Ref } from 'vue'
+import type { RefObject } from 'react'
 
 import type { Editor } from '@openweave/core/editor'
 
@@ -33,16 +33,16 @@ export function updateNodeEditHover(editor: Editor, cx: number, cy: number): boo
 
 export { handleBendHandleMove, resolveBendTargetHandle }
 
-export function handleNodeEditMouseUp(drag: Ref<DragState | null>, editor: Editor): boolean {
+export function handleNodeEditMouseUp(drag: RefObject<DragState | null>, editor: Editor): boolean {
   const nodeEditEditor = editor as Editor & CanvasNodeEditMethods
-  const d = drag.value
+  const d = drag.current
   if (!d) return false
 
   if (d.type === 'bend-handle') {
     if (d.lockedMode === null) {
       nodeEditEditor.nodeEditZeroVertexHandles?.(d.vertexIndex)
     }
-    drag.value = null
+    drag.current = null
     return true
   }
 
@@ -59,18 +59,18 @@ export function handleNodeEditMouseUp(drag: Ref<DragState | null>, editor: Edito
           const t = es.vertices[i]
           if (Math.hypot(v.x - t.x, v.y - t.y) < NODE_HIT_THRESHOLD * iz) {
             nodeEditEditor.nodeEditConnectEndpoints?.(draggedIdx, i)
-            drag.value = null
+            drag.current = null
             return true
           }
         }
       }
     }
-    drag.value = null
+    drag.current = null
     return true
   }
 
   if (d.type === 'edit-handle') {
-    drag.value = null
+    drag.current = null
     return true
   }
 

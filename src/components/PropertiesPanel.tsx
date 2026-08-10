@@ -2,8 +2,8 @@ import React, { useState } from 'react'
 import * as Tabs from '@radix-ui/react-tabs'
 import { Code, Sparkles } from 'lucide-react'
 
-// Placeholder panels
-const DesignPanel = () => <div className="p-4 text-sm text-muted-foreground">Design settings will go here...</div>
+import DesignPanel from '@/components/properties/DesignPanel'
+
 const CodePanel = () => <div className="p-4 text-sm text-muted-foreground">Code export will go here...</div>
 const ChatPanel = () => <div className="p-4 text-sm text-muted-foreground">AI chat will go here...</div>
 

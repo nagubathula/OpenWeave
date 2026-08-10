@@ -39,7 +39,7 @@ export { EDITOR_COMMAND_METADATA, editorCommandMetadata } from '#react/editor/co
 export { formatShortcut, shortcutPlatform } from '#react/editor/commands/shortcut'
 export type { EditorCommandMetadata } from '#react/editor/commands/registry'
 export type { ShortcutPlatform } from '#react/editor/commands/shortcut'
-export type { EditorCommand, EditorCommandId } from '#react/editor/commands/use'
+export type { EditorCommand, EditorCommandId, EditorCommandMenuEntry } from '#react/editor/commands/use'
 export { useMenuModel } from '#react/editor/menu-model/use'
 export type { MenuActionNode, MenuEntry, MenuSeparatorNode } from '#react/editor/menu-model/use'
 
@@ -108,10 +108,9 @@ export type {
   BuiltInColorFormat,
   ColorFieldFormat,
   ColorFieldOption,
-  OkHCLControls,
   UseColorModelOptions
 } from '#react/controls/color-model'
-export { useOkHCL } from '#react/controls/okhcl/use'
+export { useOkHCL, type OkHCLControls } from '#react/controls/okhcl/use'
 
 /** Variables, page navigation, and picker helpers. */
 export { useVariables } from '#react/variables/use'
@@ -148,10 +147,8 @@ export type {
 export { FillRoot, FillSwatch } from '#react/primitives/Fill'
 export type {
   FillRootSlotProps,
-  FillRootSlots,
   FillSwatchProps,
-  FillSwatchSlotProps,
-  FillSwatchSlots
+  FillSwatchSlotProps
 } from '#react/primitives/Fill'
 export { FontPickerRoot } from '#react/primitives/FontPicker'
 export type { FontFamilyOption, FontPickerUI } from '#react/primitives/FontPicker'
@@ -163,8 +160,7 @@ export {
 export type {
   GradientEditorStopActions,
   GradientEditorStopProps,
-  GradientEditorStopSlotProps,
-  GradientEditorStopSlots
+  GradientEditorStopSlotProps
 } from '#react/primitives/GradientEditor'
 export {
   buildLayerTreeModel,
@@ -187,20 +183,17 @@ export type {
 export { LayoutControlsRoot, useLayoutControlsContext } from '#react/primitives/LayoutControls'
 export type {
   LayoutControlsContext,
-  LayoutControlsRootSlotProps,
-  LayoutControlsRootSlots
+  LayoutControlsRootSlotProps
 } from '#react/primitives/LayoutControls'
 export { AppearanceControlsRoot } from '#react/primitives/AppearanceControls'
 export type {
   AppearanceControlsActions,
-  AppearanceControlsRootSlotProps,
-  AppearanceControlsRootSlots
+  AppearanceControlsRootSlotProps
 } from '#react/primitives/AppearanceControls'
 export { ConstraintsControlRoot } from '#react/primitives/ConstraintsControl'
 export type {
   ConstraintsControlActions,
-  ConstraintsControlRootSlotProps,
-  ConstraintsControlRootSlots
+  ConstraintsControlRootSlotProps
 } from '#react/primitives/ConstraintsControl'
 export {
   constraintPins,
@@ -243,15 +236,13 @@ export type {
   PropertyListPartProps,
   PropertyListPatchFor,
   PropertyListRootProps,
-  PropertyListRootSlotProps,
-  PropertyListRootSlots
+  PropertyListRootSlotProps
 } from '#react/primitives/PropertyList'
 export { PropertyGridRoot } from '#react/primitives/PropertyGrid'
 export type {
   PropertyGridColumns,
   PropertyGridDistribution,
-  PropertyGridRootProps,
-  PropertyGridRootSlots
+  PropertyGridRootProps
 } from '#react/primitives/PropertyGrid'
 
 export {
@@ -268,7 +259,6 @@ export type {
   PropertySectionContext,
   PropertySectionPartProps,
   PropertySectionRootProps,
-  PropertySectionRootSlots,
   PropertySectionSlotProps,
   PropertySectionStateAttrs
 } from '#react/primitives/PropertySection'
@@ -281,11 +271,9 @@ export type {
   SegmentedControlContext,
   SegmentedControlItemProps,
   SegmentedControlItemSlotProps,
-  SegmentedControlItemSlots,
   SegmentedControlMode,
   SegmentedControlOrientation,
-  SegmentedControlRootProps,
-  SegmentedControlRootSlots
+  SegmentedControlRootProps
 } from '#react/primitives/SegmentedControl'
 export {
   BindableValueRoot,
@@ -298,10 +286,8 @@ export type {
   BindableValueActions,
   BindableValueContext,
   BindableValueRootProps,
-  BindableValueRootSlots,
   BindableValueSlotProps,
-  BindableValueStateAttrs,
-  BindableValueTriggerProps
+  BindableValueStateAttrs
 } from '#react/primitives/BindableValue'
 export {
   provideBindingProvider,
@@ -334,13 +320,10 @@ export type {
   NumberFieldEditPolicy,
   NumberFieldMutationSource,
   NumberFieldRootAttrs,
-  NumberFieldRootEmits,
   NumberFieldRootProps,
-  NumberFieldRootSlots,
   NumberFieldSlotProps,
   NumberFieldState,
-  NumberFieldStateAttrs,
-  NumberFieldValueSlots
+  NumberFieldStateAttrs
 } from '#react/primitives/NumberField'
 export {
   clampNumberValue,

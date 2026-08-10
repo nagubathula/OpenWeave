@@ -1,5 +1,3 @@
-import type { Ref } from 'vue'
-
 import { PEN_CLOSE_THRESHOLD } from '@openweave/core/constants'
 import type { Editor } from '@openweave/core/editor'
 
@@ -15,7 +13,7 @@ export function startPenInput(
   cy: number,
   editor: Editor,
   setDrag: SetDrag,
-  cursorOverride: Ref<string | null>
+  cursorOverride: (value: string | null) => void
 ): boolean {
   editor.state.penCursorX = null
   editor.state.penCursorY = null
@@ -34,7 +32,7 @@ export function startPenInput(
       editor.penSetPendingClose(true)
       editor.penSetClosingToFirst(true)
       setDrag(createPenDrag(first.x, first.y))
-      cursorOverride.value = 'crosshair'
+      cursorOverride('crosshair')
       return true
     }
   }
@@ -42,7 +40,7 @@ export function startPenInput(
   editor.penSetPendingClose(false)
   editor.penAddVertex(cx, cy)
   setDrag(createPenDrag(cx, cy))
-  cursorOverride.value = 'crosshair'
+  cursorOverride('crosshair')
   return true
 }
 

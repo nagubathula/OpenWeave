@@ -1,24 +1,18 @@
-import { type InjectionKey, type Ref, inject, provide } from 'vue'
-
+import { createContext, useContext, type RefObject } from 'react'
 import type { SceneNode } from '@openweave/scene-graph'
 
 export interface CanvasContext {
-  canvasRef: Ref<HTMLCanvasElement | null>
-  ready: Ref<boolean>
+  canvasRef: RefObject<HTMLCanvasElement | null>
   renderNow: () => void
   hitTestSectionTitle: (cx: number, cy: number) => SceneNode | null
   hitTestComponentLabel: (cx: number, cy: number) => SceneNode | null
   hitTestFrameTitle: (cx: number, cy: number) => SceneNode | null
 }
 
-export const CANVAS_KEY: InjectionKey<CanvasContext> = Symbol('canvas')
-
-export function provideCanvas(ctx: CanvasContext) {
-  provide(CANVAS_KEY, ctx)
-}
+export const CanvasContext = createContext<CanvasContext | null>(null)
 
 export function useCanvasContext(): CanvasContext {
-  const ctx = inject(CANVAS_KEY)
+  const ctx = useContext(CanvasContext)
   if (!ctx) throw new Error('[openweave] useCanvasContext() called outside <CanvasRoot>')
   return ctx
 }

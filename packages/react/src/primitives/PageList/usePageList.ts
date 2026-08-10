@@ -1,4 +1,3 @@
-import { useMemo } from 'react'
 import { useEditor } from '#react/editor/context'
 import { useSceneComputed } from '#react/internal/scene-computed/use'
 

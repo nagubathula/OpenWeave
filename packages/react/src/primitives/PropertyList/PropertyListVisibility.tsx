@@ -1,4 +1,4 @@
-import React, { type ElementType, type ReactNode } from 'react'
+import React, { type ReactNode } from 'react'
 import { Slot } from '@radix-ui/react-slot'
 
 import { usePropertyListPart } from './context'

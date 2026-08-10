@@ -1,5 +1,4 @@
 import { computed } from 'vue'
-import type { ComputedRef } from 'vue'
 
 import type { Editor } from '@openweave/core/editor'
 import { BUILTIN_IO_FORMATS, IORegistry } from '@openweave/core/io'
@@ -30,13 +29,13 @@ export function formatSupportsScale(format: ExportFormatId) {
   return io.getFormat(format)?.exportOptions?.scale ?? false
 }
 
-export function createExportTargetState(editor: Editor, selectedIds: ComputedRef<string[]>) {
-  const hasSelection = computed(() => selectedIds.value.length > 0)
+export function createExportTargetState(editor: Editor, selectedIds: string[]) {
+  const hasSelection = computed(() => selectedIds.length > 0)
   const activeTarget = computed<ExportPanelTarget>(() =>
     hasSelection.value ? 'selection' : 'page'
   )
   const targetIds = useSceneComputed(() =>
-    selectedIds.value.length > 0 ? selectedIds.value : [editor.state.currentPageId]
+    selectedIds.length > 0 ? selectedIds : [editor.state.currentPageId]
   )
 
   const selectedNodeName = computed(() => {
@@ -60,11 +59,11 @@ export function createExportTargetState(editor: Editor, selectedIds: ComputedRef
       : currentPageName.value
   )
   const activeSettings = useSceneComputed(() => {
-    const firstId = targetIds.value[0]
+    const firstId = targetIds[0]
     return firstId ? [...(editor.graph.getNode(firstId)?.exportSettings ?? [])] : []
   })
   const mixed = useSceneComputed(() => {
-    const [firstId, ...otherIds] = targetIds.value
+    const [firstId, ...otherIds] = targetIds
     if (!firstId || otherIds.length === 0) return false
     const first = editor.graph.getNode(firstId)?.exportSettings ?? []
     return otherIds.some((id) => {
@@ -124,12 +123,12 @@ function syncExportSettingsPluginData(
 
 function updateEveryTarget(
   editor: Editor,
-  targetIds: ComputedRef<string[]>,
+  targetIds: string[],
   label: string,
   update: (settings: ExportSetting[]) => ExportSetting[]
 ) {
   editor.undo.runBatch(label, () => {
-    for (const id of targetIds.value) {
+    for (const id of targetIds) {
       const node = editor.graph.getNode(id)
       if (!node) continue
       const exportSettings = update(node.exportSettings)
@@ -145,7 +144,7 @@ function updateEveryTarget(
   })
 }
 
-export function createExportSettingActions(editor: Editor, targetIds: ComputedRef<string[]>) {
+export function createExportSettingActions(editor: Editor, targetIds: string[]) {
   function addSetting() {
     updateEveryTarget(editor, targetIds, 'Add export setting', (settings) => [
       ...settings,

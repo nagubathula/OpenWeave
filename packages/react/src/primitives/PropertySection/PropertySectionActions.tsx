@@ -1,4 +1,4 @@
-import React, { type ReactNode } from 'react'
+import React from 'react'
 import { Slot } from '@radix-ui/react-slot'
 
 import { usePropertySection } from './context'

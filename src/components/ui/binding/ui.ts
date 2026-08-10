@@ -1,6 +1,6 @@
 import { tv } from 'tailwind-variants'
 
-import type { BindingState } from '@openweave/vue'
+import type { BindingState } from '@openweave/react'
 
 import type { ComponentUI } from '@/components/ui/types'
 import theme from '@/theme/binding-field'

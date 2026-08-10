@@ -10,11 +10,11 @@ export function useMask() {
   const editor = useEditor()
   const { selectedNode } = useSelectionState()
 
-  const active = computed(() => selectedNode.value?.isMask === true)
-  const maskType = computed(() => selectedNode.value?.maskType ?? 'ALPHA')
+  const active = computed(() => selectedNode?.isMask === true)
+  const maskType = computed(() => selectedNode?.maskType ?? 'ALPHA')
 
   function setMaskType(value: MaskType) {
-    const node = selectedNode.value
+    const node = selectedNode
     if (!node?.isMask || node.maskType === value) return
     editor.updateNodeWithUndo(node.id, { maskType: value }, 'Change mask type')
   }

@@ -1,5 +1,3 @@
-import { computed } from 'vue'
-
 import type { EditorCommandMapOptions } from './context'
 import type { EditorCommand } from './types'
 
@@ -17,7 +15,7 @@ export function createViewCommands({
       get label() {
         return t.value.zoomTo100
       },
-      enabled: computed(() => true),
+      enabled: true,
       run: () => editor.zoomTo100()
     },
     'view.zoomFit': {
@@ -25,7 +23,7 @@ export function createViewCommands({
       get label() {
         return t.value.zoomToFit
       },
-      enabled: computed(() => true),
+      enabled: true,
       run: () => editor.zoomToFit()
     },
     'view.zoomSelection': {

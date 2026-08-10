@@ -1,5 +1,3 @@
-import type { ComputedRef } from 'vue'
-
 import type { Editor } from '@openweave/core/editor'
 
 import type { useSelectionCapabilities } from '#react/editor/selection-capabilities/use'
@@ -14,7 +12,7 @@ export type EditorCommandMapOptions = {
   selection: SelectionState
   capabilities: SelectionCapabilities
   messages: CommandMessagesStore
-  otherPages: ComputedRef<Array<{ id: string }>>
+  otherPages: Array<{ id: string; name: string }>
   moveSelectionToPage: (pageId: string) => void
   getOpacityTarget: () => { value: number; coalesceKey?: string }
 }

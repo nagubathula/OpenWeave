@@ -5,7 +5,7 @@ import { useNumberField } from './context'
 export type NumberFieldPartName = 'leading' | 'unit' | 'trailing' | 'menu'
 
 export interface NumberFieldPartProps extends React.HTMLAttributes<HTMLSpanElement> {
-  children?: ReactNode | ((props: any) => ReactNode)
+  children?: ReactNode | ((props: Record<string, unknown>) => ReactNode)
 }
 
 function createNumberFieldPart(part: NumberFieldPartName) {

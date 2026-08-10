@@ -10,7 +10,7 @@ import type { ChatTransport, UIMessage, UIMessageChunk } from 'ai'
 
 import { AUTOMATION_HTTP_PORT, type ACPAgentDef } from '@openweave/core/constants'
 
-import SYSTEM_PROMPT from '@/app/ai/chat/system-prompt.md?raw'
+import SYSTEM_PROMPT from '@/app/ai/chat/system-prompt.md'
 
 import { mapUpdate } from './map-update'
 import { spawnAcpProcess } from './process'

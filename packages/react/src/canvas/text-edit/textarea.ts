@@ -1,7 +1,8 @@
-import { watch } from 'vue'
-import type { ShallowRef } from 'vue'
+import { useEffect, type RefObject } from 'react'
 
 import type { Editor } from '@openweave/core/editor'
+
+import { useSceneComputed } from '#react/internal/scene-computed/use'
 
 export function createHiddenTextArea() {
   const textarea = document.createElement('textarea')
@@ -13,11 +14,11 @@ export function createHiddenTextArea() {
 }
 
 export function focusTextAreaOnCanvasPointerDown(
-  textareaRef: ShallowRef<HTMLTextAreaElement | null>,
+  textareaRef: RefObject<HTMLTextAreaElement | null>,
   store: Editor
 ) {
-  if (store.state.editingTextId && textareaRef.value) {
-    requestAnimationFrame(() => textareaRef.value?.focus())
+  if (store.state.editingTextId && textareaRef.current) {
+    requestAnimationFrame(() => textareaRef.current?.focus())
   }
 }
 
@@ -29,27 +30,26 @@ export function useTextEditingSession({
   resetComposition
 }: {
   store: Editor
-  textareaRef: ShallowRef<HTMLTextAreaElement | null>
+  textareaRef: RefObject<HTMLTextAreaElement | null>
   resetBlink: () => void
   stopBlink: () => void
   resetComposition: () => void
 }) {
-  watch(
-    () => store.state.editingTextId,
-    (id, _, onCleanup) => {
-      if (id) {
-        const el = createHiddenTextArea()
-        textareaRef.value = el
-        el.focus()
-        resetBlink()
+  const editingTextId = useSceneComputed(() => store.state.editingTextId)
 
-        onCleanup(() => {
-          stopBlink()
-          el.remove()
-          textareaRef.value = null
-          resetComposition()
-        })
-      }
+  useEffect(() => {
+    if (!editingTextId) return
+    const el = createHiddenTextArea()
+    textareaRef.current = el
+    el.focus()
+    resetBlink()
+
+    return () => {
+      stopBlink()
+      el.remove()
+      textareaRef.current = null
+      resetComposition()
     }
-  )
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editingTextId])
 }

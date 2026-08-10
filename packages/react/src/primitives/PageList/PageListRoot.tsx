@@ -1,9 +1,9 @@
 import React, { useMemo, useCallback } from 'react'
 import { usePageList } from './usePageList'
-import type { PageNode } from '@openweave/scene-graph'
+import type { SceneNode } from '@openweave/scene-graph'
 
 export interface PageListRootSlotProps {
-  pages: PageNode[]
+  pages: SceneNode[]
   currentPageId: string
   isDivider: (page: { name: string; childIds: string[] }) => boolean
   actions: {

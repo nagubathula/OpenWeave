@@ -15,8 +15,11 @@ function getDrag(ref: DragRefLike): DragState | null {
   return (ref.current ?? ref.value) ?? null
 }
 function setDragValue(ref: DragRefLike, val: DragState | null) {
-  if ('current' in ref) (ref as any).current = val
-  else (ref as any).value = val
+  if ('current' in ref) {
+    ref.current = val
+  } else {
+    ref.value = val
+  }
 }
 
 export function setupPanZoom(
@@ -156,10 +159,10 @@ export function setupPanZoom(
   }
 
   setupWheelPanZoom(canvasRef, editor)
-  addListener(canvasRef, 'touchstart', onTouchStart, { passive: false })
-  addListener(canvasRef, 'touchmove', onTouchMove, { passive: false })
-  addListener(canvasRef, 'touchend', onTouchEnd, { passive: false })
-  addListener(canvasRef, 'touchcancel', onTouchEnd, { passive: false })
+  addListener(canvasRef, 'touchstart', (e: Event) => onTouchStart(e as TouchEvent), { passive: false })
+  addListener(canvasRef, 'touchmove', (e: Event) => onTouchMove(e as TouchEvent), { passive: false })
+  addListener(canvasRef, 'touchend', (e: Event) => onTouchEnd(e as TouchEvent), { passive: false })
+  addListener(canvasRef, 'touchcancel', (e: Event) => onTouchEnd(e as TouchEvent), { passive: false })
 
   setupSafariGestureZoom(canvasRef, editor)
 }

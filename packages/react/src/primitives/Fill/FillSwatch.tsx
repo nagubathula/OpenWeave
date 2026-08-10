@@ -1,11 +1,11 @@
-import React, { ElementType } from 'react'
 import { Slot } from '@radix-ui/react-slot'
+import React, { useMemo } from 'react'
 
-import { useBindingProvider } from '#react/controls/binding-provider/use'
-import { useBindableValueState } from '#react/primitives/BindableValue/use'
+import { useBindingProvider } from '#react/controls/binding-provider'
 import { useFill } from './useFill'
-
 import type { FillSwatchProps } from './types'
+
+const noop = () => undefined
 
 export function FillSwatch({
   fill,
@@ -16,10 +16,23 @@ export function FillSwatch({
   ...props
 }: FillSwatchProps) {
   const provider = useBindingProvider()
-  const { category, swatchBackground, transparent } = useFill(fill, () => {})
-  
-  const variableId = fill.type === 'SOLID' ? fill.boundVariables?.color?.id : undefined
-  const state = useBindableValueState(variableId ? provider?.resolveVariable(variableId) : undefined)
+  const { category, swatchBackground, transparent } = useFill(fill, noop)
+
+  const boundVariables = (fill as unknown as { boundVariables?: { color?: { id: string } } }).boundVariables
+  const variableId = fill.type === 'SOLID' ? boundVariables?.color?.id : undefined
+  const boundVar = variableId && provider ? provider.resolve(variableId) : undefined
+
+  const state = useMemo(() => {
+    const bindingState = boundVar ? 'bound' : 'unbound'
+    return {
+      bindingState,
+      stateAttrs: {
+        'data-bound': boundVar ? ('' as const) : undefined,
+        'data-binding-state': bindingState,
+        'data-policy': 'detach-on-edit' as const
+      }
+    }
+  }, [boundVar])
 
   const Comp = asChild ? Slot : Component
 
@@ -29,7 +42,7 @@ export function FillSwatch({
     category,
     background: swatchBackground,
     transparent,
-    bindingState: state.bindingState,
+    bindingState: state.bindingState as any,
     stateAttrs: state.stateAttrs
   }) : children
 
@@ -38,7 +51,7 @@ export function FillSwatch({
       aria-label={label ?? 'Color swatch'}
       title={label}
       {...state.stateAttrs}
-      {...(props as any)}
+      {...props}
     >
       {renderedChildren}
     </Comp>

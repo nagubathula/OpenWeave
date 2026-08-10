@@ -20,8 +20,8 @@ export function useVariableBinding(options: UseVariableBindingOptions) {
   const { contains } = useFilter({ sensitivity: 'base' })
 
   const filteredVariables = computed(() => {
-    if (!searchTerm.value) return variables.value
-    return variables.value.filter((variable) => contains(variable.name, searchTerm.value))
+    if (!searchTerm.value) return variables
+    return variables.filter((variable) => contains(variable.name, searchTerm.value))
   })
 
   function bindingPath(index?: number) {

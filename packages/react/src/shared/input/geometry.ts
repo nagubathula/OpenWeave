@@ -5,8 +5,7 @@ import { getAbsoluteRotation, getWorldHandles } from '@openweave/scene-graph/coo
 import { degToRad } from '@openweave/scene-graph/geometry'
 import type { Vector } from '@openweave/scene-graph/primitives'
 
-import resizeCursorSvg from '#react/shared/assets/resize-cursor.svg?raw'
-import rotateCursorSvg from '#react/shared/assets/rotate-cursor.svg?raw'
+import { resizeCursorSvg, rotateCursorSvg } from '#react/shared/assets/cursor-svgs'
 import type { CornerPosition, HandlePosition } from '#react/shared/input/types'
 
 export function getPointerCoords(e: MouseEvent, canvas: HTMLCanvasElement | null, editor: Editor) {

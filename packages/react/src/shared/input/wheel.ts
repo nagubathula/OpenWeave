@@ -96,9 +96,9 @@ export function setupWheelPanZoom(canvasRef: CanvasRefLike, editor: Editor) {
   addListener(
     canvasRef,
     'wheel',
-    (event: WheelEvent) => {
+    (event: Event) => {
       event.preventDefault()
-      onWheel(event)
+      onWheel(event as WheelEvent)
     },
     { passive: false }
   )

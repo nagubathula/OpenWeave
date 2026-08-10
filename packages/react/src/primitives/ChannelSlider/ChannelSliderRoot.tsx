@@ -12,7 +12,7 @@ import type {
 export function ChannelSliderRoot({
   modelValue,
   label,
-  as = 'span',
+  as: _as = 'span',
   asChild = false,
   min = 0,
   max = 100,

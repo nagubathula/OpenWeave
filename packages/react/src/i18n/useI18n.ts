@@ -1,6 +1,5 @@
-import { useStore } from '@nanostores/vue'
-import type { Store, StoreValue } from 'nanostores'
-import type { Ref } from 'vue'
+import { useStore } from '@nanostores/react'
+import type { Store } from 'nanostores'
 
 import { locale, setLocale, AVAILABLE_LOCALES, LOCALE_LABELS } from '#react/i18n/locale'
 import type { Locale } from '#react/i18n/locale'
@@ -14,26 +13,9 @@ import {
   dialogMessages
 } from '#react/i18n/messages'
 
-/**
- * Reactive i18n composable for OpenWeave Vue components.
- *
- * Returns reactive translation objects grouped by domain, plus locale
- * controls. All values update automatically when the locale changes.
- *
- * @example
- * ```vue
- * <script setup>
- * const { menu, commands, locale, setLocale } = useI18n()
- * </script>
- *
- * <template>
- *   <button>{{ menu.save }}</button>
- *   <span>{{ commands.undo }}</span>
- * </template>
- * ```
- */
+// oxlint-disable-next-line openweave/no-useless-pass-through-wrappers
 export function useI18nNamespace<MessagesStore extends Store>(messages: MessagesStore) {
-  return useStore(messages) as Ref<StoreValue<MessagesStore>>
+  return useStore(messages)
 }
 
 export function useMenuMessages() {
@@ -73,7 +55,7 @@ export function useI18n() {
     variableTypes: useVariableTypeMessages(),
     pages: usePageMessages(),
     dialogs: useDialogMessages(),
-    locale: useStore(locale) as Ref<Locale>,
+    locale: useStore(locale) as Locale,
     availableLocales: AVAILABLE_LOCALES,
     localeLabels: LOCALE_LABELS,
     setLocale

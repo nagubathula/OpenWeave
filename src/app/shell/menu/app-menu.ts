@@ -41,7 +41,7 @@ export function useAppMenu() {
   const { menu, locale, availableLocales, localeLabels, setLocale } = useI18n()
   const { theme, setTheme } = useAppTheme()
 
-  const translatedMenuItemLabels: Partial<Record<string, keyof typeof menu.value>> = {
+  const translatedMenuItemLabels: Partial<Record<string, keyof typeof menu>> = {
     new: 'new',
     open: 'open',
     'open-storage-workspace': 'openStorageWorkspace',
@@ -82,7 +82,7 @@ export function useAppMenu() {
   const languageMenu = computed<MenuEntry[]>(() =>
     availableLocales.map((code) => ({
       label: localeLabels[code],
-      checked: locale.value === code,
+      checked: String(locale) === code,
       onCheckedChange: (checked: boolean) => {
         if (checked) setLocale(code)
       }
@@ -168,7 +168,7 @@ export function useAppMenu() {
 
   function menuLabel(entry: AppMenuActionItem): string {
     const key = translatedMenuItemLabels[entry.id]
-    return key ? menu.value[key] : entry.label
+    return key ? menu[key] : entry.label
   }
 
   function buildEntry(entry: AppMenuEntry): MenuEntry | null {
@@ -180,12 +180,12 @@ export function useAppMenu() {
     }
 
     if (entry.id === 'selection.moveToPage') {
-      if (otherPages.value.length === 0) return null
-      const disabled = !commands['selection.moveToPage'].enabled.value
+      if (otherPages.length === 0) return null
+      const disabled = !commands['selection.moveToPage'].enabled
       return {
         label: menuLabel(entry),
         disabled,
-        sub: otherPages.value.map((page) => ({
+        sub: otherPages.map((page) => ({
           label: page.name,
           disabled,
           action: () => moveSelectionToPage(page.id)
@@ -208,8 +208,8 @@ export function useAppMenu() {
   }
 
   function groupLabel(group: AppMenuGroupSchema): string {
-    const key = group.label.toLowerCase() as keyof typeof menu.value
-    return menu.value[key] ?? group.label
+    const key = group.label.toLowerCase() as keyof typeof menu
+    return menu[key] ?? group.label
   }
 
   function buildGroup(group: AppMenuGroupSchema): AppMenuGroup | null {

@@ -2,8 +2,8 @@ import { useMemo } from 'react'
 
 import type { SceneNode } from '@openweave/scene-graph'
 
-import { useEditor } from '../../editor/context'
-import { useSceneComputed } from '../../internal/scene-computed/use'
+import { useEditor } from '#react/editor/context'
+import { useSceneComputed } from '#react/internal/scene-computed/use'
 
 /**
  * Returns reactive selection-derived state for the current editor.

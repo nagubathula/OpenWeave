@@ -112,7 +112,7 @@ export function createSelectionCommands({
       },
       enabled: capabilities.canCreateInstance,
       run: () => {
-        const node = selection.selectedNode.value
+        const node = selection.selectedNode
         if (node?.type === 'COMPONENT') editor.createInstanceFromComponent(node.id)
       }
     },
@@ -211,7 +211,7 @@ export function createSelectionCommands({
         return t.value.flipHorizontal
       },
       enabled: capabilities.canFlip,
-      run: () => editor.flipNodes([...selection.selectedIds.value], 'horizontal')
+      run: () => editor.flipNodes([...selection.selectedIds], 'horizontal')
     },
     'selection.flipVertical': {
       id: 'selection.flipVertical',
@@ -219,7 +219,7 @@ export function createSelectionCommands({
         return t.value.flipVertical
       },
       enabled: capabilities.canFlip,
-      run: () => editor.flipNodes([...selection.selectedIds.value], 'vertical')
+      run: () => editor.flipNodes([...selection.selectedIds], 'vertical')
     },
     'selection.distributeHorizontal': {
       id: 'selection.distributeHorizontal',
@@ -227,7 +227,7 @@ export function createSelectionCommands({
         return t.value.distributeHorizontal
       },
       enabled: capabilities.canDistribute,
-      run: () => editor.distributeNodes([...selection.selectedIds.value], 'horizontal')
+      run: () => editor.distributeNodes([...selection.selectedIds], 'horizontal')
     },
     'selection.distributeVertical': {
       id: 'selection.distributeVertical',
@@ -235,7 +235,7 @@ export function createSelectionCommands({
         return t.value.distributeVertical
       },
       enabled: capabilities.canDistribute,
-      run: () => editor.distributeNodes([...selection.selectedIds.value], 'vertical')
+      run: () => editor.distributeNodes([...selection.selectedIds], 'vertical')
     },
     'selection.booleanUnion': {
       id: 'selection.booleanUnion',
@@ -300,7 +300,7 @@ export function createSelectionCommands({
       },
       enabled: capabilities.canMoveToPage,
       run: () => {
-        moveSelectionToPage(otherPages.value[0].id)
+        moveSelectionToPage(otherPages[0].id)
       }
     },
     'selection.setOpacity': {

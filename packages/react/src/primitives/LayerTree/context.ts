@@ -1,4 +1,4 @@
-import { createContext, useContext, MutableRefObject } from 'react'
+import { createContext, useContext, type MutableRefObject } from 'react'
 
 import type { Editor } from '@openweave/core/editor'
 

@@ -1,10 +1,10 @@
-import React, { type ElementType, type ReactNode } from 'react'
+import React, { type ReactNode } from 'react'
 import * as Slider from '@radix-ui/react-slider'
 
 import { useChannelSlider } from './context'
 import type { ChannelSliderPartProps, ChannelSliderThumbSlotProps } from './types'
 
-export interface ChannelSliderThumbProps extends ChannelSliderPartProps {
+export interface ChannelSliderThumbProps extends Omit<ChannelSliderPartProps, 'children'> {
   children?: ReactNode | ((props: ChannelSliderThumbSlotProps) => ReactNode)
 }
 

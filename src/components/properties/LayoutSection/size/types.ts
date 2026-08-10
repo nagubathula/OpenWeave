@@ -1,4 +1,5 @@
-import type { LayoutAxis, SizeLimitProp } from '@openweave/vue'
+export type LayoutAxis = 'x' | 'y'
+export type SizeLimitProp = 'minWidth' | 'maxWidth' | 'minHeight' | 'maxHeight'
 
 export interface SizeAxisFieldProps {
   axis: LayoutAxis

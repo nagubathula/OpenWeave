@@ -1,5 +1,5 @@
-import { useStore } from '@nanostores/vue'
-import { computed } from 'vue'
+import { useMemo } from 'react'
+import { useStore } from '@nanostores/react'
 
 import { useEditorCommands } from '#react/editor/commands/use'
 import { useEditor } from '#react/editor/context'
@@ -12,13 +12,6 @@ export type { MenuActionNode, MenuEntry, MenuSeparatorNode } from '#react/editor
 
 import type { MenuEntry } from '#react/editor/menu-model/types'
 
-/**
- * Returns ready-to-render menu models derived from the current editor state.
- *
- * This is a higher-level API than {@link useEditorCommands}: it groups
- * commands into app and canvas menu structures and computes context-sensitive
- * labels like Hide/Show and Lock/Unlock.
- */
 export function useMenuModel() {
   const editor = useEditor()
   const { menuItem: commandMenuItem, otherPages, moveSelectionToPage } = useEditorCommands()
@@ -26,35 +19,31 @@ export function useMenuModel() {
 
   const t = useStore(menuMessages)
 
-  const editMenu = computed<MenuEntry[]>(() => buildEditMenu(commandMenuItem))
+  const editMenu = useMemo<MenuEntry[]>(() => buildEditMenu(commandMenuItem), [commandMenuItem])
+  const viewMenu = useMemo<MenuEntry[]>(() => buildViewMenu(commandMenuItem), [commandMenuItem])
+  const objectMenu = useMemo<MenuEntry[]>(() => buildObjectMenu(commandMenuItem), [commandMenuItem])
+  const arrangeMenu = useMemo<MenuEntry[]>(() => [commandMenuItem('selection.wrapInAutoLayout')], [commandMenuItem])
 
-  const viewMenu = computed<MenuEntry[]>(() => buildViewMenu(commandMenuItem))
+  const appMenu = useMemo(() => [
+    { label: t.edit, items: editMenu },
+    { label: t.view, items: viewMenu },
+    { label: t.object, items: objectMenu },
+    { label: t.arrange, items: arrangeMenu }
+  ], [t, editMenu, viewMenu, objectMenu, arrangeMenu])
 
-  const objectMenu = computed<MenuEntry[]>(() => buildObjectMenu(commandMenuItem))
-
-  const arrangeMenu = computed<MenuEntry[]>(() => [commandMenuItem('selection.wrapInAutoLayout')])
-
-  const appMenu = computed(() => [
-    { label: t.value.edit, items: editMenu.value },
-    { label: t.value.view, items: viewMenu.value },
-    { label: t.value.object, items: objectMenu.value },
-    { label: t.value.arrange, items: arrangeMenu.value }
-  ])
-
-  const canvasMenu = computed<MenuEntry[]>(() =>
+  const canvasMenu = useMemo<MenuEntry[]>(() =>
     buildCanvasContextMenu({
       commandMenuItem,
-      otherPages: otherPages.value,
+      otherPages,
       moveSelectionToPage,
       selection,
-      t: t.value
-    })
-  )
+      t
+    }), [commandMenuItem, otherPages, moveSelectionToPage, selection, t])
 
-  const selectionLabelMenu = computed(() => ({
-    visibility: (editor.getSelectedNode()?.visible ?? true) ? t.value.hide : t.value.show,
-    lock: (editor.getSelectedNode()?.locked ?? false) ? t.value.unlock : t.value.lock
-  }))
+  const selectionLabelMenu = useMemo(() => ({
+    visibility: (editor.getSelectedNode()?.visible ?? true) ? t.hide : t.show,
+    lock: (editor.getSelectedNode()?.locked ?? false) ? t.unlock : t.lock
+  }), [editor, t])
 
   return {
     appMenu,
