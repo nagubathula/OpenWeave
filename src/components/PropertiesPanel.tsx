@@ -3,8 +3,8 @@ import * as Tabs from '@radix-ui/react-tabs'
 import { Code, Sparkles } from 'lucide-react'
 
 import DesignPanel from '@/components/properties/DesignPanel'
+import CodePanel from '@/components/properties/CodePanel'
 
-const CodePanel = () => <div className="p-4 text-sm text-muted-foreground">Code export will go here...</div>
 const ChatPanel = () => <div className="p-4 text-sm text-muted-foreground">AI chat will go here...</div>
 
 export default function PropertiesPanel() {

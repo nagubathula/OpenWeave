@@ -5,6 +5,8 @@ import { EditorProvider } from '@openweave/react'
 import { EditorLayout } from '@/components/layout/EditorLayout'
 import { createEditorStore } from '@/app/editor/session'
 import { getActiveEditorStoreOrNull, setActiveEditorStore } from '@/app/editor/active-store'
+import { preloadFonts } from '@/app/editor/fonts'
+import { kickSyncEngine } from '@/app/storage/sync'
 
 export default function Page() {
   const [isReady, setIsReady] = useState(false)
@@ -16,6 +18,10 @@ export default function Page() {
       setActiveEditorStore(store)
     }
     setIsReady(true)
+    // App-level startup that App.vue used to own: load fonts and start the
+    // storage sync engine (local persistence / document database).
+    preloadFonts()
+    void kickSyncEngine()
   }, [])
 
   const store = getActiveEditorStoreOrNull()
