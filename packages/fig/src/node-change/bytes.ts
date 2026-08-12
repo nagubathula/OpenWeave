@@ -15,7 +15,9 @@ export function hexToBytes(hex: string): Uint8Array {
 const HEX_BYTES = Array.from({ length: 256 }, (_, byte) => byte.toString(16).padStart(2, '0'))
 
 export function bytesToHex(bytes: Uint8Array): string {
-  if (typeof bytes.toHex === 'function') return bytes.toHex()
+  // Uint8Array.prototype.toHex is a newer runtime API not yet in the TS lib.
+  const withHex = bytes as Uint8Array & { toHex?: () => string }
+  if (typeof withHex.toHex === 'function') return withHex.toHex()
 
   const chunks = Array.from({ length: bytes.length }, () => '')
   for (let index = 0; index < bytes.length; index++) chunks[index] = HEX_BYTES[bytes[index]]

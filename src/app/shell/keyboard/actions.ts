@@ -1,14 +1,12 @@
-import type { Ref } from 'vue'
-
 import { opacityFromBuffer } from '@openweave/core/editor'
-import type { useEditorCommands, useViewportKind } from '@openweave/react'
+import type { useEditorCommands } from '@openweave/react'
 
 import type { EditorStore } from '@/app/editor/active-store'
 
 type KeyboardActionsOptions = {
   store: EditorStore
-  activeTab: Ref<'design' | 'code' | 'ai'>
-  isMobile: ReturnType<typeof useViewportKind>['isMobile']
+  activeTab: { value: 'design' | 'code' | 'ai' }
+  isMobile: { readonly value: boolean }
   runCommand: ReturnType<typeof useEditorCommands>['runCommand']
   setOpacityTarget: ReturnType<typeof useEditorCommands>['setOpacityTarget']
 }

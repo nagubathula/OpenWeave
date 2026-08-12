@@ -1,6 +1,5 @@
 import { tinykeys } from 'tinykeys'
 import type { KeyBindingMap } from 'tinykeys'
-import { onScopeDispose } from 'vue'
 
 import { editorCommandMetadata } from '@openweave/react'
 import type { EditorCommandId } from '@openweave/react'
@@ -204,5 +203,8 @@ export function registerKeyboardShortcuts(options: KeyboardShortcutOptions) {
     { capture: true }
   )
 
-  onScopeDispose(unsubscribe)
+  return () => {
+    unsubscribe()
+    spaceTool.dispose()
+  }
 }

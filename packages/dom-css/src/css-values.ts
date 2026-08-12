@@ -1,4 +1,6 @@
-import valueParser, { type ParsedNode } from 'postcss-value-parser'
+import valueParser from 'postcss-value-parser'
+
+type ParsedNode = ReturnType<typeof valueParser>['nodes'][number]
 
 import { colorToCSS, parseColor } from '@openweave/core/color'
 import type { Effect, Fill, SceneNode, Stroke } from '@openweave/scene-graph'

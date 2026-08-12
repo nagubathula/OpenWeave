@@ -4,8 +4,8 @@ import { Code, Sparkles } from 'lucide-react'
 
 import DesignPanel from '@/components/properties/DesignPanel'
 import CodePanel from '@/components/properties/CodePanel'
-
-const ChatPanel = () => <div className="p-4 text-sm text-muted-foreground">AI chat will go here...</div>
+import ChatPanel from '@/components/chat/ChatPanel'
+import ZoomDropdown from '@/components/editor/ZoomDropdown'
 
 export default function PropertiesPanel() {
   const [activeTab, setActiveTab] = useState('design')
@@ -42,9 +42,10 @@ export default function PropertiesPanel() {
             AI
           </Tabs.Trigger>
           
-          {/* ZoomDropdown placeholder for now */}
           {activeTab === 'design' && (
-            <div className="ml-auto text-[11px] text-muted pr-2">100%</div>
+            <div className="ml-auto pr-2">
+              <ZoomDropdown />
+            </div>
           )}
         </Tabs.List>
 

@@ -1,6 +1,6 @@
 import type { Editor } from '@openweave/core/editor'
 
-import { useI18n } from '#react/i18n'
+import { panelMessages } from '#react/i18n/messages'
 import type { DragOriginal } from '#react/shared/input/drag-original'
 import type { DragState } from '#react/shared/input/types'
 
@@ -12,7 +12,9 @@ export function duplicateAndDrag(
   editor: Editor
 ): { originals: Map<string, DragOriginal>; drag: DragState } {
   const previousSelection = new Set(editor.state.selectedIds)
-  const { panels } = useI18n()
+  // Read the message atom directly — this runs inside a pointer handler, not a
+  // React render, so hooks (useI18n/useStore) must not be called here.
+  const panels = panelMessages.get()
   const newIds: string[] = []
   const newOriginals = new Map<string, DragOriginal>()
   for (const id of previousSelection) {

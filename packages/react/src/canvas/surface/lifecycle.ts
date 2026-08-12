@@ -4,7 +4,12 @@ import type { CanvasKit } from 'canvaskit-wasm'
 import { SkiaRenderer } from '@openweave/core/canvas'
 import type { Editor } from '@openweave/core/editor'
 
-import { makeGLSurface, sizeCanvas, type CanvasGLContext } from '#react/canvas/surface/gl-surface'
+import {
+  isCanvasContextLost,
+  makeGLSurface,
+  sizeCanvas,
+  type CanvasGLContext
+} from '#react/canvas/surface/gl-surface'
 import { useCanvasKitLoader } from '#react/canvas/surface/kit-loader'
 import { createCanvasRenderLoop } from '#react/canvas/surface/render-loop'
 import { useCanvasResizeObserver } from '#react/canvas/surface/resize-observer'
@@ -80,15 +85,23 @@ export function createCanvasSurfaceManager({
 
   function renderNow() {
     if (!state.renderer || isDestroyed()) return
-    state.renderer.renderFromEditorState(
-      editor.state,
-      editor.graph,
-      editor.textEditor,
-      canvasRef.value?.clientWidth ?? 0,
-      canvasRef.value?.clientHeight ?? 0,
-      shouldShowRulers(),
-      options?.layer ?? 'full'
-    )
+    const canvas = canvasRef.value
+    // Skip rendering to a dead GPU context; the restore handler rebuilds it.
+    if (canvas && isCanvasContextLost(canvas)) return
+    try {
+      state.renderer.renderFromEditorState(
+        editor.state,
+        editor.graph,
+        editor.textEditor,
+        canvas?.clientWidth ?? 0,
+        canvas?.clientHeight ?? 0,
+        shouldShowRulers(),
+        options?.layer ?? 'full'
+      )
+    } catch {
+      // Transient GPU failure (e.g. context lost mid-frame); recover on restore.
+      return
+    }
     renderLoop.markRendered()
     clearSceneBackingRenderTimer()
     if (options?.layer === 'scene' && state.renderer.sceneBackingNeedsCrispRender) {
@@ -126,6 +139,13 @@ export function createCanvasSurfaceManager({
     if (state.renderer) editor.removeCanvasRenderer(state.renderer)
     state.renderer?.destroy()
     state.glContext?.delete()
+    state.glContext = null
+    state.renderer = null
+    // Proactively free the underlying WebGL context so rapid remounts/HMR don't
+    // pile up contexts and trip the browser's per-page limit (→ CONTEXT_LOST).
+    const canvas = canvasRef.value
+    const gl = canvas?.getContext('webgl2') ?? canvas?.getContext('webgl')
+    gl?.getExtension('WEBGL_lose_context')?.loseContext()
   }
 
   return {
@@ -170,7 +190,30 @@ export function useCanvasSurfaceLifecycle({
   })
 
   useEffect(() => {
+    const canvas = canvasRef.value
+
+    // WebGL contexts can be lost (GPU reset, too many contexts, tab backgrounding).
+    // preventDefault() on 'lost' is required for the browser to fire 'restored';
+    // then we rebuild the Skia surface on the fresh context.
+    const onContextLost = (event: Event) => {
+      event.preventDefault()
+      const c = canvasRef.value
+      if (c) c.dataset.surfaceError = 'context-lost'
+    }
+    const onContextRestored = () => {
+      const c = canvasRef.value
+      if (!c || lifecycle.destroyed) return
+      delete c.dataset.surfaceError
+      surface.createSurface(c, { reloadFonts: true })
+      surface.renderNow()
+    }
+
+    canvas?.addEventListener('webglcontextlost', onContextLost)
+    canvas?.addEventListener('webglcontextrestored', onContextRestored)
+
     return () => {
+      canvas?.removeEventListener('webglcontextlost', onContextLost)
+      canvas?.removeEventListener('webglcontextrestored', onContextRestored)
       lifecycle.destroyed = true
       cancelResize()
       surface.destroy()

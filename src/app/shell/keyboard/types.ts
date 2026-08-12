@@ -1,5 +1,3 @@
-import type { ComputedRef } from 'vue'
-
 import type { useEditorCommands } from '@openweave/react'
 
 import type { EditorStore } from '@/app/editor/active-store'
@@ -16,7 +14,7 @@ export type KeyboardShortcutActions = {
 }
 
 export type KeyboardShortcutOptions = {
-  inputFocused: ComputedRef<boolean>
+  inputFocused: { readonly value: boolean }
   store: EditorStore
   runCommand: ReturnType<typeof useEditorCommands>['runCommand']
   actions: KeyboardShortcutActions

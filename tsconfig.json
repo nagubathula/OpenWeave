@@ -43,9 +43,6 @@
       "#tests/*": [
         "./tests/*"
       ],
-      "tinykeys": [
-        "./node_modules/tinykeys/dist/tinykeys.d.ts"
-      ],
       "@openweave/react": [
         "./packages/react/src/index.ts"
       ],

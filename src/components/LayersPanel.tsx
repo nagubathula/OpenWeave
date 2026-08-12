@@ -3,6 +3,8 @@ import { Panel, Group, Separator } from 'react-resizable-panels'
 import AppMenu from '@/components/Shell/AppMenu'
 import PagesPanel from '@/components/PagesPanel'
 import LayerTree from '@/components/LayerTree/LayerTree'
+import AssetsPanel from '@/components/assets/AssetsPanel'
+import VariablesButton from '@/components/variables/VariablesButton'
 import { useI18n } from '@openweave/react'
 
 export default function LayersPanel() {
@@ -44,7 +46,7 @@ export default function LayersPanel() {
       </div>
 
       {activeTab === 'assets' ? (
-        <div className="flex-1 p-4 text-xs text-muted-foreground">Assets panel placeholder...</div>
+        <AssetsPanel />
       ) : (
         <Group orientation="vertical" className="flex-1 overflow-hidden">
           <Panel defaultSize={30} minSize={10} maxSize={60} className="flex flex-col overflow-hidden">
@@ -56,9 +58,10 @@ export default function LayersPanel() {
           <Panel defaultSize={70} minSize={20} className="flex flex-col overflow-hidden">
             <header
               data-test-id="layers-header"
-              className="shrink-0 px-3 py-2 text-[11px] font-semibold text-surface"
+              className="flex shrink-0 items-center justify-between px-3 py-2 text-[11px] font-semibold text-surface"
             >
               {panels.layers}
+              <VariablesButton />
             </header>
             <LayerTree />
           </Panel>

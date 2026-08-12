@@ -6,11 +6,18 @@ import {
   usePosition,
   useI18n
 } from '@openweave/react'
-import { colorToCSS } from '@openweave/core/color'
 import { BLACK } from '@openweave/core/constants'
 import { getActiveEditorStore } from '@/app/editor/active-store'
+import LayoutSection from '@/components/properties/LayoutSection'
+import ConstraintsSection from '@/components/properties/ConstraintsSection'
+import TypographySection from '@/components/properties/TypographySection'
+import FramePresetsSection from '@/components/properties/FramePresetsSection'
+import ComponentPropertiesSection from '@/components/properties/ComponentPropertiesSection'
+import { FillRow } from '@/components/properties/FillEditor'
+import ColorSwatchPopover from '@/components/color-picker/ColorSwatchPopover'
 import { Layers3 } from 'lucide-react'
 import type { Fill, Stroke, Effect, ExportSetting } from '@openweave/scene-graph'
+import type { Color } from '@openweave/scene-graph/primitives'
 
 export function DesignPanel() {
   const { selectedNode: node, selectedCount: multiCount } = useSelectionState()
@@ -43,6 +50,11 @@ export function DesignPanel() {
         </div>
 
         <PositionSectionReact />
+        <FramePresetsSection />
+        <LayoutSection />
+        <ConstraintsSection />
+        <ComponentPropertiesSection />
+        {node.type === 'TEXT' && <TypographySection />}
         <AppearanceSectionReact />
         <FillSectionReact />
         <StrokeSectionReact />
@@ -134,11 +146,11 @@ function FillSectionReact() {
   const editor = useEditor()
   const { selectedNode: node } = useSelectionState()
   const fills = (node && 'fills' in node ? (node.fills as Fill[]) : undefined) ?? []
+  const commit = (next: Fill[]) => {
+    if (node) editor.updateNodeWithUndo(node.id, { fills: next }, 'Change fill')
+  }
   const addFill = () => {
-    if (node) {
-      const current = (node.fills as Fill[]) ?? []
-      editor.updateNodeWithUndo(node.id, { fills: [...current, { type: 'SOLID', color: BLACK, opacity: 1, visible: true }] }, 'Add fill')
-    }
+    commit([...fills, { type: 'SOLID', color: BLACK, opacity: 1, visible: true }])
   }
   return (
     <div className="space-y-2 border-b border-border pb-3">
@@ -147,15 +159,12 @@ function FillSectionReact() {
         <button className="text-xs text-muted hover:text-surface" onClick={addFill}>+</button>
       </div>
       {fills.map((fill, i) => (
-        <div key={i} className="flex items-center gap-2 text-xs bg-input/30 rounded p-1.5 border border-border">
-          <div
-            className="size-4 rounded border border-border"
-            style={{
-              backgroundColor: fill.color ? colorToCSS(fill.color) : '#ffffff'
-            }}
-          />
-          <span className="flex-1 text-[11px] truncate uppercase">{fill.type}</span>
-        </div>
+        <FillRow
+          key={i}
+          fill={fill}
+          onChange={(next) => commit(fills.map((f, j) => (j === i ? next : f)))}
+          onRemove={() => commit(fills.filter((_, j) => j !== i))}
+        />
       ))}
     </div>
   )
@@ -168,8 +177,13 @@ function StrokeSectionReact() {
   const addStroke = () => {
     if (activeNode) {
       const current = (activeNode.strokes as Stroke[]) ?? []
-      editor.updateNodeWithUndo(activeNode.id, { strokes: [...current, { color: BLACK, opacity: 1, visible: true, weight: 1 } as unknown as Stroke] }, 'Add stroke')
+      editor.updateNodeWithUndo(activeNode.id, { strokes: [...current, { color: BLACK, opacity: 1, visible: true, weight: 1, align: 'CENTER' }] }, 'Add stroke')
     }
+  }
+  const updateStrokeColor = (index: number, color: Color) => {
+    if (!activeNode) return
+    const next = strokes.map((s, i) => (i === index ? { ...s, color } : s))
+    editor.updateNodeWithUndo(activeNode.id, { strokes: next }, 'Change stroke')
   }
   return (
     <div className="space-y-2 border-b border-border pb-3">
@@ -177,9 +191,9 @@ function StrokeSectionReact() {
         <span className="text-[11px] font-semibold text-muted uppercase tracking-wider">Stroke</span>
         <button className="text-xs text-muted hover:text-surface" onClick={addStroke}>+</button>
       </div>
-      {strokes.map((_, i) => (
+      {strokes.map((stroke, i) => (
         <div key={i} className="flex items-center gap-2 text-xs bg-input/30 rounded p-1.5 border border-border">
-          <span className="flex-1 text-[11px] truncate">SOLID</span>
+          <ColorSwatchPopover color={stroke.color} onChange={(c) => updateStrokeColor(i, c)} />
         </div>
       ))}
     </div>

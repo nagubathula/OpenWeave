@@ -14,13 +14,17 @@ import { useSceneComputed } from '#react/internal/scene-computed/use'
 export function useSelectionState() {
   const editor = useEditor()
 
-  const selectedIds = useSceneComputed(() => editor.state.selectedIds)
+  // Track selection as an array: a raw Set always JSON-serializes to "{}", which
+  // defeats useSceneComputed's change detection (it would never observe an
+  // update), leaving selectedIds/hasSelection/selectedCount frozen at mount.
+  const selectedIdList = useSceneComputed(() => [...editor.state.selectedIds])
+  const selectedIds = useMemo(() => new Set(selectedIdList), [selectedIdList])
 
-  const hasSelection = useMemo(() => selectedIds.size > 0, [selectedIds])
+  const hasSelection = useMemo(() => selectedIdList.length > 0, [selectedIdList])
 
   const selectedNode = useSceneComputed<SceneNode | null>(() => editor.getSelectedNode() ?? null)
 
-  const selectedCount = useMemo(() => selectedIds.size, [selectedIds])
+  const selectedCount = useMemo(() => selectedIdList.length, [selectedIdList])
 
   const selectedNodeType = useMemo(() => selectedNode?.type ?? null, [selectedNode])
 
@@ -29,8 +33,9 @@ export function useSelectionState() {
   const isGroup = useMemo(() => selectedNodeType === 'GROUP', [selectedNodeType])
 
   const canCreateComponentSet = useSceneComputed(() => {
-    if (selectedIds.size < 2) return false
-    for (const id of selectedIds) {
+    const ids = editor.state.selectedIds
+    if (ids.size < 2) return false
+    for (const id of ids) {
       if (editor.graph.getNode(id)?.type !== 'COMPONENT') return false
     }
     return true

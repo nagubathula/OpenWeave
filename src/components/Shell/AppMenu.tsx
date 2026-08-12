@@ -1,10 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { Settings, PanelLeft } from 'lucide-react'
 import { useEditorStore } from '@/app/editor/active-store'
+import { SettingsDialog } from '@/components/settings/SettingsDialog'
 
 export default function AppMenu() {
   const store = useEditorStore()
   const [isEditing, setIsEditing] = useState(false)
+  const [settingsOpen, setSettingsOpen] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -55,6 +57,7 @@ export default function AppMenu() {
           data-test-id="app-settings-trigger"
           title="Settings"
           className="flex size-6 shrink-0 cursor-pointer items-center justify-center rounded text-muted transition-colors hover:bg-hover hover:text-surface"
+          onClick={() => setSettingsOpen(true)}
         >
           <Settings className="size-3.5" />
         </button>
@@ -70,6 +73,7 @@ export default function AppMenu() {
           <PanelLeft className="size-3.5" />
         </button>
       </div>
+      <SettingsDialog open={settingsOpen} onClose={() => setSettingsOpen(false)} />
     </div>
   )
 }
