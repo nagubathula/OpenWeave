@@ -2,7 +2,6 @@ import React from 'react'
 import {
   useEditor,
   useSelectionState,
-  useAppearance,
   usePosition,
   useI18n
 } from '@openweave/react'
@@ -14,6 +13,7 @@ import TypographySection from '@/components/properties/TypographySection'
 import FramePresetsSection from '@/components/properties/FramePresetsSection'
 import ComponentPropertiesSection from '@/components/properties/ComponentPropertiesSection'
 import { FillRow } from '@/components/properties/FillEditor'
+import AppearanceSection from '@/components/properties/AppearanceSection'
 import ColorSwatchPopover from '@/components/color-picker/ColorSwatchPopover'
 import { Layers3 } from 'lucide-react'
 import type { Fill, Stroke, Effect, ExportSetting } from '@openweave/scene-graph'
@@ -32,7 +32,7 @@ export function DesignPanel() {
             {panels.layersCount({ count: String(multiCount) })}
           </span>
         </div>
-        <AppearanceSectionReact />
+        <AppearanceSection />
         <FillSectionReact />
         <StrokeSectionReact />
         <EffectsSectionReact />
@@ -55,7 +55,7 @@ export function DesignPanel() {
         <ConstraintsSection />
         <ComponentPropertiesSection />
         {node.type === 'TEXT' && <TypographySection />}
-        <AppearanceSectionReact />
+        <AppearanceSection />
         <FillSectionReact />
         <StrokeSectionReact />
         <EffectsSectionReact />
@@ -113,29 +113,6 @@ function PositionSectionReact() {
             value={Math.round(typeof height === 'number' ? height : 0)}
             onChange={(e) => updateProp('height', Number(e.target.value))}
           />
-        </div>
-      </div>
-    </div>
-  )
-}
-
-function AppearanceSectionReact() {
-  const { opacityPercent, updateProp } = useAppearance()
-  return (
-    <div className="space-y-2 border-b border-border pb-3">
-      <div className="text-[11px] font-semibold text-muted uppercase tracking-wider">Appearance</div>
-      <div className="flex items-center gap-2 text-xs">
-        <span className="text-muted text-[11px]">Opacity</span>
-        <div className="flex-1 flex items-center gap-1 bg-input/50 rounded px-2 py-1 border border-border">
-          <input
-            type="number"
-            min={0}
-            max={100}
-            className="w-full bg-transparent outline-none text-surface"
-            value={Math.round(typeof opacityPercent === 'number' ? opacityPercent : 100)}
-            onChange={(e) => updateProp('opacity', Number(e.target.value) / 100)}
-          />
-          <span className="text-muted text-[10px]">%</span>
         </div>
       </div>
     </div>
