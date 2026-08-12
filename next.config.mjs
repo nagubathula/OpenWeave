@@ -1,4 +1,7 @@
 import path from 'node:path'
+import { createRequire } from 'node:module'
+
+const require = createRequire(import.meta.url)
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -39,7 +42,7 @@ const nextConfig = {
       // Import markdown as raw source text (system prompts). Turbopack has no
       // built-in markdown handler, so route it through raw-loader.
       '*.md': {
-        loaders: ['raw-loader'],
+        loaders: [require.resolve('raw-loader')],
         as: '*.js'
       }
     }

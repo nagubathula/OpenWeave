@@ -1,5 +1,5 @@
 import { Slot } from '@radix-ui/react-slot'
-import React, { useMemo } from 'react'
+import React, { useMemo, forwardRef } from 'react'
 
 import { useBindingProvider } from '#react/controls/binding-provider'
 import { useFill } from './useFill'
@@ -7,16 +7,20 @@ import type { FillSwatchProps } from './types'
 
 const noop = () => undefined
 
-export function FillSwatch({
-  fill,
-  label,
-  as: Component = 'button',
-  asChild = false,
-  children,
-  ...props
-}: FillSwatchProps) {
-  const provider = useBindingProvider()
-  const { category, swatchBackground, transparent } = useFill(fill, noop)
+export const FillSwatch = forwardRef<HTMLElement, FillSwatchProps>(
+  (
+    {
+      fill,
+      label,
+      as: Component = 'button',
+      asChild = false,
+      children,
+      ...props
+    },
+    ref
+  ) => {
+    const provider = useBindingProvider()
+    const { category, swatchBackground, transparent } = useFill(fill, noop)
 
   const boundVariables = (fill as unknown as { boundVariables?: { color?: { id: string } } }).boundVariables
   const variableId = fill.type === 'SOLID' ? boundVariables?.color?.id : undefined
@@ -48,6 +52,7 @@ export function FillSwatch({
 
   return (
     <Comp
+      ref={ref}
       aria-label={label ?? 'Color swatch'}
       title={label}
       {...state.stateAttrs}
@@ -56,6 +61,7 @@ export function FillSwatch({
       {renderedChildren}
     </Comp>
   )
-}
+})
+FillSwatch.displayName = 'FillSwatch'
 
 export default FillSwatch

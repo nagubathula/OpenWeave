@@ -7,13 +7,17 @@ import { getActiveEditorStore } from '@/app/editor/active-store'
 import { resolveLanguageModelID } from '@/app/ai/chat/model'
 import { createToolLoopTransport } from '@/app/ai/chat/transports'
 import { credentialsReady, isConfigured } from '@/app/ai/chat/storage'
-import { createAIModelRuntime } from '@/app/ai/models'
-import { designModelID, designProviderDefinition } from '@/app/ai/models'
+import { createAIModelRuntime, designModelID, designProviderDefinition } from '@/app/ai/models'
 
 type ChatStatus = 'ready' | 'submitted' | 'streaming'
 
 function createId(): string {
-  if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) return crypto.randomUUID()
+  if (typeof window !== 'undefined' && (window as any).crypto) {
+    if ('randomUUID' in (window as any).crypto) return (window as any).crypto.randomUUID()
+    const array = new Uint32Array(1)
+    ;(window as any).crypto.getRandomValues(array)
+    return `msg-${Date.now()}-${array[0].toString(36)}`
+  }
   return `msg-${Date.now()}-${Math.random().toString(36).slice(2)}`
 }
 

@@ -1,5 +1,4 @@
 import { useEventListener } from '@vueuse/core'
-import { ref } from 'vue'
 
 import { isTauri } from '@/app/tauri/env'
 import type { ToastVariant } from '@/components/ui/toast'
@@ -22,25 +21,30 @@ const ERROR_TOAST_DURATION = 10000
 // exceed this. Belt-and-suspenders against any error source we missed.
 const TOAST_STACK_LIMIT = 5
 
-const toasts = ref<Toast[]>([])
+type Listener = (toasts: Toast[]) => void
+const listeners = new Set<Listener>()
+
+let currentToasts: Toast[] = []
 let nextId = 0
 let errorHandlersInitialized = false
 
+function notify() {
+  listeners.forEach((l) => l(currentToasts))
+}
+
 function push(message: string, variant: ToastVariant) {
-  // Dedupe: if the same message+variant is already visible, increment
-  // its repeat count instead of stacking a duplicate. Prevents the
-  // cascade-on-every-frame failure mode where a single unhealthy
-  // event source floods the viewport.
-  const existing = toasts.value.find((t) => t.message === message && t.variant === variant)
+  const existing = currentToasts.find((t) => t.message === message && t.variant === variant)
   if (existing) {
     existing.count += 1
     existing.id = ++nextId
+    notify()
     return
   }
-  toasts.value.push({ id: ++nextId, message, variant, count: 1 })
-  if (toasts.value.length > TOAST_STACK_LIMIT) {
-    toasts.value.splice(0, toasts.value.length - TOAST_STACK_LIMIT)
+  currentToasts = [...currentToasts, { id: ++nextId, message, variant, count: 1 }]
+  if (currentToasts.length > TOAST_STACK_LIMIT) {
+    currentToasts = currentToasts.slice(currentToasts.length - TOAST_STACK_LIMIT)
   }
+  notify()
 }
 
 function info(message: string) {
@@ -56,7 +60,8 @@ function error(message: string) {
 }
 
 function remove(id: number) {
-  toasts.value = toasts.value.filter((t) => t.id !== id)
+  currentToasts = currentToasts.filter((t) => t.id !== id)
+  notify()
 }
 
 function setupGlobalErrorHandler() {
@@ -77,7 +82,11 @@ export const toast = {
   warning,
   error,
   remove,
-  toasts,
+  subscribe: (l: Listener) => {
+    listeners.add(l)
+    l(currentToasts)
+    return () => listeners.delete(l)
+  },
   setupGlobalErrorHandler,
   TOAST_DURATION,
   ERROR_TOAST_DURATION

@@ -3,10 +3,10 @@ import { DialogClose } from 'reka-ui'
 import { expect, userEvent, within } from 'storybook/test'
 import { ref } from 'vue'
 
-import AppDialogBody from './AppDialogBody.vue'
-import AppDialogFooter from './AppDialogFooter.vue'
-import AppDialogHeader from './AppDialogHeader.vue'
-import AppDialogRoot from './AppDialogRoot.vue'
+import { AppDialogBody } from './AppDialogBody'
+import { AppDialogFooter } from './AppDialogFooter'
+import { AppDialogHeader } from './AppDialogHeader'
+import { AppDialogRoot } from './AppDialogRoot'
 
 const meta = {
   title: 'Design System/Dialog',

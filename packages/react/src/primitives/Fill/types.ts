@@ -21,7 +21,7 @@ export interface FillRootSlotProps {
   actions: FillActions
 }
 
-export interface FillSwatchProps {
+export interface FillSwatchProps extends Omit<React.HTMLAttributes<HTMLElement>, 'children'> {
   /** Fill represented by the swatch. */
   fill: Fill
   /** Accessible name for the preview. */

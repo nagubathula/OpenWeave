@@ -40,6 +40,7 @@ export default function CodePanel() {
       await navigator.clipboard.writeText(jsxCode)
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
+      // oxlint-ignore-next-line
     } catch {
       // clipboard blocked — ignore
     }

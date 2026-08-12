@@ -8,15 +8,15 @@ import LinkIcon from '~icons/lucide/link'
 import RotateIcon from '~icons/lucide/rotate-ccw'
 import SquareIcon from '~icons/lucide/square'
 
-import AppInput from '@/components/ui/AppInput.vue'
-import AppSelect from '@/components/ui/AppSelect.vue'
-import IconButton from '@/components/ui/IconButton.vue'
-import SegmentedControl from '@/components/ui/SegmentedControl.vue'
+import AppInput from '@/components/ui/AppInput'
+import AppSelect from '@/components/ui/AppSelect'
+import IconButton from '@/components/ui/IconButton'
+import SegmentedControl from '@/components/ui/SegmentedControl'
 
-import PanelFieldGroup from './PanelFieldGroup.vue'
-import PanelGrid from './PanelGrid.vue'
-import PanelHeader from './PanelHeader.vue'
-import PanelSection from './PanelSection.vue'
+import { PanelFieldGroup } from './PanelFieldGroup'
+import PanelGrid from './PanelGrid'
+import { PanelHeader } from './PanelHeader'
+import PanelSection from './PanelSection'
 
 const meta = {
   title: 'Design System/Properties/Panel Foundation',
