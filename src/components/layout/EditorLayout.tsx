@@ -10,8 +10,15 @@ import TabBar from '@/components/TabBar'
 import SafariBanner from '@/components/SafariBanner'
 import RenameSelectionDialog from '@/components/selection/RenameSelectionDialog'
 import StorageWorkspace from '@/components/storage/StorageWorkspace'
+import CollabPanel from '@/components/CollabPanel/CollabPanel'
+import MobileDrawer from '@/components/MobileDrawer'
+import MobileHud from '@/components/MobileHud/MobileHud'
+import { useViewportKind } from '@openweave/react'
 import { getActiveEditorStore } from '@/app/editor/active-store'
 import { useAppKeyboard } from '@/app/shell/keyboard/use-app-keyboard'
+import { useMenu } from '@/app/shell/menu/use'
+import { CollabProvider, useCollab } from '@/app/collab/use'
+import { getActiveStore } from '@/app/tabs'
 
 /**
  * Chrome shown top-left when the UI chrome is hidden (`state.showUI = false`),
@@ -57,10 +64,31 @@ export function EditorLayout() {
   // save (Cmd+S / Cmd+Shift+S), arrow-nudge, space-to-pan.
   useAppKeyboard()
 
+  // Native (Tauri) application menu — no-ops in the browser.
+  useMenu()
+
+  // Collaboration session: created once per shell mount (useCollab is a plain
+  // Vue-reactive factory, not a React hook, so lazy useState init is safe) and
+  // torn down on unmount — the session's old Vue `tryOnScopeDispose` cleanup
+  // no-ops in React, so disconnecting here is what actually closes the room.
+  const [collab] = useState(() => useCollab(getActiveStore))
+  useEffect(() => {
+    return () => collab.disconnect()
+  }, [collab])
+
   // `showUI` (from the editor store) toggles the full panel chrome; `?no-chrome`
   // (from the URL) drops to a bare canvas. Both mirror src/views/EditorView.vue.
   const [showUI, setShowUI] = useState(true)
   const [noChrome, setNoChrome] = useState(false)
+
+  // `useViewportKind().isMobile` is a Vue ref (always truthy when read bare) —
+  // bridge it to React state, reactive across the 768px breakpoint.
+  const { isMobile: isMobileRef } = useViewportKind()
+  const [isMobile, setIsMobile] = useState(isMobileRef.value)
+  useEffect(() => {
+    const stop = watch(isMobileRef, (value) => setIsMobile(value), { immediate: true })
+    return stop
+  }, [isMobileRef])
 
   useEffect(() => {
     setNoChrome(new URLSearchParams(window.location.search).has('no-chrome'))
@@ -83,6 +111,7 @@ export function EditorLayout() {
   }, [])
 
   return (
+    <CollabProvider value={collab}>
     <div
       data-test-id="editor-root"
       className="flex h-screen w-screen flex-col overflow-hidden bg-background text-foreground"
@@ -96,6 +125,15 @@ export function EditorLayout() {
           <div className="relative flex min-w-0 flex-1">
             <EditorCanvas />
           </div>
+        </div>
+      ) : isMobile && showUI ? (
+        <div className="flex flex-1 overflow-hidden">
+          <div className="relative flex min-w-0 flex-1">
+            <EditorCanvas />
+            <MobileHud />
+            <Toolbar />
+          </div>
+          <MobileDrawer />
         </div>
       ) : showUI ? (
         <Group orientation="horizontal" className="flex-1 min-h-0">
@@ -125,7 +163,12 @@ export function EditorLayout() {
             maxSize="40"
             className="bg-panel/50 border-l border-border/50"
           >
-            <PropertiesPanel />
+            <div className="flex h-full flex-col">
+              <div className="flex shrink-0 items-center justify-between border-b border-border px-1.5 py-1.5">
+                <CollabPanel />
+              </div>
+              <PropertiesPanel />
+            </div>
           </Panel>
         </Group>
       ) : (
@@ -139,5 +182,6 @@ export function EditorLayout() {
 
       <StorageWorkspace />
     </div>
+    </CollabProvider>
   )
 }

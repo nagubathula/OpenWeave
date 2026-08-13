@@ -1,4 +1,4 @@
-import { tryOnScopeDispose, useLocalStorage } from '@vueuse/core'
+import { useLocalStorage } from '@vueuse/core'
 import { computed, ref } from 'vue'
 
 import { createFollowActions, generateRoomId } from '@/app/collab/awareness'
@@ -65,8 +65,9 @@ export function useCollab(storeOrGetter: EditorStore | (() => EditorStore)) {
     return roomId
   }
 
-  tryOnScopeDispose(disconnect)
-
+  // Lifecycle note: `tryOnScopeDispose` was removed in the React migration — it
+  // silently no-ops outside a Vue effect scope. The React host that creates this
+  // session (EditorLayout's collab provider) must call `disconnect()` on unmount.
   return {
     state,
     remotePeers,

@@ -68,7 +68,7 @@ export default function ComponentPropertiesSection() {
               checked={control.value === 'true'}
               onChange={(e) => setValue(control, e.target.checked ? 'true' : 'false')}
             />
-          ) : control.type === 'TEXT' ? (
+          ) : (control.type === 'TEXT' ? (
             <div className={boxCls + ' flex-1'}>
               <input
                 type="text"
@@ -92,7 +92,7 @@ export default function ComponentPropertiesSection() {
                 ))}
               </select>
             </div>
-          )}
+          ))}
         </div>
       ))}
     </div>

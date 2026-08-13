@@ -1,12 +1,5 @@
-/// <reference types="vite/client" />
-/// <reference types="vite-plugin-pwa/vanillajs" />
-/// <reference types="unplugin-icons/types/vue" />
-
+// Build-time globals injected by the desktop (Tauri) build. In the web build
+// they are undefined; consumers guard with `typeof` checks (see
+// src/app/automation/mcp/spawn.ts).
 declare const __OPENWEAVE_APP_VERSION__: string
 declare const __OPENWEAVE_LOCAL_AUTOMATION_TOKEN__: string | null
-
-declare module '*.vue' {
-  import type { DefineComponent } from 'vue'
-  const component: DefineComponent<object, object, unknown>
-  export default component
-}

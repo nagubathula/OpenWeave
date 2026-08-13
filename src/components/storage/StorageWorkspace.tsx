@@ -223,9 +223,9 @@ export default function StorageWorkspace() {
             <p className="text-xs">
               {loading
                 ? 'Loading documents...'
-                : configured
+                : (configured
                   ? 'No documents yet.'
-                  : 'Storage is not configured.'}
+                  : 'Storage is not configured.')}
             </p>
             {!configured && !loading && (
               <button

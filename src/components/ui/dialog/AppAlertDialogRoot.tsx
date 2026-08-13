@@ -1,4 +1,5 @@
-import React, { forwardRef, ReactNode } from 'react'
+import type { ReactNode } from 'react';
+import React, { forwardRef } from 'react'
 import * as AlertDialogPrimitive from '@radix-ui/react-alert-dialog'
 
 import { useDialogUI, type DialogUI, type DialogVariants } from '@/components/ui/dialog/ui'

@@ -71,7 +71,9 @@ export const WEB_APP_ORIGIN = 'https://app.openweave.dev'
 
 export function getShareUrl(roomId: string): string {
   const base = IS_TAURI || !IS_BROWSER ? WEB_APP_ORIGIN : window.location.origin
-  return `${base}/share/${roomId}`
+  // Query-param form: compatible with static export (`output: 'export'`), where
+  // a /share/[roomId] path segment could never serve arbitrary room ids.
+  return `${base}/share?room=${roomId}`
 }
 
 export const PEER_COLORS: Color[] = [

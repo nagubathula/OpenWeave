@@ -1,4 +1,5 @@
-import React, { forwardRef, ReactNode } from 'react'
+import type { ReactNode } from 'react';
+import React, { forwardRef } from 'react'
 import * as DialogPrimitive from '@radix-ui/react-dialog'
 import { X } from 'lucide-react'
 

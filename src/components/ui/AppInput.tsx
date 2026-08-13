@@ -1,5 +1,7 @@
-import React, { InputHTMLAttributes, forwardRef } from 'react'
-import { tv, VariantProps } from 'tailwind-variants'
+import type { InputHTMLAttributes} from 'react';
+import React, { forwardRef } from 'react'
+import type { VariantProps } from 'tailwind-variants';
+import { tv } from 'tailwind-variants'
 
 import theme from '@/theme/input'
 

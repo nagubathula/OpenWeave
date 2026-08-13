@@ -1,4 +1,5 @@
-import React, { forwardRef, HTMLAttributes, ReactNode } from 'react'
+import type { HTMLAttributes, ReactNode } from 'react';
+import React, { forwardRef } from 'react'
 import { tv } from 'tailwind-variants'
 
 import type { ComponentUI } from '@/components/ui/types'

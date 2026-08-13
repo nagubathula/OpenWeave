@@ -58,7 +58,7 @@ export default function ExportSection() {
                   value={setting.scale + 'x'}
                   onChange={(e) => {
                     const val = e.target.value
-                    updateSetting(i, { scale: parseFloat(val) } as any)
+                    updateSetting(i, { scale: Number.parseFloat(val) } as any)
                   }}
                 >
                   <option value="0.5x">0.5x</option>

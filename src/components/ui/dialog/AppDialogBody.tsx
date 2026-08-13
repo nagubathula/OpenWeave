@@ -1,4 +1,5 @@
-import React, { forwardRef, HTMLAttributes } from 'react'
+import type { HTMLAttributes } from 'react';
+import React, { forwardRef } from 'react'
 import { useDialogUI, type DialogUI } from '@/components/ui/dialog/ui'
 
 export interface AppDialogBodyProps extends HTMLAttributes<HTMLDivElement> {

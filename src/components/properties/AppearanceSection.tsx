@@ -116,11 +116,11 @@ export function AppearanceSection() {
         >
           {visibilityState === 'visible' ? (
             <Eye className="size-3.5" />
-          ) : visibilityState === 'hidden' ? (
+          ) : (visibilityState === 'hidden' ? (
             <EyeOff className="size-3.5" />
           ) : (
             <Eye className="size-3.5 opacity-50" />
-          )}
+          ))}
         </button>
       </div>
 

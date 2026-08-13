@@ -1,4 +1,5 @@
-import React, { forwardRef, useState, useEffect, KeyboardEvent } from 'react'
+import type { KeyboardEvent } from 'react';
+import React, { forwardRef, useState, useEffect } from 'react'
 import * as PopoverPrimitive from '@radix-ui/react-popover'
 import { AppInput } from '@/components/ui/AppInput'
 import { AppBadge } from '@/components/ui/AppBadge'

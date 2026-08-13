@@ -27,6 +27,9 @@ import { AppSwitch } from '@/components/ui/AppSwitch'
 
 type TextAlign = SceneNode['textAlignHorizontal']
 type TextVerticalAlign = SceneNode['textAlignVertical']
+type TextCase = SceneNode['textCase']
+type TextDirection = SceneNode['textDirection']
+type TextTruncation = SceneNode['textTruncation']
 
 const inputClass = 'w-full bg-input/50 rounded px-2 py-1 border border-border text-surface text-xs outline-none focus:border-accent'
 
@@ -40,59 +43,44 @@ function PanelFieldGroup({ label, children, className = '' }: { label: string, c
 }
 
 export default function TypographySection() {
-  const typography = useTypography()
-  
-  // Destructure properties from useTypography. 
-  // It provides standard properties to interact with TextNode
+  // Destructure properties from useTypography.
+  // It provides standard properties and actions to interact with TextNode
   const {
     node,
     fontFamily,
     fontWeight,
     fontSize,
     weights,
+    activeFormatting,
     setFamily,
     setWeight,
     setAlign,
+    setVerticalAlign,
+    setTextCase,
+    setDirection,
+    setTruncation,
+    setFontFeature,
+    toggleBold,
+    toggleItalic,
+    toggleDecoration,
     updateProp,
     commitProp
-  } = typography
+  } = useTypography()
 
   if (!node || !('textAlignHorizontal' in node)) return null
 
   const lineHeight = node.lineHeight ?? ''
-  const letterSpacing = node.letterSpacing ?? 0
+  const letterSpacing = node.letterSpacing
   const textAlign = node.textAlignHorizontal
   const verticalAlign = node.textAlignVertical
-
-  // We are missing some properties like activeFormatting, toggleBold, setVerticalAlign in the hook exports above,
-  // we will add placeholders or extract them if they exist in the full hook payload.
-  const t = typography as any
-  const setVerticalAlign = t.setVerticalAlign || ((v: any) => { updateProp('textAlignVertical', v); commitProp('textAlignVertical', v, v) })
-  const activeFormatting = t.activeFormatting || []
-  const toggleBold = t.toggleBold || (() => {})
-  const toggleItalic = t.toggleItalic || (() => {})
-  const toggleDecoration = t.toggleDecoration || (() => {})
-  const textCase = node.textCase || 'ORIGINAL'
-  const setTextCase = t.setTextCase || ((v: any) => { updateProp('textCase', v); commitProp('textCase', v, v) })
-  const textDirection = node.textDirection || 'AUTO'
-  const setDirection = t.setDirection || ((v: any) => { updateProp('textDirection', v); commitProp('textDirection', v, v) })
-  const textTruncation = node.textTruncation || 'DISABLED'
-  const setTruncation = t.setTruncation || ((v: any) => { updateProp('textTruncation', v); commitProp('textTruncation', v, v) })
+  const textCase = node.textCase
+  const textDirection = node.textDirection
+  const textTruncation = node.textTruncation
   const maxLines = node.maxLines ?? 1
 
   function featureEnabled(features: Array<{ tag: string; enabled: boolean }> | undefined, tag: string) {
     return features?.find((feature) => feature.tag === tag)?.enabled ?? true
   }
-
-  const setFontFeature = t.setFontFeature || ((tag: string, enabled: boolean) => {
-    const current = node.fontFeatures ?? []
-    const updated = current.filter(f => f.tag !== tag)
-    updated.push({ tag, enabled })
-    updateProp('fontFeatures', updated as any)
-    commitProp('fontFeatures', updated as any, updated as any)
-  })
-
-
 
   return (
     <PanelSection label="Typography">

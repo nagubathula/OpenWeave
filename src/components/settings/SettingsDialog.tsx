@@ -1,25 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Sparkles, Palette, Cloud, X, Wand2 } from 'lucide-react'
-import {
-  AI_PROVIDERS,
-  DEFAULT_AI_PROVIDER,
-  type AIProviderDef,
-  type AIProviderID
-} from '@openweave/core/constants'
-import {
-  aiModelSettings,
-  replaceAIModelSettings,
-  resolveAIModelRole
-} from '@/app/ai/models/store'
-import type {
-  AIModelConnection,
-  AIModelProfile,
-  AIModelProfileId,
-  AIModelSettings
-} from '@/app/ai/models/types'
-import { appCredentialServices } from '@/app/settings/credentials/app'
-import { providerCredentialRef } from '@/app/settings/credentials/migration'
+import ModelsPanel from '@/components/settings/models/ModelsPanel'
 import {
   setVectorizeCredential,
   vectorizeCredentialStatus,
@@ -32,16 +14,6 @@ type SettingsSection = 'ai' | 'models' | 'vectorize' | 'appearance' | 'storage'
 type ThemeSetting = 'light' | 'dark' | 'auto'
 
 const THEME_STORAGE_KEY = 'openweave:theme'
-const DEFAULT_CREDENTIAL_PROFILE = 'default'
-const DEFAULT_MAX_OUTPUT_TOKENS = 16_384
-
-const DIRECT_PROVIDERS: AIProviderDef[] = AI_PROVIDERS.filter(
-  (provider) => !provider.id.startsWith('acp:')
-)
-
-function findProvider(id: AIProviderID): AIProviderDef {
-  return AI_PROVIDERS.find((provider) => provider.id === id) ?? AI_PROVIDERS[0]
-}
 
 // --- Theme -----------------------------------------------------------------
 
@@ -68,74 +40,6 @@ function applyThemeSetting(setting: ThemeSetting): void {
   root.dataset.themeSetting = setting
   root.style.colorScheme = resolved
   window.localStorage.setItem(THEME_STORAGE_KEY, setting)
-}
-
-// --- AI settings -----------------------------------------------------------
-
-type AIFormState = {
-  providerID: AIProviderID
-  modelID: string
-  customModelID: string
-  customBaseURL: string
-  apiKey: string
-}
-
-function currentDesignProfile(): {
-  profile: AIModelProfile | null
-  connection: AIModelConnection | null
-} {
-  const resolved = resolveAIModelRole('design')
-  return { profile: resolved?.profile ?? null, connection: resolved?.connection ?? null }
-}
-
-function initialAIForm(): AIFormState {
-  const { profile, connection } = currentDesignProfile()
-  const providerID = connection?.providerID ?? DEFAULT_AI_PROVIDER
-  const provider = findProvider(providerID)
-  return {
-    providerID,
-    modelID: profile?.modelID || provider.defaultModel,
-    customModelID: profile?.customModelID ?? '',
-    customBaseURL: connection?.customBaseURL ?? '',
-    apiKey: ''
-  }
-}
-
-function buildDesignSettings(form: AIFormState): AIModelSettings {
-  const existing = aiModelSettings.value
-  const { profile, connection } = currentDesignProfile()
-  const provider = findProvider(form.providerID)
-  const connectionId = connection?.id ?? 'connection-design'
-  const profileId: AIModelProfileId = profile?.id ?? 'model-design'
-  const nextConnection: AIModelConnection = {
-    id: connectionId,
-    providerID: form.providerID,
-    customBaseURL: form.customBaseURL.trim(),
-    customAPIType: connection?.customAPIType ?? 'completions',
-    credentialProfileId: connection?.credentialProfileId ?? DEFAULT_CREDENTIAL_PROFILE
-  }
-  const nextProfile: AIModelProfile = {
-    id: profileId,
-    name: profile?.name || provider.name,
-    connectionId,
-    modelID: form.modelID.trim() || provider.defaultModel,
-    customModelID: form.customModelID.trim(),
-    maxOutputTokens: profile?.maxOutputTokens ?? DEFAULT_MAX_OUTPUT_TOKENS,
-    capabilities: profile?.capabilities ?? ['tools']
-  }
-  const otherConnections = existing.connections.filter((item) => item.id !== connectionId)
-  const otherModels = existing.models.filter((item) => item.id !== profileId)
-  return {
-    version: 1,
-    connections: [nextConnection, ...otherConnections],
-    models: [nextProfile, ...otherModels],
-    assignments: {
-      design: profileId,
-      review: existing.assignments.review ?? 'design',
-      fast: existing.assignments.fast ?? 'design',
-      vision: existing.assignments.vision
-    }
-  }
 }
 
 // --- Panels ----------------------------------------------------------------
@@ -300,181 +204,6 @@ function VectorizePanel() {
   )
 }
 
-function AIPanel() {
-  const [form, setForm] = useState<AIFormState>(() => initialAIForm())
-  const [status, setStatus] = useState<string | null>(null)
-  const [saving, setSaving] = useState(false)
-
-  const provider = findProvider(form.providerID)
-  const supportsCustomModel = provider.supportsCustomModel ?? false
-  const supportsCustomBaseURL = provider.supportsCustomBaseURL ?? false
-
-  useEffect(() => {
-    let cancelled = false
-    const reference = providerCredentialRef(form.providerID, DEFAULT_CREDENTIAL_PROFILE)
-    appCredentialServices.resolver
-      .resolve(reference)
-      .then((value) => {
-        if (!cancelled && value) setForm((prev) => ({ ...prev, apiKey: value }))
-      })
-      .catch(() => {
-        /* credential store unavailable — leave blank */
-      })
-    return () => {
-      cancelled = true
-    }
-  }, [form.providerID])
-
-  const changeProvider = (providerID: AIProviderID) => {
-    const next = findProvider(providerID)
-    setForm((prev) => ({
-      ...prev,
-      providerID,
-      modelID: next.defaultModel,
-      customModelID: '',
-      apiKey: ''
-    }))
-    setStatus(null)
-  }
-
-  const save = async () => {
-    setSaving(true)
-    setStatus(null)
-    try {
-      replaceAIModelSettings(buildDesignSettings(form))
-      const key = form.apiKey.trim()
-      if (key) {
-        const reference = providerCredentialRef(form.providerID, DEFAULT_CREDENTIAL_PROFILE)
-        await appCredentialServices.manager.set(reference, key)
-      }
-      setStatus('Saved')
-    } catch (error) {
-      setStatus(error instanceof Error ? error.message : 'Failed to save')
-    } finally {
-      setSaving(false)
-    }
-  }
-
-  return (
-    <div className="flex flex-col gap-3" data-test-id="settings-ai-panel">
-      <h3 className="text-xs font-semibold text-surface">AI &amp; Agents</h3>
-
-      <div className="flex flex-col gap-1">
-        <label className={labelClass} htmlFor="settings-ai-provider">
-          Provider
-        </label>
-        <select
-          id="settings-ai-provider"
-          className={inputClass}
-          data-test-id="settings-ai-provider"
-          value={form.providerID}
-          onChange={(event) => changeProvider(event.target.value as AIProviderID)}
-        >
-          {DIRECT_PROVIDERS.map((item) => (
-            <option key={item.id} value={item.id}>
-              {item.name}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      <div className="flex flex-col gap-1">
-        <label className={labelClass} htmlFor="settings-ai-model">
-          Model
-        </label>
-        {provider.models.length > 0 && (
-          <select
-            id="settings-ai-model"
-            className={inputClass}
-            data-test-id="settings-ai-model"
-            value={form.modelID}
-            onChange={(event) =>
-              setForm((prev) => ({ ...prev, modelID: event.target.value }))
-            }
-          >
-            {provider.models.map((model) => (
-              <option key={model.id} value={model.id}>
-                {model.name}
-              </option>
-            ))}
-          </select>
-        )}
-        {supportsCustomModel && (
-          <input
-            className={inputClass}
-            data-test-id="settings-ai-custom-model"
-            placeholder="Custom model ID (optional)"
-            value={form.customModelID}
-            onChange={(event) =>
-              setForm((prev) => ({ ...prev, customModelID: event.target.value }))
-            }
-          />
-        )}
-      </div>
-
-      {supportsCustomBaseURL && (
-        <div className="flex flex-col gap-1">
-          <label className={labelClass} htmlFor="settings-ai-base-url">
-            Base URL
-          </label>
-          <input
-            id="settings-ai-base-url"
-            className={inputClass}
-            data-test-id="settings-ai-base-url"
-            placeholder="https://api.example.com/v1"
-            value={form.customBaseURL}
-            onChange={(event) =>
-              setForm((prev) => ({ ...prev, customBaseURL: event.target.value }))
-            }
-          />
-        </div>
-      )}
-
-      <div className="flex flex-col gap-1">
-        <label className={labelClass} htmlFor="settings-ai-api-key">
-          API Key
-        </label>
-        <input
-          id="settings-ai-api-key"
-          type="password"
-          className={inputClass}
-          data-test-id="settings-ai-api-key"
-          placeholder={provider.keyPlaceholder || 'API key'}
-          value={form.apiKey}
-          onChange={(event) => setForm((prev) => ({ ...prev, apiKey: event.target.value }))}
-        />
-        {provider.keyURL && (
-          <a
-            href={provider.keyURL}
-            target="_blank"
-            rel="noreferrer"
-            className="text-[10px] text-accent hover:underline"
-          >
-            Get an API key
-          </a>
-        )}
-      </div>
-
-      <div className="flex items-center gap-2">
-        <button
-          type="button"
-          className="rounded bg-accent px-3 py-1.5 text-[11px] font-medium text-white hover:bg-accent/90 disabled:opacity-50"
-          data-test-id="settings-ai-save"
-          disabled={saving}
-          onClick={() => void save()}
-        >
-          {saving ? 'Saving…' : 'Save'}
-        </button>
-        {status && (
-          <span className="text-[10px] text-muted" data-test-id="settings-ai-status">
-            {status}
-          </span>
-        )}
-      </div>
-    </div>
-  )
-}
-
 function StoragePanel() {
   return (
     <div className="flex flex-col gap-3" data-test-id="settings-storage-panel">
@@ -563,7 +292,7 @@ export function SettingsDialog({ open, onClose }: SettingsDialogProps) {
           </nav>
 
           <div className="min-h-0 flex-1 overflow-y-auto p-4">
-            {section === 'ai' && <AIPanel />}
+            {section === 'ai' && <ModelsPanel />}
             {section === 'vectorize' && <VectorizePanel />}
             {section === 'appearance' && <AppearancePanel />}
             {section === 'storage' && <StoragePanel />}

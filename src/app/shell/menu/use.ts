@@ -1,4 +1,4 @@
-import { tryOnScopeDispose } from '@vueuse/core'
+import { useEffect, useRef } from 'react'
 
 import { useEditorCommands, useI18n } from '@openweave/react'
 import type { EditorCommandId } from '@openweave/react'
@@ -22,7 +22,6 @@ function commandMenuIds(entries: readonly AppMenuEntry[]): EditorCommandId[] {
   })
 }
 
-const store = useEditorStore()
 const COMMAND_MENU_IDS = new Set<EditorCommandId>(
   APP_MENU_SCHEMA.flatMap((group) => commandMenuIds(group.items))
 )
@@ -30,62 +29,88 @@ const COMMAND_MENU_IDS = new Set<EditorCommandId>(
 export { importFileDialog, openFileDialog }
 export { openFileFromPath } from '@/app/shell/menu/files'
 
+/**
+ * Binds the native (Tauri) application menu to editor commands and actions.
+ *
+ * React hook: call once from the editor shell. No-ops in the browser. The
+ * Tauri `menu-event` listener is registered in an effect and unbound on
+ * unmount (the old Vue version used `tryOnScopeDispose`, which silently
+ * no-ops outside a Vue effect scope — this replaces it). The editor store is
+ * resolved lazily so the menu isn't pinned to whichever tab existed at mount.
+ */
 export function useMenu() {
-  if (!isTauri()) return
-
-  let unlisten: (() => void) | undefined
   const { setTheme } = useAppTheme()
   const { dialogs } = useI18n()
   const { runCommand } = useEditorCommands()
 
-  const actions: Partial<Record<string, () => void>> = {
-    new: () => createTab(),
-    open: () => void openFileDialog(),
-    'open-storage-workspace': () => {
-      openStorageWorkspace()
-    },
-    close: () => {
-      if (activeTab.value) closeTab(activeTab.value.id)
-    },
-    save: () => void store.saveFigFile(),
-    'save-as': () => void store.saveFigFileAs(),
-    'export-selection': () => {
-      if (store.state.selectedIds.size > 0) void store.exportSelection(1, 'png')
-    },
-    'export-png': () => {
-      if (store.state.selectedIds.size > 0) void store.exportSelection(1, 'png')
-    },
-    'export-svg': () => {
-      if (store.state.selectedIds.size > 0) void store.exportSelection(1, 'svg')
-    },
-    'export-pptx': () => {
-      if (store.state.selectedIds.size > 0) void store.exportSelection(1, 'pptx')
-    },
-    'export-fig': () => {
-      if (store.state.selectedIds.size > 0) void store.exportSelection(1, 'fig')
-    },
-    autosave: () => {
-      store.state.autosaveEnabled = !store.state.autosaveEnabled
-    },
-    ...createSelectionMenuActions(store),
-    // oxlint-disable-next-line openweave/no-broad-double-cast
-    'check-updates': () => void checkForAppUpdate({ messages: { value: dialogs } as unknown as Parameters<typeof checkForAppUpdate>[0]['messages'] }),
-    settings: openSettingsDialog,
-    ...createSharedEditorMenuActions(setTheme)
-  }
+  const latest = useRef({ setTheme, dialogs, runCommand })
+  latest.current = { setTheme, dialogs, runCommand }
 
-  void import('@tauri-apps/api/event').then(({ listen }) => {
-    return listen<string>('menu-event', (event) => {
-      if (COMMAND_MENU_IDS.has(event.payload as EditorCommandId)) {
-        runCommand(event.payload as EditorCommandId)
-        return
-      }
-      actions[event.payload]?.()
-    }).then((fn) => {
-      unlisten = fn
-      return undefined
+  useEffect(() => {
+    if (!isTauri()) return
+
+    let unlisten: (() => void) | undefined
+    let cancelled = false
+
+    const store = () => useEditorStore()
+    const actions: Partial<Record<string, () => void>> = {
+      new: () => createTab(),
+      open: () => void openFileDialog(),
+      'open-storage-workspace': () => {
+        openStorageWorkspace()
+      },
+      close: () => {
+        if (activeTab.value) closeTab(activeTab.value.id)
+      },
+      save: () => void store().saveFigFile(),
+      'save-as': () => void store().saveFigFileAs(),
+      'export-selection': () => {
+        if (store().state.selectedIds.size > 0) void store().exportSelection(1, 'png')
+      },
+      'export-png': () => {
+        if (store().state.selectedIds.size > 0) void store().exportSelection(1, 'png')
+      },
+      'export-svg': () => {
+        if (store().state.selectedIds.size > 0) void store().exportSelection(1, 'svg')
+      },
+      'export-pptx': () => {
+        if (store().state.selectedIds.size > 0) void store().exportSelection(1, 'pptx')
+      },
+      'export-fig': () => {
+        if (store().state.selectedIds.size > 0) void store().exportSelection(1, 'fig')
+      },
+      autosave: () => {
+        store().state.autosaveEnabled = !store().state.autosaveEnabled
+      },
+      ...createSelectionMenuActions(useEditorStore()),
+      'check-updates': () =>
+        void checkForAppUpdate({
+          // oxlint-disable-next-line openweave/no-broad-double-cast
+          messages: { value: latest.current.dialogs } as unknown as Parameters<
+            typeof checkForAppUpdate
+          >[0]['messages']
+        }),
+      settings: openSettingsDialog,
+      ...createSharedEditorMenuActions((theme) => latest.current.setTheme(theme))
+    }
+
+    void import('@tauri-apps/api/event').then(({ listen }) => {
+      return listen<string>('menu-event', (event) => {
+        if (COMMAND_MENU_IDS.has(event.payload as EditorCommandId)) {
+          latest.current.runCommand(event.payload as EditorCommandId)
+          return
+        }
+        actions[event.payload]?.()
+      }).then((fn) => {
+        if (cancelled) fn()
+        else unlisten = fn
+        return undefined
+      })
     })
-  })
 
-  tryOnScopeDispose(() => unlisten?.())
+    return () => {
+      cancelled = true
+      unlisten?.()
+    }
+  }, [])
 }
