@@ -3,8 +3,8 @@ import { describe, expect, test } from 'bun:test'
 import { ref } from 'vue'
 
 import type { Color, OkHCLColor } from '@openweave/core'
-import type { ColorFieldFormat } from '@openweave/vue'
-import { BUILT_IN_COLOR_FORMATS, fromPercent, toPercent, useColorModel } from '@openweave/vue'
+import type { ColorFieldFormat } from '@openweave/react'
+import { BUILT_IN_COLOR_FORMATS, fromPercent, toPercent, useColorModel } from '@openweave/react'
 
 function expectColorClose(actual: Color, expected: Color, precision = 5) {
   expect(actual.r).toBeCloseTo(expected.r, precision)

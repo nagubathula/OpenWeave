@@ -1,6 +1,6 @@
 ---
 title: Advanced
-description: Lower-level and specialized APIs in @openweave/vue.
+description: Lower-level and specialized APIs in @openweave/react.
 ---
 
 # Advanced

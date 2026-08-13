@@ -11,5 +11,5 @@ Użyj go w panelach typografii i ostrzeżeniach, które muszą wskazywać niedos
 
 ## Powiązane API
 
-- [useTypography](../composables/use-typography)
+- [useTypography](../hooks/use-typography)
 - [TypographyControlsRoot](../components/typography-controls-root)

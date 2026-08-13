@@ -13,4 +13,4 @@ Use it inside `CanvasRoot` when you want SDK-managed canvas refs and rendering i
 
 - [CanvasRoot](./canvas-root)
 - [useCanvasContext](../advanced/use-canvas-context)
-- [useCanvas](../composables/use-canvas)
+- [useCanvas](../hooks/use-canvas)

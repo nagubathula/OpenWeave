@@ -11,6 +11,6 @@ Użyj go, gdy chcesz przejrzysty stan wyliczony, który wyraźnie zależy od dan
 
 ## Powiązane API
 
-- [useSelectionState](../composables/use-selection-state)
-- [useSelectionCapabilities](../composables/use-selection-capabilities)
+- [useSelectionState](../hooks/use-selection-state)
+- [useSelectionCapabilities](../hooks/use-selection-capabilities)
 - [useNodeProps](./use-node-props)

@@ -20,26 +20,26 @@ do not run. Native Tab order cycles between stops.
 Set `interactive="false"` when reusing the primitive around a composite stop row. The row still
 exposes slot actions and `data-selected`/`data-dragging`, but does not enter the slider tab order.
 
-```vue twoslash
-<script setup lang="ts">
+```tsx twoslash
 import type { GradientStop } from '@openweave/scene-graph'
-import { GradientEditorStop } from '@openweave/vue'
+import { GradientEditorStop } from '@openweave/react'
 
 const stop: GradientStop = {
   color: { r: 0.4, g: 0.2, b: 0.9, a: 1 },
   position: 0.5
 }
-</script>
 
-<template>
-  <GradientEditorStop
-    :stop="stop"
-    :index="0"
-    active
-    label="Middle gradient stop"
-    @update-position="(_index, position) => console.log(position)"
-  />
-</template>
+export function MiddleStop() {
+  return (
+    <GradientEditorStop
+      stop={stop}
+      index={0}
+      active
+      label="Middle gradient stop"
+      onUpdatePosition={(position) => console.log(position)}
+    />
+  )
+}
 ```
 
 ## Generated API reference
@@ -50,4 +50,4 @@ const stop: GradientStop = {
 
 - [GradientEditorRoot](./gradient-editor-root)
 - [GradientEditorBar](./gradient-editor-bar)
-- [useColorModel](../composables/use-color-model)
+- [useColorModel](../hooks/use-color-model)

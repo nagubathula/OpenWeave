@@ -13,7 +13,7 @@ packages/
 src/
   components/        Vue SFCs (canvas, panele, pasek narzędzi, wybieracz kolorów)
     properties/      Sekcje panelu właściwości (Wygląd, Wypełnienie, Obrys, itp.)
-  composables/       Wejście canvasu, skróty klawiszowe, hooki renderowania
+  hooks/       Wejście canvasu, skróty klawiszowe, hooki renderowania
   stores/            Stan edytora (reaktywność Vue)
   engine/            Shimy re-eksportu z @openweave/core
   kiwi/              Shimy re-eksportu z @openweave/core

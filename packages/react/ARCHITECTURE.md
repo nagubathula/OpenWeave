@@ -1,4 +1,4 @@
-# @openweave/vue architecture
+# @openweave/react architecture
 
 ## Folder conventions
 

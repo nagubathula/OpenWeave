@@ -1,11 +1,11 @@
 ---
 title: Architektura SDK
-description: Struktura katalogów, granice publicznego API i wzorce kompozycji w @openweave/vue.
+description: Struktura katalogów, granice publicznego API i wzorce kompozycji w @openweave/react.
 ---
 
 # Architektura SDK
 
-`@openweave/vue` to warstwa Vue nad `@openweave/core`.
+`@openweave/react` to warstwa Vue nad `@openweave/core`.
 
 Nie jest właścicielem samego modelu edytora. Adaptuje rdzeń edytora do:
 
@@ -107,7 +107,7 @@ Preferuj skupione właściwości slotów lub bezpośrednie użycie kompozytu zam
 
 ## Praktyczna zasada
 
-Jeśli logika mogłaby być użyta ponownie w innej aplikacji opartej na OpenWeave bez przenoszenia stylowania aplikacji, prawdopodobnie należy do `@openweave/vue`.
+Jeśli logika mogłaby być użyta ponownie w innej aplikacji opartej na OpenWeave bez przenoszenia stylowania aplikacji, prawdopodobnie należy do `@openweave/react`.
 
 ## Powiązane strony
 

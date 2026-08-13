@@ -11,6 +11,6 @@ Usala quando vuoi controlli tipografici personalizzati con comportamento di font
 
 ## API correlate
 
-- [useTypography](../composables/use-typography)
+- [useTypography](../hooks/use-typography)
 - [FontPickerRoot](./font-picker-root)
 - [Guida Pannelli Proprietà](../../guides/property-panels)

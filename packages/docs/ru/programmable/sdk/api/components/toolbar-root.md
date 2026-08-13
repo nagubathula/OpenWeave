@@ -5,11 +5,11 @@ description: Headless-структурный примитив для тулба�
 
 # ToolbarRoot
 
-`ToolbarRoot` — headless-примитив тулбара из `@openweave/vue`.
+`ToolbarRoot` — headless-примитив тулбара из `@openweave/react`.
 
 Используйте его, когда нужна переиспользуемая структура тулбара и контекст с собственными кнопками, стилями и макетом.
 
 ## Связанные API
 
-- [useEditorCommands](../composables/use-editor-commands)
-- [useSelectionCapabilities](../composables/use-selection-capabilities)
+- [useEditorCommands](../hooks/use-editor-commands)
+- [useSelectionCapabilities](../hooks/use-selection-capabilities)

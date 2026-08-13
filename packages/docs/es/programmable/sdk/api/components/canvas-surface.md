@@ -13,4 +13,4 @@ description: Primitivo de elemento canvas que se vincula al contexto de CanvasRo
 
 - [CanvasRoot](./canvas-root)
 - [useCanvasContext](../advanced/use-canvas-context)
-- [useCanvas](../composables/use-canvas)
+- [useCanvas](../hooks/use-canvas)

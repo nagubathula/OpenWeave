@@ -12,4 +12,4 @@ Użyj go przy implementowaniu przepływów wklejania obrazów ze schowka.
 ## Powiązane API
 
 - [useCanvasDrop](./use-canvas-drop)
-- [useCanvas](../composables/use-canvas)
+- [useCanvas](../hooks/use-canvas)

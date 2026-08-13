@@ -1,6 +1,6 @@
 ---
 title: Locale APIs
-description: Низкоуровневые хранилища локалей и метаданные, экспортируемые @openweave/vue.
+description: Низкоуровневые хранилища локалей и метаданные, экспортируемые @openweave/react.
 ---
 
 # Locale APIs
@@ -24,7 +24,7 @@ import {
   setLocale,
   AVAILABLE_LOCALES,
   LOCALE_LABELS,
-} from '@openweave/vue'
+} from '@openweave/react'
 ```
 
 ## Примечания
@@ -36,4 +36,4 @@ import {
 
 ## Связанные API
 
-- [useI18n](../composables/use-i18n)
+- [useI18n](../hooks/use-i18n)

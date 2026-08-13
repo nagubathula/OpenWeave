@@ -11,4 +11,4 @@ Usala quando vuoi struttura ad albero e cablaggio delle interazioni riutilizzabi
 
 ## API correlate
 
-- [useSelectionState](../composables/use-selection-state)
+- [useSelectionState](../hooks/use-selection-state)

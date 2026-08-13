@@ -72,6 +72,24 @@
       ],
       "@openweave/pen/*": [
         "./packages/pen/src/*"
+      ],
+      "#kiwi/*": [
+        "./packages/kiwi/src/*"
+      ],
+      "@openweave/kiwi": [
+        "./packages/kiwi/src/index.ts"
+      ],
+      "@openweave/kiwi/*": [
+        "./packages/kiwi/src/*"
+      ],
+      "#fig/*": [
+        "./packages/fig/src/*"
+      ],
+      "@openweave/fig": [
+        "./packages/fig/src/index.ts"
+      ],
+      "@openweave/fig/*": [
+        "./packages/fig/src/*"
       ]
     }
   },

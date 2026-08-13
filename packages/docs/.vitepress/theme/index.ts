@@ -4,6 +4,7 @@ import DefaultTheme from 'vitepress/theme'
 import '@shikijs/vitepress-twoslash/style.css'
 
 import HomeLayout from './HomeLayout.vue'
+import ReactDemo from './components/ReactDemo.vue'
 import SdkCard from './components/SdkCard.vue'
 import SdkCardGroup from './components/SdkCardGroup.vue'
 import SdkComponentAPI from './components/SdkComponentAPI.vue'
@@ -22,6 +23,7 @@ export default {
   Layout: HomeLayout,
   enhanceApp({ app }) {
     app.use(TwoslashFloatingVue)
+    app.component('ReactDemo', ReactDemo)
     app.component('SdkCard', SdkCard)
     app.component('SdkCardGroup', SdkCardGroup)
     app.component('SdkComponentAPI', SdkComponentAPI)

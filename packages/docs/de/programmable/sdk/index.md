@@ -5,7 +5,7 @@ description: Erstellen Sie OpenWeave-gestützte Editoren mit headless Vue Compos
 
 # Vue SDK
 
-`@openweave/vue` gibt es, damit OpenWeave mehr als eine eigenständige Design-App sein kann.
+`@openweave/react` gibt es, damit OpenWeave mehr als eine eigenständige Design-App sein kann.
 
 Das Ziel ist es, OpenWeave zu einem Toolkit zu machen, das Sie in andere Produkte, interne Tools und workflow-spezifische Editoren einbetten können — nicht nur als einzelne Standard-UI.
 
@@ -56,5 +56,5 @@ Wenn Sie wiederverwendbare Editor-UI-Bausteine erstellen, beginnen Sie mit Primi
 ## API-Bereiche
 
 - [Komponenten](/programmable/sdk/api/components/)
-- [Composables](/programmable/sdk/api/composables/)
+- [Composables](/programmable/sdk/api/hooks/)
 - [Erweitert](/programmable/sdk/api/advanced/)

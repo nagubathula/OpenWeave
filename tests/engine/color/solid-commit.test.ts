@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'bun:test'
 
 import type { Fill } from '@openweave/core'
-import { applySolidFillColor, applySolidStrokeColor } from '@openweave/vue'
+import { applySolidFillColor, applySolidStrokeColor } from '@openweave/react'
 
 describe('solid color commit helpers', () => {
   test('syncs fill opacity with color alpha', () => {

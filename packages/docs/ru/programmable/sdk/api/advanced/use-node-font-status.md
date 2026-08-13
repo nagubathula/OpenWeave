@@ -11,5 +11,5 @@ description: Хелпер статуса отсутствующих шрифто
 
 ## Связанные API
 
-- [useTypography](../composables/use-typography)
+- [useTypography](../hooks/use-typography)
 - [TypographyControlsRoot](../components/typography-controls-root)

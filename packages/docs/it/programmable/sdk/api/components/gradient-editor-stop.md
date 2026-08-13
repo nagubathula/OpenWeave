@@ -58,9 +58,9 @@ description: Primitiva slot headless per una singola riga di stop del gradiente.
 
 ## Esempio
 
-```vue
-<GradientEditorStop :stop="stop" :index="index" :active="active" v-slot="ctx">
-  <MyGradientStopRow v-bind="ctx" />
+```tsx
+<GradientEditorStop stop={stop} index={index} active={active}>
+  {(ctx) => <MyGradientStopRow {...ctx} />}
 </GradientEditorStop>
 ```
 

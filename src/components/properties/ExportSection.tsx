@@ -16,7 +16,7 @@ export default function ExportSection() {
   // We show Export section even for nothing selected (Page settings), 
   // but for actual multiple selections maybe not. Let's keep it safe.
   
-  const exportSettings = (activeNode && 'exportSettings' in activeNode ? (activeNode.exportSettings as ExportSetting[]) : []) ?? []
+  const exportSettings = (activeNode && 'exportSettings' in activeNode ? (activeNode.exportSettings) : []) ?? []
   
   const addSetting = () => {
     if (activeNode) {

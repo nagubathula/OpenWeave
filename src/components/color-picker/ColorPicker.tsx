@@ -3,7 +3,8 @@ import {
   colorToHexRaw,
   colorToRgba255,
   parseColor,
-  rgba255ToColor
+  rgba255ToColor,
+  colorToCSS
 } from '@openweave/core/color'
 import type { Color } from '@openweave/scene-graph/primitives'
 
@@ -112,7 +113,7 @@ export function ColorPicker({ color, onChange }: ColorPickerProps) {
   }, [color, onChange])
 
   const hueColor = hsvToRgb({ h: hsv.h, s: 1, v: 1 })
-  const hueCss = `rgb(${clamp255(hueColor.r * 255)},${clamp255(hueColor.g * 255)},${clamp255(hueColor.b * 255)})`
+  const hueCss = colorToCSS({ ...hueColor, a: 1 })
 
   return (
     <div className="w-56 space-y-2 text-xs">

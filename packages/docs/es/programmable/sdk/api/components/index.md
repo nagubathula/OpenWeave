@@ -1,11 +1,11 @@
 ---
 title: Componentes
-description: Referencia de componentes para los primitivos headless de Vue en @openweave/vue.
+description: Referencia de componentes para los primitivos headless de Vue en @openweave/react.
 ---
 
 # Componentes
 
-`@openweave/vue` expone primitivos estructurales headless para el cableado del canvas, la UI de navegación, los paneles de propiedades y los controles de entrada enfocados.
+`@openweave/react` expone primitivos estructurales headless para el cableado del canvas, la UI de navegación, los paneles de propiedades y los controles de entrada enfocados.
 
 ## Primitivos principales del editor
 

@@ -12,7 +12,7 @@ Użyj go, gdy chcesz bezpośrednią kontrolę nad kolekcjami, aktywnymi trybami,
 ## Użycie
 
 ```ts
-import { useVariables } from '@openweave/vue'
+import { useVariables } from '@openweave/react'
 
 const variables = useVariables()
 ```
@@ -39,6 +39,6 @@ const variables = useVariables()
 
 ## Powiązane API
 
-- [useVariablesEditor](../composables/use-variables-editor)
+- [useVariablesEditor](../hooks/use-variables-editor)
 - [useVariablesDialogState](./use-variables-dialog-state)
 - [useVariablesTable](./use-variables-table)

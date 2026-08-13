@@ -11,5 +11,5 @@ Użyj go, gdy chcesz wielokrotnie używalną powłokę kontrolek layoutu ze znac
 
 ## Powiązane API
 
-- [useLayout](../composables/use-layout)
+- [useLayout](../hooks/use-layout)
 - [Przewodnik po panelach właściwości](../../guides/property-panels)

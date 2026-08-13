@@ -45,7 +45,7 @@ export type { MenuActionNode, MenuEntry, MenuSeparatorNode } from '#react/editor
 
 /** Miscellaneous editor-shell helpers. */
 export { useViewportKind } from '#react/editor/viewport-kind/use'
-export { useLayerDrag } from '#react/primitives/LayerTree/useLayerDrag'
+export { useLayerDrag } from '#react/primitives/layer-tree/useLayerDrag'
 export { useFlatReorderDrag } from '#react/shared/drag/useFlatReorderDrag'
 export type {
   FlatReorderAxis,
@@ -58,7 +58,7 @@ export {
   getToolbarToolSelection,
   isToolbarToolActive,
   useToolbarState
-} from '#react/primitives/Toolbar/useToolbarState'
+} from '#react/primitives/toolbar/useToolbarState'
 export { useNodeFontStatus } from '#react/shared/font-status/use'
 export { usePropScrub } from '#react/controls/prop-scrub/use'
 export { toolCursor } from '#react/editor/tool-cursor'
@@ -71,7 +71,6 @@ export {
   toolbarToolTestId,
   variablesAddTestId
 } from '#react/testing/test-id'
-export { vTestId } from '#react/testing/v-test-id'
 export type { TestId } from '#react/testing/test-id'
 
 /** Property-panel composables. */
@@ -117,51 +116,51 @@ export { useVariables } from '#react/variables/use'
 export { useVariablesDialogState } from '#react/variables/dialog/use'
 export { useVariablesEditor } from '#react/variables/editor/use'
 export { useVariablesTable } from '#react/variables/table/use'
-export { usePageList } from '#react/primitives/PageList/usePageList'
+export { usePageList } from '#react/primitives/page-list/usePageList'
 export {
   fillCategory,
   fillIsTransparent,
   fillSwatchBackground,
   useFill
-} from '#react/primitives/Fill'
-export type { FillActions, FillCategory } from '#react/primitives/Fill'
-export { useGradientStops } from '#react/primitives/GradientEditor/useGradientStops'
-export { useFontPicker } from '#react/primitives/FontPicker/useFontPicker'
+} from '#react/primitives/fill'
+export type { FillActions, FillCategory } from '#react/primitives/fill'
+export { useGradientStops } from '#react/primitives/gradient-editor/useGradientStops'
+export { useFontPicker } from '#react/primitives/font-picker/useFontPicker'
 
 /** Headless structural primitives and their local contexts. */
 export { CanvasRoot, CanvasSurface, useCanvasContext } from '#react/canvas'
 export type { CanvasContext } from '#react/canvas'
-export { ColorInputRoot, ColorPickerRoot } from '#react/primitives/ColorPicker'
+export { ColorInputRoot, ColorPickerRoot } from '#react/primitives/color-picker'
 export {
   ChannelSliderRoot,
   ChannelSliderThumb,
   ChannelSliderTrack
-} from '#react/primitives/ChannelSlider'
+} from '#react/primitives/channel-slider'
 export type {
   ChannelSliderOrientation,
   ChannelSliderPartProps,
   ChannelSliderRootProps,
   ChannelSliderRootSlotProps,
   ChannelSliderThumbSlotProps
-} from '#react/primitives/ChannelSlider'
-export { FillRoot, FillSwatch } from '#react/primitives/Fill'
+} from '#react/primitives/channel-slider'
+export { FillRoot, FillSwatch } from '#react/primitives/fill'
 export type {
   FillRootSlotProps,
   FillSwatchProps,
   FillSwatchSlotProps
-} from '#react/primitives/Fill'
-export { FontPickerRoot } from '#react/primitives/FontPicker'
-export type { FontFamilyOption, FontPickerUI } from '#react/primitives/FontPicker'
+} from '#react/primitives/fill'
+export { FontPickerRoot } from '#react/primitives/font-picker'
+export type { FontFamilyOption, FontPickerUI } from '#react/primitives/font-picker'
 export {
   GradientEditorRoot,
   GradientEditorBar,
   GradientEditorStop
-} from '#react/primitives/GradientEditor'
+} from '#react/primitives/gradient-editor'
 export type {
   GradientEditorStopActions,
   GradientEditorStopProps,
   GradientEditorStopSlotProps
-} from '#react/primitives/GradientEditor'
+} from '#react/primitives/gradient-editor'
 export {
   buildLayerTreeModel,
   indexLayerNodes,
@@ -171,7 +170,7 @@ export {
   patchLayerNode,
   useLayerTree,
   visibleLayerRows
-} from '#react/primitives/LayerTree'
+} from '#react/primitives/layer-tree'
 export type {
   LayerDragInstruction,
   LayerNode,
@@ -179,22 +178,22 @@ export type {
   LayerSelectionMode,
   LayerTreeContext,
   LayerTreeVirtualizer
-} from '#react/primitives/LayerTree'
-export { LayoutControlsRoot, useLayoutControlsContext } from '#react/primitives/LayoutControls'
+} from '#react/primitives/layer-tree'
+export { LayoutControlsRoot, useLayoutControlsContext } from '#react/primitives/layout-controls'
 export type {
   LayoutControlsContext,
   LayoutControlsRootSlotProps
-} from '#react/primitives/LayoutControls'
-export { AppearanceControlsRoot } from '#react/primitives/AppearanceControls'
+} from '#react/primitives/layout-controls'
+export { AppearanceControlsRoot } from '#react/primitives/appearance-controls'
 export type {
   AppearanceControlsActions,
   AppearanceControlsRootSlotProps
-} from '#react/primitives/AppearanceControls'
-export { ConstraintsControlRoot } from '#react/primitives/ConstraintsControl'
+} from '#react/primitives/appearance-controls'
+export { ConstraintsControlRoot } from '#react/primitives/constraints-control'
 export type {
   ConstraintsControlActions,
   ConstraintsControlRootSlotProps
-} from '#react/primitives/ConstraintsControl'
+} from '#react/primitives/constraints-control'
 export {
   constraintPins,
   isConstraintEligible,
@@ -213,8 +212,8 @@ export type {
   ComponentPropertyOption
 } from '#react/controls/component-props'
 export type { CornerGeometryKey, CornerRadiusKey } from '#react/controls/appearance/types'
-export { PageListRoot } from '#react/primitives/PageList'
-export { PositionControlsRoot } from '#react/primitives/PositionControls'
+export { PageListRoot } from '#react/primitives/page-list'
+export { PositionControlsRoot } from '#react/primitives/position-controls'
 export { useEditorPropertyList } from '#react/controls/property-list'
 export {
   PropertyListRoot,
@@ -223,7 +222,7 @@ export {
   PropertyListRemove,
   PropertyListVisibility,
   usePropertyList
-} from '#react/primitives/PropertyList'
+} from '#react/primitives/property-list'
 export type {
   PropertyListActions,
   PropertyListContext,
@@ -237,13 +236,13 @@ export type {
   PropertyListPatchFor,
   PropertyListRootProps,
   PropertyListRootSlotProps
-} from '#react/primitives/PropertyList'
-export { PropertyGridRoot } from '#react/primitives/PropertyGrid'
+} from '#react/primitives/property-list'
+export { PropertyGridRoot } from '#react/primitives/property-grid'
 export type {
   PropertyGridColumns,
   PropertyGridDistribution,
   PropertyGridRootProps
-} from '#react/primitives/PropertyGrid'
+} from '#react/primitives/property-grid'
 
 export {
   PropertySectionRoot,
@@ -253,7 +252,7 @@ export {
   PropertySectionContent,
   PropertySectionEmptyAction,
   usePropertySection
-} from '#react/primitives/PropertySection'
+} from '#react/primitives/property-section'
 export type {
   PropertySectionActionAPI,
   PropertySectionContext,
@@ -261,12 +260,12 @@ export type {
   PropertySectionRootProps,
   PropertySectionSlotProps,
   PropertySectionStateAttrs
-} from '#react/primitives/PropertySection'
+} from '#react/primitives/property-section'
 export {
   SegmentedControlRoot,
   SegmentedControlItem,
   useSegmentedControl
-} from '#react/primitives/SegmentedControl'
+} from '#react/primitives/segmented-control'
 export type {
   SegmentedControlContext,
   SegmentedControlItemProps,
@@ -274,21 +273,21 @@ export type {
   SegmentedControlMode,
   SegmentedControlOrientation,
   SegmentedControlRootProps
-} from '#react/primitives/SegmentedControl'
+} from '#react/primitives/segmented-control'
 export {
   BindableValueRoot,
   BindableValueTrigger,
   BindableValuePicker,
   useBindableValue,
   useOptionalBindableValue
-} from '#react/primitives/BindableValue'
+} from '#react/primitives/bindable-value'
 export type {
   BindableValueActions,
   BindableValueContext,
   BindableValueRootProps,
   BindableValueSlotProps,
   BindableValueStateAttrs
-} from '#react/primitives/BindableValue'
+} from '#react/primitives/bindable-value'
 export {
   provideBindingProvider,
   useBindingProvider,
@@ -313,7 +312,7 @@ export {
   NumberFieldTrailing,
   NumberFieldMenu,
   useNumberField
-} from '#react/primitives/NumberField'
+} from '#react/primitives/number-field'
 export type {
   NumberFieldActions,
   NumberFieldContext,
@@ -324,7 +323,7 @@ export type {
   NumberFieldSlotProps,
   NumberFieldState,
   NumberFieldStateAttrs
-} from '#react/primitives/NumberField'
+} from '#react/primitives/number-field'
 export {
   clampNumberValue,
   evaluateNumberExpression,
@@ -336,9 +335,9 @@ export type {
   NumberExpressionOptions,
   NumberExpressionResult
 } from '#react/controls/number-expression'
-export { TypographyControlsRoot } from '#react/primitives/TypographyControls'
-export { ToolbarRoot, ToolbarItem, useToolbar } from '#react/primitives/Toolbar'
-export type { ToolbarContext } from '#react/primitives/Toolbar'
+export { TypographyControlsRoot } from '#react/primitives/typography-controls'
+export { ToolbarRoot, ToolbarItem, useToolbar } from '#react/primitives/toolbar'
+export type { ToolbarContext } from '#react/primitives/toolbar'
 
 /** DOM event helpers for cast-free template bindings. */
 export { blurTarget, inputNumberValue, inputValue, selectTarget } from '#react/shared/dom-events'

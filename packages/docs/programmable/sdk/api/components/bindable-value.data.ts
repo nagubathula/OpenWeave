@@ -1,9 +1,9 @@
 import { defineComponentMetaLoader } from '#docs/sdk/component-meta'
 
 const sources = [
-  'packages/vue/src/primitives/BindableValue/BindableValueRoot.vue',
-  'packages/vue/src/primitives/BindableValue/BindableValueTrigger.vue',
-  'packages/vue/src/primitives/BindableValue/BindableValuePicker.vue'
+  'packages/react/src/primitives/bindable-value/BindableValueRoot.tsx',
+  'packages/react/src/primitives/bindable-value/BindableValueTrigger.tsx',
+  'packages/react/src/primitives/bindable-value/BindableValuePicker.tsx'
 ]
 
 export default defineComponentMetaLoader(sources)

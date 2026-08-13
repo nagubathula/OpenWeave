@@ -13,7 +13,7 @@ packages/
 src/
   components/        Vue SFCs (Canvas, Panels, Werkzeugleiste, Farbauswahl)
     properties/      Eigenschaftspanel-Abschnitte
-  composables/       Canvas-Input, Tastenkürzel, Rendering-Hooks
+  hooks/       Canvas-Input, Tastenkürzel, Rendering-Hooks
   stores/            Editor-Zustand (Vue-Reaktivität)
   engine/            Re-Export-Shims von @openweave/core
 desktop/             Tauri v2 (Rust + Konfiguration)

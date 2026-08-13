@@ -13,4 +13,4 @@ Usala all'interno di `CanvasRoot` quando vuoi ref e integrazione di rendering ca
 
 - [CanvasRoot](./canvas-root)
 - [useCanvasContext](../advanced/use-canvas-context)
-- [useCanvas](../composables/use-canvas)
+- [useCanvas](../hooks/use-canvas)

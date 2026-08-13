@@ -11,5 +11,5 @@ Verwenden Sie es, wenn Sie wiederverwendbare Erscheinungsbild-Steuerelemente mit
 
 ## Verwandte APIs
 
-- [useAppearance](../composables/use-appearance)
+- [useAppearance](../hooks/use-appearance)
 - [Eigenschafts-Panels-Anleitung](../../guides/property-panels)

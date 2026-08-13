@@ -12,4 +12,4 @@ Utilisez-le pour construire des interfaces de sélection de polices personnalis�
 ## API associées
 
 - [FontPickerRoot](../components/font-picker-root)
-- [useTypography](../composables/use-typography)
+- [useTypography](../hooks/use-typography)

@@ -12,4 +12,4 @@ Verwenden Sie es beim Erstellen benutzerdefinierter Schrift-Auswahl-UIs über `F
 ## Verwandte APIs
 
 - [FontPickerRoot](../components/font-picker-root)
-- [useTypography](../composables/use-typography)
+- [useTypography](../hooks/use-typography)

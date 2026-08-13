@@ -11,5 +11,5 @@ description: Primitivo raíz headless para controles de posición, tamaño, alin
 
 ## APIs relacionadas
 
-- [usePosition](../composables/use-position)
+- [usePosition](../hooks/use-position)
 - [Guía de Paneles de Propiedades](../../guides/property-panels)

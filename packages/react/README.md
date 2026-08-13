@@ -1,8 +1,8 @@
-# @openweave/vue
+# @openweave/react
 
 Headless Vue 3 SDK for building OpenWeave-powered editors.
 
-`@openweave/vue` sits on top of `@openweave/core` and provides:
+`@openweave/react` sits on top of `@openweave/core` and provides:
 
 - Vue editor injection via `provideEditor()` / `useEditor()`
 - canvas integration via `useCanvas()`, `useCanvasInput()`, and `useTextEdit()`
@@ -14,7 +14,7 @@ The SDK is headless by design: it provides logic and structure, while your app o
 ## Install
 
 ```bash
-bun add @openweave/vue @openweave/core canvaskit-wasm
+bun add @openweave/react @openweave/core canvaskit-wasm
 ```
 
 ## Quick start
@@ -22,7 +22,7 @@ bun add @openweave/vue @openweave/core canvaskit-wasm
 ```vue
 <script setup lang="ts">
 import { createEditor } from '@openweave/core/editor'
-import { provideEditor } from '@openweave/vue'
+import { provideEditor } from '@openweave/react'
 
 const editor = createEditor({
   width: 1200,
@@ -51,7 +51,7 @@ provideEditor(editor)
 Use `provideEditor(editor)` once near the top of your subtree.
 
 ```ts
-import { provideEditor } from '@openweave/vue'
+import { provideEditor } from '@openweave/react'
 
 provideEditor(editor)
 ```
@@ -59,7 +59,7 @@ provideEditor(editor)
 Read it anywhere below with `useEditor()`.
 
 ```ts
-import { useEditor } from '@openweave/vue'
+import { useEditor } from '@openweave/react'
 
 const editor = useEditor()
 ```
@@ -227,7 +227,7 @@ These are mostly useful when extending SDK primitives rather than building from 
 
 ```vue
 <script setup lang="ts">
-import { provideEditor } from '@openweave/vue'
+import { provideEditor } from '@openweave/react'
 
 import type { Editor } from '@openweave/core/editor'
 
@@ -246,7 +246,7 @@ provideEditor(props.editor)
 ### Read selection state
 
 ```ts
-import { useSelectionState } from '@openweave/vue'
+import { useSelectionState } from '@openweave/react'
 
 const { hasSelection, selectedCount, selectedNode } = useSelectionState()
 ```
@@ -254,7 +254,7 @@ const { hasSelection, selectedCount, selectedNode } = useSelectionState()
 ### Build a menu
 
 ```ts
-import { useMenuModel } from '@openweave/vue'
+import { useMenuModel } from '@openweave/react'
 
 const { appMenu, canvasMenu } = useMenuModel()
 ```

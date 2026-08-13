@@ -13,4 +13,4 @@ Użyj go wewnątrz `CanvasRoot`, gdy chcesz referencje kanvasu i integrację ren
 
 - [CanvasRoot](./canvas-root)
 - [useCanvasContext](../advanced/use-canvas-context)
-- [useCanvas](../composables/use-canvas)
+- [useCanvas](../hooks/use-canvas)

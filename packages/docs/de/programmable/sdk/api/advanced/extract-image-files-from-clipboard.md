@@ -12,4 +12,4 @@ Verwenden Sie es, wenn Sie Einfügen-aus-Zwischenablage-Bild-Workflows implement
 ## Verwandte APIs
 
 - [useCanvasDrop](./use-canvas-drop)
-- [useCanvas](../composables/use-canvas)
+- [useCanvas](../hooks/use-canvas)

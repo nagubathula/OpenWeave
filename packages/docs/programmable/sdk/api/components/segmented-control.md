@@ -14,21 +14,25 @@ multiple modes retain selection; action mode emits commands without toggle state
 
 ## Selection mode
 
-```vue twoslash
-<script setup lang="ts">
-import { ref } from 'vue'
-import { SegmentedControlItem, SegmentedControlRoot } from '@openweave/vue'
+```tsx twoslash
+import { useState } from 'react'
+import { SegmentedControlItem, SegmentedControlRoot } from '@openweave/react'
 
-const alignment = ref('left')
-</script>
+export function AlignmentControl() {
+  const [alignment, setAlignment] = useState<string | string[] | undefined>('left')
 
-<template>
-  <SegmentedControlRoot v-model="alignment" aria-label="Alignment">
-    <SegmentedControlItem value="left">Left</SegmentedControlItem>
-    <SegmentedControlItem value="center">Center</SegmentedControlItem>
-    <SegmentedControlItem value="right">Right</SegmentedControlItem>
-  </SegmentedControlRoot>
-</template>
+  return (
+    <SegmentedControlRoot
+      modelValue={alignment}
+      onModelValueChange={setAlignment}
+      aria-label="Alignment"
+    >
+      <SegmentedControlItem value="left">Left</SegmentedControlItem>
+      <SegmentedControlItem value="center">Center</SegmentedControlItem>
+      <SegmentedControlItem value="right">Right</SegmentedControlItem>
+    </SegmentedControlRoot>
+  )
+}
 ```
 
 ## Action mode

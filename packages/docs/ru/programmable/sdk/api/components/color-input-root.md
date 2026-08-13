@@ -36,9 +36,11 @@ description: Headless-хелпер для ввода цвета с разбор�
 
 ## Пример
 
-```vue
-<ColorInputRoot :color="color" @update="color = $event" v-slot="{ hex, updateFromHex }">
-  <input :value="hex" @input="updateFromHex(($event.target as HTMLInputElement).value)" />
+```tsx
+<ColorInputRoot color={color} onUpdate={setColor}>
+  {({ hex, updateFromHex }) => (
+    <input value={hex} onChange={(event) => updateFromHex(event.target.value)} />
+  )}
 </ColorInputRoot>
 ```
 

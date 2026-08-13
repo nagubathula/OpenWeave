@@ -11,4 +11,4 @@ description: Primitivo estructural headless para interfaces de árbol de capas.
 
 ## APIs relacionadas
 
-- [useSelectionState](../composables/use-selection-state)
+- [useSelectionState](../hooks/use-selection-state)

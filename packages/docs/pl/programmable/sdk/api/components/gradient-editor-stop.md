@@ -58,9 +58,9 @@ description: Bezstanowy prymityw slotu dla jednego wiersza punktu zatrzymania gr
 
 ## Przykład
 
-```vue
-<GradientEditorStop :stop="stop" :index="index" :active="active" v-slot="ctx">
-  <MyGradientStopRow v-bind="ctx" />
+```tsx
+<GradientEditorStop stop={stop} index={index} active={active}>
+  {(ctx) => <MyGradientStopRow {...ctx} />}
 </GradientEditorStop>
 ```
 

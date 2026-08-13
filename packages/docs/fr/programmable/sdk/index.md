@@ -5,7 +5,7 @@ description: Créez des éditeurs propulsés par OpenWeave avec des composables 
 
 # Vue SDK
 
-`@openweave/vue` existe pour qu'OpenWeave puisse être bien plus qu'une application de design autonome.
+`@openweave/react` existe pour qu'OpenWeave puisse être bien plus qu'une application de design autonome.
 
 L'objectif est de faire d'OpenWeave une boîte à outils intégrable dans d'autres produits, outils internes, et éditeurs spécialisés — pas seulement une interface par défaut.
 
@@ -56,5 +56,5 @@ Si vous construisez des blocs UI d'éditeur réutilisables, commencez par les pr
 ## Sections API
 
 - [Composants](/programmable/sdk/api/components/)
-- [Composables](/programmable/sdk/api/composables/)
+- [Composables](/programmable/sdk/api/hooks/)
 - [Avancé](/programmable/sdk/api/advanced/)

@@ -30,7 +30,7 @@ const SDK_COMPONENT_PAGES = [
   { text: 'TypographyControlsRoot', slug: 'typography-controls-root' }
 ] as const
 
-const SDK_COMPOSABLE_PAGES = [
+const SDK_HOOK_PAGES = [
   { text: 'provideEditor', slug: 'provide-editor' },
   { text: 'useEditor', slug: 'use-editor' },
   { text: 'useCanvas', slug: 'use-canvas' },
@@ -103,12 +103,12 @@ export const sdkSidebar = (prefix: string): DefaultTheme.SidebarItem[] => [
             ]
           },
           {
-            text: 'Composables',
+            text: 'Hooks',
             items: [
-              { text: 'Overview', link: `${prefix}/programmable/sdk/api/composables/` },
-              ...SDK_COMPOSABLE_PAGES.map((page) => ({
+              { text: 'Overview', link: `${prefix}/programmable/sdk/api/hooks/` },
+              ...SDK_HOOK_PAGES.map((page) => ({
                 text: page.text,
-                link: `${'canonical' in page ? '' : prefix}/programmable/sdk/api/composables/${page.slug}`
+                link: `${'canonical' in page ? '' : prefix}/programmable/sdk/api/hooks/${page.slug}`
               }))
             ]
           },

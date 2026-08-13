@@ -12,7 +12,7 @@ description: Construye definiciones de columnas de TanStack Table para interface
 ## Uso
 
 ```ts
-import { useVariablesTable } from '@openweave/vue'
+import { useVariablesTable } from '@openweave/react'
 
 const { columns } = useVariablesTable(options)
 ```
@@ -24,6 +24,6 @@ const { columns } = useVariablesTable(options)
 
 ## APIs relacionadas
 
-- [useVariablesEditor](../composables/use-variables-editor)
+- [useVariablesEditor](../hooks/use-variables-editor)
 - [useVariables](./use-variables)
 - [useVariablesDialogState](./use-variables-dialog-state)

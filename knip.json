@@ -7,9 +7,11 @@
   ],
   "ignoreWorkspaces": ["packages/demos"],
   "ignoreUnresolved": [
-    "~icons/*",
     "/src/app/editor/fonts/index.ts",
     "#core/*"
+  ],
+  "ignoreDependencies": [
+    "vite"
   ],
   "ignoreBinaries": ["figma-use", "identify", "magick", "open", "osascript"]
 }

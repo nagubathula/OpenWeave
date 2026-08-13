@@ -8,7 +8,7 @@ description: Crea la tua shell editor con provideEditor, CanvasRoot, menu, panne
 Una tipica app Vue con OpenWeave ha tre livelli:
 
 1. `@openweave/core` crea l'editor
-2. `@openweave/vue` lo adatta in composable Vue e primitive headless
+2. `@openweave/react` lo adatta in composable Vue e primitive headless
 3. la tua app renderizza la shell, lo stile e la UX specifica del prodotto
 
 ## Perché questo è importante
@@ -31,63 +31,67 @@ Una shell pratica spesso ha questa forma:
 
 ## Esempio
 
-```vue
-<script setup lang="ts">
+```tsx
 import { createEditor } from '@openweave/core/editor'
 import {
-  provideEditor,
+  EditorProvider,
   CanvasRoot,
   CanvasSurface,
   ToolbarRoot,
-  PageListRoot,
-  LayerTreeRoot,
-} from '@openweave/vue'
+  PageListRoot
+} from '@openweave/react'
 
 const editor = createEditor({ width: 1440, height: 900 })
-provideEditor(editor)
-</script>
 
-<template>
-  <div class="grid h-screen grid-cols-[240px_1fr_320px] grid-rows-[48px_1fr]">
-    <ToolbarRoot v-slot="{ tools, activeTool, setTool }">
-      <header class="col-span-3 flex items-center gap-2 border-b px-3">
-        <button
-          v-for="tool in tools"
-          :key="tool.id"
-          :data-active="activeTool === tool.id"
-          @click="setTool(tool.id)"
-        >
-          {{ tool.label }}
-        </button>
-      </header>
-    </ToolbarRoot>
+export function EditorShell() {
+  return (
+    <EditorProvider editor={editor}>
+      <div className="grid h-screen grid-cols-[240px_1fr_320px] grid-rows-[48px_1fr]">
+        <ToolbarRoot>
+          {({ tools, activeTool, setTool }) => (
+            <header className="col-span-3 flex items-center gap-2 border-b px-3">
+              {tools.map((tool) => (
+                <button
+                  key={tool.id}
+                  data-active={activeTool === tool.id}
+                  onClick={() => setTool(tool.id)}
+                >
+                  {tool.label}
+                </button>
+              ))}
+            </header>
+          )}
+        </ToolbarRoot>
 
-    <aside class="border-r">
-      <PageListRoot v-slot="{ pages, currentPageId, switchPage }">
-        <nav>
-          <button
-            v-for="page in pages"
-            :key="page.id"
-            :data-active="page.id === currentPageId"
-            @click="switchPage(page.id)"
-          >
-            {{ page.name }}
-          </button>
-        </nav>
-      </PageListRoot>
-    </aside>
+        <aside className="border-r">
+          <PageListRoot>
+            {({ pages, currentPageId, switchPage }) => (
+              <nav>
+                {pages.map((page) => (
+                  <button
+                    key={page.id}
+                    data-active={page.id === currentPageId}
+                    onClick={() => switchPage(page.id)}
+                  >
+                    {page.name}
+                  </button>
+                ))}
+              </nav>
+            )}
+          </PageListRoot>
+        </aside>
 
-    <main>
-      <CanvasRoot>
-        <CanvasSurface class="size-full" />
-      </CanvasRoot>
-    </main>
+        <main>
+          <CanvasRoot>
+            <CanvasSurface className="size-full" />
+          </CanvasRoot>
+        </main>
 
-    <aside class="border-l">
-      Pannello proprietà qui
-    </aside>
-  </div>
-</template>
+        <aside className="border-l">Pannello proprietà qui</aside>
+      </div>
+    </EditorProvider>
+  )
+}
 ```
 
 ## Perché questa separazione funziona
@@ -98,8 +102,8 @@ provideEditor(editor)
 
 ## API correlate
 
-- [provideEditor](../api/composables/provide-editor)
-- [useCanvas](../api/composables/use-canvas)
+- [provideEditor](../api/hooks/provide-editor)
+- [useCanvas](../api/hooks/use-canvas)
 - [ToolbarRoot](../api/components/toolbar-root)
 - [PageListRoot](../api/components/page-list-root)
 - [LayerTreeRoot](../api/components/layer-tree-root)

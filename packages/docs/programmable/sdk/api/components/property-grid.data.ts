@@ -1,5 +1,5 @@
 import { defineComponentMetaLoader } from '#docs/sdk/component-meta'
 
-const sources = ['packages/vue/src/primitives/PropertyGrid/PropertyGridRoot.vue']
+const sources = ['packages/react/src/primitives/property-grid/PropertyGridRoot.tsx']
 
 export default defineComponentMetaLoader(sources)

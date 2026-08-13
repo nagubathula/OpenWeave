@@ -11,5 +11,5 @@ Verwenden Sie es, wenn Sie benutzerdefinierte Positionssteuerelemente ohne erneu
 
 ## Verwandte APIs
 
-- [usePosition](../composables/use-position)
+- [usePosition](../hooks/use-position)
 - [Eigenschafts-Panels-Anleitung](../../guides/property-panels)

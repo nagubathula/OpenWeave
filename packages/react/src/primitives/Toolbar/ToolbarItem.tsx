@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react'
-import { useToolbar } from '#react/primitives/Toolbar/context'
+import { useToolbar } from '#react/primitives/toolbar/context'
 import type { Tool } from '@openweave/core/editor'
 
 export interface ToolbarItemSlotProps {

@@ -4,7 +4,7 @@ description: Accessible scalar channel slider for OkHCL controls.
 ---
 
 <script setup lang="ts">
-import ColorFillDemo from '#vue/primitives/Fill/demo/ColorFillDemo.vue'
+import { ColorFillDemo } from '#react/primitives/fill/demo/ColorFillDemo'
 import { data } from './channel-slider.data'
 </script>
 
@@ -14,7 +14,7 @@ import { data } from './channel-slider.data'
 Slider while accepting an arbitrary scalar channel. OpenWeave uses it only for OkHCL channels;
 standard RGB, HSL, and HSB controls should use Reka `ColorSlider` directly.
 
-<ColorFillDemo />
+<ReactDemo :component="ColorFillDemo" />
 
 ## Anatomy
 
@@ -26,24 +26,27 @@ Arrow keys step the value. Page Up and Page Down use larger steps, while Home an
 range boundaries. The primitive is temporary until [Reka issue #2798](https://github.com/unovue/reka-ui/issues/2798)
 provides first-class OkHCL support.
 
-```vue twoslash
-<script setup lang="ts">
-import { ref } from 'vue'
-import {
-  ChannelSliderRoot,
-  ChannelSliderThumb,
-  ChannelSliderTrack
-} from '@openweave/vue'
+```tsx twoslash
+import { useState } from 'react'
+import { ChannelSliderRoot, ChannelSliderThumb, ChannelSliderTrack } from '@openweave/react'
 
-const chroma = ref(0.16)
-</script>
+export function ChromaSlider() {
+  const [chroma, setChroma] = useState(0.16)
 
-<template>
-  <ChannelSliderRoot v-model="chroma" label="Chroma" :min="0" :max="0.4" :step="0.001">
-    <ChannelSliderTrack />
-    <ChannelSliderThumb />
-  </ChannelSliderRoot>
-</template>
+  return (
+    <ChannelSliderRoot
+      modelValue={chroma}
+      onModelValueChange={setChroma}
+      label="Chroma"
+      min={0}
+      max={0.4}
+      step={0.001}
+    >
+      <ChannelSliderTrack />
+      <ChannelSliderThumb />
+    </ChannelSliderRoot>
+  )
+}
 ```
 
 ## Generated API reference
@@ -52,5 +55,5 @@ const chroma = ref(0.16)
 
 ## Related APIs
 
-- [useColorModel](../composables/use-color-model)
+- [useColorModel](../hooks/use-color-model)
 - [FillRoot](./fill-root)

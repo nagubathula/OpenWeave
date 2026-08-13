@@ -11,6 +11,6 @@ Utilisez-le quand vous voulez un état computed révélateur d'intention qui dé
 
 ## API associées
 
-- [useSelectionState](../composables/use-selection-state)
-- [useSelectionCapabilities](../composables/use-selection-capabilities)
+- [useSelectionState](../hooks/use-selection-state)
+- [useSelectionCapabilities](../hooks/use-selection-capabilities)
 - [useNodeProps](./use-node-props)

@@ -58,9 +58,9 @@ description: Primitive slot headless pour une ligne de point d'arrêt de dégrad
 
 ## Exemple
 
-```vue
-<GradientEditorStop :stop="stop" :index="index" :active="active" v-slot="ctx">
-  <MyGradientStopRow v-bind="ctx" />
+```tsx
+<GradientEditorStop stop={stop} index={index} active={active}>
+  {(ctx) => <MyGradientStopRow {...ctx} />}
 </GradientEditorStop>
 ```
 

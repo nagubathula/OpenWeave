@@ -12,4 +12,4 @@ Use it when implementing paste-from-clipboard image workflows.
 ## Related APIs
 
 - [useCanvasDrop](./use-canvas-drop)
-- [useCanvas](../composables/use-canvas)
+- [useCanvas](../hooks/use-canvas)

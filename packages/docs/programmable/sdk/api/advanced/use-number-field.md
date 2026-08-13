@@ -11,7 +11,7 @@ parts that need the canonical value, draft, state attributes, ARIA attributes, o
 It throws when called outside a `NumberFieldRoot` subtree.
 
 ```ts
-import { useNumberField } from '@openweave/vue'
+import { useNumberField } from '@openweave/react'
 
 const field = useNumberField()
 field.actions.startEdit()

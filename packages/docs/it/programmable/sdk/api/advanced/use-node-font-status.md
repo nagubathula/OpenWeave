@@ -11,5 +11,5 @@ Usalo nei pannelli tipografici e negli avvisi che devono segnalare famiglie di f
 
 ## API correlate
 
-- [useTypography](../composables/use-typography)
+- [useTypography](../hooks/use-typography)
 - [TypographyControlsRoot](../components/typography-controls-root)

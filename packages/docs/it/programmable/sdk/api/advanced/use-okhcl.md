@@ -12,7 +12,7 @@ Usalo quando stai costruendo strumenti colore avanzati che devono passare tra la
 ## Utilizzo
 
 ```ts
-import { useOkHCL } from '@openweave/vue'
+import { useOkHCL } from '@openweave/react'
 
 const okhcl = useOkHCL()
 ```
@@ -33,6 +33,6 @@ const okhcl = useOkHCL()
 
 ## API correlate
 
-- [useFillControls](../composables/use-fill-controls)
-- [useStrokeControls](../composables/use-stroke-controls)
+- [useFillControls](../hooks/use-fill-controls)
+- [useStrokeControls](../hooks/use-stroke-controls)
 - [ColorPickerRoot](../components/color-picker-root)

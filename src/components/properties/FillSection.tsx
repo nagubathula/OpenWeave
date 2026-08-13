@@ -16,7 +16,7 @@ const inputClass = 'w-full bg-input/50 rounded px-2 py-1 border border-border te
 export default function FillSection() {
   const editor = useEditor()
   const { selectedNode: node } = useSelectionState()
-  const fills = (node && 'fills' in node ? (node.fills as Fill[]) : undefined) ?? []
+  const fills = (node && 'fills' in node ? (node.fills) : undefined) ?? []
 
   const commit = (next: Fill[]) => {
     if (node) editor.updateNodeWithUndo(node.id, { fills: next }, 'Change fill')
@@ -78,11 +78,11 @@ export default function FillSection() {
                 </div>
               </div>
               <IconButton
-                label={fill.visible !== false ? 'Hide fill' : 'Show fill'}
-                onClick={() => updateFill(i, { visible: fill.visible === false ? true : false })}
-                className={fill.visible === false ? 'opacity-50' : ''}
+                label={fill.visible ? 'Hide fill' : 'Show fill'}
+                onClick={() => updateFill(i, { visible: ! fill.visible ? true : false })}
+                className={!fill.visible ? 'opacity-50' : ''}
               >
-                {fill.visible !== false ? <Eye className="size-3.5" /> : <EyeOff className="size-3.5" />}
+                {fill.visible ? <Eye className="size-3.5" /> : <EyeOff className="size-3.5" />}
               </IconButton>
               <IconButton label="Remove fill" onClick={() => removeFill(i)}>
                 <Minus className="size-3.5" />

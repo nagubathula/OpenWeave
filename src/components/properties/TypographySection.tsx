@@ -138,7 +138,7 @@ export default function TypographySection() {
         <select
           className={inputClass + ' h-6'}
           value={textDirection}
-          onChange={(e) => setDirection(e.target.value)}
+          onChange={(e) => setDirection(e.target.value as TextDirection)}
         >
           <option value="AUTO">Auto</option>
           <option value="LTR">LTR</option>
@@ -216,7 +216,7 @@ export default function TypographySection() {
           <select
             className={inputClass + ' h-6'}
             value={textCase}
-            onChange={(e) => setTextCase(e.target.value)}
+            onChange={(e) => setTextCase(e.target.value as TextCase)}
           >
             <option value="ORIGINAL">Original</option>
             <option value="UPPER">Uppercase</option>
@@ -228,7 +228,7 @@ export default function TypographySection() {
           <select
             className={inputClass + ' h-6'}
             value={textTruncation}
-            onChange={(e) => setTruncation(e.target.value)}
+            onChange={(e) => setTruncation(e.target.value as TextTruncation)}
           >
             <option value="DISABLED">Disabled</option>
             <option value="ENDING">Ending</option>

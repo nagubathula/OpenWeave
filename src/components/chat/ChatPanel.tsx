@@ -12,7 +12,7 @@ import { createAIModelRuntime, designModelID, designProviderDefinition } from '@
 type ChatStatus = 'ready' | 'submitted' | 'streaming'
 
 function createId(): string {
-  if (typeof window !== 'undefined' && (window as any).crypto) {
+  if ((window as any)?.crypto) {
     if ('randomUUID' in (window as any).crypto) return (window as any).crypto.randomUUID()
     const array = new Uint32Array(1)
     ;(window as any).crypto.getRandomValues(array)
@@ -23,7 +23,7 @@ function createId(): string {
 
 async function createDesignTransport(): Promise<ChatTransport<UIMessage>> {
   const runtime = await createAIModelRuntime('design')
-  if (!runtime || runtime.kind !== 'direct') {
+  if (runtime?.kind !== 'direct') {
     throw new Error('The Design model is not configured for direct API access')
   }
   const store = getActiveEditorStore()

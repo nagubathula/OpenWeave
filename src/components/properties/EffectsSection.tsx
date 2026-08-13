@@ -18,7 +18,7 @@ export default function EffectsSection() {
   
   if (!node) return null
 
-  const effects = ('effects' in node ? (node.effects as Effect[]) : undefined) ?? []
+  const effects = ('effects' in node ? (node.effects) : undefined) ?? []
 
   const updateEffects = (next: Effect[]) => {
     editor.updateNodeWithUndo(node.id, { effects: next }, 'Change effect')

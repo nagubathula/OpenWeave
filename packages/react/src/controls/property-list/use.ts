@@ -11,7 +11,7 @@ import type {
   PropertyListItemFor,
   PropertyListKey,
   PropertyListPatchFor
-} from '#react/primitives/PropertyList/types.ts'
+} from '#react/primitives/property-list/types.ts'
 
 function moveItem<T>(items: T[], fromIndex: number, toIndex: number): T[] {
   if (fromIndex === toIndex || fromIndex < 0 || fromIndex >= items.length) return items

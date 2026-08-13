@@ -15,8 +15,8 @@ actual color mutation begins and commits.
 
 ```ts twoslash
 import type { Color } from '@openweave/scene-graph'
-import type { BindingTarget } from '@openweave/vue'
-import { useColorBindingProvider } from '@openweave/vue'
+import type { BindingTarget } from '@openweave/react'
+import { useColorBindingProvider } from '@openweave/react'
 
 const provider = useColorBindingProvider()
 const targets: BindingTarget[] = [
@@ -34,4 +34,4 @@ The composable requires an editor provided by `provideEditor()`.
 
 - [BindableValue](../components/bindable-value)
 - [FillSwatch](../components/fill-swatch)
-- [useColorModel](../composables/use-color-model)
+- [useColorModel](../hooks/use-color-model)

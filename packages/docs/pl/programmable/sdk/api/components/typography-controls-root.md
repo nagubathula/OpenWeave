@@ -11,6 +11,6 @@ Użyj go, gdy chcesz niestandardowe kontrolki typografii z zachowaniem czcionki 
 
 ## Powiązane API
 
-- [useTypography](../composables/use-typography)
+- [useTypography](../hooks/use-typography)
 - [FontPickerRoot](./font-picker-root)
 - [Przewodnik po panelach właściwości](../../guides/property-panels)

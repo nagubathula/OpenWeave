@@ -11,6 +11,6 @@ Verwenden Sie es, wenn Sie benutzerdefinierte Typografie-Steuerelemente mit SDK-
 
 ## Verwandte APIs
 
-- [useTypography](../composables/use-typography)
+- [useTypography](../hooks/use-typography)
 - [FontPickerRoot](./font-picker-root)
 - [Eigenschafts-Panels-Anleitung](../../guides/property-panels)

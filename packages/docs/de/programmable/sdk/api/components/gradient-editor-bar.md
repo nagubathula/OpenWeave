@@ -51,16 +51,15 @@ description: Headless ziehbares Balken-Primitiv für Verlaufsstopps.
 
 ## Beispiel
 
-```vue
+```tsx
 <GradientEditorBar
-  :stops="stops"
-  :active-stop-index="activeStopIndex"
-  :bar-background="barBackground"
-  @select-stop="selectStop"
-  @drag-stop="dragStop"
-  v-slot="ctx"
+  stops={stops}
+  activeStopIndex={activeStopIndex}
+  barBackground={barBackground}
+  onSelectStop={selectStop}
+  onDragStop={dragStop}
 >
-  <MyGradientBar v-bind="ctx" />
+  {(ctx) => <MyGradientBar {...ctx} />}
 </GradientEditorBar>
 ```
 

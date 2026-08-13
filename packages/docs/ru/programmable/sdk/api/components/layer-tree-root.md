@@ -11,4 +11,4 @@ description: Headless-структурный примитив для интер�
 
 ## Связанные API
 
-- [useSelectionState](../composables/use-selection-state)
+- [useSelectionState](../hooks/use-selection-state)

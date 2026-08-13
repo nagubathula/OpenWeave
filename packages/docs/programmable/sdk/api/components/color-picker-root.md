@@ -17,30 +17,30 @@ current scene-graph color.
 close, allowing BindableValue consumers to roll back a variable detach and paint update together.
 Opening or focusing the picker does not emit a color update.
 
-```vue twoslash
-<script setup lang="ts">
-import { ref } from 'vue'
+```tsx twoslash
+import { useState } from 'react'
 import type { Color } from '@openweave/scene-graph'
-import { ColorPickerRoot } from '@openweave/vue'
+import { ColorPickerRoot } from '@openweave/react'
 
-const color = ref<Color>({ r: 0.2, g: 0.5, b: 0.9, a: 1 })
-</script>
+export function BrandColorPicker() {
+  const [color, setColor] = useState<Color>({ r: 0.2, g: 0.5, b: 0.9, a: 1 })
 
-<template>
-  <ColorPickerRoot
-    :color="color"
-    @update="color = $event"
-    @open-change="open => console.log(open)"
-    @cancel="console.log('cancel')"
-  >
-    <template #trigger="{ style }">
-      <button :style="style" aria-label="Edit color" />
-    </template>
-    <template #default="{ color: currentColor }">
-      <output>{{ currentColor.r }}, {{ currentColor.g }}, {{ currentColor.b }}</output>
-    </template>
-  </ColorPickerRoot>
-</template>
+  return (
+    <ColorPickerRoot
+      color={color}
+      onUpdate={setColor}
+      onOpenChange={(open) => console.log(open)}
+      onCancel={() => console.log('cancel')}
+      trigger={({ style }) => <button style={style} aria-label="Edit color" />}
+    >
+      {({ color: currentColor }) => (
+        <output>
+          {currentColor.r}, {currentColor.g}, {currentColor.b}
+        </output>
+      )}
+    </ColorPickerRoot>
+  )
+}
 ```
 
 ## Generated API reference
@@ -50,5 +50,5 @@ const color = ref<Color>({ r: 0.2, g: 0.5, b: 0.9, a: 1 })
 ## Related APIs
 
 - [ColorInputRoot](./color-input-root)
-- [useColorModel](../composables/use-color-model)
+- [useColorModel](../hooks/use-color-model)
 - [BindableValue](./bindable-value)

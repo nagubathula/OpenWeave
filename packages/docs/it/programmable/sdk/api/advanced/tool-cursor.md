@@ -11,5 +11,5 @@ Usalo quando costruisci shell canvas personalizzate o UI degli strumenti che nec
 
 ## API correlate
 
-- [useCanvas](../composables/use-canvas)
-- [useEditorCommands](../composables/use-editor-commands)
+- [useCanvas](../hooks/use-canvas)
+- [useEditorCommands](../hooks/use-editor-commands)

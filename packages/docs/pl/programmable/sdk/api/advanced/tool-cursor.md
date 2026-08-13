@@ -11,5 +11,5 @@ Użyj go przy budowaniu niestandardowych powłok kanvasu lub UI narzędzi, któr
 
 ## Powiązane API
 
-- [useCanvas](../composables/use-canvas)
-- [useEditorCommands](../composables/use-editor-commands)
+- [useCanvas](../hooks/use-canvas)
+- [useEditorCommands](../hooks/use-editor-commands)

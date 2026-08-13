@@ -1,6 +1,6 @@
 ---
 title: Locale APIs
-description: Locale-Stores und Metadaten auf niedrigerem Level, exportiert von @openweave/vue.
+description: Locale-Stores und Metadaten auf niedrigerem Level, exportiert von @openweave/react.
 ---
 
 # Locale APIs
@@ -24,7 +24,7 @@ import {
   setLocale,
   AVAILABLE_LOCALES,
   LOCALE_LABELS,
-} from '@openweave/vue'
+} from '@openweave/react'
 ```
 
 ## Hinweise
@@ -36,4 +36,4 @@ import {
 
 ## Verwandte APIs
 
-- [useI18n](../composables/use-i18n)
+- [useI18n](../hooks/use-i18n)

@@ -20,21 +20,22 @@ Verwenden Sie es, wenn Sie SDK-bereitgestellte Seitenlisten-Struktur mit app-spe
 
 ## Einfaches Beispiel
 
-```vue
-<PageListRoot v-slot="{ pages, currentPageId, switchPage }">
-  <ul>
-    <li v-for="page in pages" :key="page.id">
-      <button
-        :data-active="page.id === currentPageId"
-        @click="switchPage(page.id)"
-      >
-        {{ page.name }}
-      </button>
-    </li>
-  </ul>
+```tsx
+<PageListRoot>
+  {({ pages, currentPageId, switchPage }) => (
+    <ul>
+      {pages.map((page) => (
+        <li key={page.id}>
+          <button data-active={page.id === currentPageId} onClick={() => switchPage(page.id)}>
+            {page.name}
+          </button>
+        </li>
+      ))}
+    </ul>
+  )}
 </PageListRoot>
 ```
 
 ## Verwandte APIs
 
-- [usePageList](../composables/use-page-list)
+- [usePageList](../hooks/use-page-list)

@@ -52,6 +52,7 @@ const variableTypeOptions: { type: VariableType; label: string; description: str
 // --- Dialog ----------------------------------------------------------------
 
 export interface VariablesDialogProps {
+  _brand?: 'VariablesDialog'
   open: boolean
   onClose: () => void
 }

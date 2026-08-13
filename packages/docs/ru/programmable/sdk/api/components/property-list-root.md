@@ -22,12 +22,18 @@ description: Headless-структурный примитив для UI спис
 
 ## Использование
 
-```vue
-<PropertyListRoot prop-key="fills" v-slot="{ items, add, remove }">
-  <div v-for="(fill, index) in items" :key="index">
-    <button @click="remove(index)">Удалить</button>
-  </div>
-  <button @click="add(defaultFill)">Добавить заливку</button>
+```tsx
+<PropertyListRoot propKey="fills" items={fills} onAdd={addFill} onRemove={removeFill}>
+  {({ items, actions }) => (
+    <>
+      {items.map((fill, index) => (
+        <div key={index}>
+          <button onClick={() => actions.remove(index)}>Удалить</button>
+        </div>
+      ))}
+      <button onClick={() => actions.add(defaultFill)}>Добавить заливку</button>
+    </>
+  )}
 </PropertyListRoot>
 ```
 

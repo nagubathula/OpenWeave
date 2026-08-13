@@ -44,7 +44,7 @@ export function useInlineRename<T extends string>(
       } else if ('currentTarget' in eventOrInput && eventOrInput.currentTarget instanceof HTMLInputElement) {
         input = eventOrInput.currentTarget
       } else if ('target' in eventOrInput && eventOrInput.target instanceof HTMLInputElement) {
-        input = eventOrInput.target as HTMLInputElement
+        input = eventOrInput.target
       }
 
       if (!input) return

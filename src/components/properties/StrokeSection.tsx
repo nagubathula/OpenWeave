@@ -19,7 +19,7 @@ export default function StrokeSection() {
   
   if (!node) return null
 
-  const strokes = ('strokes' in node ? (node.strokes as Stroke[]) : undefined) ?? []
+  const strokes = ('strokes' in node ? (node.strokes) : undefined) ?? []
   
   // Some node types might have root-level stroke properties, but generally they are inside Stroke
   const strokeCap = 'strokeCap' in node ? node.strokeCap ?? 'NONE' : 'NONE'
@@ -84,11 +84,11 @@ export default function StrokeSection() {
                 </div>
               </div>
               <IconButton
-                label={stroke.visible !== false ? 'Hide stroke' : 'Show stroke'}
-                onClick={() => updateStroke(i, { visible: stroke.visible === false ? true : false })}
-                className={stroke.visible === false ? 'opacity-50' : ''}
+                label={stroke.visible ? 'Hide stroke' : 'Show stroke'}
+                onClick={() => updateStroke(i, { visible: ! stroke.visible ? true : false })}
+                className={!stroke.visible ? 'opacity-50' : ''}
               >
-                {stroke.visible !== false ? <Eye className="size-3.5" /> : <EyeOff className="size-3.5" />}
+                {stroke.visible ? <Eye className="size-3.5" /> : <EyeOff className="size-3.5" />}
               </IconButton>
               <IconButton label="Remove stroke" onClick={() => removeStroke(i)}>
                 <Minus className="size-3.5" />

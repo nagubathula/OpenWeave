@@ -78,7 +78,7 @@ try {
   nodeEval("await import('@openweave/dom-css/browser')", tempDir)
   nodeEval("await import('@openweave/dom-css/jsx-runtime')", tempDir)
   nodeEval("await import('@openweave/dom-css/jsx-dev-runtime')", tempDir)
-  nodeEval("await import('@openweave/vue')", tempDir)
+  nodeEval("await import('@openweave/react')", tempDir)
   nodeEval("await import('@openweave/mcp')", tempDir)
 
   nodeEval(

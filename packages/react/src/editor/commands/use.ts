@@ -7,7 +7,7 @@ import { useEditor } from '#react/editor/context'
 import { useSelectionCapabilities } from '#react/editor/selection-capabilities/use'
 import { useSelectionState } from '#react/editor/selection-state/use'
 import { commandMessages } from '#react/i18n'
-import { usePageList } from '#react/primitives/PageList/usePageList'
+import { usePageList } from '#react/primitives/page-list/usePageList'
 
 export type {
   EditorCommand,

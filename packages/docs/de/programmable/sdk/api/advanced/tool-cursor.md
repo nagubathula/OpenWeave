@@ -11,5 +11,5 @@ Verwenden Sie es beim Erstellen benutzerdefinierter Canvas-Shells oder Werkzeug-
 
 ## Verwandte APIs
 
-- [useCanvas](../composables/use-canvas)
-- [useEditorCommands](../composables/use-editor-commands)
+- [useCanvas](../hooks/use-canvas)
+- [useEditorCommands](../hooks/use-editor-commands)

@@ -29,6 +29,6 @@ The following tables are extracted from the Vue source and JSDoc during the docu
 
 ## Related APIs
 
-- [useLayout](../composables/use-layout)
+- [useLayout](../hooks/use-layout)
 - [BindableValue](./bindable-value)
 - [Property Panels guide](../../guides/property-panels)

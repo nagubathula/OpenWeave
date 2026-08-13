@@ -9,14 +9,14 @@ description: Persist OkHCL intent for selected node fills and strokes.
 intent, updates nodes with undo, reports preview gamut information, and remembers the selected
 field format for each fill or stroke.
 
-Use [`useColorModel()`](../composables/use-color-model) for framework-agnostic conversion, channel
+Use [`useColorModel()`](../hooks/use-color-model) for framework-agnostic conversion, channel
 editing, and slider presentation. Use `useOkHCL()` only where those edits need to be persisted to an
 OpenWeave editor.
 
 ## Usage
 
 ```ts
-import { useOkHCL } from '@openweave/vue'
+import { useOkHCL } from '@openweave/react'
 
 const okhcl = useOkHCL()
 
@@ -55,7 +55,7 @@ needed gamut mapping.
 
 ## Related APIs
 
-- [useColorModel](../composables/use-color-model)
-- [useFillControls](../composables/use-fill-controls)
-- [useStrokeControls](../composables/use-stroke-controls)
+- [useColorModel](../hooks/use-color-model)
+- [useFillControls](../hooks/use-fill-controls)
+- [useStrokeControls](../hooks/use-stroke-controls)
 - [ColorPickerRoot](../components/color-picker-root)

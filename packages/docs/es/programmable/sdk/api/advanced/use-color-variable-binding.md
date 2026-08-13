@@ -12,7 +12,7 @@ description: Helper de vinculación de variables para editores de color de relle
 ## Uso
 
 ```ts
-import { useColorVariableBinding } from '@openweave/vue'
+import { useColorVariableBinding } from '@openweave/react'
 
 const fillBinding = useColorVariableBinding('fills')
 const strokeBinding = useColorVariableBinding('strokes')
@@ -20,6 +20,6 @@ const strokeBinding = useColorVariableBinding('strokes')
 
 ## APIs relacionadas
 
-- [useFillControls](../composables/use-fill-controls)
-- [useStrokeControls](../composables/use-stroke-controls)
+- [useFillControls](../hooks/use-fill-controls)
+- [useStrokeControls](../hooks/use-stroke-controls)
 - [FillRoot](/programmable/sdk/api/components/fill-root)

@@ -12,7 +12,7 @@ Utilisez-le quand votre shell a besoin d'une légère abstraction au-dessus des 
 ## Utilisation
 
 ```ts
-import { useViewportKind } from '@openweave/vue'
+import { useViewportKind } from '@openweave/react'
 
 const { isMobile, isDesktop } = useViewportKind()
 ```
@@ -24,4 +24,4 @@ const { isMobile, isDesktop } = useViewportKind()
 
 ## API associées
 
-- [useCanvas](../composables/use-canvas)
+- [useCanvas](../hooks/use-canvas)

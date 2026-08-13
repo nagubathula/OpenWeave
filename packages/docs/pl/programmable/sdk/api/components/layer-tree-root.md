@@ -11,4 +11,4 @@ Użyj go, gdy chcesz wielokrotnie używalną strukturę drzewa i okablowanie int
 
 ## Powiązane API
 
-- [useSelectionState](../composables/use-selection-state)
+- [useSelectionState](../hooks/use-selection-state)

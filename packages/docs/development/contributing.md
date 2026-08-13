@@ -10,21 +10,23 @@ packages/
     src/commands/    info, tree, find, export, eval, analyze
   mcp/               @openweave/mcp — MCP server for AI tools
     src/             stdio + HTTP (Hono) transports, 87 tools
+  react/             @openweave/react — React SDK (canvas, primitives, hooks)
+    src/primitives/  Composable UI primitives (NumberField, Fill, PropertySection, …)
+  docs/              VitePress documentation site
 src/
-  components/        Vue SFCs (canvas, panels, toolbar, color picker)
+  app/               Editor session, document, AI, collaboration, shell, automation
+  components/        React components (canvas, panels, toolbar, color picker)
     properties/      Property panel sections (Appearance, Fill, Stroke, etc.)
-  composables/       Canvas input, keyboard shortcuts, rendering hooks
-  stores/            Editor state (Vue reactivity)
-  engine/            Re-export shims from @openweave/core
-  kiwi/              Re-export shims from @openweave/core
-  types.ts           Shared types (re-exported from core)
   constants.ts       UI colors, defaults, thresholds
 desktop/             Tauri v2 (Rust + config)
 tests/
   e2e/               Playwright visual regression
   engine/            Unit tests (bun:test)
-docs/                VitePress documentation site
 ```
+
+The app is Next.js (App Router, static export). Vue's reactivity primitives are still used as a
+framework-agnostic store core, so store-layer files may import from `vue` without the app being a
+Vue app.
 
 ## Development Setup
 
@@ -36,9 +38,9 @@ bun run docs:dev     # Docs at localhost:5173
 
 ## SDK documentation
 
-VitePress is the canonical public documentation, while Storybook is the internal component-state workshop. Shared Vue demos live beside their SDK primitives and are embedded in both surfaces. The docs Tailwind entry scans these demos, so examples use the same utility-first styling in both environments.
+VitePress is the canonical public documentation. Demos live beside their SDK primitives and are embedded into the docs. The docs Tailwind entry scans these demos, so examples use utility-first styling.
 
-Component API tables are extracted from Vue source and JSDoc with `vue-component-meta`. Keep descriptions next to the public props, events, and slots instead of duplicating signatures in Markdown. VitePress processes SDK code examples with Twoslash so imports and types stay aligned with the public package API.
+Component API tables are extracted from the React SDK source and JSDoc by `.vitepress/sdk/component-meta.ts`, which reads `packages/react` through the TypeScript compiler. Callback props (`onValueChange`) are reported as events and a render-prop `children` as a slot. Keep descriptions next to the public props instead of duplicating signatures in Markdown. VitePress processes SDK code examples with Twoslash so imports and types stay aligned with the public package API.
 
 ## Code Style
 
@@ -59,7 +61,7 @@ bun run check
 ### Conventions
 
 - **File names** — kebab-case (`scene-graph.ts`, `use-canvas-input.ts`)
-- **Components** — PascalCase Vue SFCs (`EditorCanvas.vue`, `NumberField.vue`)
+- **Components** — PascalCase React components (`EditorCanvas.tsx`, `NumberField.tsx`)
 - **Constants** — SCREAMING_SNAKE_CASE
 - **Functions/variables** — camelCase
 - **Types/interfaces** — PascalCase
@@ -87,7 +89,7 @@ Developers and AI agents working on the codebase should read `AGENTS.md` in the 
 
 ## Key Files
 
-Core engine source lives in `packages/core/src/`. App-specific editor, document, AI, collaboration, shell, demo, and automation code lives under `src/app/*`; the Vue SDK owns reusable canvas/composable code under `packages/vue/src/`.
+Core engine source lives in `packages/core/src/`. App-specific editor, document, AI, collaboration, shell, demo, and automation code lives under `src/app/*`; the React SDK owns reusable canvas/hook code under `packages/react/src/`.
 
 | File | Purpose |
 |------|---------|
@@ -106,6 +108,6 @@ Core engine source lives in `packages/core/src/`. App-specific editor, document,
 | `packages/mcp/src/server.ts` | MCP server factory |
 | `packages/cli/src/commands/` | CLI commands (info, tree, find, export, eval, analyze) |
 | `src/app/editor/session/create.ts` | Editor session assembly |
-| `packages/vue/src/canvas/CanvasRoot.vue` | Canvas rendering composable |
-| `packages/vue/src/canvas/useCanvasInput.ts` | Mouse/touch input handling |
+| `packages/react/src/canvas/CanvasRoot.tsx` | Canvas rendering component |
+| `packages/react/src/canvas/context/use-canvas-input.ts` | Mouse/touch input handling |
 | `src/app/shell/keyboard/use.ts` | Keyboard shortcut handling |

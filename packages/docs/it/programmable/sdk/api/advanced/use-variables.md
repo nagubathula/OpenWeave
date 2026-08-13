@@ -12,7 +12,7 @@ Usalo quando vuoi controllo diretto su collezioni, modalità attive, filtraggio 
 ## Utilizzo
 
 ```ts
-import { useVariables } from '@openweave/vue'
+import { useVariables } from '@openweave/react'
 
 const variables = useVariables()
 ```
@@ -39,6 +39,6 @@ const variables = useVariables()
 
 ## API correlate
 
-- [useVariablesEditor](../composables/use-variables-editor)
+- [useVariablesEditor](../hooks/use-variables-editor)
 - [useVariablesDialogState](./use-variables-dialog-state)
 - [useVariablesTable](./use-variables-table)

@@ -11,5 +11,5 @@ Use it when you want custom position controls without reimplementing editor wiri
 
 ## Related APIs
 
-- [usePosition](../composables/use-position)
+- [usePosition](../hooks/use-position)
 - [Property Panels guide](../../guides/property-panels)

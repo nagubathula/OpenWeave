@@ -11,5 +11,5 @@ Verwenden Sie es, wenn Sie eine wiederverwendbare Layout-Steuerelemente-Shell mi
 
 ## Verwandte APIs
 
-- [useLayout](../composables/use-layout)
+- [useLayout](../hooks/use-layout)
 - [Eigenschafts-Panels-Anleitung](../../guides/property-panels)

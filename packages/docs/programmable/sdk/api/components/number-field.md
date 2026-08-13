@@ -4,7 +4,7 @@ description: Headless numeric field primitives with scrubbing, expressions, and 
 ---
 
 <script setup lang="ts">
-import NumberFieldDemo from '#vue/primitives/NumberField/demo/NumberFieldDemo.vue'
+import { NumberFieldDemo } from '#react/primitives/number-field/demo/NumberFieldDemo'
 import { data } from './number-field.data'
 </script>
 
@@ -13,7 +13,7 @@ import { data } from './number-field.data'
 The NumberField family provides a headless numeric control with pointer scrubbing, mixed values,
 keyboard stepping, safe arithmetic expressions, units, trailing actions, and binding-aware state.
 
-<NumberFieldDemo />
+<ReactDemo :component="NumberFieldDemo" />
 
 ## Anatomy
 
@@ -43,41 +43,48 @@ commits and Escape restores the interaction-start value.
 
 ## Example
 
-```vue twoslash
-<script setup lang="ts">
-import { ref } from 'vue'
+```tsx twoslash
+import { useState } from 'react'
 import {
   NumberFieldInput,
   NumberFieldLeading,
   NumberFieldRoot,
   NumberFieldUnit,
   NumberFieldValue
-} from '@openweave/vue'
+} from '@openweave/react'
 
-const width = ref(120)
-//    ^?
-</script>
+export function WidthField() {
+  const [width, setWidth] = useState<number | symbol>(120)
+  //     ^?
 
-<template>
-  <NumberFieldRoot
-    v-slot="{ attrs, editing, actions }"
-    v-model="width"
-    :min="0"
-    :max="1000"
-    aria-label="Width"
-  >
-    <div v-bind="attrs" @pointerdown="!editing && actions.startScrub($event)">
-      <NumberFieldLeading>W</NumberFieldLeading>
-      <NumberFieldInput />
-      <NumberFieldValue />
-      <NumberFieldUnit>px</NumberFieldUnit>
-    </div>
-  </NumberFieldRoot>
-</template>
+  return (
+    <NumberFieldRoot
+      modelValue={width}
+      onModelValueChange={setWidth}
+      min={0}
+      max={1000}
+      ariaLabel="Width"
+    >
+      {({ attrs, editing, actions }) => (
+        <div
+          {...attrs}
+          onPointerDown={(event) => {
+            if (!editing) actions.startScrub(event)
+          }}
+        >
+          <NumberFieldLeading>W</NumberFieldLeading>
+          <NumberFieldInput />
+          <NumberFieldValue />
+          <NumberFieldUnit>px</NumberFieldUnit>
+        </div>
+      )}
+    </NumberFieldRoot>
+  )
+}
 ```
 
 ## Generated API reference
 
-The following tables are extracted from the Vue source and its JSDoc during the documentation build.
+The following tables are extracted from the React SDK source and its JSDoc during the documentation build.
 
 <SdkComponentAPI :components="data.components" />

@@ -51,16 +51,15 @@ description: Primitiva barra trascinabile headless per gli stop del gradiente.
 
 ## Esempio
 
-```vue
+```tsx
 <GradientEditorBar
-  :stops="stops"
-  :active-stop-index="activeStopIndex"
-  :bar-background="barBackground"
-  @select-stop="selectStop"
-  @drag-stop="dragStop"
-  v-slot="ctx"
+  stops={stops}
+  activeStopIndex={activeStopIndex}
+  barBackground={barBackground}
+  onSelectStop={selectStop}
+  onDragStop={dragStop}
 >
-  <MyGradientBar v-bind="ctx" />
+  {(ctx) => <MyGradientBar {...ctx} />}
 </GradientEditorBar>
 ```
 

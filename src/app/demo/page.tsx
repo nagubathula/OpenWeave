@@ -17,7 +17,7 @@ export default function DemoPage() {
     const firstTab = createdInitialTab ? createTab() : (activeTab.value ?? createTab())
     
     if (createdInitialTab) {
-      void createDemoShapes(firstTab.store)
+       createDemoShapes(firstTab.store)
     }
 
     setIsReady(true)

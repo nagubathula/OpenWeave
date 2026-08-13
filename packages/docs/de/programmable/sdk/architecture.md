@@ -1,11 +1,11 @@
 ---
 title: SDK-Architektur
-description: Ordnerstruktur, öffentliche API-Grenzen und Kompositionsmuster in @openweave/vue.
+description: Ordnerstruktur, öffentliche API-Grenzen und Kompositionsmuster in @openweave/react.
 ---
 
 # SDK-Architektur
 
-`@openweave/vue` ist die Vue-seitige Schicht über `@openweave/core`.
+`@openweave/react` ist die Vue-seitige Schicht über `@openweave/core`.
 
 Das Paket besitzt das Editor-Modell selbst nicht. Es passt den Kern-Editor an in:
 
@@ -107,7 +107,7 @@ Fokussierte Slot-Props oder direkte Composable-Verwendung gegenüber großen `v-
 
 ## Praktische Faustregel
 
-Wenn ein Stück Logik in einer anderen OpenWeave-basierten App wiederverwendet werden könnte, ohne App-Styling mitzubringen, gehört es wahrscheinlich in `@openweave/vue`.
+Wenn ein Stück Logik in einer anderen OpenWeave-basierten App wiederverwendet werden könnte, ohne App-Styling mitzubringen, gehört es wahrscheinlich in `@openweave/react`.
 
 ## Verwandte Seiten
 

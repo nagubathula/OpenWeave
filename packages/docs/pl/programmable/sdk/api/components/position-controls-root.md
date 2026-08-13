@@ -11,5 +11,5 @@ Użyj go, gdy chcesz niestandardowe kontrolki pozycji bez ponownego implementowa
 
 ## Powiązane API
 
-- [usePosition](../composables/use-position)
+- [usePosition](../hooks/use-position)
 - [Przewodnik po panelach właściwości](../../guides/property-panels)

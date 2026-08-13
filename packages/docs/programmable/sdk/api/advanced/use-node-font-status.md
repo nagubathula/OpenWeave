@@ -11,5 +11,5 @@ Use it in typography panels and warnings that need to surface unavailable font f
 
 ## Related APIs
 
-- [useTypography](../composables/use-typography)
+- [useTypography](../hooks/use-typography)
 - [TypographyControlsRoot](../components/typography-controls-root)

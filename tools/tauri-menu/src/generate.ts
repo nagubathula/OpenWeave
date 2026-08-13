@@ -1,7 +1,7 @@
 import { mkdirSync, writeFileSync } from 'node:fs'
 import { dirname } from 'node:path'
 
-import { editorCommandMetadata } from '@openweave/vue'
+import { editorCommandMetadata } from '@openweave/react'
 
 import { APP_MENU_SCHEMA } from '@/app/shell/menu/schema'
 import type { AppMenuEntry, AppMenuGroupSchema } from '@/app/shell/menu/schema'

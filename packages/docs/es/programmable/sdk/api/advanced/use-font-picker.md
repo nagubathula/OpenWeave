@@ -12,4 +12,4 @@ description: Estado y helper de selección para el selector de fuentes con búsq
 ## APIs relacionadas
 
 - [FontPickerRoot](../components/font-picker-root)
-- [useTypography](../composables/use-typography)
+- [useTypography](../hooks/use-typography)

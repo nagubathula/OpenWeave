@@ -1,11 +1,11 @@
 ---
 title: Architettura dell'SDK
-description: Struttura delle cartelle, confini dell'API pubblica e pattern di composizione in @openweave/vue.
+description: Struttura delle cartelle, confini dell'API pubblica e pattern di composizione in @openweave/react.
 ---
 
 # Architettura dell'SDK
 
-`@openweave/vue` è il livello Vue sopra `@openweave/core`.
+`@openweave/react` è il livello Vue sopra `@openweave/core`.
 
 Non possiede il modello dell'editor stesso. Adatta l'editor core in:
 
@@ -107,7 +107,7 @@ Preferisci slot prop mirati o uso diretto dei composable rispetto a payload giga
 
 ## Regola pratica
 
-Se un pezzo di logica potrebbe essere riutilizzato in un'app diversa basata su OpenWeave senza portare lo stile dell'app con sé, probabilmente appartiene a `@openweave/vue`.
+Se un pezzo di logica potrebbe essere riutilizzato in un'app diversa basata su OpenWeave senza portare lo stile dell'app con sé, probabilmente appartiene a `@openweave/react`.
 
 ## Pagine correlate
 

@@ -12,4 +12,4 @@ description: Utilidad del portapapeles para extraer archivos de imagen aceptados
 ## APIs relacionadas
 
 - [useCanvasDrop](./use-canvas-drop)
-- [useCanvas](../composables/use-canvas)
+- [useCanvas](../hooks/use-canvas)

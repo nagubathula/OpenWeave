@@ -1,8 +1,8 @@
 import { defineComponentMetaLoader } from '#docs/sdk/component-meta'
 
 const sources = [
-  'packages/vue/src/primitives/SegmentedControl/SegmentedControlRoot.vue',
-  'packages/vue/src/primitives/SegmentedControl/SegmentedControlItem.vue'
+  'packages/react/src/primitives/segmented-control/SegmentedControlRoot.tsx',
+  'packages/react/src/primitives/segmented-control/SegmentedControlItem.tsx'
 ]
 
 export default defineComponentMetaLoader(sources)

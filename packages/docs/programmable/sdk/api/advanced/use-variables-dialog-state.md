@@ -12,7 +12,7 @@ Use it when you are building a custom variables dialog rather than only consumin
 ## Usage
 
 ```ts
-import { useVariablesDialogState } from '@openweave/vue'
+import { useVariablesDialogState } from '@openweave/react'
 
 const variablesDialog = useVariablesDialogState()
 ```
@@ -27,4 +27,4 @@ const variablesDialog = useVariablesDialogState()
 ## Related APIs
 
 - [useVariables](./use-variables)
-- [useVariablesEditor](../composables/use-variables-editor)
+- [useVariablesEditor](../hooks/use-variables-editor)

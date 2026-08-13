@@ -11,4 +11,4 @@ Use it when you want reusable tree structure and interaction wiring without buil
 
 ## Related APIs
 
-- [useSelectionState](../composables/use-selection-state)
+- [useSelectionState](../hooks/use-selection-state)

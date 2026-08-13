@@ -6,7 +6,7 @@ import type { SceneNode } from '@openweave/scene-graph'
 import { useEditorStore } from '@/app/editor/active-store'
 import { useSceneComputed } from '@openweave/react'
 import { nodeIcon } from '@/app/editor/icons'
-import { findAssetPage } from '@/components/assets-panel/page'
+import { findAssetPage } from '@/components/assets/page'
 import {
   ASSET_GRID_THUMBNAIL_SIZE,
   ASSET_LIST_THUMBNAIL_SIZE,

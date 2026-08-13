@@ -5,12 +5,12 @@ description: Primitivo headless del canvas para las superficies de renderizado d
 
 # CanvasRoot
 
-`CanvasRoot` es el primitivo estructural del canvas en `@openweave/vue`.
+`CanvasRoot` es el primitivo estructural del canvas en `@openweave/react`.
 
 Úsalo cuando quieras la estructura y el contexto del canvas proporcionados por el SDK con layout y estilos propios de la app.
 
 ## APIs relacionadas
 
-- [useCanvas](../composables/use-canvas)
-- [useCanvasInput](../composables/use-canvas-input)
-- [useTextEdit](../composables/use-text-edit)
+- [useCanvas](../hooks/use-canvas)
+- [useCanvasInput](../hooks/use-canvas-input)
+- [useTextEdit](../hooks/use-text-edit)

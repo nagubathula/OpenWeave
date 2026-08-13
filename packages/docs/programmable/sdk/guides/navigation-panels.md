@@ -16,14 +16,18 @@ The Vue SDK provides headless primitives for both.
 
 Use `PageListRoot` or `usePageList()`.
 
-```vue
-<PageListRoot v-slot="{ pages, currentPageId, switchPage, addPage }">
-  <div>
-    <button v-for="page in pages" :key="page.id" @click="switchPage(page.id)">
-      {{ page.name }}
-    </button>
-    <button @click="addPage()">New page</button>
-  </div>
+```tsx
+<PageListRoot>
+  {({ pages, currentPageId, switchPage, addPage }) => (
+    <div>
+      {pages.map((page) => (
+        <button key={page.id} onClick={() => switchPage(page.id)}>
+          {page.name}
+        </button>
+      ))}
+      <button onClick={() => addPage()}>New page</button>
+    </div>
+  )}
 </PageListRoot>
 ```
 
@@ -31,16 +35,18 @@ Use `PageListRoot` or `usePageList()`.
 
 Use `LayerTreeRoot` when you want SDK-managed tree structure but app-owned presentation.
 
-```vue
-<LayerTreeRoot v-slot="{ items, selectedIds, select, toggleExpand, getKey, getChildren }">
-  <TreeView
-    :items="items"
-    :selected-ids="selectedIds"
-    :get-key="getKey"
-    :get-children="getChildren"
-    @select="select"
-    @toggle-expand="toggleExpand"
-  />
+```tsx
+<LayerTreeRoot>
+  {({ items, selectedIds, select, toggleExpand, getKey, getChildren }) => (
+    <TreeView
+      items={items}
+      selectedIds={selectedIds}
+      getKey={getKey}
+      getChildren={getChildren}
+      onSelect={select}
+      onToggleExpand={toggleExpand}
+    />
+  )}
 </LayerTreeRoot>
 ```
 
@@ -54,7 +60,7 @@ A common layout is:
 
 ## Related APIs
 
-- [usePageList](../api/composables/use-page-list)
+- [usePageList](../api/hooks/use-page-list)
 - [PageListRoot](../api/components/page-list-root)
 - [LayerTreeRoot](../api/components/layer-tree-root)
-- [useSelectionState](../api/composables/use-selection-state)
+- [useSelectionState](../api/hooks/use-selection-state)

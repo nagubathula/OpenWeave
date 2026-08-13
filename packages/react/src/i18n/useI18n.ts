@@ -2,7 +2,6 @@ import { useStore } from '@nanostores/react'
 import type { Store } from 'nanostores'
 
 import { locale, setLocale, AVAILABLE_LOCALES, LOCALE_LABELS } from '#react/i18n/locale'
-import type { Locale } from '#react/i18n/locale'
 import {
   menuMessages,
   commandMessages,
@@ -55,7 +54,7 @@ export function useI18n() {
     variableTypes: useVariableTypeMessages(),
     pages: usePageMessages(),
     dialogs: useDialogMessages(),
-    locale: useStore(locale) as Locale,
+    locale: useStore(locale),
     availableLocales: AVAILABLE_LOCALES,
     localeLabels: LOCALE_LABELS,
     setLocale

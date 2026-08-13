@@ -11,5 +11,5 @@ description: Primitivo raíz headless para controles de auto-layout y tamaño.
 
 ## APIs relacionadas
 
-- [useLayout](../composables/use-layout)
+- [useLayout](../hooks/use-layout)
 - [Guía de Paneles de Propiedades](../../guides/property-panels)

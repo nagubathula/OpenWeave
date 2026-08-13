@@ -12,7 +12,7 @@ description: Грубые флаги мобильного и десктопно�
 ## Использование
 
 ```ts
-import { useViewportKind } from '@openweave/vue'
+import { useViewportKind } from '@openweave/react'
 
 const { isMobile, isDesktop } = useViewportKind()
 ```
@@ -24,4 +24,4 @@ const { isMobile, isDesktop } = useViewportKind()
 
 ## Связанные API
 
-- [useCanvas](../composables/use-canvas)
+- [useCanvas](../hooks/use-canvas)

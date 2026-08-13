@@ -1,7 +1,7 @@
 import { createRequire } from 'node:module'
 
 import raw from 'unplugin-raw/rolldown'
-import vue from 'unplugin-vue/rolldown'
+
 import { defineConfig } from 'tsdown'
 
 const require = createRequire(import.meta.url)
@@ -38,7 +38,6 @@ export default defineConfig({
   platform: 'browser',
   format: ['esm'],
   dts: {
-    vue: true,
     sourcemap: true,
     resolver: 'tsc'
   },
@@ -74,7 +73,7 @@ export default defineConfig({
     ],
     onlyBundle: false
   },
-  plugins: [atlaskitSubpathResolver(), raw(), vue()],
+  plugins: [atlaskitSubpathResolver(), raw()],
   inputOptions: {
     preserveEntrySignatures: 'allow-extension',
     checks: {

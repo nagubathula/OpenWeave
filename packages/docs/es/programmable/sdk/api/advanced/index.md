@@ -1,6 +1,6 @@
 ---
 title: Avanzado
-description: APIs de bajo nivel y especializadas en @openweave/vue.
+description: APIs de bajo nivel y especializadas en @openweave/react.
 ---
 
 # Avanzado

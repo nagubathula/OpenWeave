@@ -16,14 +16,18 @@ Vue SDK предоставляет headless-примитивы для обеих
 
 Используйте `PageListRoot` или `usePageList()`.
 
-```vue
-<PageListRoot v-slot="{ pages, currentPageId, switchPage, addPage }">
-  <div>
-    <button v-for="page in pages" :key="page.id" @click="switchPage(page.id)">
-      {{ page.name }}
-    </button>
-    <button @click="addPage()">Новая страница</button>
-  </div>
+```tsx
+<PageListRoot>
+  {({ pages, currentPageId, switchPage, addPage }) => (
+    <div>
+      {pages.map((page) => (
+        <button key={page.id} onClick={() => switchPage(page.id)}>
+          {page.name}
+        </button>
+      ))}
+      <button onClick={() => addPage()}>Новая страница</button>
+    </div>
+  )}
 </PageListRoot>
 ```
 
@@ -31,16 +35,18 @@ Vue SDK предоставляет headless-примитивы для обеих
 
 Используйте `LayerTreeRoot`, когда хотите структуру дерева, управляемую SDK, но представление на стороне приложения.
 
-```vue
-<LayerTreeRoot v-slot="{ items, selectedIds, select, toggleExpand, getKey, getChildren }">
-  <TreeView
-    :items="items"
-    :selected-ids="selectedIds"
-    :get-key="getKey"
-    :get-children="getChildren"
-    @select="select"
-    @toggle-expand="toggleExpand"
-  />
+```tsx
+<LayerTreeRoot>
+  {({ items, selectedIds, select, toggleExpand, getKey, getChildren }) => (
+    <TreeView
+      items={items}
+      selectedIds={selectedIds}
+      getKey={getKey}
+      getChildren={getChildren}
+      onSelect={select}
+      onToggleExpand={toggleExpand}
+    />
+  )}
 </LayerTreeRoot>
 ```
 
@@ -54,7 +60,7 @@ Vue SDK предоставляет headless-примитивы для обеих
 
 ## Связанные API
 
-- [usePageList](../api/composables/use-page-list)
+- [usePageList](../api/hooks/use-page-list)
 - [PageListRoot](../api/components/page-list-root)
 - [LayerTreeRoot](../api/components/layer-tree-root)
-- [useSelectionState](../api/composables/use-selection-state)
+- [useSelectionState](../api/hooks/use-selection-state)

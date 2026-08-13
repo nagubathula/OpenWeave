@@ -12,4 +12,4 @@ Usalo quando implementi flussi di lavoro per incollare immagini dagli appunti.
 ## API correlate
 
 - [useCanvasDrop](./use-canvas-drop)
-- [useCanvas](../composables/use-canvas)
+- [useCanvas](../hooks/use-canvas)

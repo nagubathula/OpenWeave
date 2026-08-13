@@ -5,7 +5,7 @@ description: Buduj edytory oparte na OpenWeave z bezstanowymi kompozytami i prym
 
 # Vue SDK
 
-`@openweave/vue` istnieje po to, by OpenWeave mógł być czymś więcej niż samodzielną aplikacją do projektowania.
+`@openweave/react` istnieje po to, by OpenWeave mógł być czymś więcej niż samodzielną aplikacją do projektowania.
 
 Celem jest uczynienie OpenWeave zestawem narzędzi, który można wbudować w inne produkty, narzędzia wewnętrzne i edytory dopasowane do konkretnych przepływów pracy — a nie tylko jednym domyślnym interfejsem.
 
@@ -56,5 +56,5 @@ Jeśli budujesz wielokrotnie używalne bloki budulcowe UI edytora, zacznij od pr
 ## Sekcje API
 
 - [Komponenty](/programmable/sdk/api/components/)
-- [Kompozyty](/programmable/sdk/api/composables/)
+- [Kompozyty](/programmable/sdk/api/hooks/)
 - [Zaawansowane](/programmable/sdk/api/advanced/)

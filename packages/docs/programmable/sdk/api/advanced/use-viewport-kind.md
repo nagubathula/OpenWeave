@@ -12,7 +12,7 @@ Use it when your shell needs a light abstraction over breakpoints instead of wir
 ## Usage
 
 ```ts
-import { useViewportKind } from '@openweave/vue'
+import { useViewportKind } from '@openweave/react'
 
 const { isMobile, isDesktop } = useViewportKind()
 ```
@@ -24,4 +24,4 @@ const { isMobile, isDesktop } = useViewportKind()
 
 ## Related APIs
 
-- [useCanvas](../composables/use-canvas)
+- [useCanvas](../hooks/use-canvas)

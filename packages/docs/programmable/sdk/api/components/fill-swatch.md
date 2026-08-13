@@ -4,7 +4,7 @@ description: Binding-aware semantic preview for solid, gradient, and image fills
 ---
 
 <script setup lang="ts">
-import ColorFillDemo from '#vue/primitives/Fill/demo/ColorFillDemo.vue'
+import { ColorFillDemo } from '#react/primitives/fill/demo/ColorFillDemo'
 import { data } from './fill-swatch.data'
 </script>
 
@@ -18,10 +18,9 @@ When nested in `BindableValueRoot<Color>`, a bound solid fill previews the provi
 and forwards the binding state attributes. Reading or focusing a swatch never detaches the binding.
 Consumers can place a checkerboard below the slot's `background` value for transparent paints.
 
-```vue twoslash
-<script setup lang="ts">
+```tsx twoslash
 import type { Fill } from '@openweave/scene-graph'
-import { FillSwatch } from '@openweave/vue'
+import { FillSwatch } from '@openweave/react'
 
 const fill: Fill = {
   type: 'SOLID',
@@ -29,13 +28,14 @@ const fill: Fill = {
   opacity: 1,
   visible: true
 }
-</script>
 
-<template>
-  <FillSwatch :fill="fill" label="Brand fill" v-slot="swatch">
-    <span :style="{ background: swatch.background }" />
-  </FillSwatch>
-</template>
+export function BrandSwatch() {
+  return (
+    <FillSwatch fill={fill} label="Brand fill">
+      {(swatch) => <span style={{ background: swatch.background }} />}
+    </FillSwatch>
+  )
+}
 ```
 
 ## Generated API reference

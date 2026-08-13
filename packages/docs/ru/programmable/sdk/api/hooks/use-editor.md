@@ -1,0 +1,69 @@
+---
+title: useEditor
+description: Доступ к текущему инжектированному экземпляру редактора OpenWeave.
+---
+
+# useEditor
+
+`useEditor()` возвращает текущий инжектированный редактор OpenWeave.
+
+Это главная точка входа для SDK-компосаблов и headless-примитивов, которым нужен доступ к редактору.
+
+## Использование
+
+`useEditor()` должен вызываться внутри поддерева, где уже был вызван `provideEditor(editor)`.
+
+```ts
+import { useEditor } from '@openweave/react'
+
+const editor = useEditor()
+```
+
+## Базовый пример
+
+```tsx
+import { useEditor } from '@openweave/react'
+
+export function CurrentPage() {
+  const editor = useEditor()
+  const pageId = editor.state.currentPageId
+
+  return <div>Current page: {pageId}</div>
+}
+```
+
+## Практические примеры
+
+### Чтение выбранных узлов
+
+```ts
+const editor = useEditor()
+const selected = editor.getSelectedNodes()
+```
+
+### Вызов команд
+
+```ts
+const editor = useEditor()
+editor.zoomToFit()
+editor.undoAction()
+```
+
+## Поведение при ошибках
+
+Если вызван вне дерева провайдера редактора, `useEditor()` бросит исключение с понятным сообщением.
+
+Это намеренно — API должен громко сообщать об отсутствии контекста редактора.
+
+## Связанные API
+
+- [provideEditor](./provide-editor)
+- [useCanvas](./use-canvas)
+- [useSelectionState](./use-selection-state)
+- [useEditorCommands](./use-editor-commands)
+
+## Тип
+
+```ts
+function useEditor(): Editor
+```

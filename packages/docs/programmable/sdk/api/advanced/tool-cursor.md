@@ -11,5 +11,5 @@ Use it when building custom canvas shells or tool UIs that need consistent curso
 
 ## Related APIs
 
-- [useCanvas](../composables/use-canvas)
-- [useEditorCommands](../composables/use-editor-commands)
+- [useCanvas](../hooks/use-canvas)
+- [useEditorCommands](../hooks/use-editor-commands)

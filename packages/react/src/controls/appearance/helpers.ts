@@ -181,7 +181,7 @@ export function useAppearanceActions({ editor, node, nodes, isMulti }: Appearanc
     }
     const normalized = key === 'cornerSmoothing' ? Math.max(0, Math.min(value, 1)) : value
     for (const target of cornerTargets()) {
-      if (!snapshots.has(target.id)) snapshots.set(target.id, target[key] as number)
+      if (!snapshots.has(target.id)) snapshots.set(target.id, target[key])
       editor.updateNode(target.id, { [key]: normalized })
     }
   }, [cornerTargets, editor])

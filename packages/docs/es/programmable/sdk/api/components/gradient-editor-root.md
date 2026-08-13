@@ -63,9 +63,9 @@ Gestiona:
 
 ## Ejemplo
 
-```vue
-<GradientEditorRoot :fill="fill" @update="fill = $event" v-slot="ctx">
-  <MyGradientUI v-bind="ctx" />
+```tsx
+<GradientEditorRoot fill={fill} onUpdate={setFill}>
+  {(ctx) => <MyGradientUI {...ctx} />}
 </GradientEditorRoot>
 ```
 

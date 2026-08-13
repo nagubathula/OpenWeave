@@ -11,6 +11,6 @@ description: Primitivo raíz headless para controles de fuente, alineación y fo
 
 ## APIs relacionadas
 
-- [useTypography](../composables/use-typography)
+- [useTypography](../hooks/use-typography)
 - [FontPickerRoot](./font-picker-root)
 - [Guía de Paneles de Propiedades](../../guides/property-panels)

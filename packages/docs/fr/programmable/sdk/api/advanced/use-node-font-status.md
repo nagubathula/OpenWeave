@@ -11,5 +11,5 @@ Utilisez-le dans les panneaux typographiques et les avertissements qui doivent s
 
 ## API associées
 
-- [useTypography](../composables/use-typography)
+- [useTypography](../hooks/use-typography)
 - [TypographyControlsRoot](../components/typography-controls-root)

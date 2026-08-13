@@ -11,26 +11,30 @@ import { data } from './property-grid.data'
 
 `PropertyGridRoot` separates responsive property fields from optional intrinsic-width actions. It exposes structural data attributes without imposing column widths, gaps, or presentation.
 
-```vue twoslash
-<script setup lang="ts">
-import { PropertyGridRoot } from '@openweave/vue'
-</script>
+```tsx twoslash
+import { PropertyGridRoot } from '@openweave/react'
 
-<template>
-  <PropertyGridRoot :columns="2">
-    <label>
-      Width
-      <input type="number" />
-    </label>
-    <label>
-      Height
-      <input type="number" />
-    </label>
-    <template #actions>
-      <button type="button" aria-label="Constrain proportions">Link</button>
-    </template>
-  </PropertyGridRoot>
-</template>
+export function SizeFields() {
+  return (
+    <PropertyGridRoot
+      columns={2}
+      actions={
+        <button type="button" aria-label="Constrain proportions">
+          Link
+        </button>
+      }
+    >
+      <label>
+        Width
+        <input type="number" />
+      </label>
+      <label>
+        Height
+        <input type="number" />
+      </label>
+    </PropertyGridRoot>
+  )
+}
 ```
 
 Themes can target `data-slot="fields"`, `data-slot="actions"`, `data-columns`, and `data-distribution`. The `wide-first` distribution is semantic; consumers choose its exact ratio.

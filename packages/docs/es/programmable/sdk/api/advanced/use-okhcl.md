@@ -12,7 +12,7 @@ description: Trabaja con los modelos de color RGBA y OkHCL para rellenos y trazo
 ## Uso
 
 ```ts
-import { useOkHCL } from '@openweave/vue'
+import { useOkHCL } from '@openweave/react'
 
 const okhcl = useOkHCL()
 ```
@@ -33,6 +33,6 @@ const okhcl = useOkHCL()
 
 ## APIs relacionadas
 
-- [useFillControls](../composables/use-fill-controls)
-- [useStrokeControls](../composables/use-stroke-controls)
+- [useFillControls](../hooks/use-fill-controls)
+- [useStrokeControls](../hooks/use-stroke-controls)
 - [ColorPickerRoot](../components/color-picker-root)

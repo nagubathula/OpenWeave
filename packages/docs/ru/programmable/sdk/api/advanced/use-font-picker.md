@@ -12,4 +12,4 @@ description: Состояние пикера шрифта с поиском и �
 ## Связанные API
 
 - [FontPickerRoot](../components/font-picker-root)
-- [useTypography](../composables/use-typography)
+- [useTypography](../hooks/use-typography)

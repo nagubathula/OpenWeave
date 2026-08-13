@@ -11,6 +11,6 @@ Verwenden Sie es, wenn Sie absichtsenthüllenden berechneten Zustand möchten, d
 
 ## Verwandte APIs
 
-- [useSelectionState](../composables/use-selection-state)
-- [useSelectionCapabilities](../composables/use-selection-capabilities)
+- [useSelectionState](../hooks/use-selection-state)
+- [useSelectionCapabilities](../hooks/use-selection-capabilities)
 - [useNodeProps](./use-node-props)

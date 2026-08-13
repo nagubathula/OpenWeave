@@ -11,5 +11,5 @@ description: Primitivo raíz headless para controles de opacidad, visibilidad y 
 
 ## APIs relacionadas
 
-- [useAppearance](../composables/use-appearance)
+- [useAppearance](../hooks/use-appearance)
 - [Guía de Paneles de Propiedades](../../guides/property-panels)

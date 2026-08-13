@@ -1,6 +1,6 @@
 ---
 title: Primeros pasos con el SDK
-description: Configura @openweave/vue con createEditor, provideEditor y un canvas.
+description: Configura @openweave/react con createEditor, provideEditor y un canvas.
 ---
 
 # Primeros pasos con el SDK
@@ -8,14 +8,14 @@ description: Configura @openweave/vue con createEditor, provideEditor y un canva
 ## Instalación
 
 ```bash
-bun add @openweave/core @openweave/vue canvaskit-wasm
+bun add @openweave/core @openweave/react canvaskit-wasm
 ```
 
-El SDK vive en el monorepo hoy en día y también se publica como `@openweave/vue`.
+El SDK vive en el monorepo hoy en día y también se publica como `@openweave/react`.
 
 ```ts
 import { createEditor } from '@openweave/core/editor'
-import { provideEditor, useCanvas } from '@openweave/vue'
+import { provideEditor, useCanvas } from '@openweave/react'
 ```
 
 ## Modelo mental
@@ -23,7 +23,7 @@ import { provideEditor, useCanvas } from '@openweave/vue'
 Hay tres capas:
 
 1. `@openweave/core` — motor del editor independiente del framework
-2. `@openweave/vue` — composables de Vue y primitivos headless
+2. `@openweave/react` — composables de Vue y primitivos headless
 3. tu app — estilos, enrutamiento, flujos de archivos, UI específica del producto
 
 ## Configuración mínima
@@ -41,43 +41,33 @@ const editor = createEditor({
 
 ### 2. Proporcionarlo a Vue
 
-```vue
-<script setup lang="ts">
-import { provideEditor } from '@openweave/vue'
+```tsx
+import type { ReactNode } from 'react'
+import { EditorProvider } from '@openweave/react'
 
 import type { Editor } from '@openweave/core/editor'
 
-const props = defineProps<{
-  editor: Editor
-}>()
-
-provideEditor(props.editor)
-</script>
-
-<template>
-  <slot />
-</template>
+export function EditorHost({ editor, children }: { editor: Editor; children: ReactNode }) {
+  return <EditorProvider editor={editor}>{children}</EditorProvider>
+}
 ```
 
 Puedes pensar en esto como la capa proveedora del árbol del editor. La documentación prefiere usar `provideEditor()` directamente porque esa es la superficie de API real actual.
 
 ### 3. Adjuntar un canvas
 
-```vue
-<script setup lang="ts">
-import { ref } from 'vue'
+```tsx
+import { useRef } from 'react'
+import { useCanvas, useEditor } from '@openweave/react'
 
-import { useCanvas, useEditor } from '@openweave/vue'
+export function EditorCanvas() {
+  const canvasRef = useRef<HTMLCanvasElement | null>(null)
+  const editor = useEditor()
 
-const canvasRef = ref<HTMLCanvasElement | null>(null)
-const editor = useEditor()
+  useCanvas(canvasRef, editor)
 
-useCanvas(canvasRef, editor)
-</script>
-
-<template>
-  <canvas ref="canvasRef" class="size-full" />
-</template>
+  return <canvas ref={canvasRef} className="size-full" />
+}
 ```
 
 ## Usar composables
@@ -85,7 +75,7 @@ useCanvas(canvasRef, editor)
 Una vez que el editor está disponible, los componentes hijo pueden leer la selección y emitir comandos:
 
 ```ts
-import { useEditorCommands, useSelectionState } from '@openweave/vue'
+import { useEditorCommands, useSelectionState } from '@openweave/react'
 
 const selection = useSelectionState()
 const commands = useEditorCommands()
@@ -93,37 +83,34 @@ const commands = useEditorCommands()
 
 ## Ejemplo básico
 
-```vue
-<script setup lang="ts">
-import { ref } from 'vue'
+```tsx
+import { useRef } from 'react'
+import { useCanvas, useEditor, useSelectionState } from '@openweave/react'
 
-import { useCanvas, useEditor, useSelectionState } from '@openweave/vue'
+export function EditorWorkspace() {
+  const canvasRef = useRef<HTMLCanvasElement | null>(null)
+  const editor = useEditor()
+  const { selectedCount } = useSelectionState()
 
-const canvasRef = ref<HTMLCanvasElement | null>(null)
-const editor = useEditor()
-const { selectedCount } = useSelectionState()
+  useCanvas(canvasRef, editor, {
+    onReady: () => {
+      console.log('Canvas ready')
+    }
+  })
 
-useCanvas(canvasRef, editor, {
-  onReady: () => {
-    console.log('Canvas ready')
-  },
-})
-</script>
-
-<template>
-  <div class="grid h-full grid-rows-[1fr_auto]">
-    <canvas ref="canvasRef" class="size-full" />
-    <div class="border-t px-3 py-2 text-xs text-muted">
-      Seleccionados: {{ selectedCount }}
+  return (
+    <div className="grid h-full grid-rows-[1fr_auto]">
+      <canvas ref={canvasRef} className="size-full" />
+      <div className="border-t px-3 py-2 text-xs text-muted">Seleccionados: {selectedCount}</div>
     </div>
-  </div>
-</template>
+  )
+}
 ```
 
 ## Siguientes pasos
 
 - [Arquitectura](./architecture)
 - [Referencia de API](./api/)
-- [useEditor](./api/composables/use-editor)
-- [useCanvas](./api/composables/use-canvas)
-- [useI18n](./api/composables/use-i18n)
+- [useEditor](./api/hooks/use-editor)
+- [useCanvas](./api/hooks/use-canvas)
+- [useI18n](./api/hooks/use-i18n)

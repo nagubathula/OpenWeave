@@ -5,7 +5,7 @@ description: Construye editores con OpenWeave usando composables headless y prim
 
 # Vue SDK
 
-`@openweave/vue` existe para que OpenWeave pueda ser más que una aplicación de diseño independiente.
+`@openweave/react` existe para que OpenWeave pueda ser más que una aplicación de diseño independiente.
 
 El objetivo es convertir OpenWeave en un toolkit que puedas integrar en otros productos, herramientas internas y editores específicos de flujo de trabajo — no solo una interfaz predeterminada.
 
@@ -56,5 +56,5 @@ Si estás construyendo bloques reutilizables de UI para el editor, empieza con p
 ## Secciones de la API
 
 - [Componentes](/programmable/sdk/api/components/)
-- [Composables](/programmable/sdk/api/composables/)
+- [Composables](/programmable/sdk/api/hooks/)
 - [Avanzado](/programmable/sdk/api/advanced/)

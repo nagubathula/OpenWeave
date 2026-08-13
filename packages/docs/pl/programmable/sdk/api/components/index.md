@@ -1,11 +1,11 @@
 ---
 title: Komponenty
-description: Dokumentacja komponentów bezstanowych prymitywów Vue w @openweave/vue.
+description: Dokumentacja komponentów bezstanowych prymitywów Vue w @openweave/react.
 ---
 
 # Komponenty
 
-`@openweave/vue` udostępnia bezstanowe prymitywy strukturalne do okablowania kanvasu, UI nawigacji, paneli właściwości i skupionych kontrolek wejścia.
+`@openweave/react` udostępnia bezstanowe prymitywy strukturalne do okablowania kanvasu, UI nawigacji, paneli właściwości i skupionych kontrolek wejścia.
 
 ## Podstawowe prymitywy edytora
 

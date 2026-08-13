@@ -12,7 +12,7 @@ Użyj go, gdy budujesz niestandardowe okno dialogowe zmiennych zamiast korzysta�
 ## Użycie
 
 ```ts
-import { useVariablesDialogState } from '@openweave/vue'
+import { useVariablesDialogState } from '@openweave/react'
 
 const variablesDialog = useVariablesDialogState()
 ```
@@ -27,4 +27,4 @@ const variablesDialog = useVariablesDialogState()
 ## Powiązane API
 
 - [useVariables](./use-variables)
-- [useVariablesEditor](../composables/use-variables-editor)
+- [useVariablesEditor](../hooks/use-variables-editor)

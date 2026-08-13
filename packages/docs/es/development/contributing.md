@@ -13,7 +13,7 @@ packages/
 src/
   components/        Vue SFCs (canvas, paneles, barra de herramientas, selector de color)
     properties/      Secciones del panel de propiedades (Apariencia, Relleno, Trazo, etc.)
-  composables/       Entrada de canvas, atajos de teclado, hooks de renderizado
+  hooks/       Entrada de canvas, atajos de teclado, hooks de renderizado
   stores/            Estado del editor (reactividad Vue)
   engine/            Shims de re-exportación desde @openweave/core
   kiwi/              Shims de re-exportación desde @openweave/core

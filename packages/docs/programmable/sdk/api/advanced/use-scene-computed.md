@@ -11,6 +11,6 @@ Use it when you want intent-revealing computed state that clearly depends on edi
 
 ## Related APIs
 
-- [useSelectionState](../composables/use-selection-state)
-- [useSelectionCapabilities](../composables/use-selection-capabilities)
+- [useSelectionState](../hooks/use-selection-state)
+- [useSelectionCapabilities](../hooks/use-selection-capabilities)
 - [useNodeProps](./use-node-props)

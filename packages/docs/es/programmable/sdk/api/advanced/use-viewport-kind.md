@@ -12,7 +12,7 @@ description: Lee indicadores de viewport de móvil y escritorio para shells de e
 ## Uso
 
 ```ts
-import { useViewportKind } from '@openweave/vue'
+import { useViewportKind } from '@openweave/react'
 
 const { isMobile, isDesktop } = useViewportKind()
 ```
@@ -24,4 +24,4 @@ const { isMobile, isDesktop } = useViewportKind()
 
 ## APIs relacionadas
 
-- [useCanvas](../composables/use-canvas)
+- [useCanvas](../hooks/use-canvas)

@@ -58,9 +58,9 @@ description: Headless-примитив слота для одной строки
 
 ## Пример
 
-```vue
-<GradientEditorStop :stop="stop" :index="index" :active="active" v-slot="ctx">
-  <MyGradientStopRow v-bind="ctx" />
+```tsx
+<GradientEditorStop stop={stop} index={index} active={active}>
+  {(ctx) => <MyGradientStopRow {...ctx} />}
 </GradientEditorStop>
 ```
 

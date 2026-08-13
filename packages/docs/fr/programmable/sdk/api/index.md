@@ -1,6 +1,6 @@
 ---
 title: Référence API
-description: Documentation de référence pour les composants, composables et API avancées de @openweave/vue.
+description: Documentation de référence pour les composants, composables et API avancées de @openweave/react.
 ---
 
 # Référence API
@@ -9,7 +9,7 @@ La référence du Vue SDK est organisée en trois sections.
 
 <SdkCardGroup>
   <SdkCard title="Composants" to="/programmable/sdk/api/components/" description="Primitives structurelles headless comme CanvasRoot, ToolbarRoot, FontPickerRoot et NumberFieldRoot." />
-  <SdkCard title="Composables" to="/programmable/sdk/api/composables/" description="Composables orientés éditeur pour le contexte, le câblage canvas, la sélection, les commandes et les panneaux de propriétés." />
+  <SdkCard title="Composables" to="/programmable/sdk/api/hooks/" description="Composables orientés éditeur pour le contexte, le câblage canvas, la sélection, les commandes et les panneaux de propriétés." />
   <SdkCard title="Avancé" to="/programmable/sdk/api/advanced/" description="Helpers de bas niveau, contextes de primitives et API spécialisées pour les intégrations avancées." />
 </SdkCardGroup>
 

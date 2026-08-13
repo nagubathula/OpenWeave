@@ -1,6 +1,6 @@
 ---
 title: Расширенные API
-description: Низкоуровневые и специализированные API в @openweave/vue.
+description: Низкоуровневые и специализированные API в @openweave/react.
 ---
 
 # Расширенные API

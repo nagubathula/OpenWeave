@@ -12,4 +12,4 @@ Usalo quando costruisci UI di selezione font personalizzate oltre a `FontPickerR
 ## API correlate
 
 - [FontPickerRoot](../components/font-picker-root)
-- [useTypography](../composables/use-typography)
+- [useTypography](../hooks/use-typography)

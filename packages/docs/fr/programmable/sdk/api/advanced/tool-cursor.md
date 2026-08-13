@@ -11,5 +11,5 @@ Utilisez-le pour construire des shells canvas personnalisés ou des interfaces d
 
 ## API associées
 
-- [useCanvas](../composables/use-canvas)
-- [useEditorCommands](../composables/use-editor-commands)
+- [useCanvas](../hooks/use-canvas)
+- [useEditorCommands](../hooks/use-editor-commands)

@@ -36,9 +36,11 @@ Deriva un valore hex da un colore ed espone helper di aggiornamento per modifich
 
 ## Esempio
 
-```vue
-<ColorInputRoot :color="color" @update="color = $event" v-slot="{ hex, updateFromHex }">
-  <input :value="hex" @input="updateFromHex(($event.target as HTMLInputElement).value)" />
+```tsx
+<ColorInputRoot color={color} onUpdate={setColor}>
+  {({ hex, updateFromHex }) => (
+    <input value={hex} onChange={(event) => updateFromHex(event.target.value)} />
+  )}
 </ColorInputRoot>
 ```
 

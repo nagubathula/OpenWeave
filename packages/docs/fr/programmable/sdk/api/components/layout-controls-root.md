@@ -11,5 +11,5 @@ Utilisez-la quand vous voulez un shell de contrôles de layout réutilisable ave
 
 ## API associées
 
-- [useLayout](../composables/use-layout)
+- [useLayout](../hooks/use-layout)
 - [Guide des panneaux de propriétés](../../guides/property-panels)

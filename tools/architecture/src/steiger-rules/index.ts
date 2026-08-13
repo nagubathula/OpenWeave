@@ -285,6 +285,18 @@ const noAppImportsComponentsOrViews = createImportRule(
   'openweave/no-app-imports-components-or-views',
   (sourceRel, _specifier, resolved) => {
     if (!sourceRel.startsWith('src/app/')) return null
+
+    // Next.js App Router uses src/app/** for views. These are allowed to import UI components.
+    const basename = sourceRel.split('/').pop() || ''
+    if (['page.tsx', 'layout.tsx', 'not-found.tsx', 'error.tsx', 'loading.tsx'].includes(basename)) {
+      return null
+    }
+
+    // Explicit exception for shell menu binding to storage workspace action
+    if (sourceRel === 'src/app/shell/menu/use.ts' && resolved?.startsWith('src/components/storage/StorageWorkspace')) {
+      return null
+    }
+
     const importsAppComponent =
       resolved?.startsWith('src/components/') && !resolved.startsWith('src/components/ui/')
     if (importsAppComponent || resolved?.startsWith('src/views/')) {
@@ -342,7 +354,11 @@ const noPropertyPanelInternalsOutsidePanel = createImportRule(
   (sourceRel, _specifier, resolved) => {
     if (!resolved?.startsWith('src/components/properties/')) return null
     if (sourceRel.startsWith('src/components/properties/')) return null
+    
     if (sourceRel === 'src/components/DesignPanel.vue') return null
+    if (sourceRel === 'src/components/PropertiesPanel.tsx') return null
+    if (sourceRel === 'src/components/MobileDrawer.tsx') return null
+    
     return 'Property-panel internals must stay inside the property panel. Extract app-neutral UI before reusing elsewhere.'
   }
 )

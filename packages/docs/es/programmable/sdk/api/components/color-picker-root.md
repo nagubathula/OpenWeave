@@ -42,15 +42,13 @@ Proporciona:
 
 ## Ejemplo
 
-```vue
-<ColorPickerRoot :color="color" @update="color = $event">
-  <template #trigger="{ style }">
-    <button class="size-6 rounded border" :style="style" />
-  </template>
-
-  <template #default="{ color, update }">
-    <MyColorEditor :color="color" @change="update" />
-  </template>
+```tsx
+<ColorPickerRoot
+  color={color}
+  onUpdate={setColor}
+  trigger={({ style }) => <button className="size-6 rounded border" style={style} />}
+>
+  {({ color: currentColor }) => <MyColorEditor color={currentColor} onChange={setColor} />}
 </ColorPickerRoot>
 ```
 

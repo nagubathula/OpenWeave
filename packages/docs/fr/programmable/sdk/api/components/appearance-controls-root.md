@@ -11,5 +11,5 @@ Utilisez-la quand vous voulez des contrôles d'apparence réutilisables avec une
 
 ## API associées
 
-- [useAppearance](../composables/use-appearance)
+- [useAppearance](../hooks/use-appearance)
 - [Guide des panneaux de propriétés](../../guides/property-panels)

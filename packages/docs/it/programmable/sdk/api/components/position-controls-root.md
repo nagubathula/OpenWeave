@@ -11,5 +11,5 @@ Usala quando vuoi controlli di posizione personalizzati senza reimplementare il 
 
 ## API correlate
 
-- [usePosition](../composables/use-position)
+- [usePosition](../hooks/use-position)
 - [Guida Pannelli Proprietà](../../guides/property-panels)

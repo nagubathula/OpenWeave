@@ -1,11 +1,11 @@
 ---
 title: Komponenten
-description: Komponentenreferenz für headless Vue-Primitive in @openweave/vue.
+description: Komponentenreferenz für headless Vue-Primitive in @openweave/react.
 ---
 
 # Komponenten
 
-`@openweave/vue` stellt headless strukturelle Primitive für Canvas-Verdrahtung, Navigations-UI, Eigenschafts-Panels und fokussierte Eingabesteuerelemente bereit.
+`@openweave/react` stellt headless strukturelle Primitive für Canvas-Verdrahtung, Navigations-UI, Eigenschafts-Panels und fokussierte Eingabesteuerelemente bereit.
 
 ## Kern-Editor-Primitive
 

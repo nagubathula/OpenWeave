@@ -3,6 +3,7 @@ import { fileURLToPath, URL } from 'node:url'
 import { transformerTwoslash } from '@shikijs/vitepress-twoslash'
 import { createFileSystemTypesCache } from '@shikijs/vitepress-twoslash/cache-fs'
 import tailwindcss from '@tailwindcss/vite'
+import ts from 'typescript'
 import { defineConfig } from 'vitepress'
 import llmstxt from 'vitepress-plugin-llms'
 
@@ -35,9 +36,12 @@ export default defineConfig({
         twoslashOptions: {
           compilerOptions: {
             baseUrl: repoRoot,
+            // SDK samples are TSX; without the automatic runtime Twoslash demands a
+            // `React` import in every snippet.
+            jsx: ts.JsxEmit.ReactJSX,
             paths: {
-              '@openweave/vue': ['packages/vue/src/index.ts'],
-              '#vue/*': ['packages/vue/src/*']
+              '@openweave/react': ['packages/react/src/index.ts'],
+              '#react/*': ['packages/react/src/*']
             }
           },
           typesCache: createFileSystemTypesCache({
@@ -49,10 +53,17 @@ export default defineConfig({
   },
 
   vite: {
+    // The SDK demos embedded in these docs are React .tsx; VitePress only configures
+    // Vue, so the JSX transform has to be enabled explicitly.
+    oxc: {
+      jsx: {
+        runtime: 'automatic'
+      }
+    },
     resolve: {
       alias: {
         '#docs': fileURLToPath(new URL('.', import.meta.url)),
-        '#vue': fileURLToPath(new URL('../../vue/src', import.meta.url))
+        '#react': fileURLToPath(new URL('../../react/src', import.meta.url))
       }
     },
     plugins: [
@@ -65,7 +76,7 @@ export default defineConfig({
         customTemplateVariables: {
           title: 'OpenWeave',
           description:
-            'Open-source, AI-native design editor and toolkit. Opens Figma .fig files, provides a programmable scene graph, CLI, MCP server, and Vue SDK for custom editor shells.',
+            'Open-source, AI-native design editor and toolkit. Opens Figma .fig files, provides a programmable scene graph, CLI, MCP server, and React SDK for custom editor shells.',
           details:
             'Use this file as the compact map for agents. For complete Markdown content, fetch https://openweave.dev/llms-full.txt.'
         }

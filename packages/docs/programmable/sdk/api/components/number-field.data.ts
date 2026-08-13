@@ -1,9 +1,9 @@
 import { defineComponentMetaLoader } from '#docs/sdk/component-meta'
 
 const sources = [
-  'packages/vue/src/primitives/NumberField/NumberFieldRoot.vue',
-  'packages/vue/src/primitives/NumberField/NumberFieldInput.vue',
-  'packages/vue/src/primitives/NumberField/NumberFieldValue.vue'
+  'packages/react/src/primitives/number-field/NumberFieldRoot.tsx',
+  'packages/react/src/primitives/number-field/NumberFieldInput.tsx',
+  'packages/react/src/primitives/number-field/NumberFieldValue.tsx'
 ]
 
 export default defineComponentMetaLoader(sources)

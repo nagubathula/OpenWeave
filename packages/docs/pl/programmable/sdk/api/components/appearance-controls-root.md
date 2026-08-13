@@ -11,5 +11,5 @@ Użyj go, gdy chcesz wielokrotnie używalne kontrolki wyglądu z niestandardową
 
 ## Powiązane API
 
-- [useAppearance](../composables/use-appearance)
+- [useAppearance](../hooks/use-appearance)
 - [Przewodnik po panelach właściwości](../../guides/property-panels)

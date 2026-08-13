@@ -188,7 +188,7 @@ export default function CanvasMenu() {
           <ContextMenu.Item
             key={`menu-${i}`}
             data-test-id={node.testId ?? contextCommandTestId(actionId as any)}
-            className={canvasMenuItemClass((node.label || '') as string, cls)}
+            className={canvasMenuItemClass((node.label || ''), cls)}
             disabled={!!(node as any).disabled}
             onSelect={(e) => {
               if (node.action) {
@@ -203,7 +203,7 @@ export default function CanvasMenu() {
               <span className="truncate">{(node as any).name || (node as any).label || actionId}</span>
             </span>
             {node.shortcut && (
-              <span className={`text-[11px] ${canvasMenuShortcutClass((node.label || '') as string)}`}>
+              <span className={`text-[11px] ${canvasMenuShortcutClass((node.label || ''))}`}>
                 {node.shortcut}
               </span>
             )}

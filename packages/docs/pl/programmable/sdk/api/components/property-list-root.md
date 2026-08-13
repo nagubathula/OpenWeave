@@ -22,12 +22,18 @@ Udostępnia przez slot właściwości dla:
 
 ## Użycie
 
-```vue
-<PropertyListRoot prop-key="fills" v-slot="{ items, add, remove }">
-  <div v-for="(fill, index) in items" :key="index">
-    <button @click="remove(index)">Usuń</button>
-  </div>
-  <button @click="add(defaultFill)">Dodaj wypełnienie</button>
+```tsx
+<PropertyListRoot propKey="fills" items={fills} onAdd={addFill} onRemove={removeFill}>
+  {({ items, actions }) => (
+    <>
+      {items.map((fill, index) => (
+        <div key={index}>
+          <button onClick={() => actions.remove(index)}>Usuń</button>
+        </div>
+      ))}
+      <button onClick={() => actions.add(defaultFill)}>Dodaj wypełnienie</button>
+    </>
+  )}
 </PropertyListRoot>
 ```
 

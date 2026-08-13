@@ -11,4 +11,4 @@ Utilisez-la quand vous voulez une structure d'arbre réutilisable et un câblage
 
 ## API associées
 
-- [useSelectionState](../composables/use-selection-state)
+- [useSelectionState](../hooks/use-selection-state)

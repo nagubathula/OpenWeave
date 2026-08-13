@@ -13,4 +13,4 @@ Verwenden Sie es innerhalb von `CanvasRoot`, wenn Sie SDK-verwaltete Canvas-Refs
 
 - [CanvasRoot](./canvas-root)
 - [useCanvasContext](../advanced/use-canvas-context)
-- [useCanvas](../composables/use-canvas)
+- [useCanvas](../hooks/use-canvas)

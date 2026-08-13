@@ -11,5 +11,5 @@ Usala quando vuoi controlli di aspetto riutilizzabili con presentazione personal
 
 ## API correlate
 
-- [useAppearance](../composables/use-appearance)
+- [useAppearance](../hooks/use-appearance)
 - [Guida Pannelli Proprietà](../../guides/property-panels)

@@ -1,6 +1,6 @@
 ---
 title: Erweitert
-description: Hilfsmittel auf niedrigerem Level und spezialisierte APIs in @openweave/vue.
+description: Hilfsmittel auf niedrigerem Level und spezialisierte APIs in @openweave/react.
 ---
 
 # Erweitert

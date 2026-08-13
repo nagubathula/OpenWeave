@@ -16,11 +16,12 @@ export interface AppDialogRootProps extends DialogPrimitive.DialogProps {
 }
 
 export const AppDialogRoot = forwardRef<HTMLDivElement, AppDialogRootProps>(
+  // oxlint-disable-next-line typescript/unbound-method
   ({ size = 'md', height = 'auto', ui, children, className, onEscapeKeyDown, onPointerDownOutside, onInteractOutside, open, onOpenChange, ...props }, ref) => {
     const cls = useDialogUI(ui, { size, height })
 
     return (
-      <DialogPrimitive.Root open={open} onOpenChange={onOpenChange}>
+      <DialogPrimitive.Root open={open} onOpenChange={(v) => onOpenChange?.(v)}>
         <DialogPrimitive.Portal>
           <DialogPrimitive.Overlay data-slot="dialog-overlay" className={cls.overlay} />
           <DialogPrimitive.Content

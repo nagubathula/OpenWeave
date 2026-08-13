@@ -5,14 +5,14 @@ import { Sidebar } from 'lucide-react'
 import EditorCanvas from '@/components/EditorCanvas'
 import LayersPanel from '@/components/LayersPanel'
 import PropertiesPanel from '@/components/PropertiesPanel'
-import Toolbar from '@/components/toolbar/toolbar'
+import Toolbar from '@/components/toolbar/Toolbar'
 import TabBar from '@/components/TabBar'
 import SafariBanner from '@/components/SafariBanner'
 import RenameSelectionDialog from '@/components/selection/RenameSelectionDialog'
 import StorageWorkspace from '@/components/storage/StorageWorkspace'
-import CollabPanel from '@/components/collab-panel/collab-panel'
+import CollabPanel from '@/components/collab-panel/CollabPanel'
 import MobileDrawer from '@/components/MobileDrawer'
-import MobileHud from '@/components/mobile-hud/mobile-hud'
+import MobileHud from '@/components/mobile-hud/MobileHud'
 import { useViewportKind } from '@openweave/react'
 import { getActiveEditorStore } from '@/app/editor/active-store'
 import { useAppKeyboard } from '@/app/shell/keyboard/use-app-keyboard'
@@ -94,7 +94,7 @@ export function EditorLayout() {
     setNoChrome(new URLSearchParams(window.location.search).has('no-chrome'))
     const stop = watch(
       () => getActiveEditorStore().state.showUI,
-      (value) => setShowUI(value !== false),
+      (value) => setShowUI(value),
       { immediate: true }
     )
     return stop

@@ -2,7 +2,7 @@ import type { Fill } from '@openweave/scene-graph'
 import type { Color } from '@openweave/scene-graph/primitives'
 
 import type { BindingState } from '#react/controls/binding-provider/types'
-import type { BindableValueStateAttrs } from '#react/primitives/BindableValue/types'
+import type { BindableValueStateAttrs } from '#react/primitives/bindable-value/types'
 import type { ElementType } from 'react'
 
 export type FillCategory = 'SOLID' | 'GRADIENT' | 'IMAGE'

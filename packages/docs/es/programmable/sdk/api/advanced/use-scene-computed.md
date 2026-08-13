@@ -11,6 +11,6 @@ description: Wrapper de conveniencia para el estado computado derivado de la esc
 
 ## APIs relacionadas
 
-- [useSelectionState](../composables/use-selection-state)
-- [useSelectionCapabilities](../composables/use-selection-capabilities)
+- [useSelectionState](../hooks/use-selection-state)
+- [useSelectionCapabilities](../hooks/use-selection-capabilities)
 - [useNodeProps](./use-node-props)

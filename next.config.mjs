@@ -30,6 +30,13 @@ const nextConfig = {
       ...config.resolve.alias,
       '@acemir/cssom$': path.resolve(process.cwd(), 'src/vendor/cssom.js')
     }
+    
+    // Webpack loaders for markdown and kiwi schema files
+    config.module.rules.push({
+      test: /\.(md|kiwi)$/,
+      type: 'asset/source'
+    })
+    
     return config
   },
   turbopack: {
@@ -39,9 +46,13 @@ const nextConfig = {
       '@acemir/cssom': './src/vendor/cssom.js'
     },
     rules: {
-      // Import markdown as raw source text (system prompts). Turbopack has no
-      // built-in markdown handler, so route it through raw-loader.
+      // Import markdown and kiwi schema as raw source text. Turbopack has no
+      // built-in handler for these, so route them through raw-loader.
       '*.md': {
+        loaders: [require.resolve('raw-loader')],
+        as: '*.js'
+      },
+      '*.kiwi': {
         loaders: [require.resolve('raw-loader')],
         as: '*.js'
       }

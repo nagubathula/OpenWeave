@@ -11,5 +11,5 @@ Verwenden Sie es in Typografie-Panels und Warnungen, die nicht verfügbare Schri
 
 ## Verwandte APIs
 
-- [useTypography](../composables/use-typography)
+- [useTypography](../hooks/use-typography)
 - [TypographyControlsRoot](../components/typography-controls-root)

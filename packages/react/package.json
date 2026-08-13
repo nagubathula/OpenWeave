@@ -57,8 +57,8 @@
     "reka-ui": "^2.10.3"
   },
   "devDependencies": {
-    "@types/react": "^19.0.0",
-    "@types/react-dom": "^19.0.0",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.4",
     "tsdown": "^0.22.3",
     "unplugin-raw": "^0.6.4"
   }

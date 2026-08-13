@@ -12,4 +12,4 @@ Use it when building custom font-picking UIs beyond `FontPickerRoot`.
 ## Related APIs
 
 - [FontPickerRoot](../components/font-picker-root)
-- [useTypography](../composables/use-typography)
+- [useTypography](../hooks/use-typography)

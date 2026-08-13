@@ -12,7 +12,7 @@ Usalo quando vuoi il comportamento di tabella variabili dell'SDK ma hai bisogno 
 ## Utilizzo
 
 ```ts
-import { useVariablesTable } from '@openweave/vue'
+import { useVariablesTable } from '@openweave/react'
 
 const { columns } = useVariablesTable(options)
 ```
@@ -24,6 +24,6 @@ const { columns } = useVariablesTable(options)
 
 ## API correlate
 
-- [useVariablesEditor](../composables/use-variables-editor)
+- [useVariablesEditor](../hooks/use-variables-editor)
 - [useVariables](./use-variables)
 - [useVariablesDialogState](./use-variables-dialog-state)

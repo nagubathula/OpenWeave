@@ -11,7 +11,7 @@ Utilisez-le quand vous avez besoin de détection de valeurs mixtes, de mises à 
 
 ## API associées
 
-- [useAppearance](../composables/use-appearance)
-- [useLayout](../composables/use-layout)
-- [useTypography](../composables/use-typography)
+- [useAppearance](../hooks/use-appearance)
+- [useLayout](../hooks/use-layout)
+- [useTypography](../hooks/use-typography)
 - [PropertyListRoot](../components/property-list-root)

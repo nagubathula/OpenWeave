@@ -21,38 +21,37 @@ mutation and undo behavior stay in `useEditorPropertyList()` or an application a
 - `PropertyListRemove` — removes an indexed item
 - `PropertyListVisibility` — toggles indexed visibility and exposes `aria-pressed`
 
-```vue twoslash
-<script setup lang="ts">
-import { ref } from 'vue'
+```tsx twoslash
+import { useState } from 'react'
 import type { Fill } from '@openweave/scene-graph'
-import {
-  PropertyListItem,
-  PropertyListRemove,
-  PropertyListRoot
-} from '@openweave/vue'
+import { PropertyListItem, PropertyListRemove, PropertyListRoot } from '@openweave/react'
 
-const fills = ref<Fill[]>([])
-</script>
+export function FillList() {
+  const [fills, setFills] = useState<Fill[]>([])
 
-<template>
-  <PropertyListRoot
-    prop-key="fills"
-    :items="fills"
-    @remove="fills.splice($event, 1)"
-    v-slot="{ items }"
-  >
-    <PropertyListItem
-      v-for="(_, index) in items"
-      :key="index"
-      prop-key="fills"
-      :index="index"
-      v-slot="{ item }"
+  return (
+    <PropertyListRoot
+      propKey="fills"
+      items={fills}
+      onRemove={(index) => setFills((current) => current.filter((_, i) => i !== index))}
     >
-      <span>{{ item?.type }}</span>
-      <PropertyListRemove prop-key="fills" :index="index">Remove</PropertyListRemove>
-    </PropertyListItem>
-  </PropertyListRoot>
-</template>
+      {({ items }) =>
+        items.map((_, index) => (
+          <PropertyListItem key={index} propKey="fills" index={index}>
+            {({ item }) => (
+              <>
+                <span>{item?.type}</span>
+                <PropertyListRemove propKey="fills" index={index}>
+                  Remove
+                </PropertyListRemove>
+              </>
+            )}
+          </PropertyListItem>
+        ))
+      }
+    </PropertyListRoot>
+  )
+}
 ```
 
 See the [PropertySection demo](./property-section) for the shared interactive state matrix.

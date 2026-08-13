@@ -11,5 +11,5 @@ description: Helper de estado de fuente faltante para nodos de texto.
 
 ## APIs relacionadas
 
-- [useTypography](../composables/use-typography)
+- [useTypography](../hooks/use-typography)
 - [TypographyControlsRoot](../components/typography-controls-root)

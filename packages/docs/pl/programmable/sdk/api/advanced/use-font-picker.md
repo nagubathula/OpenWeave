@@ -12,4 +12,4 @@ Użyj go przy budowaniu niestandardowych UI wyboru czcionek wykraczających poza
 ## Powiązane API
 
 - [FontPickerRoot](../components/font-picker-root)
-- [useTypography](../composables/use-typography)
+- [useTypography](../hooks/use-typography)

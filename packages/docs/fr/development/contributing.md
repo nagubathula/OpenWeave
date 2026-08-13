@@ -13,7 +13,7 @@ packages/
 src/
   components/        Vue SFCs (canevas, panneaux, barre d'outils, sélecteur de couleur)
     properties/      Sections du panneau de propriétés (Apparence, Remplissage, Contour, etc.)
-  composables/       Entrée canevas, raccourcis clavier, hooks de rendu
+  hooks/       Entrée canevas, raccourcis clavier, hooks de rendu
   stores/            État de l'éditeur (réactivité Vue)
   engine/            Shims de ré-exportation depuis @openweave/core
   kiwi/              Shims de ré-exportation depuis @openweave/core

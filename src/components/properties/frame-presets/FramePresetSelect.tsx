@@ -16,7 +16,7 @@ export default function FramePresetSelect() {
   const { selectedNode } = useSelectionState()
   const { panels } = useI18n()
 
-  if (!selectedNode || selectedNode.type !== 'FRAME') return null
+  if (selectedNode?.type !== 'FRAME') return null
 
   const preset = findFrameResizePreset(selectedNode.width, selectedNode.height, selectedNode.name)
   const presetId = preset?.id ?? 'custom'

@@ -11,7 +11,7 @@ description: Низкоуровневый хелпер выделения и с�
 
 ## Связанные API
 
-- [useAppearance](../composables/use-appearance)
-- [useLayout](../composables/use-layout)
-- [useTypography](../composables/use-typography)
+- [useAppearance](../hooks/use-appearance)
+- [useLayout](../hooks/use-layout)
+- [useTypography](../hooks/use-typography)
 - [PropertyListRoot](../components/property-list-root)

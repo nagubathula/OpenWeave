@@ -24,7 +24,7 @@ export default function ComponentPropertiesSection() {
   const { selectedNode: node } = useSelectionState()
 
   const controls = useSceneComputed<PropertyControl[]>(() => {
-    if (!node || node.type !== 'INSTANCE') return []
+    if (node?.type !== 'INSTANCE') return []
     const definitions = editor.getInstanceComponentPropertyDefinitions(node.id)
     const component = node.componentId ? editor.graph.getNode(node.componentId) : null
     const parent = component?.parentId ? editor.graph.getNode(component.parentId) : null
@@ -48,7 +48,7 @@ export default function ComponentPropertiesSection() {
     })
   })
 
-  if (!node || node.type !== 'INSTANCE' || controls.length === 0) return null
+  if (node?.type !== 'INSTANCE' || controls.length === 0) return null
 
   const setValue = (control: PropertyControl, value: string) => {
     editor.setInstanceComponentProperty(node.id, control.id, value)

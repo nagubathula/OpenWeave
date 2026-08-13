@@ -11,5 +11,5 @@ description: Хелпер, определяющий строку курсора 
 
 ## Связанные API
 
-- [useCanvas](../composables/use-canvas)
-- [useEditorCommands](../composables/use-editor-commands)
+- [useCanvas](../hooks/use-canvas)
+- [useEditorCommands](../hooks/use-editor-commands)

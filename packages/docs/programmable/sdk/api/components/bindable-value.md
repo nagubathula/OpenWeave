@@ -4,7 +4,7 @@ description: Provider-driven value binding primitives for custom editor controls
 ---
 
 <script setup lang="ts">
-import BindableValueDemo from '#vue/primitives/BindableValue/demo/BindableValueDemo.vue'
+import { BindableValueDemo } from '#react/primitives/bindable-value/demo/BindableValueDemo'
 import { data } from './bindable-value.data'
 </script>
 
@@ -14,7 +14,7 @@ BindableValue composes variable or token binding with fields without coupling th
 specific editor store. Applications supply a `BindingProvider`; NumberField consumes the context
 automatically when nested beneath `BindableValueRoot`.
 
-<BindableValueDemo />
+<ReactDemo :component="BindableValueDemo" />
 
 ## Anatomy
 
@@ -38,7 +38,7 @@ where possible.
 ## Provider example
 
 ```ts twoslash
-import type { BindingProvider, BindingTarget } from '@openweave/vue'
+import type { BindingProvider, BindingTarget } from '@openweave/react'
 
 const values = new Map<string, number>([['spacing/md', 16]])
 const bindings = new Map<string, string>()

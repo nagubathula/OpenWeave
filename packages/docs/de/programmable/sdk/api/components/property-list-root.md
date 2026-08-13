@@ -22,12 +22,18 @@ Es bietet Slot-Props für:
 
 ## Verwendung
 
-```vue
-<PropertyListRoot prop-key="fills" v-slot="{ items, add, remove }">
-  <div v-for="(fill, index) in items" :key="index">
-    <button @click="remove(index)">Entfernen</button>
-  </div>
-  <button @click="add(defaultFill)">Füllung hinzufügen</button>
+```tsx
+<PropertyListRoot propKey="fills" items={fills} onAdd={addFill} onRemove={removeFill}>
+  {({ items, actions }) => (
+    <>
+      {items.map((fill, index) => (
+        <div key={index}>
+          <button onClick={() => actions.remove(index)}>Entfernen</button>
+        </div>
+      ))}
+      <button onClick={() => actions.add(defaultFill)}>Füllung hinzufügen</button>
+    </>
+  )}
 </PropertyListRoot>
 ```
 

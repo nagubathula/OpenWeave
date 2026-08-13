@@ -54,14 +54,15 @@ description: Selettore font searchable headless basato su Reka Combobox.
 
 ## Esempio
 
-```vue
-<FontPickerRoot v-model="fontFamily" :list-families="listFamilies">
-  <template #trigger="{ value }">
-    <button class="w-full truncate">{{ value }}</button>
-  </template>
-</FontPickerRoot>
+```tsx
+<FontPickerRoot
+  modelValue={fontFamily}
+  onModelValueChange={setFontFamily}
+  listFamilies={listFamilies}
+  trigger={({ value }) => <button className="w-full truncate">{value}</button>}
+/>
 ```
 
 ## API correlate
 
-- [useTypography](../composables/use-typography)
+- [useTypography](../hooks/use-typography)

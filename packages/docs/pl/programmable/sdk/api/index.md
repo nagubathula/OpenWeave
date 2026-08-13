@@ -1,6 +1,6 @@
 ---
 title: Dokumentacja API
-description: Dokumentacja referencyjna komponentów, kompozytów i zaawansowanych API @openweave/vue.
+description: Dokumentacja referencyjna komponentów, kompozytów i zaawansowanych API @openweave/react.
 ---
 
 # Dokumentacja API
@@ -9,7 +9,7 @@ Dokumentacja Vue SDK jest zorganizowana w trzy sekcje.
 
 <SdkCardGroup>
   <SdkCard title="Komponenty" to="/programmable/sdk/api/components/" description="Bezstanowe prymitywy strukturalne jak CanvasRoot, ToolbarRoot, FontPickerRoot i NumberFieldRoot." />
-  <SdkCard title="Kompozyty" to="/programmable/sdk/api/composables/" description="Kompozyty zorientowane na edytor dla kontekstu, okablowania kanvasu, selekcji, poleceń i paneli właściwości." />
+  <SdkCard title="Kompozyty" to="/programmable/sdk/api/hooks/" description="Kompozyty zorientowane na edytor dla kontekstu, okablowania kanvasu, selekcji, poleceń i paneli właściwości." />
   <SdkCard title="Zaawansowane" to="/programmable/sdk/api/advanced/" description="Pomocniki niższego poziomu, konteksty prymitywów i wyspecjalizowane API dla zaawansowanych integracji." />
 </SdkCardGroup>
 

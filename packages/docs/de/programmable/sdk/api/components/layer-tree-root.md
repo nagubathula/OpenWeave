@@ -11,4 +11,4 @@ Verwenden Sie es, wenn Sie wiederverwendbare Baumstruktur und Interaktionsverdra
 
 ## Verwandte APIs
 
-- [useSelectionState](../composables/use-selection-state)
+- [useSelectionState](../hooks/use-selection-state)

@@ -12,7 +12,7 @@ Użyj go, gdy twoja powłoka potrzebuje lekkiej abstrakcji nad punktami przełam
 ## Użycie
 
 ```ts
-import { useViewportKind } from '@openweave/vue'
+import { useViewportKind } from '@openweave/react'
 
 const { isMobile, isDesktop } = useViewportKind()
 ```
@@ -24,4 +24,4 @@ const { isMobile, isDesktop } = useViewportKind()
 
 ## Powiązane API
 
-- [useCanvas](../composables/use-canvas)
+- [useCanvas](../hooks/use-canvas)

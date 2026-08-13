@@ -11,6 +11,6 @@ Usalo quando vuoi stato computed che rivela chiaramente di dipendere dai dati de
 
 ## API correlate
 
-- [useSelectionState](../composables/use-selection-state)
-- [useSelectionCapabilities](../composables/use-selection-capabilities)
+- [useSelectionState](../hooks/use-selection-state)
+- [useSelectionCapabilities](../hooks/use-selection-capabilities)
 - [useNodeProps](./use-node-props)

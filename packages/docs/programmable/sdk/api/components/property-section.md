@@ -4,7 +4,7 @@ description: Headless collapsible anatomy for property-panel sections.
 ---
 
 <script setup lang="ts">
-import PropertyPrimitivesDemo from '#vue/primitives/PropertySection/demo/PropertyPrimitivesDemo.vue'
+import { PropertyPrimitivesDemo } from '#react/primitives/property-section/demo/PropertyPrimitivesDemo'
 import { data } from './property-section.data'
 </script>
 
@@ -13,7 +13,7 @@ import { data } from './property-section.data'
 PropertySection supplies collapsible section anatomy and canonical open, empty, and disabled state
 attributes without imposing presentation.
 
-<PropertyPrimitivesDemo />
+<ReactDemo :component="PropertyPrimitivesDemo" />
 
 ## Anatomy
 
@@ -24,24 +24,24 @@ attributes without imposing presentation.
 - `PropertySectionContent` — collapsible content region
 - `PropertySectionEmptyAction` — empty-only action that opens before emitting `activate`
 
-```vue twoslash
-<script setup lang="ts">
+```tsx twoslash
 import {
   PropertySectionContent,
   PropertySectionHeader,
   PropertySectionRoot,
   PropertySectionTitle
-} from '@openweave/vue'
-</script>
+} from '@openweave/react'
 
-<template>
-  <PropertySectionRoot default-open>
-    <PropertySectionHeader>
-      <PropertySectionTitle>Layout</PropertySectionTitle>
-    </PropertySectionHeader>
-    <PropertySectionContent>Panel fields</PropertySectionContent>
-  </PropertySectionRoot>
-</template>
+export function LayoutSection() {
+  return (
+    <PropertySectionRoot defaultOpen>
+      <PropertySectionHeader>
+        <PropertySectionTitle>Layout</PropertySectionTitle>
+      </PropertySectionHeader>
+      <PropertySectionContent>Panel fields</PropertySectionContent>
+    </PropertySectionRoot>
+  )
+}
 ```
 
 ## Generated API reference

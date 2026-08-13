@@ -1,11 +1,11 @@
 ---
 title: Architecture SDK
-description: Structure des dossiers, frontières d'API publique et patterns de composition dans @openweave/vue.
+description: Structure des dossiers, frontières d'API publique et patterns de composition dans @openweave/react.
 ---
 
 # Architecture SDK
 
-`@openweave/vue` est la couche Vue au-dessus de `@openweave/core`.
+`@openweave/react` est la couche Vue au-dessus de `@openweave/core`.
 
 Elle ne possède pas le modèle d'éditeur lui-même. Elle adapte l'éditeur core en :
 
@@ -107,7 +107,7 @@ Préférer des props de slot ciblés ou l'usage direct de composables plutôt qu
 
 ## Règle pratique
 
-Si un morceau de logique pourrait être réutilisé dans une autre application basée sur OpenWeave sans emporter les styles applicatifs, il appartient probablement à `@openweave/vue`.
+Si un morceau de logique pourrait être réutilisé dans une autre application basée sur OpenWeave sans emporter les styles applicatifs, il appartient probablement à `@openweave/react`.
 
 ## Pages associées
 

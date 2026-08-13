@@ -5,11 +5,11 @@ description: Primitivo estructural headless para interfaces de barra de herramie
 
 # ToolbarRoot
 
-`ToolbarRoot` es el primitivo headless de barra de herramientas de `@openweave/vue`.
+`ToolbarRoot` es el primitivo headless de barra de herramientas de `@openweave/react`.
 
 Úsalo cuando quieras la estructura y el contexto reutilizables de la barra de herramientas con tus propios botones, estilos y layout.
 
 ## APIs relacionadas
 
-- [useEditorCommands](../composables/use-editor-commands)
-- [useSelectionCapabilities](../composables/use-selection-capabilities)
+- [useEditorCommands](../hooks/use-editor-commands)
+- [useSelectionCapabilities](../hooks/use-selection-capabilities)

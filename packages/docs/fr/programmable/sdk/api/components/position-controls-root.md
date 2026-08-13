@@ -11,5 +11,5 @@ Utilisez-la quand vous voulez des contrôles de position personnalisés sans ré
 
 ## API associées
 
-- [usePosition](../composables/use-position)
+- [usePosition](../hooks/use-position)
 - [Guide des panneaux de propriétés](../../guides/property-panels)

@@ -1,7 +1,7 @@
 import React, { useMemo, useState, useEffect, useRef } from 'react'
 import { EDITOR_TOOLS } from '@openweave/core/editor'
 import { useEditor } from '#react/editor/context'
-import { ToolbarProvider } from '#react/primitives/Toolbar/context'
+import { ToolbarProvider } from '#react/primitives/toolbar/context'
 import type { EditorToolDef, Tool } from '@openweave/core/editor'
 import { useSceneComputed } from '#react/internal/scene-computed/use'
 

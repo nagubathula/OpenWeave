@@ -1,6 +1,6 @@
 ---
 title: API języka
-description: Niskopoziomowe store'y języka i metadane eksportowane przez @openweave/vue.
+description: Niskopoziomowe store'y języka i metadane eksportowane przez @openweave/react.
 ---
 
 # API języka
@@ -24,7 +24,7 @@ import {
   setLocale,
   AVAILABLE_LOCALES,
   LOCALE_LABELS,
-} from '@openweave/vue'
+} from '@openweave/react'
 ```
 
 ## Uwagi
@@ -36,4 +36,4 @@ import {
 
 ## Powiązane API
 
-- [useI18n](../composables/use-i18n)
+- [useI18n](../hooks/use-i18n)

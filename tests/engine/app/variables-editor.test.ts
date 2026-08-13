@@ -5,7 +5,7 @@ import { ref } from 'vue'
 import type { Editor } from '@openweave/core/editor'
 import type { Variable, VariableCollection } from '@openweave/scene-graph'
 
-import { createVariableCollectionActions, createVariableValueActions } from '#vue/variables/helpers'
+import { createVariableCollectionActions, createVariableValueActions } from '#react/variables/helpers'
 
 function createEditorHarness() {
   const collections = new Map<string, VariableCollection>()

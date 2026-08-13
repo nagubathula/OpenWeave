@@ -11,6 +11,6 @@ Use it when you want custom typography controls with SDK-managed font and format
 
 ## Related APIs
 
-- [useTypography](../composables/use-typography)
+- [useTypography](../hooks/use-typography)
 - [FontPickerRoot](./font-picker-root)
 - [Property Panels guide](../../guides/property-panels)

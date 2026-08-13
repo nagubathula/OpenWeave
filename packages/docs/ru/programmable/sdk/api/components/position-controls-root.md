@@ -11,5 +11,5 @@ description: Headless-корневой примитив для управлен�
 
 ## Связанные API
 
-- [usePosition](../composables/use-position)
+- [usePosition](../hooks/use-position)
 - [Руководство по панелям свойств](../../guides/property-panels)

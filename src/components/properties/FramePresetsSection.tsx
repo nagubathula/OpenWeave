@@ -14,7 +14,7 @@ export default function FramePresetsSection() {
   const editor = useEditor()
   const { selectedNode: node } = useSelectionState()
 
-  if (!node || node.type !== 'FRAME') return null
+  if (node?.type !== 'FRAME') return null
 
   const current = findFrameResizePreset(node.width, node.height, node.name)
 

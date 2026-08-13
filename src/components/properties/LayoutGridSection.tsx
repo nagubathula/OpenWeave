@@ -15,7 +15,7 @@ export default function LayoutGridSection() {
 
   if (!node) return null
 
-  const grids = ('layoutGrids' in node ? (node.layoutGrids as LayoutGrid[]) : undefined) ?? []
+  const grids = ('layoutGrids' in node ? (node.layoutGrids) : undefined) ?? []
 
   const commit = (next: LayoutGrid[], label: string) => {
     editor.updateNodeWithUndo(node.id, { layoutGrids: next }, label)

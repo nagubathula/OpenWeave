@@ -5,7 +5,7 @@ description: Eigenschafts-Panels mit Steuerelemente-Composables und headless Lis
 
 # Eigenschafts-Panels
 
-Eigenschafts-Panels in `@openweave/vue` sind bewusst composable-first gestaltet.
+Eigenschafts-Panels in `@openweave/react` sind bewusst composable-first gestaltet.
 
 Wenn ein Panel hauptsächlich auswahlabgeleitete Werte und Aktualisierungsaktionen benötigt, bevorzugen Sie Composables.
 Wenn ein Panel wiederverwendbare Array/Listen-Struktur benötigt, verwenden Sie ein headless Primitiv wie `PropertyListRoot`.
@@ -28,42 +28,54 @@ Für listenbasierte Panels verwenden Sie:
 
 ## Beispiel: Positions-Panel
 
-```vue
-<script setup lang="ts">
-import { usePosition } from '@openweave/vue'
+```tsx
+import { usePosition } from '@openweave/react'
 
-const { x, y, width, height, updateProp, commitProp } = usePosition()
-</script>
+export function PositionFields() {
+  const { x, y, width, height, updateProp } = usePosition()
 
-<template>
-  <div class="grid grid-cols-2 gap-2">
-    <input :value="x" @input="updateProp('x', Number(($event.target as HTMLInputElement).value))" />
-    <input :value="y" @input="updateProp('y', Number(($event.target as HTMLInputElement).value))" />
-    <input :value="width" @input="updateProp('width', Number(($event.target as HTMLInputElement).value))" />
-    <input :value="height" @input="updateProp('height', Number(($event.target as HTMLInputElement).value))" />
-  </div>
-</template>
+  return (
+    <div className="grid grid-cols-2 gap-2">
+      <input value={x} onChange={(event) => updateProp('x', Number(event.target.value))} />
+      <input value={y} onChange={(event) => updateProp('y', Number(event.target.value))} />
+      <input value={width} onChange={(event) => updateProp('width', Number(event.target.value))} />
+      <input value={height} onChange={(event) => updateProp('height', Number(event.target.value))} />
+    </div>
+  )
+}
 ```
 
 ## Beispiel: Füllungen-Panel
 
-```vue
-<script setup lang="ts">
-import { PropertyListRoot, useFillControls } from '@openweave/vue'
+```tsx
+import { PropertyListRoot, useEditorPropertyList, useFillControls } from '@openweave/react'
 
-const fillControls = useFillControls()
-</script>
+export function FillList() {
+  const fillControls = useFillControls()
+  const fills = useEditorPropertyList('fills')
 
-<template>
-  <PropertyListRoot prop-key="fills" v-slot="{ items, add, remove }">
-    <div v-for="(fill, index) in items" :key="index">
-      {{ fill.type }}
-      <button @click="remove(index)">Entfernen</button>
-    </div>
-
-    <button @click="add(fillControls.defaultFill)">Füllung hinzufügen</button>
-  </PropertyListRoot>
-</template>
+  return (
+    <PropertyListRoot
+      propKey="fills"
+      items={fills.items}
+      mixed={fills.isMixed}
+      onAdd={fills.actions.add}
+      onRemove={fills.actions.remove}
+    >
+      {({ items, actions }) => (
+        <>
+          {items.map((fill, index) => (
+            <div key={index}>
+              {fill.type}
+              <button onClick={() => actions.remove(index)}>Remove</button>
+            </div>
+          ))}
+          <button onClick={() => actions.add(fillControls.defaultFill)}>Füllung hinzufügen</button>
+        </>
+      )}
+    </PropertyListRoot>
+  )
+}
 ```
 
 ## Faustregel
@@ -73,11 +85,11 @@ const fillControls = useFillControls()
 
 ## Verwandte APIs
 
-- [usePosition](../api/composables/use-position)
-- [useLayout](../api/composables/use-layout)
-- [useAppearance](../api/composables/use-appearance)
-- [useTypography](../api/composables/use-typography)
-- [useFillControls](../api/composables/use-fill-controls)
-- [useStrokeControls](../api/composables/use-stroke-controls)
-- [useEffectsControls](../api/composables/use-effects-controls)
+- [usePosition](../api/hooks/use-position)
+- [useLayout](../api/hooks/use-layout)
+- [useAppearance](../api/hooks/use-appearance)
+- [useTypography](../api/hooks/use-typography)
+- [useFillControls](../api/hooks/use-fill-controls)
+- [useStrokeControls](../api/hooks/use-stroke-controls)
+- [useEffectsControls](../api/hooks/use-effects-controls)
 - [PropertyListRoot](../api/components/property-list-root)

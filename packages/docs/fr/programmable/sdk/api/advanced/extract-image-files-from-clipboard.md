@@ -12,4 +12,4 @@ Utilisez-le pour implémenter des flux de travail d'images collées depuis le pr
 ## API associées
 
 - [useCanvasDrop](./use-canvas-drop)
-- [useCanvas](../composables/use-canvas)
+- [useCanvas](../hooks/use-canvas)

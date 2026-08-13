@@ -20,21 +20,22 @@ Użyj go, gdy chcesz strukturę listy stron dostarczaną przez SDK z renderowani
 
 ## Podstawowy przykład
 
-```vue
-<PageListRoot v-slot="{ pages, currentPageId, switchPage }">
-  <ul>
-    <li v-for="page in pages" :key="page.id">
-      <button
-        :data-active="page.id === currentPageId"
-        @click="switchPage(page.id)"
-      >
-        {{ page.name }}
-      </button>
-    </li>
-  </ul>
+```tsx
+<PageListRoot>
+  {({ pages, currentPageId, switchPage }) => (
+    <ul>
+      {pages.map((page) => (
+        <li key={page.id}>
+          <button data-active={page.id === currentPageId} onClick={() => switchPage(page.id)}>
+            {page.name}
+          </button>
+        </li>
+      ))}
+    </ul>
+  )}
 </PageListRoot>
 ```
 
 ## Powiązane API
 
-- [usePageList](../composables/use-page-list)
+- [usePageList](../hooks/use-page-list)

@@ -12,7 +12,7 @@ Użyj go przy budowaniu UI kolorów, które muszą łączyć wypełnienia lub ob
 ## Użycie
 
 ```ts
-import { useColorVariableBinding } from '@openweave/vue'
+import { useColorVariableBinding } from '@openweave/react'
 
 const fillBinding = useColorVariableBinding('fills')
 const strokeBinding = useColorVariableBinding('strokes')
@@ -20,6 +20,6 @@ const strokeBinding = useColorVariableBinding('strokes')
 
 ## Powiązane API
 
-- [useFillControls](../composables/use-fill-controls)
-- [useStrokeControls](../composables/use-stroke-controls)
+- [useFillControls](../hooks/use-fill-controls)
+- [useStrokeControls](../hooks/use-stroke-controls)
 - [FillRoot](/programmable/sdk/api/components/fill-root)

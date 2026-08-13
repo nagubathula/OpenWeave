@@ -11,6 +11,6 @@ description: Headless-корневой примитив для управлен�
 
 ## Связанные API
 
-- [useTypography](../composables/use-typography)
+- [useTypography](../hooks/use-typography)
 - [FontPickerRoot](./font-picker-root)
 - [Руководство по панелям свойств](../../guides/property-panels)

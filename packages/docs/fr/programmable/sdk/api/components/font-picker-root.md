@@ -54,14 +54,15 @@ description: Sélecteur de police headless avec recherche, basé sur Reka Combob
 
 ## Exemple
 
-```vue
-<FontPickerRoot v-model="fontFamily" :list-families="listFamilies">
-  <template #trigger="{ value }">
-    <button class="w-full truncate">{{ value }}</button>
-  </template>
-</FontPickerRoot>
+```tsx
+<FontPickerRoot
+  modelValue={fontFamily}
+  onModelValueChange={setFontFamily}
+  listFamilies={listFamilies}
+  trigger={({ value }) => <button className="w-full truncate">{value}</button>}
+/>
 ```
 
 ## API associées
 
-- [useTypography](../composables/use-typography)
+- [useTypography](../hooks/use-typography)
