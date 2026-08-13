@@ -1,9 +1,9 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { watch } from 'vue'
 
-import DesktopToolbar from '@/components/Toolbar/DesktopToolbar'
-import MobileToolbar from '@/components/Toolbar/MobileToolbar'
-import { useToolbarActions } from '@/components/Toolbar/actions'
+import DesktopToolbar from '@/components/toolbar/DesktopToolbar'
+import MobileToolbar from '@/components/toolbar/MobileToolbar'
+import { useToolbarActions } from '@/components/toolbar/actions'
 import { useActionToast } from '@/app/shell/toast/action'
 import { useEditorStore } from '@/app/editor/active-store'
 import { toolIcons } from '@/app/editor/icons'
@@ -17,7 +17,7 @@ import {
 } from '@openweave/react'
 
 import type { Tool } from '@openweave/react'
-import type { ToolbarActionItem } from '@/components/Toolbar/types'
+import type { ToolbarActionItem } from '@/components/toolbar/types'
 
 export default function Toolbar() {
   const store = useEditorStore()

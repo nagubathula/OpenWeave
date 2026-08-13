@@ -1,7 +1,7 @@
 import React from 'react'
 import Tip from '@/components/ui/Tip'
-import ToolButton from '@/components/Toolbar/ToolButton'
-import ToolFlyout from '@/components/Toolbar/ToolFlyout'
+import ToolButton from '@/components/toolbar/ToolButton'
+import ToolFlyout from '@/components/toolbar/ToolFlyout'
 import {
   getToolbarToolSelection,
   isToolbarToolActive,
@@ -10,7 +10,7 @@ import {
 } from '@openweave/react'
 
 import type { Tool, EditorToolDef } from '@openweave/core/editor'
-import type { ToolbarUI, ToolIconMap, ToolLabels } from '@/components/Toolbar/types'
+import type { ToolbarUI, ToolIconMap, ToolLabels } from '@/components/toolbar/types'
 
 interface DesktopToolbarProps {
   tools: EditorToolDef[]

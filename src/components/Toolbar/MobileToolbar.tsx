@@ -3,9 +3,9 @@ import { tv } from 'tailwind-variants'
 import { AnimatePresence, motion } from 'framer-motion'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 
-import ToolButton from '@/components/Toolbar/ToolButton'
-import ToolFlyout from '@/components/Toolbar/ToolFlyout'
-import ToolbarActionGroup from '@/components/Toolbar/ToolbarActionGroup'
+import ToolButton from '@/components/toolbar/ToolButton'
+import ToolFlyout from '@/components/toolbar/ToolFlyout'
+import ToolbarActionGroup from '@/components/toolbar/ToolbarActionGroup'
 import toolbarTheme from '@/theme/toolbar'
 import { getToolbarToolSelection, toolbarToolTestId, ToolbarItem } from '@openweave/react'
 
@@ -15,7 +15,7 @@ import type {
   ToolbarUI,
   ToolIconMap,
   ToolLabels
-} from '@/components/Toolbar/types'
+} from '@/components/toolbar/types'
 
 interface MobileToolbarProps {
   tools: EditorToolDef[]

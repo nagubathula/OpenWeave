@@ -27,7 +27,7 @@ import collaborationTheme from '@/theme/collaboration'
  * Collaboration (multiplayer) panel. Ported from the Vue CollabPanel family
  * (CollabPanel/CollabAvatarStack/CollabSharePopover/ConnectedRoom/
  * JoinRoomPrompt/ShareOrJoinRoom + context.ts — recover with
- * `git show fe87645^:src/components/CollabPanel/<file>` if needed).
+ * `git show fe87645^:src/components/collab-panel/<file>` if needed).
  *
  * The collab session itself is created by the shell (EditorLayout) and
  * provided via CollabProvider; this panel renders the avatar stack and the

@@ -8,7 +8,7 @@ import { watch } from 'vue'
 import ChatPanel from '@/components/chat/ChatPanel'
 import CodePanel from '@/components/properties/CodePanel'
 import DesignPanel from '@/components/properties/DesignPanel'
-import LayerTree from '@/components/LayerTree/LayerTree'
+import LayerTree from '@/components/layer-tree/layer-tree'
 import PagesPanel from '@/components/PagesPanel'
 import {
   DRAWER_SPRING_DAMPING,

@@ -1,7 +1,7 @@
 import React from 'react'
 import { tv } from 'tailwind-variants'
 import toolbarTheme from '@/theme/toolbar'
-import type { ToolbarActionItem, ToolbarUI } from '@/components/Toolbar/types'
+import type { ToolbarActionItem, ToolbarUI } from '@/components/toolbar/types'
 
 interface ToolbarActionGroupProps {
   actions: ToolbarActionItem[]

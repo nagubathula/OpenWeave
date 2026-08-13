@@ -26,7 +26,7 @@ import { openFileDialog } from '@/app/shell/menu/use'
 import { initials, toast } from '@/app/shell/ui'
 import { getShareUrl } from '@/constants'
 import Tip from '@/components/ui/Tip'
-import type { ToolbarActionItem } from '@/components/Toolbar/types'
+import type { ToolbarActionItem } from '@/components/toolbar/types'
 import collaborationTheme from '@/theme/collaboration'
 
 /**

@@ -1,7 +1,7 @@
 import React from 'react'
 import { tv } from 'tailwind-variants'
 import toolbarTheme from '@/theme/toolbar'
-import type { ToolbarUI } from '@/components/Toolbar/types'
+import type { ToolbarUI } from '@/components/toolbar/types'
 
 interface ToolButtonProps {
   icon: React.ElementType

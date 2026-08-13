@@ -15,7 +15,7 @@ import {
 import type { useEditorCommands } from '@openweave/react'
 
 import type { EditorStore } from '@/app/editor/active-store'
-import type { ToolbarActionItem } from '@/components/Toolbar/types'
+import type { ToolbarActionItem } from '@/components/toolbar/types'
 
 type ToolbarActionOptions = {
   store: EditorStore

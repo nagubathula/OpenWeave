@@ -5,10 +5,10 @@ import { Check } from 'lucide-react'
 
 import { menu } from '@/components/ui/menu'
 import toolbarTheme from '@/theme/toolbar'
-import ToolButton from '@/components/Toolbar/ToolButton'
+import ToolButton from '@/components/toolbar/ToolButton'
 
 import type { EditorToolDef, Tool } from '@openweave/core/editor'
-import type { ToolbarUI, ToolIconMap, ToolLabels } from '@/components/Toolbar/types'
+import type { ToolbarUI, ToolIconMap, ToolLabels } from '@/components/toolbar/types'
 import { isToolbarToolActive, toolbarToolTestId } from '@openweave/react'
 
 export function toolbarFlyoutTestId(key: Tool, mobile = false): string {
