@@ -1,13 +1,20 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react'
-import { ArrowUp, MessageCircle, Sparkles, Square, Trash2 } from 'lucide-react'
+import React, { useCallback, useEffect, useReducer, useRef, useState } from 'react'
+import { ArrowUp, Bot, MessageCircle, Settings, Sparkles, Square, Trash2 } from 'lucide-react'
 import { readUIMessageStream } from 'ai'
 import type { ChatTransport, UIMessage } from 'ai'
+import { watch } from 'vue'
+
+import { useI18n } from '@openweave/react'
 
 import { getActiveEditorStore } from '@/app/editor/active-store'
 import { resolveLanguageModelID } from '@/app/ai/chat/model'
 import { createToolLoopTransport } from '@/app/ai/chat/transports'
 import { credentialsReady, isConfigured } from '@/app/ai/chat/storage'
-import { createAIModelRuntime, designModelID, designProviderDefinition } from '@/app/ai/models'
+import { createAIModelRuntime } from '@/app/ai/models'
+import { useAIChat } from '@/app/ai/chat/use'
+import { openSettingsDialog } from '@/app/settings/dialog'
+import { toast } from '@/app/shell/ui'
+import ChatModelSelect from '@/components/chat/ChatModelSelect'
 
 type ChatStatus = 'ready' | 'submitted' | 'streaming'
 
@@ -46,10 +53,41 @@ function messageText(message: UIMessage): string {
     .join('')
 }
 
-function toolLabels(message: UIMessage): string[] {
-  return message.parts
-    .filter((part) => part.type === 'step-start' || part.type.startsWith('tool-'))
-    .map((part) => (part.type.startsWith('tool-') ? part.type.slice('tool-'.length) : 'step'))
+type ToolPartLike = {
+  type: string
+  state?: string
+  output?: unknown
+}
+
+function isToolPart(part: { type: string }): part is ToolPartLike {
+  return part.type.startsWith('tool-') || part.type === 'dynamic-tool'
+}
+
+/** `create_shape` -> `Create Shape`, matching the Vue ChatMessage display names. */
+function toolDisplayName(part: ToolPartLike): string {
+  const raw =
+    part.type === 'dynamic-tool'
+      ? ((part as { toolName?: string }).toolName ?? 'tool')
+      : part.type.slice('tool-'.length)
+  return raw
+    .replace(/^mcp__[^_]+__/, '')
+    .replace(/_/g, ' ')
+    .replace(/\w/g, (c) => c.toUpperCase())
+}
+
+function toolState(part: ToolPartLike): 'pending' | 'done' | 'error' {
+  const hasErrorOutput =
+    part.state === 'output-available' &&
+    typeof part.output === 'object' &&
+    part.output !== null &&
+    'error' in (part.output as object)
+  if (part.state === 'output-error' || hasErrorOutput) return 'error'
+  if (part.state === 'output-available') return 'done'
+  return 'pending'
+}
+
+function toolParts(message: UIMessage): ToolPartLike[] {
+  return message.parts.filter(isToolPart)
 }
 
 export default function ChatPanel() {
@@ -57,6 +95,14 @@ export default function ChatPanel() {
   const [status, setStatus] = useState<ChatStatus>('ready')
   const [input, setInput] = useState('')
   const [configured, setConfigured] = useState<boolean | null>(null)
+  const { dialogs } = useI18n()
+  const { getOverrideTransport, customModelID, modelID } = useAIChat()
+  const [, forceRender] = useReducer((n: number): number => n + 1, 0)
+
+  useEffect(() => {
+    const stop = watch([customModelID, modelID], () => forceRender())
+    return stop
+  }, [customModelID, modelID])
   const [error, setError] = useState<string | null>(null)
 
   const transportRef = useRef<ChatTransport<UIMessage> | null>(null)
@@ -70,17 +116,20 @@ export default function ChatPanel() {
       if (active) setConfigured(isConfigured.value)
       return undefined
     })
+    // Saving a key in Settings must flip the panel to the chat UI without a
+    // remount, so track the Vue computed after the initial credential load.
+    const stop = watch(isConfigured, (value) => {
+      if (active) setConfigured(value)
+    })
     return () => {
       active = false
+      stop()
     }
   }, [])
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' })
   }, [messages])
-
-  const providerName = designProviderDefinition.value.name
-  const modelName = designModelID.value
 
   const handleStop = useCallback(() => {
     abortRef.current?.abort()
@@ -114,7 +163,11 @@ export default function ChatPanel() {
 
       try {
         if (!transportRef.current) {
-          transportRef.current = await createDesignTransport()
+          // Tests (and future alternate frontends) can override the transport
+          // through window.openWeave.setChatTransport; honor it before building
+          // the real design transport.
+          const override = getOverrideTransport()
+          transportRef.current = override ? override() : await createDesignTransport()
         }
         setConfigured(true)
         const controller = new AbortController()
@@ -134,6 +187,7 @@ export default function ChatPanel() {
         if (!(e instanceof DOMException && e.name === 'AbortError')) {
           const message = e instanceof Error ? e.message : String(e)
           setError(message)
+          toast.error(message)
           transportRef.current = null
         }
       } finally {
@@ -150,14 +204,19 @@ export default function ChatPanel() {
   if (configured === false) {
     return (
       <div
-        data-test-id="chat-provider-setup"
+        data-test-id="provider-setup"
         className="flex min-h-0 flex-1 flex-col items-center justify-center gap-3 p-6 text-center"
       >
-        <Sparkles className="size-6 text-muted" />
-        <div className="text-sm font-semibold text-surface">No AI provider configured</div>
-        <p className="max-w-xs text-xs text-muted">
-          Add an API key and pick a model for the Design agent in Settings to start chatting.
-        </p>
+        <Sparkles className="size-5 text-muted" />
+        <p className="max-w-xs text-xs text-muted">{dialogs.connectAIProvider}</p>
+        <button
+          type="button"
+          data-test-id="provider-setup-open-settings"
+          className="w-full max-w-48 rounded bg-accent py-1.5 text-xs font-medium text-white hover:bg-accent/90"
+          onClick={() => openSettingsDialog('ai')}
+        >
+          {dialogs.openProviderSettings}
+        </button>
       </div>
     )
   }
@@ -174,13 +233,13 @@ export default function ChatPanel() {
             className="flex h-full flex-col items-center justify-center gap-2 text-center text-muted"
           >
             <MessageCircle className="size-5" />
-            <span className="text-xs">Describe what to create or change</span>
+            <span className="text-xs">{dialogs.describeCreateOrChange}</span>
           </div>
         ) : (
           <div data-test-id="chat-messages" className="flex flex-col gap-3">
             {messages.map((message) => {
               const text = messageText(message)
-              const tools = message.role === 'assistant' ? toolLabels(message) : []
+              const tools = message.role === 'assistant' ? toolParts(message) : []
               return (
                 <div
                   key={message.id}
@@ -200,15 +259,21 @@ export default function ChatPanel() {
                   >
                     {text ? <span className="whitespace-pre-wrap break-words">{text}</span> : null}
                     {tools.length > 0 ? (
-                      <div className="mt-1 flex flex-wrap gap-1">
-                        {tools.map((tool, i) => (
-                          <span
-                            key={`${tool}-${i}`}
-                            className="rounded bg-component/15 px-1 py-px text-[9px] font-medium uppercase text-component"
-                          >
-                            {tool}
-                          </span>
-                        ))}
+                      <div className="mt-1 flex flex-col gap-1">
+                        {tools.map((tool, i) => {
+                          const state = toolState(tool)
+                          return (
+                            <div
+                              key={`tool-${i}`}
+                              className="flex items-center gap-2 rounded-lg border border-border bg-canvas px-2 py-1"
+                            >
+                              <span className="text-[11px] text-surface">{toolDisplayName(tool)}</span>
+                              <span className="text-[10px] text-muted">
+                                {state === 'pending' ? 'Running…' : state === 'done' ? 'Done' : 'Error'}
+                              </span>
+                            </div>
+                          )
+                        })}
                       </div>
                     ) : null}
                   </div>
@@ -240,8 +305,8 @@ export default function ChatPanel() {
         </div>
       ) : null}
 
-      {messages.length > 0 ? (
-        <div className="flex shrink-0 items-center gap-1 border-t border-border px-3 py-1">
+      <div className="flex shrink-0 items-center gap-1 border-t border-border px-3 py-1">
+        {messages.length > 0 && (
           <button
             type="button"
             data-test-id="chat-clear"
@@ -251,12 +316,28 @@ export default function ChatPanel() {
             <Trash2 className="size-3" />
             Clear
           </button>
-          <span className="ml-auto truncate text-[10px] text-muted" title={`${providerName} · ${modelName}`}>
-            {providerName}
-            {modelName ? ` · ${modelName}` : ''}
-          </span>
-        </div>
-      ) : null}
+        )}
+        {customModelID.value.trim() ? (
+          <div
+            className="ml-auto flex items-center gap-1 px-1.5 py-0.5 text-[10px] text-muted"
+            data-test-id="chat-custom-model-label"
+          >
+            <Bot className="size-3" />
+            <span className="truncate">{customModelID.value}</span>
+          </div>
+        ) : (
+          <ChatModelSelect />
+        )}
+        <button
+          type="button"
+          data-test-id="provider-settings-trigger"
+          aria-label={dialogs.providerSettings}
+          className="rounded p-0.5 text-muted hover:bg-hover hover:text-surface"
+          onClick={() => openSettingsDialog('ai')}
+        >
+          <Settings className="size-3" />
+        </button>
+      </div>
 
       <form
         className="flex shrink-0 items-end gap-2 border-t border-border p-2"
@@ -265,19 +346,12 @@ export default function ChatPanel() {
           void handleSubmit(input)
         }}
       >
-        <textarea
+        <input
           data-test-id="chat-input"
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
-              e.preventDefault()
-              void handleSubmit(input)
-            }
-          }}
-          rows={1}
-          placeholder="Message the design agent…"
-          className="scrollbar-thin max-h-32 min-h-8 min-w-0 flex-1 resize-none rounded border border-border bg-input/50 px-2 py-1.5 text-xs text-surface outline-none placeholder:text-muted focus:border-accent"
+          placeholder={dialogs.describeChange}
+          className="min-h-8 min-w-0 flex-1 rounded border border-border bg-input/50 px-2 py-1.5 text-xs text-surface outline-none placeholder:text-muted focus:border-accent"
         />
         {isBusy ? (
           <button

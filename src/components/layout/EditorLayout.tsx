@@ -8,6 +8,7 @@ import PropertiesPanel from '@/components/PropertiesPanel'
 import Toolbar from '@/components/toolbar/Toolbar'
 import TabBar from '@/components/TabBar'
 import SafariBanner from '@/components/SafariBanner'
+import AppToast from '@/components/shell/AppToast'
 import RenameSelectionDialog from '@/components/selection/RenameSelectionDialog'
 import StorageWorkspace from '@/components/storage/StorageWorkspace'
 import CollabPanel from '@/components/collab-panel/CollabPanel'
@@ -15,6 +16,7 @@ import MobileDrawer from '@/components/MobileDrawer'
 import MobileHud from '@/components/mobile-hud/MobileHud'
 import { useViewportKind } from '@openweave/react'
 import { getActiveEditorStore } from '@/app/editor/active-store'
+import { loadEditorLayout, saveEditorLayout } from '@/app/shell/layout-storage'
 import { useAppKeyboard } from '@/app/shell/keyboard/use-app-keyboard'
 import { useMenu } from '@/app/shell/menu/use'
 import { CollabProvider, useCollab } from '@/app/collab/use'
@@ -118,6 +120,7 @@ export function EditorLayout() {
     >
       <SafariBanner />
       <RenameSelectionDialog />
+      <AppToast />
       <TabBar />
 
       {noChrome ? (
@@ -136,31 +139,50 @@ export function EditorLayout() {
           <MobileDrawer />
         </div>
       ) : showUI ? (
-        <Group orientation="horizontal" className="flex-1 min-h-0">
+        <Group
+          orientation="horizontal"
+          className="flex-1 min-h-0"
+          defaultLayout={(() => {
+            const [layers, canvas, properties] = loadEditorLayout()
+            return { layers, canvas, properties }
+          })()}
+          onLayoutChanged={(layout) => {
+            const sizes = [layout.layers, layout.canvas, layout.properties]
+            if (sizes.every((size) => typeof size === 'number')) saveEditorLayout(sizes)
+          }}
+        >
           <Panel
-            defaultSize="20"
-            minSize="15"
-            maxSize="40"
+            id="layers"
+            defaultSize="20%"
+            minSize="15%"
+            maxSize="40%"
             className="bg-panel/50 border-r border-border/50"
           >
             <LayersPanel />
           </Panel>
 
-          <Separator className="w-1 bg-border/50 hover:bg-accent hover:w-2 transition-all" />
+          <Separator
+            data-test-id="left-splitter-handle"
+            className="w-1 bg-border/50 hover:bg-accent hover:w-2 transition-all"
+          />
 
-          <Panel minSize="30">
+          <Panel id="canvas" minSize="30%">
             <div className="relative flex h-full flex-col">
               <Toolbar />
               <EditorCanvas />
             </div>
           </Panel>
 
-          <Separator className="w-1 bg-border/50 hover:bg-accent hover:w-2 transition-all" />
+          <Separator
+            data-test-id="right-splitter-handle"
+            className="w-1 bg-border/50 hover:bg-accent hover:w-2 transition-all"
+          />
 
           <Panel
-            defaultSize="20"
-            minSize="15"
-            maxSize="40"
+            id="properties"
+            defaultSize="20%"
+            minSize="15%"
+            maxSize="40%"
             className="bg-panel/50 border-l border-border/50"
           >
             <div className="flex h-full flex-col">

@@ -39,6 +39,9 @@ export default function PanelSection({
       open={open}
       defaultOpen={defaultOpen}
       empty={empty}
+      // The Vue version rendered `as="section"`; an explicit region role restores the
+      // same landmark so tests and AT can address sections by accessible name.
+      role="region"
       aria-label={label}
       className={styles.root({ class: className })}
     >

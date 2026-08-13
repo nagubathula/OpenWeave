@@ -110,7 +110,7 @@ test.describe('selection shortcuts', () => {
     await editor.canvas.drawRect(100, 100, 60, 60)
     await editor.canvas.drawRect(200, 100, 60, 60)
 
-    await editor.page.keyboard.press('Meta+a')
+    await editor.page.keyboard.press('ControlOrMeta+a')
     expect(await getSelectedCount()).toBe(2)
   })
 
@@ -123,7 +123,7 @@ test.describe('selection shortcuts', () => {
       return node.id
     })
 
-    await editor.page.keyboard.press('Meta+r')
+    await editor.page.keyboard.press('ControlOrMeta+r')
 
     const input = editor.page.getByTestId('layers-item-input')
     await expect(input).toBeFocused()
@@ -143,7 +143,7 @@ test.describe('selection shortcuts', () => {
       return [first.id, second.id]
     })
 
-    await editor.page.keyboard.press('Meta+r')
+    await editor.page.keyboard.press('ControlOrMeta+r')
 
     const dialog = editor.page.getByRole('dialog', { name: 'Rename 2 layers' })
     await expect(dialog).toBeVisible()
@@ -220,7 +220,7 @@ test.describe('group/ungroup shortcuts', () => {
     await editor.canvas.selectAll()
     expect(await getSelectedCount()).toBeGreaterThanOrEqual(2)
 
-    await editor.page.keyboard.press('Meta+g')
+    await editor.page.keyboard.press('ControlOrMeta+g')
     await editor.canvas.waitForRender()
 
     const children = await getPageChildren()
@@ -230,7 +230,7 @@ test.describe('group/ungroup shortcuts', () => {
   })
 
   test('⌘⇧G ungroups', async () => {
-    await editor.page.keyboard.press('Meta+Shift+g')
+    await editor.page.keyboard.press('ControlOrMeta+Shift+g')
     await editor.canvas.waitForRender()
 
     const children = await getPageChildren()
@@ -242,14 +242,14 @@ test.describe('UI toggles', () => {
   test('⌘\\ toggles UI visibility', async () => {
     const before = await getUIVisible()
 
-    await editor.page.keyboard.press('Meta+\\')
+    await editor.page.keyboard.press('ControlOrMeta+\\')
     await editor.canvas.waitForRender()
 
     const after = await getUIVisible()
     expect(after).toBe(!before)
 
     // Restore
-    await editor.page.keyboard.press('Meta+\\')
+    await editor.page.keyboard.press('ControlOrMeta+\\')
     await editor.canvas.waitForRender()
     expect(await getUIVisible()).toBe(before)
   })
@@ -262,7 +262,7 @@ test.describe('duplicate', () => {
     await editor.canvas.selectAll()
     expect(await getSelectedCount()).toBe(1)
 
-    await editor.page.keyboard.press('Meta+d')
+    await editor.page.keyboard.press('ControlOrMeta+d')
     await editor.canvas.waitForRender()
 
     const children = await getPageChildren()
@@ -281,10 +281,10 @@ test.describe('opacity shortcuts', () => {
     await editor.page.keyboard.press('8')
     expect(await getSelectedOpacity()).toBe(0.28)
 
-    await editor.page.keyboard.press('Meta+z')
+    await editor.page.keyboard.press('ControlOrMeta+z')
     expect(await getSelectedOpacity()).toBe(1)
 
-    await editor.page.keyboard.press('Meta+Shift+z')
+    await editor.page.keyboard.press('ControlOrMeta+Shift+z')
     expect(await getSelectedOpacity()).toBe(0.28)
   })
 
@@ -333,7 +333,7 @@ test.describe('zoom shortcuts', () => {
     })
     await editor.canvas.waitForRender()
 
-    await editor.page.keyboard.press('Meta+0')
+    await editor.page.keyboard.press('ControlOrMeta+0')
     await editor.canvas.waitForRender()
 
     const zoomAfter = await getZoom()
@@ -341,7 +341,7 @@ test.describe('zoom shortcuts', () => {
   })
 
   test('⌘1 zooms to fit', async () => {
-    await editor.page.keyboard.press('Meta+1')
+    await editor.page.keyboard.press('ControlOrMeta+1')
     await editor.canvas.waitForRender()
 
     const zoom = await getZoom()
@@ -352,7 +352,7 @@ test.describe('zoom shortcuts', () => {
   test('⌘2 zooms to selection', async () => {
     await editor.canvas.selectAll()
 
-    await editor.page.keyboard.press('Meta+2')
+    await editor.page.keyboard.press('ControlOrMeta+2')
     await editor.canvas.waitForRender()
 
     const zoom = await getZoom()
@@ -387,14 +387,14 @@ test.describe('undo/redo', () => {
     await editor.canvas.drawRect(100, 100, 60, 60)
     expect((await getPageChildren()).length).toBe(1)
 
-    await editor.page.keyboard.press('Meta+z')
+    await editor.page.keyboard.press('ControlOrMeta+z')
     await editor.canvas.waitForRender()
 
     expect((await getPageChildren()).length).toBe(0)
   })
 
   test('⌘⇧Z redoes undone action', async () => {
-    await editor.page.keyboard.press('Meta+Shift+z')
+    await editor.page.keyboard.press('ControlOrMeta+Shift+z')
     await editor.canvas.waitForRender()
 
     expect((await getPageChildren()).length).toBe(1)

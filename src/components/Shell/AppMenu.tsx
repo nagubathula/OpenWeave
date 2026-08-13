@@ -1,13 +1,128 @@
-import React, { useState, useRef, useEffect } from 'react'
-import { Settings, PanelLeft } from 'lucide-react'
-import { useEditorStore } from '@/app/editor/active-store'
+import React, { useState, useRef, useEffect, useReducer } from 'react'
+import { watch } from 'vue'
+import * as Menubar from '@radix-ui/react-menubar'
+import { Check, ChevronRight, Settings, PanelLeft } from 'lucide-react'
+
+import type { MenuEntry } from '@openweave/react'
+
+import { getActiveEditorStore, useEditorStore } from '@/app/editor/active-store'
+import { openSettingsDialog, settingsDialogOpen } from '@/app/settings/dialog'
+import { useAppMenu } from '@/app/shell/menu/app-menu'
+import { isMenuAction, isMenuCheckbox } from '@/app/shell/menu/entry'
 import { SettingsDialog } from '@/components/settings/SettingsDialog'
+import AppShortcutText from '@/components/ui/AppShortcutText'
+import { useMenuUI } from '@/components/ui/menu'
+import { IS_TAURI } from '@/constants'
+
+function MenuEntryItems({ items, cls }: { items: MenuEntry[]; cls: ReturnType<typeof useMenuUI> }) {
+  const subCls = useMenuUI({ content: 'min-w-44' })
+  return (
+    <>
+      {items.map((item, i) => {
+        if (!isMenuAction(item)) return <Menubar.Separator key={i} className={cls.separator} />
+        if (item.sub && item.sub.length > 0) {
+          return (
+            <Menubar.Sub key={i}>
+              <Menubar.SubTrigger className={cls.item} disabled={item.disabled}>
+                <span className="flex-1">{item.label}</span>
+                <ChevronRight className="size-3 text-muted" />
+              </Menubar.SubTrigger>
+              <Menubar.Portal>
+                <Menubar.SubContent sideOffset={4} className={subCls.content}>
+                  <MenuEntryItems items={item.sub ?? []} cls={cls} />
+                </Menubar.SubContent>
+              </Menubar.Portal>
+            </Menubar.Sub>
+          )
+        }
+        if (isMenuCheckbox(item)) {
+          return (
+            <Menubar.CheckboxItem
+              key={i}
+              checked={item.checked}
+              className={cls.item}
+              onCheckedChange={(checked) => item.onCheckedChange?.(checked === true)}
+            >
+              <span className="flex-1">{item.label}</span>
+              <Menubar.ItemIndicator className="text-surface">
+                <Check className="size-3.5" />
+              </Menubar.ItemIndicator>
+            </Menubar.CheckboxItem>
+          )
+        }
+        return (
+          <Menubar.Item
+            key={i}
+            className={cls.item}
+            disabled={item.disabled}
+            onSelect={() => item.action?.()}
+          >
+            <span className="flex-1">{item.label}</span>
+            {item.shortcut && <AppShortcutText>{item.shortcut}</AppShortcutText>}
+          </Menubar.Item>
+        )
+      })}
+    </>
+  )
+}
+
+/** The File/Edit/View/Object/Text/Arrange strip shown in browser (non-Tauri) mode. */
+function AppMenubar() {
+  const { topMenus } = useAppMenu()
+  // Recompute checked/disabled state from the stores each time a menu opens.
+  const [, forceRender] = useReducer((n: number): number => n + 1, 0)
+  const menuCls = useMenuUI()
+  const mainMenuCls = useMenuUI({ content: 'min-w-52' })
+
+  return (
+    <div className="flex items-center px-1 pb-1">
+      <Menubar.Root
+        className="scrollbar-none flex items-center gap-0.5 overflow-x-auto"
+        onValueChange={() => forceRender()}
+      >
+        {topMenus.map((menu) => (
+          <Menubar.Menu key={menu.label}>
+            <Menubar.Trigger
+              data-test-id={`menubar-${menu.label.toLowerCase()}`}
+              className="flex cursor-pointer items-center rounded px-2 py-1 text-[11px] text-surface/80 transition-colors select-none hover:bg-hover hover:text-surface data-[state=open]:bg-hover data-[state=open]:text-surface"
+            >
+              {menu.label}
+            </Menubar.Trigger>
+            <Menubar.Portal>
+              <Menubar.Content sideOffset={4} align="start" className={mainMenuCls.content}>
+                <MenuEntryItems items={menu.items} cls={menuCls} />
+              </Menubar.Content>
+            </Menubar.Portal>
+          </Menubar.Menu>
+        ))}
+      </Menubar.Root>
+    </div>
+  )
+}
 
 export default function AppMenu() {
   const store = useEditorStore()
   const [isEditing, setIsEditing] = useState(false)
-  const [settingsOpen, setSettingsOpen] = useState(false)
+  // documentName lives in the Vue store (and the active store changes on tab
+  // switch); bridge it so renames and opened documents show without a remount.
+  const [documentName, setDocumentName] = useState('')
+  useEffect(() => {
+    const stop = watch(
+      () => getActiveEditorStore().state.documentName,
+      (value) => setDocumentName(value ?? ''),
+      { immediate: true }
+    )
+    return stop
+  }, [])
+  const [settingsOpen, setSettingsOpen] = useState(settingsDialogOpen.value)
   const inputRef = useRef<HTMLInputElement>(null)
+
+  // openSettingsDialog() is called from app code (menu model, chat provider setup,
+  // vectorize) via a shared Vue ref; this component owns the dialog, so bridge it.
+  useEffect(() => {
+    const stop = watch(settingsDialogOpen, (value) => setSettingsOpen(value))
+    return stop
+  }, [])
 
   useEffect(() => {
     if (isEditing && inputRef.current) {
@@ -33,7 +148,7 @@ export default function AppMenu() {
             ref={inputRef}
             data-test-id="app-document-name-input"
             className="min-w-0 flex-1 rounded border border-accent bg-input px-1 py-0.5 text-xs text-surface outline-none"
-            defaultValue={store.state.documentName}
+            defaultValue={documentName}
             onBlur={(e) => commitRename(e.target.value)}
             onKeyDown={(e) => {
               if (e.key === 'Enter') {
@@ -49,7 +164,7 @@ export default function AppMenu() {
             className="min-w-0 flex-1 cursor-default truncate rounded px-1 py-0.5 text-xs text-surface hover:bg-hover"
             onDoubleClick={() => setIsEditing(true)}
           >
-            {store.state.documentName || 'Untitled'}
+            {documentName || 'Untitled'}
           </span>
         )}
         <button
@@ -57,7 +172,7 @@ export default function AppMenu() {
           data-test-id="app-settings-trigger"
           title="Settings"
           className="flex size-6 shrink-0 cursor-pointer items-center justify-center rounded text-muted transition-colors hover:bg-hover hover:text-surface"
-          onClick={() => setSettingsOpen(true)}
+          onClick={() => openSettingsDialog()}
         >
           <Settings className="size-3.5" />
         </button>
@@ -73,7 +188,14 @@ export default function AppMenu() {
           <PanelLeft className="size-3.5" />
         </button>
       </div>
-      <SettingsDialog open={settingsOpen} onClose={() => setSettingsOpen(false)} />
+      {!IS_TAURI && <AppMenubar />}
+      <SettingsDialog
+        open={settingsOpen}
+        onClose={() => {
+          settingsDialogOpen.value = false
+          setSettingsOpen(false)
+        }}
+      />
     </div>
   )
 }

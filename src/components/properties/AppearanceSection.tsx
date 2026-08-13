@@ -102,7 +102,11 @@ export function AppearanceSection() {
     : []
 
   return (
-    <div className="space-y-1.5 border-b border-border pb-3" data-test-id="appearance-section">
+    <section
+      aria-label={panels.appearance}
+      className="space-y-1.5 border-b border-border pb-3"
+      data-test-id="appearance-section"
+    >
       <div className="flex items-center justify-between">
         <span className="text-[11px] font-semibold text-muted uppercase tracking-wider">
           {panels.appearance}
@@ -229,7 +233,7 @@ export function AppearanceSection() {
           />
         </label>
       )}
-    </div>
+    </section>
   )
 }
 

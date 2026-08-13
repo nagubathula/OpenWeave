@@ -128,12 +128,12 @@ function apiKeyInput() {
 
 test('⌘J switches to AI tab', async () => {
   await designTab().waitFor()
-  await page.keyboard.press('Meta+j')
+  await page.keyboard.press('ControlOrMeta+j')
   await expect(chatTab()).toHaveAttribute('data-state', 'active')
 })
 
 test('⌘J switches back to Design tab', async () => {
-  await page.keyboard.press('Meta+j')
+  await page.keyboard.press('ControlOrMeta+j')
   await expect(designTab()).toHaveAttribute('data-state', 'active')
 })
 

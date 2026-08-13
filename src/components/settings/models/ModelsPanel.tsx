@@ -35,6 +35,7 @@ import type {
 import type { CredentialStatus } from '@/app/settings/credentials/types'
 import { AppInput } from '@/components/ui/AppInput'
 import { AppSelect } from '@/components/ui/AppSelect'
+import { openExternalLink } from '@/app/shell/ui'
 import { AppSwitch } from '@/components/ui/AppSwitch'
 
 /**
@@ -353,6 +354,7 @@ function ProfileEditor({ profileId, onDone }: ProfileEditorProps) {
               <div className="flex items-center gap-1.5">
                 <input
                   type="password"
+                  data-test-id="provider-settings-api-key"
                   className={inputClass}
                   value={keyInput}
                   placeholder={hasExistingKey ? dialogs.keySavedReplace : providerDef.keyPlaceholder}
@@ -364,6 +366,7 @@ function ProfileEditor({ profileId, onDone }: ProfileEditorProps) {
                 {hasExistingKey && (
                   <button
                     type="button"
+                    data-test-id="provider-settings-clear-key"
                     className="shrink-0 rounded border border-border px-2 py-1 text-[11px] text-muted hover:bg-hover hover:text-surface"
                     onClick={() => void clearKey()}
                   >
@@ -371,6 +374,15 @@ function ProfileEditor({ profileId, onDone }: ProfileEditorProps) {
                   </button>
                 )}
               </div>
+              {providerDef.keyURL && (
+                <button
+                  type="button"
+                  className="self-start text-left text-[11px] text-muted underline hover:text-surface"
+                  onClick={() => openExternalLink(providerDef.keyURL)}
+                >
+                  {dialogs.getAPIKeyGeneric}
+                </button>
+              )}
               <div className="flex items-center justify-between">
                 {hasExistingKey && (
                   <span className="text-[10px] text-green-500">{dialogs.connected}</span>

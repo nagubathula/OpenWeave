@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react'
 
 import { useEditorCommands, useViewportKind } from '@openweave/react'
 
+import { useAIChat } from '@/app/ai/chat/use'
 import { useEditorStore } from '@/app/editor/active-store'
 import { createKeyboardActions } from '@/app/shell/keyboard/actions'
 import { bindEditorClipboard } from '@/app/shell/keyboard/clipboard'
@@ -25,6 +26,10 @@ export function useAppKeyboard() {
   const store = useEditorStore()
   const { isMobile } = useViewportKind()
   const commands = useEditorCommands()
+  // Shared chat/panel tab state (Vue ref) — the ⌘J desktop toggle writes it and
+  // PropertiesPanel renders from it. Importing the chat module also registers the
+  // window.openWeave.setChatTransport test override.
+  const { activeTab } = useAIChat()
 
   const latest = useRef({ commands, isMobile })
   latest.current = { commands, isMobile }
@@ -40,9 +45,6 @@ export function useAppKeyboard() {
         return latest.current.isMobile.value
       }
     }
-    // Standalone tab state for the mobile AI-toggle shortcut (mobile-only path).
-    const activeTab: { value: 'design' | 'code' | 'ai' } = { value: 'design' }
-
     // Stable wrappers that always call the latest command map, so `enabled`
     // gates reflect the current selection.
     const runCommand: typeof commands.runCommand = (id) => latest.current.commands.runCommand(id)

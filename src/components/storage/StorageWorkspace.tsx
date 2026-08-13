@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react'
 import { Files, X } from 'lucide-react'
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 
 import {
   activeStorageProviderID,
@@ -25,9 +25,27 @@ import { activeTab, createTab, openStorageDocumentInNewTab } from '@/app/tabs'
  * `<StorageWorkspace />` once near the app root — it renders nothing while closed.
  */
 const storageWorkspaceOpen = ref(false)
+// Bumped on every openStorageWorkspace() call so an already-open workspace
+// re-lists documents (e.g. after storage settings were just configured); the
+// Vue router remounted the view on navigation, this overlay stays mounted.
+const storageWorkspaceRefreshTick = ref(0)
+
+/** Keeps the address bar at /storage while the workspace overlay is open (SPA-only —
+ * direct visits are served by the /storage route, which opens the overlay on mount). */
+function syncStorageUrl(open: boolean): void {
+  if (typeof window === 'undefined') return
+  const onStorageUrl = window.location.pathname.endsWith('/storage')
+  if (open && !onStorageUrl) {
+    window.history.pushState({}, '', '/storage')
+  } else if (!open && onStorageUrl) {
+    window.history.pushState({}, '', '/')
+  }
+}
 
 export function openStorageWorkspace(): void {
   storageWorkspaceOpen.value = true
+  storageWorkspaceRefreshTick.value++
+  syncStorageUrl(true)
 }
 
 export default function StorageWorkspace() {
@@ -51,6 +69,7 @@ export default function StorageWorkspace() {
   const close = () => {
     storageWorkspaceOpen.value = false
     setOpen(false)
+    syncStorageUrl(false)
   }
 
   const refresh = useCallback(async (): Promise<void> => {
@@ -82,7 +101,7 @@ export default function StorageWorkspace() {
         )
       setConfigured(isConfigured)
       if (!isConfigured) {
-        setError('Storage is not configured.')
+        setError('Configure storage before using this workspace.')
         return
       }
 
@@ -115,6 +134,13 @@ export default function StorageWorkspace() {
   useEffect(() => {
     if (open) void refresh()
   }, [open, refresh])
+
+  useEffect(() => {
+    const stop = watch(storageWorkspaceRefreshTick, () => {
+      if (storageWorkspaceOpen.value) void refresh()
+    })
+    return stop
+  }, [refresh])
 
   if (!open) return null
 
@@ -225,7 +251,7 @@ export default function StorageWorkspace() {
                 ? 'Loading documents...'
                 : (configured
                   ? 'No documents yet.'
-                  : 'Storage is not configured.')}
+                  : 'Configure storage before using this workspace.')}
             </p>
             {!configured && !loading && (
               <button

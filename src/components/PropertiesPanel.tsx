@@ -1,14 +1,29 @@
-import React, { useState } from 'react'
+import React, { useEffect, useReducer } from 'react'
 import * as Tabs from '@radix-ui/react-tabs'
 import { Code, Sparkles } from 'lucide-react'
+import { watch } from 'vue'
 
+import { useAIChat } from '@/app/ai/chat/use'
 import DesignPanel from '@/components/properties/DesignPanel'
 import CodePanel from '@/components/properties/CodePanel'
 import ChatPanel from '@/components/chat/ChatPanel'
 import ZoomDropdown from '@/components/editor/ZoomDropdown'
 
 export default function PropertiesPanel() {
-  const [activeTab, setActiveTab] = useState('design')
+  // The tab selection is shared app state (a Vue ref in @/app/ai/chat/use) so the
+  // ⌘J shortcut can toggle the AI tab; bridge it to React like TabBar does.
+  const { activeTab: activeTabRef } = useAIChat()
+  const [, forceRender] = useReducer((n: number): number => n + 1, 0)
+
+  useEffect(() => {
+    const stop = watch(activeTabRef, () => forceRender())
+    return stop
+  }, [activeTabRef])
+
+  const activeTab = activeTabRef.value
+  const setActiveTab = (value: string) => {
+    activeTabRef.value = value as 'design' | 'code' | 'ai'
+  }
 
   return (
     <aside
@@ -57,7 +72,12 @@ export default function PropertiesPanel() {
           <CodePanel />
         </Tabs.Content>
 
-        <Tabs.Content value="ai" className="flex min-h-0 flex-1 flex-col">
+        {/* forceMount so in-progress chat state survives tab switches. */}
+        <Tabs.Content
+          value="ai"
+          forceMount
+          className="flex min-h-0 flex-1 flex-col data-[state=inactive]:hidden"
+        >
           <ChatPanel />
         </Tabs.Content>
       </Tabs.Root>

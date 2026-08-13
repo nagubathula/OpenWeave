@@ -179,5 +179,9 @@ export function createChatSessionManager({
     markTransportDirty()
   }
 
-  return { ensureChat, resetChat, markTransportDirty, setOverrideTransport }
+  function getOverrideTransport() {
+    return overrideTransport
+  }
+
+  return { ensureChat, resetChat, markTransportDirty, setOverrideTransport, getOverrideTransport }
 }

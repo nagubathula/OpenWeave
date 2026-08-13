@@ -34,7 +34,7 @@ export function ConstraintsSection() {
   const verticalValue = typeof vertical === 'string' ? vertical : ''
 
   return (
-    <div className="space-y-2 border-b border-border pb-3">
+    <section aria-label="Constraints" className="space-y-2 border-b border-border pb-3">
       <div className="text-[11px] font-semibold text-muted uppercase tracking-wider">Constraints</div>
       <div className="grid grid-cols-2 gap-2 text-xs">
         <label className="flex flex-col gap-1">
@@ -64,7 +64,7 @@ export function ConstraintsSection() {
           </select>
         </label>
       </div>
-    </div>
+    </section>
   )
 }
 

@@ -1,7 +1,16 @@
 import React, { useEffect, useState } from 'react'
+import { watch } from 'vue'
 import { createPortal } from 'react-dom'
 import { Sparkles, Palette, Cloud, X, Wand2 } from 'lucide-react'
+import { useI18n } from '@openweave/react'
+
+import { browserCredentialsRemembered, setRememberCredentials } from '@/app/ai/chat/storage'
+import { settingsDialogSection } from '@/app/settings/dialog'
+import { appCredentialServices } from '@/app/settings/credentials/app'
 import ModelsPanel from '@/components/settings/models/ModelsPanel'
+import StorageSettingsPanel from '@/components/settings/StorageSettingsPanel'
+import { AppSwitch } from '@/components/ui/AppSwitch'
+import { IS_TAURI } from '@/constants'
 import {
   setVectorizeCredential,
   vectorizeCredentialStatus,
@@ -204,17 +213,7 @@ function VectorizePanel() {
   )
 }
 
-function StoragePanel() {
-  return (
-    <div className="flex flex-col gap-3" data-test-id="settings-storage-panel">
-      <h3 className="text-xs font-semibold text-surface">Storage</h3>
-      <p className="text-[11px] text-muted">
-        Documents and credentials are stored locally in your browser. Clearing site data
-        removes them permanently.
-      </p>
-    </div>
-  )
-}
+
 
 // --- Dialog ----------------------------------------------------------------
 
@@ -223,8 +222,35 @@ export interface SettingsDialogProps {
   onClose: () => void
 }
 
+/** openSettingsDialog(section) writes a Vue ref; map its section ids onto ours. */
+function requestedSection(): SettingsSection {
+  const requested = settingsDialogSection.value
+  if (requested === 'media') return 'vectorize'
+  return requested
+}
+
 export function SettingsDialog({ open, onClose }: SettingsDialogProps) {
-  const [section, setSection] = useState<SettingsSection>('ai')
+  const [section, setSection] = useState<SettingsSection>(() => requestedSection())
+
+  // Re-sync with the requested section every time the dialog opens.
+  useEffect(() => {
+    if (open) setSection(requestedSection())
+  }, [open])
+  const { dialogs } = useI18n()
+
+  // Remember-credentials lives in the Vue store layer; bridge it for the footer switch.
+  const [remembered, setRemembered] = useState(browserCredentialsRemembered.value)
+  useEffect(() => {
+    const stop = watch(browserCredentialsRemembered, (value) => setRemembered(value))
+    return stop
+  }, [])
+
+  const credentialBackendLabel =
+    appCredentialServices.manager.backend === 'native'
+      ? dialogs.credentialBackendNative
+      : appCredentialServices.manager.backend === 'browser'
+        ? dialogs.credentialBackendBrowser
+        : dialogs.credentialBackendMemory
 
   useEffect(() => {
     if (!open) return
@@ -295,11 +321,30 @@ export function SettingsDialog({ open, onClose }: SettingsDialogProps) {
             {section === 'ai' && <ModelsPanel />}
             {section === 'vectorize' && <VectorizePanel />}
             {section === 'appearance' && <AppearancePanel />}
-            {section === 'storage' && <StoragePanel />}
+            {section === 'storage' && <StorageSettingsPanel onClose={onClose} />}
           </div>
         </div>
 
-        <div className="flex justify-end border-t border-border px-4 py-2.5">
+        <div className="flex items-center justify-between border-t border-border px-4 py-2.5">
+          <div className="mr-auto flex items-center gap-2">
+            {!IS_TAURI && (
+              <AppSwitch
+                value={remembered}
+                onValueChange={(value: boolean) => {
+                  setRemembered(value)
+                  void setRememberCredentials(value)
+                }}
+                label={dialogs.rememberCredentials}
+                data-test-id="settings-remember-credentials"
+              />
+            )}
+            <div>
+              {!IS_TAURI && <p className="text-[10px] text-surface">{dialogs.rememberCredentials}</p>}
+              <p className="text-[10px] text-muted" data-test-id="settings-credential-backend">
+                {dialogs.credentialStorage({ backend: credentialBackendLabel })}
+              </p>
+            </div>
+          </div>
           <button
             type="button"
             className="rounded bg-accent px-3 py-1.5 text-[11px] font-medium text-white hover:bg-accent/90"

@@ -55,7 +55,11 @@ export default function ComponentPropertiesSection() {
   }
 
   return (
-    <div className="space-y-2 border-b border-border pb-3" data-test-id="component-properties-section">
+    <section
+      aria-label="Component properties"
+      className="space-y-2 border-b border-border pb-3"
+      data-test-id="component-properties-section"
+    >
       <div className="text-[11px] font-semibold text-muted uppercase tracking-wider">Properties</div>
       {controls.map((control) => (
         <div key={control.id} className="flex items-center gap-2 text-xs">
@@ -95,6 +99,6 @@ export default function ComponentPropertiesSection() {
           ))}
         </div>
       ))}
-    </div>
+    </section>
   )
 }

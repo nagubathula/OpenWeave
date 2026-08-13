@@ -103,10 +103,14 @@ export default function LayoutSection() {
   ]
 
   return (
-    <div className="space-y-2 border-b border-border pb-3" data-test-id="layout-section">
+    <section
+      aria-label="Auto layout"
+      className="space-y-2 border-b border-border pb-3"
+      data-test-id="layout-section"
+    >
       <div className="flex items-center justify-between">
         <span className="text-[11px] font-semibold text-muted uppercase tracking-wider">
-          Auto Layout
+          Auto layout
         </span>
         <button
           type="button"
@@ -249,6 +253,6 @@ export default function LayoutSection() {
           ))}
         </div>
       </div>
-    </div>
+    </section>
   )
 }

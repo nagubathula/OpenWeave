@@ -1,4 +1,5 @@
 import React, { useRef, useEffect, useCallback } from 'react'
+import { watch } from 'vue'
 import { tv } from 'tailwind-variants'
 import * as ContextMenu from '@radix-ui/react-context-menu'
 import {
@@ -32,14 +33,21 @@ export default function LayerTree() {
 
   const rename = useInlineRename(handleRenameCommit)
 
+  // renameNodeId is set from the keyboard/menu layer (Vue store); a render-time
+  // dependency misses mutations that don't re-render this tree, so watch it.
   useEffect(() => {
-    const renameId = store.state.renameNodeId
-    if (renameId) {
-      const node = store.graph.getNode(renameId)
-      store.state.renameNodeId = null
-      if (node) rename.start(node.id, node.name)
-    }
-  }, [store.state.renameNodeId, store.graph, rename])
+    const stop = watch(
+      () => store.state.renameNodeId,
+      (renameId) => {
+        if (!renameId) return
+        const node = store.graph.getNode(renameId)
+        store.state.renameNodeId = null
+        if (node) rename.start(node.id, node.name)
+      },
+      { immediate: true }
+    )
+    return stop
+  }, [store, rename])
 
   useEffect(() => {
     if (rename.editingId && pageInputRef.current) {
@@ -136,7 +144,7 @@ export default function LayerTree() {
                           {isEditing ? (
                             <input
                               ref={pageInputRef}
-                              data-test-id="layers-rename-input"
+                              data-test-id="layers-item-input"
                               className={rowStyles.renameInput()}
                               defaultValue={node.name}
                               onBlur={(e) => {
