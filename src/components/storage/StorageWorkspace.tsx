@@ -1,6 +1,7 @@
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { Files, X } from 'lucide-react'
-import { ref, watch } from 'vue'
+import { atom } from 'nanostores'
+import { useStore } from '@nanostores/react'
 
 import {
   activeStorageProviderID,
@@ -10,7 +11,7 @@ import {
   storageProviderRegistry,
   type StorageDocument
 } from '@/app/integrations/storage'
-import { openSettingsDialog } from '@/app/settings/dialog'
+import { openSettingsDialog, settingsDialogOpen } from '@/app/settings/dialog'
 import { createCanvasId } from '@/app/storage/id'
 import { getLocalCanvasStore } from '@/app/storage/local-store'
 import { reconcileStorageDocuments } from '@/app/storage/reconcile'
@@ -24,11 +25,11 @@ import { activeTab, createTab, openStorageDocumentInNewTab } from '@/app/tabs'
  * with `openStorageWorkspace()` (e.g. from a menu action) and render
  * `<StorageWorkspace />` once near the app root — it renders nothing while closed.
  */
-const storageWorkspaceOpen = ref(false)
+const storageWorkspaceOpen = atom(false)
 // Bumped on every openStorageWorkspace() call so an already-open workspace
 // re-lists documents (e.g. after storage settings were just configured); the
 // Vue router remounted the view on navigation, this overlay stays mounted.
-const storageWorkspaceRefreshTick = ref(0)
+const storageWorkspaceRefreshTick = atom(0)
 
 /** Keeps the address bar at /storage while the workspace overlay is open (SPA-only —
  * direct visits are served by the /storage route, which opens the overlay on mount). */
@@ -43,39 +44,28 @@ function syncStorageUrl(open: boolean): void {
 }
 
 export function openStorageWorkspace(): void {
-  storageWorkspaceOpen.value = true
-  storageWorkspaceRefreshTick.value++
+  storageWorkspaceOpen.set(true)
+  storageWorkspaceRefreshTick.set(storageWorkspaceRefreshTick.get() + 1)
   syncStorageUrl(true)
 }
 
 export default function StorageWorkspace() {
-  const [open, setOpen] = useState(storageWorkspaceOpen.value)
+  const open = useStore(storageWorkspaceOpen)
+  const refreshTick = useStore(storageWorkspaceRefreshTick)
   const [documents, setDocuments] = useState<StorageDocument[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [configured, setConfigured] = useState(false)
 
-  // Bridge the Vue open-ref into React state.
-  useEffect(() => {
-    let raf = 0
-    const tick = () => {
-      setOpen(storageWorkspaceOpen.value)
-      raf = requestAnimationFrame(tick)
-    }
-    raf = requestAnimationFrame(tick)
-    return () => cancelAnimationFrame(raf)
-  }, [])
-
   const close = () => {
-    storageWorkspaceOpen.value = false
-    setOpen(false)
+    storageWorkspaceOpen.set(false)
     syncStorageUrl(false)
   }
 
   const refresh = useCallback(async (): Promise<void> => {
     setLoading(true)
     setError(null)
-    const providerId = activeStorageProviderID.value
+    const providerId = activeStorageProviderID.get()
     const localStore = getLocalCanvasStore()
 
     // Paint locally-cached documents immediately.
@@ -133,14 +123,17 @@ export default function StorageWorkspace() {
 
   useEffect(() => {
     if (open) void refresh()
-  }, [open, refresh])
+  }, [open, refreshTick, refresh])
 
+  // Re-list documents once the Settings dialog closes (e.g. storage was just
+  // configured there) — the workspace stays mounted across the dialog, so it
+  // wouldn't otherwise notice the change.
+  const settingsOpen = useStore(settingsDialogOpen)
+  const wasSettingsOpen = useRef(settingsOpen)
   useEffect(() => {
-    const stop = watch(storageWorkspaceRefreshTick, () => {
-      if (storageWorkspaceOpen.value) void refresh()
-    })
-    return stop
-  }, [refresh])
+    if (wasSettingsOpen.current && !settingsOpen && open) void refresh()
+    wasSettingsOpen.current = settingsOpen
+  }, [settingsOpen, open, refresh])
 
   if (!open) return null
 
@@ -152,14 +145,14 @@ export default function StorageWorkspace() {
   const createDocument = async (): Promise<void> => {
     if (!configured) return
     close()
-    const current = activeTab.value
+    const current = activeTab.get()
     const store =
       current?.store.state.documentName === 'Untitled' && !current.store.undo.canUndo
         ? current.store
         : createTab().store
     const documentId = createCanvasId()
     store.setStorageDocumentSource(
-      { providerId: activeStorageProviderID.value, documentId },
+      { providerId: activeStorageProviderID.get(), documentId },
       'Untitled'
     )
     await store.saveFigFile()
@@ -173,7 +166,7 @@ export default function StorageWorkspace() {
       <header className="flex h-14 shrink-0 items-center border-b border-border px-6">
         <div>
           <h1 className="text-sm font-semibold">Storage workspace</h1>
-          <p className="text-[10px] text-muted">{activeStorageProviderID.value}</p>
+          <p className="text-[10px] text-muted">{activeStorageProviderID.get()}</p>
         </div>
         <div className="ml-auto flex items-center gap-2">
           <button

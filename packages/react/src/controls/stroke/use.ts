@@ -1,4 +1,4 @@
-import { ref } from 'vue'
+import { useMemo, useRef, useState } from 'react'
 
 import { useNodeProps } from '#react/controls/node-props/use'
 import {
@@ -23,14 +23,15 @@ import { useI18n } from '#react/i18n'
 /**
  * Returns stroke-related helpers for property panels.
  *
- * This composable provides alignment and side helpers plus mixed-selection
- * state and undo-aware actions for caps, joins, and miter limits.
+ * Provides alignment and side helpers plus mixed-selection state and
+ * undo-aware actions for caps, joins, and miter limits.
  */
 export function useStrokeControls() {
   const store = useEditor()
   const { nodes, merged } = useNodeProps()
   const { panels } = useI18n()
-  const sideMenuOpen = ref(false)
+  const [sideMenuOpen, setSideMenuOpen] = useState(false)
+
   const alignOptions = [
     { value: 'INSIDE' as const, label: panels.strokeAlignInside },
     { value: 'CENTER' as const, label: panels.strokeAlignCenter },
@@ -46,9 +47,21 @@ export function useStrokeControls() {
     { value: 'BEVEL' as const, label: panels.strokeJoinBevel },
     { value: 'ROUND' as const, label: panels.strokeJoinRound }
   ]
+
   const geometryState = createStrokeGeometryState({ nodes, merged })
-  const geometryActions = createStrokeGeometryActions(store, nodes)
-  const { selectSide, updateBorderWeight } = createStrokeSideActions(store, sideMenuOpen)
+
+  // Memoized so the in-flight miter scrub state survives re-renders; the getter
+  // always reads the current selection.
+  const nodesRef = useRef(nodes)
+  nodesRef.current = nodes
+  const geometryActions = useMemo(
+    () => createStrokeGeometryActions(store, () => nodesRef.current),
+    [store]
+  )
+  const { selectSide, updateBorderWeight } = useMemo(
+    () => createStrokeSideActions(store, () => setSideMenuOpen(false)),
+    [store]
+  )
 
   return {
     alignOptions,
@@ -59,6 +72,7 @@ export function useStrokeControls() {
     sideOptions: SIDE_OPTIONS,
     borderSides: BORDER_SIDES,
     sideMenuOpen,
+    setSideMenuOpen,
     defaultStroke: DEFAULT_STROKE,
     updateAlign: updateAlign.bind(null, store),
     currentAlign,

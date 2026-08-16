@@ -1,10 +1,10 @@
-import React, { useEffect, useReducer, useRef, useState } from 'react'
+import React, { useRef, useState } from 'react'
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import { Check } from 'lucide-react'
-import { watch } from 'vue'
 
 import { useI18n } from '@openweave/react'
 
+import { useEditorState } from '@/app/editor/session/use-editor-state'
 import { getActiveEditorStore } from '@/app/editor/active-store'
 
 /**
@@ -26,22 +26,16 @@ const itemCls =
 
 export default function ZoomDropdown() {
   const { menu, commands, panels } = useI18n()
-  const [, force] = useReducer((n: number): number => n + 1, 0)
   const [editing, setEditing] = useState(false)
   const [inputValue, setInputValue] = useState('')
   const inputRef = useRef<HTMLInputElement>(null)
 
-  useEffect(() => {
-    const store = getActiveEditorStore()
-    const stop = watch(
-      () => [store.state.zoom, store.state.showRulers, store.state.showRemoteCursors] as const,
-      () => force()
-    )
-    return stop
-  }, [])
+  const zoom = useEditorState((s) => s.zoom, 1)
+  useEditorState((s) => s.showRulers, true)
+  useEditorState((s) => s.showRemoteCursors, true)
 
   const store = getActiveEditorStore()
-  const zoomPercent = Math.round(store.state.zoom * 100)
+  const zoomPercent = Math.round(zoom * 100)
 
   const startEditing = () => {
     setInputValue(String(zoomPercent))

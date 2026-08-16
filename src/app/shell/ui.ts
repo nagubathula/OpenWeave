@@ -1,5 +1,3 @@
-import { useEventListener } from '@vueuse/core'
-
 import { isTauri } from '@/app/tauri/env'
 import type { ToastVariant } from '@/components/ui/toast'
 
@@ -68,10 +66,11 @@ function setupGlobalErrorHandler() {
   if (errorHandlersInitialized) return
   errorHandlersInitialized = true
 
-  useEventListener(window, 'error', (e) => {
+  // App-lifetime handlers — no teardown needed.
+  window.addEventListener('error', (e) => {
     error(e.message || 'An unexpected error occurred')
   })
-  useEventListener(window, 'unhandledrejection', (e) => {
+  window.addEventListener('unhandledrejection', (e) => {
     const msg = e.reason instanceof Error ? e.reason.message : String(e.reason)
     error(msg || 'An unexpected error occurred')
   })

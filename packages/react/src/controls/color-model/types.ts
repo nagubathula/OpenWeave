@@ -1,4 +1,4 @@
-import type { Color as RekaColor } from 'reka-ui' // Keep using this type if it comes from reka-ui or remove it if not needed
+import type { ColorValue as RekaColor } from './convert'
 
 import type { OkHCLColor, RenderColorSpace } from '@openweave/core/color'
 import type { Color } from '@openweave/scene-graph/primitives'

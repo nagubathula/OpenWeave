@@ -1,4 +1,4 @@
-import { ref } from 'vue'
+import { atom } from 'nanostores'
 
 import { IS_BROWSER } from '@openweave/core/constants'
 
@@ -25,10 +25,15 @@ import {
   unsplashKeyStatus
 } from '@/app/ai/chat/storage'
 import { createChatSessionManager } from '@/app/ai/chat/transports'
+import { setDesignModelID } from '@/app/ai/models'
 import { exposeChatTransportOverride } from '@/app/browser-bridge'
 import { getActiveEditorStore } from '@/app/editor/active-store'
 
-const activeTab = ref<'design' | 'code' | 'ai'>('design')
+/**
+ * Shared design/code/ai panel tab. A nanostores atom so React renders it via
+ * `useStore` and non-React code (keyboard shortcuts) uses `.get()`/`.set()`.
+ */
+const activeTab = atom<'design' | 'code' | 'ai'>('design')
 
 const chatSession = createChatSessionManager({
   isConfigured,
@@ -55,6 +60,7 @@ export function useAIChat() {
     setAPIKey,
     resolveAPIKey,
     modelID,
+    setModelID: setDesignModelID,
     customBaseURL,
     customModelID,
     customAPIType,

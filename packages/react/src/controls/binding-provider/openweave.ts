@@ -1,5 +1,3 @@
-import { useFilter } from 'reka-ui'
-
 import type { Editor } from '@openweave/core/editor'
 import type { Variable, VariableType } from '@openweave/scene-graph'
 
@@ -10,6 +8,7 @@ import type {
 } from '#react/controls/binding-provider/types'
 import { useEditor } from '#react/editor/context'
 import { useSceneComputed } from '#react/internal/scene-computed/use'
+import { createBaseFilter } from '#react/shared/filter'
 
 export interface OpenWeaveBindingProviderOptions<V> {
   type: VariableType
@@ -24,7 +23,7 @@ export function useOpenWeaveBindingProvider<V>(
   const editor = useEditor()
   const revision = useSceneComputed(() => editor.state.sceneVersion)
   const variables = useSceneComputed(() => editor.getVariablesByType(options.type))
-  const { contains } = useFilter({ sensitivity: 'base' })
+  const { contains } = createBaseFilter()
 
   function listVariables(): Variable[] {
     return variables

@@ -1,5 +1,5 @@
-import { convertToHsb, convertToHsl, convertToRgb } from 'reka-ui'
-import type { Color as RekaColor, HSBColor, HSLColor, RGBColor } from 'reka-ui'
+import { convertToHsb, convertToHsl, convertToRgb } from './convert'
+import type { ColorValue as RekaColor, HSBColor, HSLColor, RGBColor } from './convert'
 
 import { colorToCSS, okhclToRGBA, rgba255ToColor, rgbaToOkHCL } from '@openweave/core/color'
 import type { OkHCLColor } from '@openweave/core/color'

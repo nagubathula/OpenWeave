@@ -1,5 +1,3 @@
-import { computed, type Ref } from 'vue'
-
 import { BLACK } from '@openweave/core/constants'
 import type { Editor } from '@openweave/core/editor'
 import type { SceneNode, Stroke, StrokeCap, StrokeJoin } from '@openweave/scene-graph'
@@ -40,23 +38,25 @@ export interface StrokeGeometryActions {
 
 export function createStrokeGeometryState({ nodes, merged }: StrokeGeometryStateInput) {
   return {
-    advancedActive: computed(
-      () => nodes.length > 0 && nodes.every((node) => node.strokes.length > 0)
-    ),
-    cap: computed(() => merged('strokeCap')),
-    join: computed(() => merged('strokeJoin')),
-    miterLimit: computed(() => merged('strokeMiterLimit'))
+    advancedActive: nodes.length > 0 && nodes.every((node) => node.strokes.length > 0),
+    cap: merged('strokeCap'),
+    join: merged('strokeJoin'),
+    miterLimit: merged('strokeMiterLimit')
   }
 }
 
+/**
+ * `getNodes` is a getter (not a snapshot) so the actions object can be memoized
+ * once per editor while the in-flight miter scrub Map survives re-renders.
+ */
 export function createStrokeGeometryActions(
   editor: Editor,
-  nodes: SceneNode[]
+  getNodes: () => SceneNode[]
 ): StrokeGeometryActions {
   const originalMiterLimits = new Map<string, number>()
 
   function runForSelection(label: string, action: (node: SceneNode) => void) {
-    const selected = nodes
+    const selected = getNodes()
     const run = () => selected.forEach(action)
     if (selected.length > 1) editor.undo.runBatch(label, run)
     else run()
@@ -83,7 +83,7 @@ export function createStrokeGeometryActions(
   }
 
   function updateMiterLimit(value: number) {
-    for (const node of nodes) {
+    for (const node of getNodes()) {
       if (!originalMiterLimits.has(node.id)) originalMiterLimits.set(node.id, node.strokeMiterLimit)
       editor.updateNode(node.id, { strokeMiterLimit: Math.max(1, value) })
     }
@@ -162,7 +162,7 @@ export function borderWeight(activeNode: SceneNode | null, side: (typeof BORDER_
   return typeof value === 'number' ? value : 0
 }
 
-export function createStrokeSideActions(editor: Editor, sideMenuOpen: Ref<boolean>) {
+export function createStrokeSideActions(editor: Editor, closeSideMenu: () => void) {
   function selectSide(side: StrokeSides, activeNode: SceneNode | null) {
     if (!activeNode) return
     const weight = activeNode.strokes.length > 0 ? activeNode.strokes[0].weight : 1
@@ -211,7 +211,7 @@ export function createStrokeSideActions(editor: Editor, sideMenuOpen: Ref<boolea
         `Stroke ${side.toLowerCase()} only`
       )
     }
-    sideMenuOpen.value = false
+    closeSideMenu()
   }
 
   function updateBorderWeight(

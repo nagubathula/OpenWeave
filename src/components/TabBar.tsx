@@ -1,27 +1,12 @@
-import React, { useEffect, useReducer } from 'react'
+import React from 'react'
 import { File as FileIcon, X, Plus } from 'lucide-react'
-import { watch } from 'vue'
+import { useStore } from '@nanostores/react'
 
-import { useTabsStore, createTab } from '@/app/tabs'
+import { allTabs, createTab, switchTab, closeTab } from '@/app/tabs'
 
-/**
- * Multi-document tab strip. Ported from src/components/TabBar.vue.
- *
- * The tab state lives in `@/app/tabs` as Vue refs (`tabs` is a computed of
- * `{ id, name, isActive }`, `activeTabId` a shallowRef). React can't observe
- * Vue reactivity directly, so we bridge it: a `watch` on the relevant refs
- * forces a re-render, and the component body reads `.value` on every render.
- */
+/** Multi-document tab strip. Ported from src/components/TabBar.vue. */
 export default function TabBar() {
-  const { tabs, activeTabId, switchTab, closeTab } = useTabsStore()
-  const [, forceRender] = useReducer((n: number): number => n + 1, 0)
-
-  useEffect(() => {
-    const stop = watch([tabs, activeTabId], () => forceRender(), { deep: true })
-    return stop
-  }, [tabs, activeTabId])
-
-  const openTabs = tabs.value
+  const openTabs = useStore(allTabs)
 
   // Match the Vue behaviour: the strip is only shown when more than one tab is open.
   if (openTabs.length <= 1) return null

@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from 'react'
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 
 import type { Variable } from '@openweave/scene-graph'
 
@@ -40,12 +40,22 @@ export function useVariables() {
     return all.filter((v) => v.name.toLowerCase().includes(q))
   })
 
-  // Ref-like wrapper for compatibility with helper functions
-  const activeCollectionIdRef = useMemo(() => ({ value: activeCollectionId }), [activeCollectionId])
-  const activeCollectionRef = useMemo(() => ({ value: activeCollection }), [activeCollection])
+  // Live accessor so memoized actions always read/write the current React state.
+  const activeIdRef = useRef(activeCollectionId)
+  activeIdRef.current = activeCollectionId
 
-  const collectionActions = createVariableCollectionActions(editor, activeCollectionIdRef as any)
-  const variableActions = createVariableValueActions(editor, () => activeCollectionRef.value)
+  const collectionActions = useMemo(
+    () =>
+      createVariableCollectionActions(editor, {
+        get: () => activeIdRef.current,
+        set: (id) => setActiveCollectionId(id)
+      }),
+    [editor]
+  )
+  const variableActions = useMemo(
+    () => createVariableValueActions(editor, () => editor.getCollection(activeIdRef.current) ?? null),
+    [editor]
+  )
 
   const selectCollection = useCallback((id: string) => {
     setActiveCollectionId(id)

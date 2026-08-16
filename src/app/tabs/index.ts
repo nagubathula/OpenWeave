@@ -1,4 +1,4 @@
-import { shallowRef, computed, triggerRef } from 'vue'
+import { atom, computed } from 'nanostores'
 
 import { BUILTIN_IO_FORMATS, IORegistry } from '@openweave/core/io'
 import { readFigFile } from '@openweave/core/io/formats/fig'
@@ -34,79 +34,96 @@ function generateTabId(): string {
   return `tab-${nextTabId++}`
 }
 
-const tabsRef = shallowRef<Tab[]>([])
-const activeTabId = shallowRef('')
+const tabsAtom = atom<Tab[]>([])
+export const activeTabId = atom('')
 
-export const activeTab = computed(() => tabsRef.value.find((t) => t.id === activeTabId.value))
+/** Bumped when any open tab's document name changes so tab strips re-render. */
+const tabNamesRevision = atom(0)
+const tabStateUnsubscribers = new Map<string, () => void>()
 
-export const allTabs = computed(() =>
-  tabsRef.value.map((t) => ({
-    id: t.id,
-    name: t.store.state.documentName,
-    isActive: t.id === activeTabId.value
-  }))
+export const activeTab = computed([tabsAtom, activeTabId], (tabs, id) =>
+  tabs.find((t) => t.id === id)
+)
+
+export const allTabs = computed(
+  [tabsAtom, activeTabId, tabNamesRevision],
+  (tabs, id) =>
+    tabs.map((t) => ({
+      id: t.id,
+      name: t.store.state.documentName,
+      isActive: t.id === id
+    }))
 )
 
 export function getActiveStore(): EditorStore {
-  const tab = tabsRef.value.find((t) => t.id === activeTabId.value)
+  const tab = tabsAtom.get().find((t) => t.id === activeTabId.get())
   if (!tab) throw new Error('No active tab')
   return tab.store
 }
 
 export function getActiveTabId(): string {
-  return activeTabId.value
+  return activeTabId.get()
 }
 
 export function getTabById(tabId: string): Tab | undefined {
-  return tabsRef.value.find((tab) => tab.id === tabId)
+  return tabsAtom.get().find((tab) => tab.id === tabId)
 }
 
 export function getTabForStore(store: EditorStore): Tab | undefined {
-  return tabsRef.value.find((tab) => tab.store === store)
+  return tabsAtom.get().find((tab) => tab.store === store)
 }
 
 export function getTabsSnapshot(): Tab[] {
-  return [...tabsRef.value]
+  return [...tabsAtom.get()]
 }
 
 export function createTab(store?: EditorStore, initialGraph?: SceneGraph): Tab {
   const s = store ?? createEditorStore(initialGraph)
   const tab: Tab = { id: generateTabId(), store: s }
-  tabsRef.value = [...tabsRef.value, tab]
+  tabStateUnsubscribers.set(
+    tab.id,
+    s.subscribeState((key) => {
+      if (key === 'documentName') tabNamesRevision.set(tabNamesRevision.get() + 1)
+    })
+  )
+  tabsAtom.set([...tabsAtom.get(), tab])
   activateTab(tab)
   return tab
 }
 
 function activateTab(tab: Tab) {
-  activeTabId.value = tab.id
+  activeTabId.set(tab.id)
   setActiveEditorStore(tab.store)
-  triggerRef(tabsRef)
   setOpenWeaveStore(tab.store)
 }
 
 export function switchTab(tabId: string) {
-  const tab = tabsRef.value.find((t) => t.id === tabId)
+  const tab = tabsAtom.get().find((t) => t.id === tabId)
   if (!tab) return
   activateTab(tab)
 }
 
 export function closeTab(tabId: string) {
-  const idx = tabsRef.value.findIndex((t) => t.id === tabId)
+  const tabs = tabsAtom.get()
+  const idx = tabs.findIndex((t) => t.id === tabId)
   if (idx === -1) return
 
-  const closingTab = tabsRef.value[idx]
-  const wasActive = activeTabId.value === tabId
-  tabsRef.value = tabsRef.value.filter((t) => t.id !== tabId)
+  const closingTab = tabs[idx]
+  const wasActive = activeTabId.get() === tabId
+  tabStateUnsubscribers.get(tabId)?.()
+  tabStateUnsubscribers.delete(tabId)
+  const remaining = tabs.filter((t) => t.id !== tabId)
+  tabsAtom.set(remaining)
 
-  if (tabsRef.value.length === 0) {
+  if (remaining.length === 0) {
     createTab()
     closingTab.store.dispose()
     return
   }
 
   if (wasActive) {
-    const newIdx = Math.min(idx, tabsRef.value.length - 1)
-    activateTab(tabsRef.value[newIdx])
+    const newIdx = Math.min(idx, remaining.length - 1)
+    activateTab(remaining[newIdx])
   }
 
   closingTab.store.dispose()
@@ -123,21 +140,21 @@ function isDOMImportFile(file: File): boolean {
 }
 
 function reusableTabStore(): EditorStore {
-  const current = activeTab.value
+  const current = activeTab.get()
   const isUntouched =
     current?.store.state.documentName === 'Untitled' && !current.store.undo.canUndo
   return isUntouched ? current.store : createTab().store
 }
 
 function findStorageTab(providerId: string, documentId: string): Tab | undefined {
-  return tabsRef.value.find((tab) => {
+  return tabsAtom.get().find((tab) => {
     const binding = tab.store.getStorageBinding()
     return binding?.providerId === providerId && binding.documentId === documentId
   })
 }
 
 export async function openStorageDocumentInNewTab(document: StorageDocument): Promise<void> {
-  const providerId = activeStorageProviderID.value
+  const providerId = activeStorageProviderID.get()
   const existing = findStorageTab(providerId, document.id)
   if (existing) {
     switchTab(existing.id)
@@ -205,7 +222,7 @@ export async function openFileInNewTab(
       return { kind: 'pending' as const, completion: pending.completion }
     }
 
-    const existing = await findTabByFileIdentity(tabsRef.value, identity)
+    const existing = await findTabByFileIdentity(tabsAtom.get(), identity)
     if (existing) {
       switchTab(existing.id)
       return { kind: 'existing' as const }
@@ -266,7 +283,7 @@ export async function openFileInNewTab(
 }
 
 export function tabCount(): number {
-  return tabsRef.value.length
+  return tabsAtom.get().length
 }
 
 export function useTabsStore() {

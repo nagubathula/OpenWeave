@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { watch } from 'vue'
+import { useStore } from '@nanostores/react'
 import { createPortal } from 'react-dom'
 import { Sparkles, Palette, Cloud, X, Wand2 } from 'lucide-react'
 import { useI18n } from '@openweave/react'
@@ -102,7 +102,7 @@ function AppearancePanel() {
 }
 
 function VectorizePanel() {
-  const [providerID, setProviderID] = useState<VectorizeProviderID>(vectorizeProviderID.value)
+  const providerID = useStore(vectorizeProviderID)
   const [keyDraft, setKeyDraft] = useState('')
   const [status, setStatus] =
     useState<Awaited<ReturnType<typeof vectorizeCredentialStatus>>>('missing')
@@ -121,8 +121,7 @@ function VectorizePanel() {
   }, [providerID])
 
   const changeProvider = (id: VectorizeProviderID) => {
-    vectorizeProviderID.value = id
-    setProviderID(id)
+    vectorizeProviderID.set(id)
     setKeyDraft('')
   }
 
@@ -222,9 +221,9 @@ export interface SettingsDialogProps {
   onClose: () => void
 }
 
-/** openSettingsDialog(section) writes a Vue ref; map its section ids onto ours. */
+/** openSettingsDialog(section) writes a nanostores atom; map its section ids onto ours. */
 function requestedSection(): SettingsSection {
-  const requested = settingsDialogSection.value
+  const requested = settingsDialogSection.get()
   if (requested === 'media') return 'vectorize'
   return requested
 }
@@ -238,12 +237,10 @@ export function SettingsDialog({ open, onClose }: SettingsDialogProps) {
   }, [open])
   const { dialogs } = useI18n()
 
-  // Remember-credentials lives in the Vue store layer; bridge it for the footer switch.
-  const [remembered, setRemembered] = useState(browserCredentialsRemembered.value)
-  useEffect(() => {
-    const stop = watch(browserCredentialsRemembered, (value) => setRemembered(value))
-    return stop
-  }, [])
+  // Remember-credentials lives in the credential store layer; local state keeps
+  // the footer switch optimistic while the async persistence settles.
+  const [remembered, setRemembered] = useState(() => browserCredentialsRemembered.get())
+  useEffect(() => browserCredentialsRemembered.listen((value) => setRemembered(value)), [])
 
   const credentialBackendLabel =
     appCredentialServices.manager.backend === 'native'

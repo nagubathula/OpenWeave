@@ -1,12 +1,12 @@
 const toolbarTheme = {
   slots: {
     button:
-      'flex size-8 cursor-pointer items-center justify-center border-none bg-transparent text-muted transition-colors outline-none focus-visible:ring-1 focus-visible:ring-accent',
-    icon: 'size-4',
-    flyoutGroup: 'flex items-center',
+      'flex size-8 cursor-pointer items-center justify-center rounded-md border-none bg-transparent text-[#cecece] transition-colors outline-none focus-visible:ring-1 focus-visible:ring-accent',
+    icon: 'size-[18px]',
+    flyoutGroup: 'flex items-center rounded-md',
     flyoutTrigger:
-      'flex h-8 w-3 cursor-pointer items-center justify-center border-none bg-transparent text-muted transition-colors outline-none data-[state=open]:bg-hover data-[state=open]:text-surface focus-visible:ring-1 focus-visible:ring-accent',
-    flyoutTriggerIcon: 'size-2.5',
+      'flex h-8 w-4 cursor-pointer items-center justify-center border-none bg-transparent p-0 text-[#9a9a9a] outline-none data-[state=open]:text-white focus-visible:ring-1 focus-visible:ring-accent',
+    flyoutTriggerIcon: 'size-3',
     flyoutContent: '',
     flyoutItem: '',
     flyoutItemIndicator: 'flex size-3.5 shrink-0 items-center justify-center',
@@ -16,8 +16,8 @@ const toolbarTheme = {
       'flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-full border border-border bg-panel text-muted shadow-sm outline-none select-none focus-visible:ring-1 focus-visible:ring-accent disabled:pointer-events-none',
     navigationIcon: 'size-3.5',
     action:
-      'flex size-8 cursor-pointer items-center justify-center rounded-[6px] border-none bg-transparent text-muted transition-colors outline-none select-none active:bg-hover active:text-surface focus-visible:ring-1 focus-visible:ring-accent',
-    actionIcon: 'size-4'
+      'flex size-8 cursor-pointer items-center justify-center rounded-md border-none bg-transparent text-[#cecece] transition-colors outline-none select-none active:bg-white/15 focus-visible:ring-1 focus-visible:ring-accent',
+    actionIcon: 'size-[18px]'
   },
   variants: {
     active: {
@@ -28,12 +28,10 @@ const toolbarTheme = {
     },
     mobile: {
       true: {
-        button: 'rounded-[6px] select-none',
-        flyoutTrigger: 'rounded-[6px] select-none active:bg-hover active:text-surface'
+        button: 'rounded-md select-none'
       },
       false: {
-        button: 'rounded-lg',
-        flyoutTrigger: 'rounded-lg hover:bg-hover hover:text-surface'
+        button: ''
       }
     },
     disabled: {
@@ -48,14 +46,14 @@ const toolbarTheme = {
       active: false,
       mobile: true,
       class: {
-        button: 'active:bg-hover'
+        button: 'active:bg-white/15'
       }
     },
     {
       active: false,
       mobile: false,
       class: {
-        button: 'hover:bg-hover hover:text-surface'
+        button: 'hover:bg-white/10 hover:text-white'
       }
     }
   ],

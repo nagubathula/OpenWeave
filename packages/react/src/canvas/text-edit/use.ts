@@ -68,24 +68,6 @@ export function useTextEdit(canvasRef: RefObject<HTMLCanvasElement | null>, stor
   })
 
   useEffect(() => {
-    const ta = textareaRef.current
-    if (!ta) return
-    ta.addEventListener('input', onInput)
-    ta.addEventListener('compositionstart', onCompositionStart)
-    ta.addEventListener('compositionupdate', onCompositionUpdate)
-    ta.addEventListener('compositionend', onCompositionEnd)
-    ta.addEventListener('keydown', onKeyDown)
-    return () => {
-      ta.removeEventListener('input', onInput)
-      ta.removeEventListener('compositionstart', onCompositionStart)
-      ta.removeEventListener('compositionupdate', onCompositionUpdate)
-      ta.removeEventListener('compositionend', onCompositionEnd)
-      ta.removeEventListener('keydown', onKeyDown)
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
-
-  useEffect(() => {
     const canvas = canvasRef.current
     if (!canvas) return
     const handler = () => focusTextAreaOnCanvasPointerDown(textareaRef, store)
@@ -94,5 +76,16 @@ export function useTextEdit(canvasRef: RefObject<HTMLCanvasElement | null>, stor
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  useTextEditingSession({ store, textareaRef, resetBlink, stopBlink, resetComposition })
+  useTextEditingSession({
+    store,
+    textareaRef,
+    resetBlink,
+    stopBlink,
+    resetComposition,
+    onInput,
+    onCompositionStart,
+    onCompositionUpdate,
+    onCompositionEnd,
+    onKeyDown
+  })
 }

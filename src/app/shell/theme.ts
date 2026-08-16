@@ -1,5 +1,5 @@
-import { useLocalStorage, usePreferredDark } from '@vueuse/core'
-import { computed, watch } from 'vue'
+import { persistentAtom } from '@nanostores/persistent'
+import { atom, computed } from 'nanostores'
 
 import type { RulerTheme } from '@openweave/core/canvas'
 import { parseColor } from '@openweave/core/color'
@@ -12,12 +12,24 @@ export type AppTheme = 'dark' | 'light' | 'auto'
 const THEME_STORAGE_KEY = 'openweave:theme'
 const DEFAULT_THEME: AppTheme = 'dark'
 
-const theme = useLocalStorage<AppTheme>(THEME_STORAGE_KEY, DEFAULT_THEME)
-const prefersDark = usePreferredDark()
-const resolvedTheme = computed<'dark' | 'light'>(() => {
-  if (theme.value === 'auto') return prefersDark.value ? 'dark' : 'light'
-  return theme.value
+export const theme = persistentAtom<AppTheme>(THEME_STORAGE_KEY, DEFAULT_THEME, {
+  encode: (value) => value,
+  decode: (raw) => (raw === 'light' || raw === 'auto' ? raw : 'dark')
 })
+
+const prefersDark = atom(IS_BROWSER ? window.matchMedia('(prefers-color-scheme: dark)').matches : true)
+if (IS_BROWSER) {
+  window
+    .matchMedia('(prefers-color-scheme: dark)')
+    .addEventListener('change', (event) => prefersDark.set(event.matches))
+}
+
+export const resolvedTheme = computed([theme, prefersDark], (setting, dark): 'dark' | 'light' => {
+  if (setting === 'auto') return dark ? 'dark' : 'light'
+  return setting
+})
+
+export const isLight = computed(resolvedTheme, (value) => value === 'light')
 
 function readRulerTheme(): RulerTheme | null {
   if (!IS_BROWSER || !('document' in globalThis)) return null
@@ -46,26 +58,22 @@ function applyTheme(value: 'dark' | 'light', setting: AppTheme): void {
   updateCanvasTheme()
 }
 
-export function useAppTheme() {
-  watch([resolvedTheme, theme], ([value, setting]) => applyTheme(value, setting), {
-    immediate: true
-  })
-
-  // Editors may mount after the theme was applied; push the canvas (ruler)
-  // theme whenever the active editor changes so rulers always match.
-  watch([resolvedTheme], () => updateCanvasTheme(), { flush: 'post' })
-
-  const isLight = computed(() => resolvedTheme.value === 'light')
-
-  function setTheme(value: AppTheme): void {
-    theme.value = value
-  }
-
-  function toggleTheme(): void {
-    theme.value = isLight.value ? 'dark' : 'light'
-  }
-
-  return { theme, resolvedTheme, isLight, setTheme, toggleTheme }
+// Applied once at module load and again on every change — the old Vue
+// `watch(..., { immediate: true })` behavior.
+if (IS_BROWSER) {
+  applyTheme(resolvedTheme.get(), theme.get())
+  resolvedTheme.listen((value) => applyTheme(value, theme.get()))
+  theme.listen((setting) => applyTheme(resolvedTheme.get(), setting))
 }
 
-applyTheme(resolvedTheme.value, theme.value)
+export function setTheme(value: AppTheme): void {
+  theme.set(value)
+}
+
+export function toggleTheme(): void {
+  theme.set(isLight.get() ? 'dark' : 'light')
+}
+
+export function useAppTheme() {
+  return { theme, resolvedTheme, isLight, setTheme, toggleTheme }
+}

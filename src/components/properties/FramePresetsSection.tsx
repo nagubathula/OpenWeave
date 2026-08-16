@@ -1,5 +1,5 @@
 import React from 'react'
-import { useEditor, useSelectionState } from '@openweave/react'
+import { useEditor, useI18n, useSelectionState } from '@openweave/react'
 import {
   findFrameResizePreset,
   FRAME_RESIZE_PRESET_CATEGORIES,
@@ -13,6 +13,7 @@ import {
 export default function FramePresetsSection() {
   const editor = useEditor()
   const { selectedNode: node } = useSelectionState()
+  const { panels } = useI18n()
 
   if (node?.type !== 'FRAME') return null
 
@@ -33,9 +34,9 @@ export default function FramePresetsSection() {
           value={current?.id ?? 'custom'}
           onChange={(e) => onSelect(e.target.value)}
         >
-          <option value="custom">Custom</option>
+          <option value="custom">{panels.framePresetCustom}</option>
           {FRAME_RESIZE_PRESET_CATEGORIES.map((category) => (
-            <optgroup key={category.id} label={category.id}>
+            <optgroup key={category.id} label={panels[category.labelKey] as string}>
               {category.presets.map((preset) => (
                 <option key={preset.id} value={preset.id}>
                   {preset.name} ({preset.width} × {preset.height})

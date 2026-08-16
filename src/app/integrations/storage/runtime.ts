@@ -32,7 +32,7 @@ export async function storageCredentialStatuses(
 }
 
 export function createActiveStorageAdapter(
-  providerID: StorageProviderID = activeStorageProviderID.value,
+  providerID: StorageProviderID = activeStorageProviderID.get(),
   profileID = 'default'
 ): StorageAdapter {
   return storageProviderRegistry.createAdapter(providerID, {

@@ -1,16 +1,19 @@
-import { inject, provide } from 'vue'
-import type { InjectionKey } from 'vue'
+import { createContext, useContext } from 'react'
 
 import type { BindingProvider } from '#react/controls/binding-provider/types'
 
-export const BINDING_PROVIDER_KEY: InjectionKey<BindingProvider> = Symbol(
-  'openweave-binding-provider'
-)
+const BindingProviderContext = createContext<BindingProvider | undefined>(undefined)
 
-export function provideBindingProvider(provider: BindingProvider) {
-  provide(BINDING_PROVIDER_KEY, provider)
-}
+/**
+ * Provider component that makes a {@link BindingProvider} available to
+ * variable-capable field primitives (e.g. FillSwatch, BindableValue).
+ */
+export const BindingProviderProvider = BindingProviderContext.Provider
 
+/**
+ * Reads the nearest {@link BindingProvider}, or `undefined` when the field is
+ * not variable-capable in the current subtree.
+ */
 export function useBindingProvider<V>(): BindingProvider<V> | undefined {
-  return inject(BINDING_PROVIDER_KEY, undefined) as BindingProvider<V> | undefined
+  return useContext(BindingProviderContext) as BindingProvider<V> | undefined
 }

@@ -5,7 +5,7 @@ import type { EditorStore } from '@/app/editor/active-store'
 
 type KeyboardActionsOptions = {
   store: EditorStore
-  activeTab: { value: 'design' | 'code' | 'ai' }
+  activeTab: { get(): 'design' | 'code' | 'ai'; set(tab: 'design' | 'code' | 'ai'): void }
   isMobile: { readonly value: boolean }
   runCommand: ReturnType<typeof useEditorCommands>['runCommand']
   setOpacityTarget: ReturnType<typeof useEditorCommands>['setOpacityTarget']
@@ -44,7 +44,7 @@ export function createKeyboardActions({
       store.penCommit(false)
       return
     }
-    const node = store.selectedNode.value
+    const node = store.selectedNode
     if (node?.type === 'TEXT') {
       requestAnimationFrame(() => {
         store.startTextEditing(node.id)
@@ -72,10 +72,10 @@ export function createKeyboardActions({
   }
 
   function toggleAutoLayout() {
-    const node = store.selectedNode.value
-    if (node?.type === 'FRAME' && store.selectedNodes.value.length === 1) {
+    const node = store.selectedNode
+    if (node?.type === 'FRAME' && store.selectedNodes.length === 1) {
       store.setLayoutMode(node.id, node.layoutMode === 'NONE' ? 'VERTICAL' : 'NONE')
-    } else if (store.selectedNodes.value.length > 0) {
+    } else if (store.selectedNodes.length > 0) {
       runCommand('selection.wrapInAutoLayout')
     }
   }
@@ -91,7 +91,7 @@ export function createKeyboardActions({
         store.state.mobileDrawerSnap = 'half'
       }
     } else {
-      activeTab.value = activeTab.value === 'ai' ? 'design' : 'ai'
+      activeTab.set(activeTab.get() === 'ai' ? 'design' : 'ai')
     }
   }
 

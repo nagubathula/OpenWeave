@@ -1,5 +1,3 @@
-import { shallowReactive } from 'vue'
-
 import { createEditor } from '@openweave/core/editor'
 import { BUILTIN_IO_FORMATS, IORegistry } from '@openweave/core/io'
 import { SceneGraph } from '@openweave/scene-graph'
@@ -13,10 +11,11 @@ import { resolveFigmaClipboardImages } from '@/app/editor/clipboard/figma-images
 import { bindClipboardNotifications } from '@/app/editor/clipboard/notifications'
 import { loadFont } from '@/app/editor/fonts'
 import {
-  createEditorComputedRefs,
+  defineEditorDerivedAccessors,
   createEditorStoreModules,
   defineEditorStoreAccessors
 } from '@/app/editor/session/modules'
+import { createObservableState } from '@/app/editor/session/observable-state'
 import { createInitialAppEditorState, type AppEditorState } from '@/app/editor/session/types'
 import { IS_TAURI } from '@/constants'
 
@@ -26,7 +25,9 @@ export type { EditorToolDef as ToolDef, Tool } from '@openweave/core/editor'
 export function createEditorStore(initialGraph?: SceneGraph) {
   const graph = initialGraph ?? new SceneGraph()
 
-  const state = shallowReactive<AppEditorState>(createInitialAppEditorState(graph.getPages()[0].id))
+  const { state, subscribe: subscribeState } = createObservableState<AppEditorState>(
+    createInitialAppEditorState(graph.getPages()[0].id)
+  )
 
   const viewportSize = { width: 0, height: 0 }
   const editor = createEditor({
@@ -47,8 +48,6 @@ export function createEditorStore(initialGraph?: SceneGraph) {
     editor.subscribeToGraph()
   }
 
-  const { selectedNodes, selectedNode, layerTree } = createEditorComputedRefs(editor, state)
-
   const modules = createEditorStoreModules(editor, state, io, viewportSize)
 
   // ─── Public API ───────────────────────────────────────────────
@@ -57,17 +56,20 @@ export function createEditorStore(initialGraph?: SceneGraph) {
   const store = {
     ...editor,
     state,
-    selectedNodes,
-    selectedNode,
-    layerTree,
+    subscribeState,
 
     // App-specific overrides and additions
     ...modules
   }
 
   defineEditorStoreAccessors(store, editor)
+  defineEditorDerivedAccessors(store, editor)
 
-  return store
+  return store as typeof store & {
+    readonly selectedNodes: ReturnType<typeof editor.getSelectedNodes>
+    readonly selectedNode: ReturnType<typeof editor.getSelectedNodes>[number] | undefined
+    readonly layerTree: ReturnType<typeof editor.getLayerTree>
+  }
 }
 
 export type EditorStore = ReturnType<typeof createEditorStore>

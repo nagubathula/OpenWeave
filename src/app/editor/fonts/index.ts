@@ -1,5 +1,5 @@
-import { useLocalStorage } from '@vueuse/core'
-import { watch } from 'vue'
+import { persistentAtom } from '@nanostores/persistent'
+
 
 import {
   DEFAULT_WEB_FONT_PROVIDER_SETTINGS,
@@ -29,35 +29,39 @@ if (typeof navigator !== 'undefined') {
 
 export type FontProviderSettings = Record<WebFontProviderId, boolean>
 
-export const onlineFontsEnabled = useLocalStorage('op-online-fonts-enabled', true)
-export const fontProviderSettings = useLocalStorage<FontProviderSettings>(
+export const onlineFontsEnabled = persistentAtom<boolean>('op-online-fonts-enabled', true, {
+  encode: String,
+  decode: (raw) => raw !== 'false'
+})
+export const fontProviderSettings = persistentAtom<FontProviderSettings>(
   'op-font-providers',
-  DEFAULT_WEB_FONT_PROVIDER_SETTINGS
+  DEFAULT_WEB_FONT_PROVIDER_SETTINGS,
+  { encode: JSON.stringify, decode: JSON.parse }
 )
 
-watch(
-  [onlineFontsEnabled, fontProviderSettings],
-  () => {
-    fontManager.setOnlineFontProviders(
-      onlineFontsEnabled.value
-        ? Object.fromEntries(
-            WEB_FONT_PROVIDER_IDS.map((provider) => [
-              provider,
-              fontProviderSettings.value[provider]
-            ])
-          )
-        : {}
-    )
-  },
-  { deep: true, immediate: true }
-)
+function applyOnlineFontProviders() {
+  fontManager.setOnlineFontProviders(
+    onlineFontsEnabled.get()
+      ? Object.fromEntries(
+          WEB_FONT_PROVIDER_IDS.map((provider) => [
+            provider,
+            fontProviderSettings.get()[provider]
+          ])
+        )
+      : {}
+  )
+}
+
+applyOnlineFontProviders()
+onlineFontsEnabled.listen(applyOnlineFontProviders)
+fontProviderSettings.listen(applyOnlineFontProviders)
 
 let tauriFontCacheConfigured = false
 let webFontUnavailableToastShown = false
 
 function showWebFontUnavailableToast(): void {
-  if (webFontUnavailableToastShown || isTauri() || !onlineFontsEnabled.value) return
-  if (!WEB_FONT_PROVIDER_IDS.some((provider) => fontProviderSettings.value[provider])) return
+  if (webFontUnavailableToastShown || isTauri() || !onlineFontsEnabled.get()) return
+  if (!WEB_FONT_PROVIDER_IDS.some((provider) => fontProviderSettings.get()[provider])) return
   webFontUnavailableToastShown = true
   toast.warning(dialogMessages.get().webFontProvidersRequireDesktopApp)
 }
@@ -100,7 +104,7 @@ export function preloadFonts(): void {
     void getTauriFonts().then(registerFontFaces)
     return
   }
-  if (onlineFontsEnabled.value) fontManager.preloadWebFontFamilies()
+  if (onlineFontsEnabled.get()) fontManager.preloadWebFontFamilies()
 }
 
 export function localFontAccessState(): LocalFontAccessState {

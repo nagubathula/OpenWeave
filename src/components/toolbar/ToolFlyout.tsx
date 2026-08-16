@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react'
 import { tv } from 'tailwind-variants'
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
-import { Check } from 'lucide-react'
+import { Check, ChevronDown } from 'lucide-react'
 
 import { menu } from '@/components/ui/menu'
 import toolbarTheme from '@/theme/toolbar'
@@ -80,7 +80,10 @@ export default function ToolFlyout({
             aria-label={`${toolLabels[tool.key]} options`}
             className={styles.flyoutTrigger({ className: ui?.flyoutTrigger })}
           >
-            <span className={styles.flyoutTriggerIcon({ className: ui?.flyoutTriggerIcon })}>▼</span>
+            <ChevronDown
+              className={styles.flyoutTriggerIcon({ className: ui?.flyoutTriggerIcon })}
+              aria-hidden="true"
+            />
           </button>
         </DropdownMenu.Trigger>
 

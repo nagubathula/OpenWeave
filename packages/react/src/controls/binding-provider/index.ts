@@ -3,8 +3,7 @@ export {
   useColorBindingProvider
 } from '#react/controls/binding-provider/color'
 export {
-  BINDING_PROVIDER_KEY,
-  provideBindingProvider,
+  BindingProviderProvider,
   useBindingProvider
 } from '#react/controls/binding-provider/context'
 export {

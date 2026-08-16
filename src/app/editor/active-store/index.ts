@@ -3,9 +3,18 @@ import type { EditorStore } from '@/app/editor/session'
 export type { EditorStore }
 
 let activeStore: EditorStore | undefined
+const activeStoreListeners = new Set<() => void>()
 
 export function setActiveEditorStore(store: EditorStore) {
+  if (store === activeStore) return
   activeStore = store
+  for (const listener of activeStoreListeners) listener()
+}
+
+/** Fires whenever the active store instance is swapped (tab switches). */
+export function onActiveEditorStoreChange(listener: () => void): () => void {
+  activeStoreListeners.add(listener)
+  return () => activeStoreListeners.delete(listener)
 }
 
 export function getActiveEditorStore(): EditorStore {

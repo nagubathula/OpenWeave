@@ -1,4 +1,4 @@
-import { computed, ref } from 'vue'
+import { useCallback, useEffect, useState } from 'react'
 
 import type {
   FontFamilyOption,
@@ -21,14 +21,20 @@ import type { DownloadedFontCacheSummary } from '@/app/editor/fonts/cache'
 
 type FontCacheSummary = DownloadedFontCacheSummary
 
+interface PersistedSetting<T> {
+  get(): T
+  set(value: T): void
+  subscribe(listener: (value: T) => void): () => void
+}
+
 export interface FontSettingsActions {
   clearDownloadedFontCache: () => Promise<void>
   downloadedFontCacheSummary: () => Promise<FontCacheSummary>
   localFontAccessState: () => LocalFontAccessState
   predownloadFallbackFonts: () => Promise<unknown>
   requestLocalFontAccess: () => Promise<string[] | FontFamilyOption[]>
-  onlineFontsEnabled: { value: boolean }
-  fontProviderSettings: { value: FontProviderSettings }
+  onlineFontsEnabled: PersistedSetting<boolean>
+  fontProviderSettings: PersistedSetting<FontProviderSettings>
 }
 
 export type FontSettingsBusyAction = 'access' | 'download' | 'clear' | 'refresh'
@@ -45,103 +51,108 @@ const defaultActions: FontSettingsActions = {
 
 export function useFontSettings(actions: FontSettingsActions = defaultActions) {
   const { dialogs } = useI18n()
-  const cacheCount = ref(0)
-  const cacheByteLength = ref(0)
-  const cacheUpdatedAt = ref<number | null>(null)
-  const accessState = ref(actions.localFontAccessState())
-  const busyAction = ref<FontSettingsBusyAction | null>(null)
-  const status = ref('')
-  const onlineFontsEnabled = actions.onlineFontsEnabled
-  const fontProviderSettings = actions.fontProviderSettings
+  const [cacheCount, setCacheCount] = useState(0)
+  const [cacheByteLength, setCacheByteLength] = useState(0)
+  const [cacheUpdatedAt, setCacheUpdatedAt] = useState<number | null>(null)
+  const [accessState, setAccessState] = useState(() => actions.localFontAccessState())
+  const [busyAction, setBusyAction] = useState<FontSettingsBusyAction | null>(null)
+  const [status, setStatus] = useState('')
 
-  const accessStateLabel = computed(() => {
-    if (accessState.value === 'granted') return dialogs.enabled
-    if (accessState.value === 'denied') return dialogs.denied
-    if (accessState.value === 'unsupported') return dialogs.unavailable
-    return dialogs.notRequested
-  })
-
-  const cacheSize = computed(() => {
-    if (cacheByteLength.value === 0) return '0 MB'
-    return `${(cacheByteLength.value / 1024 / 1024).toFixed(1)} MB`
-  })
-
-  const cacheUpdatedLabel = computed(() => {
-    if (cacheUpdatedAt.value === null) return dialogs.never
-    return new Date(cacheUpdatedAt.value).toLocaleDateString()
-  })
-
-  const canRequestLocalFonts = computed(
-    () => accessState.value === 'prompt' || accessState.value === 'denied'
+  const [onlineEnabled, setOnlineEnabledState] = useState(() => actions.onlineFontsEnabled.get())
+  const [providerSettings, setProviderSettingsState] = useState(() =>
+    actions.fontProviderSettings.get()
+  )
+  useEffect(
+    () => actions.onlineFontsEnabled.subscribe(setOnlineEnabledState),
+    [actions.onlineFontsEnabled]
+  )
+  useEffect(
+    () => actions.fontProviderSettings.subscribe(setProviderSettingsState),
+    [actions.fontProviderSettings]
   )
 
-  async function refreshSummary() {
-    busyAction.value = busyAction.value ?? 'refresh'
+  const accessStateLabel =
+    accessState === 'granted'
+      ? dialogs.enabled
+      : accessState === 'denied'
+        ? dialogs.denied
+        : accessState === 'unsupported'
+          ? dialogs.unavailable
+          : dialogs.notRequested
+
+  const cacheSize =
+    cacheByteLength === 0 ? '0 MB' : `${(cacheByteLength / 1024 / 1024).toFixed(1)} MB`
+
+  const cacheUpdatedLabel =
+    cacheUpdatedAt === null ? dialogs.never : new Date(cacheUpdatedAt).toLocaleDateString()
+
+  const canRequestLocalFonts = accessState === 'prompt' || accessState === 'denied'
+
+  const refreshSummary = useCallback(async () => {
+    setBusyAction((current) => current ?? 'refresh')
     try {
       const summary = await actions.downloadedFontCacheSummary()
-      cacheCount.value = summary.count
-      cacheByteLength.value = summary.byteLength
-      cacheUpdatedAt.value = summary.updatedAt
-      accessState.value = actions.localFontAccessState()
+      setCacheCount(summary.count)
+      setCacheByteLength(summary.byteLength)
+      setCacheUpdatedAt(summary.updatedAt)
+      setAccessState(actions.localFontAccessState())
     } finally {
-      if (busyAction.value === 'refresh') busyAction.value = null
+      setBusyAction((current) => (current === 'refresh' ? null : current))
     }
-  }
+  }, [actions])
 
   async function requestAccess() {
-    busyAction.value = 'access'
-    status.value = ''
+    setBusyAction('access')
+    setStatus('')
     try {
       await actions.requestLocalFontAccess()
-      accessState.value = actions.localFontAccessState()
-      status.value = dialogs.localFontAccessEnabled
+      setAccessState(actions.localFontAccessState())
+      setStatus(dialogs.localFontAccessEnabled)
     } catch {
-      accessState.value = actions.localFontAccessState()
-      status.value = dialogs.localFontAccessNotGranted
+      setAccessState(actions.localFontAccessState())
+      setStatus(dialogs.localFontAccessNotGranted)
     } finally {
-      busyAction.value = null
+      setBusyAction(null)
     }
   }
 
   function setOnlineFontsEnabled(enabled: boolean) {
-    onlineFontsEnabled.value = enabled
-    status.value = enabled
-      ? dialogs.onlineFontProvidersEnabled
-      : dialogs.onlineFontProvidersDisabled
+    actions.onlineFontsEnabled.set(enabled)
+    setStatus(enabled ? dialogs.onlineFontProvidersEnabled : dialogs.onlineFontProvidersDisabled)
   }
 
   function setFontProviderEnabled(provider: WebFontProviderId, enabled: boolean) {
-    fontProviderSettings.value = { ...fontProviderSettings.value, [provider]: enabled }
-    status.value = enabled
-      ? dialogs.fontProviderEnabled({ provider })
-      : dialogs.fontProviderDisabled({ provider })
+    actions.fontProviderSettings.set({ ...actions.fontProviderSettings.get(), [provider]: enabled })
+    setStatus(
+      enabled ? dialogs.fontProviderEnabled({ provider }) : dialogs.fontProviderDisabled({ provider })
+    )
   }
 
   async function downloadFallbacks() {
-    busyAction.value = 'download'
-    status.value = ''
+    setBusyAction('download')
+    setStatus('')
     try {
       await actions.predownloadFallbackFonts()
       await refreshSummary()
-      status.value = dialogs.fallbackFontsDownloaded
+      setStatus(dialogs.fallbackFontsDownloaded)
     } catch {
-      status.value = dialogs.fallbackFontsDownloadFailed
+      setStatus(dialogs.fallbackFontsDownloadFailed)
     } finally {
-      busyAction.value = null
+      setBusyAction(null)
     }
   }
 
   async function clearCache() {
-    busyAction.value = 'clear'
-    status.value = ''
+    setBusyAction('clear')
+    setStatus('')
     try {
       await actions.clearDownloadedFontCache()
       await refreshSummary()
-      status.value = dialogs.downloadedFontCacheCleared
+      setStatus(dialogs.downloadedFontCacheCleared)
     } catch {
-      status.value = dialogs.downloadedFontCacheClearFailed
+      setStatus(dialogs.downloadedFontCacheClearFailed)
     } finally {
-      busyAction.value = null
+      setBusyAction(null)
     }
   }
 
@@ -154,8 +165,8 @@ export function useFontSettings(actions: FontSettingsActions = defaultActions) {
     cacheSize,
     cacheUpdatedLabel,
     status,
-    onlineFontsEnabled,
-    fontProviderSettings,
+    onlineFontsEnabled: onlineEnabled,
+    fontProviderSettings: providerSettings,
     clearCache,
     downloadFallbacks,
     refreshSummary,

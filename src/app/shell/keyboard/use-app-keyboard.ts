@@ -42,7 +42,7 @@ export function useAppKeyboard() {
     }
     const isMobileAdapter = {
       get value() {
-        return latest.current.isMobile.value
+        return latest.current.isMobile
       }
     }
     // Stable wrappers that always call the latest command map, so `enabled`
@@ -71,7 +71,7 @@ export function useAppKeyboard() {
           void openFileDialog()
         },
         closeActiveTab: () => {
-          if (activeTabRef.value) closeTab(activeTabRef.value.id)
+          { const tab = activeTabRef.get(); if (tab) closeTab(tab.id) }
         },
         createTab: () => createTab()
       })

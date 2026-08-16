@@ -107,7 +107,7 @@ export function useAppMenu(): { topMenus: AppMenuGroup[] } {
     'export-selection': () => exportSelection('png'),
     ...createSelectionMenuActions(store),
     close: () => {
-      if (activeTab.value) closeTab(activeTab.value.id)
+      if (activeTab.get()) closeTab(activeTab.get()!.id)
     },
     settings: openSettingsDialog,
     'export-png': () => exportSelection('png'),
@@ -132,11 +132,11 @@ export function useAppMenu(): { topMenus: AppMenuGroup[] } {
       case 'view-multiplayer-cursors':
         return store.state.showRemoteCursors
       case 'theme-light':
-        return theme.value === 'light'
+        return theme.get() === 'light'
       case 'theme-dark':
-        return theme.value === 'dark'
+        return theme.get() === 'dark'
       case 'theme-auto':
-        return theme.value === 'auto'
+        return theme.get() === 'auto'
       default:
         return undefined
     }

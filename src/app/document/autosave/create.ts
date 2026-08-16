@@ -1,6 +1,6 @@
-import { watchDebounced } from '@vueuse/core'
-
 import type { EditorState } from '@openweave/core/editor'
+
+import { subscribeObservableState } from '@/app/editor/session/observable-state'
 
 type AutosaveState = EditorState & { autosaveEnabled: boolean }
 
@@ -11,26 +11,41 @@ type AutosaveOptions = {
   saveCurrentDocument: () => Promise<void>
 }
 
+const AUTOSAVE_DEBOUNCE_MS = 3000
+
 export function createAutosave({
   state,
   getSavedVersion,
   hasWritableSource,
   saveCurrentDocument
 }: AutosaveOptions) {
-  const stop = watchDebounced(
-    () => state.sceneVersion,
-    async (version) => {
-      if (version === getSavedVersion()) return
-      if (!state.autosaveEnabled) return
-      if (!hasWritableSource()) return
-      try {
-        await saveCurrentDocument()
-      } catch (e) {
-        console.warn('Autosave failed:', e)
-      }
-    },
-    { debounce: 3000 }
-  )
+  let timer: ReturnType<typeof setTimeout> | null = null
 
-  return { disposeAutosave: stop }
+  const unsubscribe = subscribeObservableState(state, (key) => {
+    if (key !== 'sceneVersion') return
+    if (timer !== null) clearTimeout(timer)
+    timer = setTimeout(() => {
+      timer = null
+      void runAutosave(state.sceneVersion)
+    }, AUTOSAVE_DEBOUNCE_MS)
+  })
+
+  async function runAutosave(version: number) {
+    if (version === getSavedVersion()) return
+    if (!state.autosaveEnabled) return
+    if (!hasWritableSource()) return
+    try {
+      await saveCurrentDocument()
+    } catch (e) {
+      console.warn('Autosave failed:', e)
+    }
+  }
+
+  function disposeAutosave() {
+    if (timer !== null) clearTimeout(timer)
+    timer = null
+    unsubscribe()
+  }
+
+  return { disposeAutosave }
 }

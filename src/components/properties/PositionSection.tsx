@@ -38,7 +38,7 @@ export default function PositionSection() {
 
   return (
     <PositionControlsRoot>
-      {({ active, isMulti, xValue, yValue, wValue, hValue, rotationValue, actions }) => (
+      {({ active, xValue, yValue, wValue, hValue, rotationValue, actions }) => (
         active ? (
           <PanelSection label="Position">
             <div role="toolbar" aria-label="Position" className="mb-1.5 flex justify-between">
@@ -111,30 +111,30 @@ export default function PositionSection() {
               </Tip>
             </PanelGrid>
 
-            {isMulti && (
-              <PanelGrid columns={2} className="mt-1.5">
-                <Tip label="Width">
-                  <NumberField
-                    icon="W"
-                    ariaLabel="Width"
-                    value={wValue}
-                    min={1}
-                    onChange={(v) => actions.updateProp('width', v)}
-                    onCommit={(v, p) => actions.commitProp('width', v, p)}
-                  />
-                </Tip>
-                <Tip label="Height">
-                  <NumberField
-                    icon="H"
-                    ariaLabel="Height"
-                    value={hValue}
-                    min={1}
-                    onChange={(v) => actions.updateProp('height', v)}
-                    onCommit={(v, p) => actions.commitProp('height', v, p)}
-                  />
-                </Tip>
-              </PanelGrid>
-            )}
+            {/* W/H for every selection — the old SizeControls rendered these
+                for single nodes too, not just multi-selections. */}
+            <PanelGrid columns={2} className="mt-1.5">
+              <Tip label="Width">
+                <NumberField
+                  icon="W"
+                  ariaLabel="Width"
+                  value={wValue}
+                  min={1}
+                  onChange={(v) => actions.updateProp('width', v)}
+                  onCommit={(v, p) => actions.commitProp('width', v, p)}
+                />
+              </Tip>
+              <Tip label="Height">
+                <NumberField
+                  icon="H"
+                  ariaLabel="Height"
+                  value={hValue}
+                  min={1}
+                  onChange={(v) => actions.updateProp('height', v)}
+                  onCommit={(v, p) => actions.commitProp('height', v, p)}
+                />
+              </Tip>
+            </PanelGrid>
 
             <PanelGrid columns={2} className="mt-1.5">
               <Tip label="Rotation">

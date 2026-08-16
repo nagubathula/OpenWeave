@@ -1,7 +1,7 @@
-import React, { useEffect, useReducer } from 'react'
+import React from 'react'
 import * as Tabs from '@radix-ui/react-tabs'
 import { Code, Sparkles } from 'lucide-react'
-import { watch } from 'vue'
+import { useStore } from '@nanostores/react'
 
 import { useAIChat } from '@/app/ai/chat/use'
 import DesignPanel from '@/components/properties/DesignPanel'
@@ -10,19 +10,12 @@ import ChatPanel from '@/components/chat/ChatPanel'
 import ZoomDropdown from '@/components/editor/ZoomDropdown'
 
 export default function PropertiesPanel() {
-  // The tab selection is shared app state (a Vue ref in @/app/ai/chat/use) so the
-  // ⌘J shortcut can toggle the AI tab; bridge it to React like TabBar does.
-  const { activeTab: activeTabRef } = useAIChat()
-  const [, forceRender] = useReducer((n: number): number => n + 1, 0)
-
-  useEffect(() => {
-    const stop = watch(activeTabRef, () => forceRender())
-    return stop
-  }, [activeTabRef])
-
-  const activeTab = activeTabRef.value
+  // The tab selection is shared app state (a nanostores atom in @/app/ai/chat/use)
+  // so the ⌘J shortcut can toggle the AI tab.
+  const { activeTab: activeTabAtom } = useAIChat()
+  const activeTab = useStore(activeTabAtom)
   const setActiveTab = (value: string) => {
-    activeTabRef.value = value as 'design' | 'code' | 'ai'
+    activeTabAtom.set(value as 'design' | 'code' | 'ai')
   }
 
   return (
@@ -56,7 +49,7 @@ export default function PropertiesPanel() {
             <Sparkles className="size-3" />
             AI
           </Tabs.Trigger>
-          
+
           {activeTab === 'design' && (
             <div className="ml-auto pr-2">
               <ZoomDropdown />

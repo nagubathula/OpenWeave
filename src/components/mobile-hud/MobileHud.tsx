@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useReducer } from 'react'
+import React, { createContext, useContext } from 'react'
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import * as Popover from '@radix-ui/react-popover'
 import {
@@ -13,16 +13,24 @@ import {
   ZoomIn
 } from 'lucide-react'
 import { tv } from 'tailwind-variants'
-import { watch } from 'vue'
+import { atom } from 'nanostores'
+import { useStore } from '@nanostores/react'
 import { useRouter } from 'next/navigation'
 
 import { useEditorCommands, useI18n } from '@openweave/react'
 import { colorToCSS } from '@openweave/core/color'
 
 import { DEFAULT_COLLAB_STATE, useCollabInjected } from '@/app/collab/use'
+import { useEditorState } from '@/app/editor/session/use-editor-state'
 import { useEditorStore } from '@/app/editor/active-store'
 import { toolIcons } from '@/app/editor/icons'
 import { openFileDialog } from '@/app/shell/menu/use'
+
+// Never-written fallbacks keep the store hooks unconditional when no collab
+// session is provided.
+const fallbackCollabState = atom(DEFAULT_COLLAB_STATE)
+const fallbackCollabPeers = atom<never[]>([])
+const fallbackFollowingPeer = atom<number | null>(null)
 import { initials, toast } from '@/app/shell/ui'
 import { getShareUrl } from '@/constants'
 import Tip from '@/components/ui/Tip'
@@ -44,22 +52,12 @@ function useMobileHudState() {
   const store = useEditorStore()
   const { dialogs, commands } = useI18n()
   const { getCommand } = useEditorCommands()
-  const [, force] = useReducer((n: number): number => n + 1, 0)
+  useEditorState((s) => s.activeTool, 'SELECT')
+  useEditorState((s) => s.actionToast, null)
 
-  // Bridge Vue-reactive editor + collab state into React renders.
-  useEffect(() => {
-    const sources = [
-      () => store.state.activeTool,
-      () => store.state.actionToast,
-      ...(collab ? [collab.state, collab.remotePeers, collab.followingPeer] : [])
-    ]
-    const stop = watch(sources, () => force(), { deep: true })
-    return stop
-  }, [store, collab])
-
-  const collabState = collab?.state.value ?? DEFAULT_COLLAB_STATE
-  const collabPeers = collab?.remotePeers.value ?? []
-  const followingPeer = collab?.followingPeer.value ?? null
+  const collabState = useStore(collab?.state ?? fallbackCollabState)
+  const collabPeers = useStore(collab?.remotePeers ?? fallbackCollabPeers)
+  const followingPeer = useStore(collab?.followingPeer ?? fallbackFollowingPeer)
 
   const menuItems: ToolbarActionItem[] = [
     {

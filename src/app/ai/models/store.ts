@@ -1,4 +1,4 @@
-import { computed, ref, watch } from 'vue'
+import { atom, computed } from 'nanostores'
 
 import {
   AI_PROVIDERS,
@@ -181,9 +181,20 @@ function loadSettings(): AIModelSettings {
   return parseSettings(readAIModelSettingsStorage()) ?? legacySettings()
 }
 
-export const aiModelSettings = ref<AIModelSettings>(loadSettings())
+export const aiModelSettings = atom<AIModelSettings>(loadSettings())
 
-watch(aiModelSettings, (settings) => writeAIModelSettingsStorage(settings), { deep: true })
+aiModelSettings.listen((settings) => writeAIModelSettingsStorage(settings))
+
+/**
+ * All mutations go through here: clone the current settings, apply the change,
+ * publish the new object. Replaces Vue's deep-reactive mutation + deep watch —
+ * nanostores atoms only notify on `.set()`, so in-place edits would be silent.
+ */
+function updateSettings(mutate: (settings: AIModelSettings) => void): void {
+  const next = modelSettingsSnapshot()
+  mutate(next)
+  aiModelSettings.set(next)
+}
 
 function createConnectionId(): string {
   return `connection-${crypto.randomUUID()}`
@@ -194,12 +205,12 @@ function createModelId(): AIModelProfileId {
 }
 
 export function modelProfile(profileId: string): AIModelProfile | null {
-  return aiModelSettings.value.models.find((profile) => profile.id === profileId) ?? null
+  return aiModelSettings.get().models.find((profile) => profile.id === profileId) ?? null
 }
 
 export function modelConnection(connectionId: string): AIModelConnection | null {
   return (
-    aiModelSettings.value.connections.find((connection) => connection.id === connectionId) ?? null
+    aiModelSettings.get().connections.find((connection) => connection.id === connectionId) ?? null
   )
 }
 
@@ -208,7 +219,7 @@ export function isDesignModelProfile(profile: AIModelProfile): boolean {
 }
 
 export function designModelProfiles(): AIModelProfile[] {
-  return aiModelSettings.value.models.filter(isDesignModelProfile)
+  return aiModelSettings.get().models.filter(isDesignModelProfile)
 }
 
 export function isACPModelProfile(profile: AIModelProfile | null): boolean {
@@ -216,9 +227,9 @@ export function isACPModelProfile(profile: AIModelProfile | null): boolean {
 }
 
 export function resolveAIModelRole(role: AIModelRole): ResolvedAIModelRole | null {
-  const assignment = aiModelSettings.value.assignments[role]
+  const assignment = aiModelSettings.get().assignments[role]
   if (assignment === null) return null
-  const profileId = assignment === 'design' ? aiModelSettings.value.assignments.design : assignment
+  const profileId = assignment === 'design' ? aiModelSettings.get().assignments.design : assignment
   const profile = modelProfile(profileId)
   if (!profile) return null
   if (role === 'design' && !isDesignModelProfile(profile)) return null
@@ -238,18 +249,30 @@ function connectionMatchesDraft(
   )
 }
 
-export function findModelConnectionForDraft(draft: AIModelProfileDraft): AIModelConnection | null {
-  const source = draft.sourceConnectionId ? modelConnection(draft.sourceConnectionId) : null
+function findConnectionForDraftIn(
+  settings: AIModelSettings,
+  draft: AIModelProfileDraft
+): AIModelConnection | null {
+  const source = draft.sourceConnectionId
+    ? (settings.connections.find((connection) => connection.id === draft.sourceConnectionId) ??
+      null)
+    : null
   if (source && connectionMatchesDraft(source, draft)) return source
   return (
-    aiModelSettings.value.connections.find((connection) =>
-      connectionMatchesDraft(connection, draft)
-    ) ?? null
+    settings.connections.find((connection) => connectionMatchesDraft(connection, draft)) ?? null
   )
 }
 
-function connectionForDraft(draft: AIModelProfileDraft): AIModelConnection {
-  const existing = findModelConnectionForDraft(draft)
+export function findModelConnectionForDraft(draft: AIModelProfileDraft): AIModelConnection | null {
+  return findConnectionForDraftIn(aiModelSettings.get(), draft)
+}
+
+/** Finds a matching connection inside `settings` or creates and appends one. */
+function connectionForDraft(
+  settings: AIModelSettings,
+  draft: AIModelProfileDraft
+): AIModelConnection {
+  const existing = findConnectionForDraftIn(settings, draft)
   if (existing) return existing
   const id = createConnectionId()
   const connection: AIModelConnection = {
@@ -259,7 +282,7 @@ function connectionForDraft(draft: AIModelProfileDraft): AIModelConnection {
     customAPIType: draft.customAPIType,
     credentialProfileId: id
   }
-  aiModelSettings.value.connections.push(connection)
+  settings.connections.push(connection)
   return connection
 }
 
@@ -303,7 +326,7 @@ export function createModelProfileDraft(profileId?: string): AIModelProfileDraft
   const profileConnection = profile ? modelConnection(profile.connectionId) : null
   if (profile && profileConnection) return draftForProfile(profile, profileConnection)
   const designConnection = resolveAIModelRole('design')?.connection ?? null
-  return newProfileDraft(designConnection ?? aiModelSettings.value.connections[0])
+  return newProfileDraft(designConnection ?? aiModelSettings.get().connections[0])
 }
 
 export function saveModelProfileDraft(draft: AIModelProfileDraft): AIModelProfile {
@@ -314,12 +337,13 @@ export function saveModelProfileDraft(draft: AIModelProfileDraft): AIModelProfil
     throw new Error('Model ID is required')
   }
   if (
-    draft.profileId === aiModelSettings.value.assignments.design &&
+    draft.profileId === aiModelSettings.get().assignments.design &&
     !draft.capabilities.includes('tools')
   ) {
     throw new Error('The Design model must support tools')
   }
-  const connection = connectionForDraft(draft)
+  const next = modelSettingsSnapshot()
+  const connection = connectionForDraft(next, draft)
   const profile: AIModelProfile = {
     id: draft.profileId ?? createModelId(),
     name: draft.name.trim(),
@@ -329,54 +353,55 @@ export function saveModelProfileDraft(draft: AIModelProfileDraft): AIModelProfil
     maxOutputTokens: normalizedMaxOutputTokens(draft.maxOutputTokens),
     capabilities: [...new Set(draft.capabilities)]
   }
-  const index = aiModelSettings.value.models.findIndex((model) => model.id === profile.id)
-  if (index === -1) aiModelSettings.value.models.push(profile)
-  else aiModelSettings.value.models[index] = profile
-  if (
-    aiModelSettings.value.assignments.vision === profile.id &&
-    !profile.capabilities.includes('vision')
-  ) {
-    aiModelSettings.value.assignments.vision = null
+  const index = next.models.findIndex((model) => model.id === profile.id)
+  if (index === -1) next.models.push(profile)
+  else next.models[index] = profile
+  if (next.assignments.vision === profile.id && !profile.capabilities.includes('vision')) {
+    next.assignments.vision = null
   }
+  aiModelSettings.set(next)
   return profile
 }
 
 export function modelConnectionUsageCount(connectionId: string): number {
-  return aiModelSettings.value.models.filter((profile) => profile.connectionId === connectionId)
+  return aiModelSettings.get().models.filter((profile) => profile.connectionId === connectionId)
     .length
 }
 
 export function removeModelProfile(profileId: string): void {
-  if (aiModelSettings.value.models.length <= 1) return
-  const removesDesignAssignment = aiModelSettings.value.assignments.design === profileId
-  const fallback = aiModelSettings.value.models.find(
+  const current = aiModelSettings.get()
+  if (current.models.length <= 1) return
+  const removesDesignAssignment = current.assignments.design === profileId
+  const fallback = current.models.find(
     (profile) => profile.id !== profileId && isDesignModelProfile(profile)
   )
   if (removesDesignAssignment && !fallback) return
 
   const removed = modelProfile(profileId)
-  aiModelSettings.value.models = aiModelSettings.value.models.filter(
-    (profile) => profile.id !== profileId
-  )
-  if (removesDesignAssignment && fallback) {
-    aiModelSettings.value.assignments.design = fallback.id
-    if (
-      aiModelSettings.value.assignments.vision === 'design' &&
-      !fallback.capabilities.includes('vision')
-    ) {
-      aiModelSettings.value.assignments.vision = null
+  updateSettings((settings) => {
+    settings.models = settings.models.filter((profile) => profile.id !== profileId)
+    if (removesDesignAssignment && fallback) {
+      settings.assignments.design = fallback.id
+      if (
+        settings.assignments.vision === 'design' &&
+        !fallback.capabilities.includes('vision')
+      ) {
+        settings.assignments.vision = null
+      }
     }
-  }
-  for (const role of ['review', 'fast', 'vision'] as const) {
-    if (aiModelSettings.value.assignments[role] === profileId) {
-      aiModelSettings.value.assignments[role] = null
+    for (const role of ['review', 'fast', 'vision'] as const) {
+      if (settings.assignments[role] === profileId) {
+        settings.assignments[role] = null
+      }
     }
-  }
-  if (removed && modelConnectionUsageCount(removed.connectionId) === 0) {
-    aiModelSettings.value.connections = aiModelSettings.value.connections.filter(
-      (connection) => connection.id !== removed.connectionId
-    )
-  }
+    const connectionInUse =
+      removed && settings.models.some((profile) => profile.connectionId === removed.connectionId)
+    if (removed && !connectionInUse) {
+      settings.connections = settings.connections.filter(
+        (connection) => connection.id !== removed.connectionId
+      )
+    }
+  })
 }
 
 export function setModelRoleAssignment(role: 'design', assignment: AIModelProfileId): void
@@ -389,59 +414,75 @@ export function setModelRoleAssignment(role: AIModelRole, assignment: AIModelRol
     if (assignment === null || assignment === 'design') return
     const profile = modelProfile(assignment)
     if (!profile || !isDesignModelProfile(profile)) return
-    aiModelSettings.value.assignments.design = assignment
+    updateSettings((settings) => {
+      settings.assignments.design = assignment
+    })
     return
   }
   if (assignment !== null && assignment !== 'design' && !modelProfile(assignment)) return
   if (assignment !== null) {
     const profile =
       assignment === 'design'
-        ? modelProfile(aiModelSettings.value.assignments.design)
+        ? modelProfile(aiModelSettings.get().assignments.design)
         : modelProfile(assignment)
     if (isACPModelProfile(profile)) return
     if (role === 'vision' && !profile?.capabilities.includes('vision')) return
   }
-  aiModelSettings.value.assignments[role] = assignment
+  updateSettings((settings) => {
+    settings.assignments[role] = assignment
+  })
 }
 
 export function replaceAIModelSettings(settings: AIModelSettings): void {
-  aiModelSettings.value = structuredClone(settings)
+  aiModelSettings.set(structuredClone(settings))
 }
 
-export const designModelProfile = computed(() => resolveAIModelRole('design')?.profile ?? null)
+export const designModelProfile = computed(
+  aiModelSettings,
+  () => resolveAIModelRole('design')?.profile ?? null
+)
 export const designModelConnection = computed(
+  aiModelSettings,
   () => resolveAIModelRole('design')?.connection ?? null
 )
 export const designProviderID = computed(
-  () => designModelConnection.value?.providerID ?? DEFAULT_AI_PROVIDER
+  designModelConnection,
+  (connection): AIProviderID => connection?.providerID ?? DEFAULT_AI_PROVIDER
 )
 export const designProviderDefinition = computed(
-  () => AI_PROVIDERS.find((provider) => provider.id === designProviderID.value) ?? AI_PROVIDERS[0]
+  designProviderID,
+  (providerID) => AI_PROVIDERS.find((provider) => provider.id === providerID) ?? AI_PROVIDERS[0]
 )
-export const designModelID = computed({
-  get: () => designModelProfile.value?.modelID ?? '',
-  set: (modelID: string) => {
-    const profile = designModelProfile.value
-    if (profile) profile.modelID = modelID
-  }
-})
-export const designCustomModelID = computed({
-  get: () => designModelProfile.value?.customModelID ?? '',
-  set: (modelID: string) => {
-    const profile = designModelProfile.value
-    if (profile) profile.customModelID = modelID
-  }
-})
-export const designCustomBaseURL = computed(() => designModelConnection.value?.customBaseURL ?? '')
+export const designModelID = computed(designModelProfile, (profile) => profile?.modelID ?? '')
+export const designCustomModelID = computed(
+  designModelProfile,
+  (profile) => profile?.customModelID ?? ''
+)
+export const designCustomBaseURL = computed(
+  designModelConnection,
+  (connection) => connection?.customBaseURL ?? ''
+)
 export const designCustomAPIType = computed(
-  () => designModelConnection.value?.customAPIType ?? 'completions'
+  designModelConnection,
+  (connection): 'completions' | 'responses' => connection?.customAPIType ?? 'completions'
 )
 export const designMaxOutputTokens = computed(
-  () => designModelProfile.value?.maxOutputTokens ?? DEFAULT_MAX_OUTPUT_TOKENS
+  designModelProfile,
+  (profile) => profile?.maxOutputTokens ?? DEFAULT_MAX_OUTPUT_TOKENS
 )
 
+/** Setter half of the old `designModelID` writable computed. */
+export function setDesignModelID(modelID: string): void {
+  const profile = designModelProfile.get()
+  if (!profile) return
+  updateSettings((settings) => {
+    const target = settings.models.find((candidate) => candidate.id === profile.id)
+    if (target) target.modelID = modelID
+  })
+}
+
 export function modelSettingsSnapshot(): AIModelSettings {
-  const settings = aiModelSettings.value
+  const settings = aiModelSettings.get()
   return {
     version: 1,
     connections: settings.connections.map((connection) => ({ ...connection })),

@@ -14,7 +14,7 @@ export default function DemoPage() {
 
   useEffect(() => {
     const createdInitialTab = tabCount() === 0
-    const firstTab = createdInitialTab ? createTab() : (activeTab.value ?? createTab())
+    const firstTab = createdInitialTab ? createTab() : (activeTab.get() ?? createTab())
     
     if (createdInitialTab) {
        createDemoShapes(firstTab.store)

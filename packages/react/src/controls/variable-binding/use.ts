@@ -1,10 +1,10 @@
-import { useFilter } from 'reka-ui'
-import { computed, ref } from 'vue'
+import { useMemo, useState } from 'react'
 
 import type { Variable, VariableType } from '@openweave/scene-graph'
 
 import { useEditor } from '#react/editor/context'
 import { useSceneComputed } from '#react/internal/scene-computed/use'
+import { createBaseFilter } from '#react/shared/filter'
 
 export type VariableBindingState = 'unbound' | 'bound' | 'mixed'
 
@@ -15,14 +15,14 @@ export interface UseVariableBindingOptions {
 
 export function useVariableBinding(options: UseVariableBindingOptions) {
   const store = useEditor()
-  const searchTerm = ref('')
+  const [searchTerm, setSearchTerm] = useState('')
   const variables = useSceneComputed(() => store.getVariablesByType(options.type))
-  const { contains } = useFilter({ sensitivity: 'base' })
 
-  const filteredVariables = computed(() => {
-    if (!searchTerm.value) return variables
-    return variables.filter((variable) => contains(variable.name, searchTerm.value))
-  })
+  const filteredVariables = useMemo(() => {
+    if (!searchTerm) return variables
+    const { contains } = createBaseFilter()
+    return variables.filter((variable) => contains(variable.name, searchTerm))
+  }, [variables, searchTerm])
 
   function bindingPath(index?: number) {
     if (typeof options.path === 'string') return options.path
@@ -57,6 +57,7 @@ export function useVariableBinding(options: UseVariableBindingOptions) {
   return {
     store,
     searchTerm,
+    setSearchTerm,
     variables,
     filteredVariables,
     bindingPath,

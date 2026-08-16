@@ -1,4 +1,3 @@
-import { useIntervalFn } from '@vueuse/core'
 import type { RefObject } from 'react'
 
 import type { Editor } from '@openweave/core/editor'
@@ -8,15 +7,23 @@ import type { SceneNode } from '@openweave/scene-graph'
 const CARET_BLINK_MS = 530
 
 export function createCaretBlink(store: Editor) {
-  const { pause, resume } = useIntervalFn(
-    () => {
+  let interval: ReturnType<typeof setInterval> | null = null
+
+  function pause() {
+    if (interval !== null) {
+      clearInterval(interval)
+      interval = null
+    }
+  }
+
+  function resume() {
+    pause()
+    interval = setInterval(() => {
       if (!store.textEditor) return
       store.textEditor.caretVisible = !store.textEditor.caretVisible
       store.requestRepaint()
-    },
-    CARET_BLINK_MS,
-    { immediate: false }
-  )
+    }, CARET_BLINK_MS)
+  }
 
   function resetBlink() {
     if (store.textEditor) store.textEditor.caretVisible = true

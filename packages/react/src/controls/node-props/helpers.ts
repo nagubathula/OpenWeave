@@ -181,8 +181,10 @@ export function useNodePropScrubActions(store: Editor) {
   }, [store])
 
   const updateProp = useCallback((key: string, value: number | string) => {
+    // Snapshot pre-scrub values for every target (single included) so commit
+    // can record a correct undo "before" even when callers can't provide it.
+    storePreviousValues(key)
     if (store.getSelectedNodes().length > 1) {
-      storePreviousValues(key)
       for (const n of store.getSelectedNodes()) {
         store.updateNode(n.id, { [key]: value })
       }
@@ -198,13 +200,14 @@ export function useNodePropScrubActions(store: Editor) {
         const prev = previousValuesRef.current.get(n.id)?.[key] ?? previous
         store.commitNodeUpdate(n.id, { [key]: prev } as Partial<SceneNode>, `Change ${key}`)
       }
-      previousValuesRef.current.clear()
     } else {
       const node = store.getSelectedNode()
       if (node) {
-        store.commitNodeUpdate(node.id, { [key]: previous } as Partial<SceneNode>, `Change ${key}`)
+        const prev = previousValuesRef.current.get(node.id)?.[key] ?? previous
+        store.commitNodeUpdate(node.id, { [key]: prev } as Partial<SceneNode>, `Change ${key}`)
       }
     }
+    previousValuesRef.current.clear()
   }, [store])
 
   return { updateProp, commitProp }

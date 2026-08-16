@@ -37,7 +37,7 @@ export default function DesktopToolbar({
     <div className="absolute bottom-4 left-1/2 z-10 flex -translate-x-1/2 items-center">
       <div
         data-test-id="toolbar"
-        className="flex gap-0.5 rounded-xl bg-panel p-1 shadow-[0_8px_30px_rgb(0_0_0/0.4)]"
+        className="flex items-center gap-0.5 rounded-full bg-panel px-1.5 py-1.5 shadow-[0_8px_30px_rgb(0_0_0/0.45)]"
       >
         {tools.map(tool => {
           if (tool.flyout && tool.flyout.length > 1) {

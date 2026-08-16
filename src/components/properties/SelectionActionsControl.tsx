@@ -1,6 +1,6 @@
 import React from 'react'
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
-import { Shapes, ChevronDown, Combine } from 'lucide-react'
+import { Shapes, ChevronDown, Combine, CopyMinus, SquaresIntersect, CopyX, ListCollapse } from 'lucide-react'
 import {
   useEditorCommands,
   editorCommandMetadata,
@@ -15,10 +15,10 @@ interface Props {
 
 const operations = [
   { id: 'selection.booleanUnion' as const, icon: <Combine className="size-3.5 shrink-0 text-muted" /> },
-  { id: 'selection.booleanSubtract' as const, icon: <div className="size-3.5 shrink-0 text-muted i-lucide-copy-minus" /> },
-  { id: 'selection.booleanIntersect' as const, icon: <div className="size-3.5 shrink-0 text-muted i-lucide-squares-intersect" /> },
-  { id: 'selection.booleanExclude' as const, icon: <div className="size-3.5 shrink-0 text-muted i-lucide-copy-x" /> },
-  { id: 'selection.flatten' as const, icon: <div className="size-3.5 shrink-0 text-muted i-lucide-list-collapse" /> }
+  { id: 'selection.booleanSubtract' as const, icon: <CopyMinus className="size-3.5 shrink-0 text-muted" /> },
+  { id: 'selection.booleanIntersect' as const, icon: <SquaresIntersect className="size-3.5 shrink-0 text-muted" /> },
+  { id: 'selection.booleanExclude' as const, icon: <CopyX className="size-3.5 shrink-0 text-muted" /> },
+  { id: 'selection.flatten' as const, icon: <ListCollapse className="size-3.5 shrink-0 text-muted" /> }
 ]
 
 export default function SelectionActionsControl({ showBooleanOperations = false }: Props) {

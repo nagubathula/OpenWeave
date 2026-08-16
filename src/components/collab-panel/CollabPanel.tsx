@@ -1,21 +1,20 @@
-import React, {
-  createContext,
-  useContext,
-  useEffect,
-  useReducer,
-  useRef,
-  useState
-} from 'react'
+import React, { createContext, useContext, useEffect, useRef, useState } from 'react'
+import { useStore } from '@nanostores/react'
 import * as Popover from '@radix-ui/react-popover'
 import { Check, Copy, Share2, Users } from 'lucide-react'
+import { atom } from 'nanostores'
 import { tv } from 'tailwind-variants'
-import { watch } from 'vue'
 import { useRouter } from 'next/navigation'
 
 import { useI18n } from '@openweave/react'
 import { colorToCSS } from '@openweave/core/color'
 
-import { DEFAULT_COLLAB_STATE, useCollabInjected } from '@/app/collab/use'
+import {
+  DEFAULT_COLLAB_STATE,
+  useCollabInjected,
+  type CollabState,
+  type RemotePeer
+} from '@/app/collab/use'
 import { initials, toast } from '@/app/shell/ui'
 import { getShareUrl } from '@/constants'
 import { AppInput } from '@/components/ui/AppInput'
@@ -37,6 +36,12 @@ import collaborationTheme from '@/theme/collaboration'
 
 // --- Panel context ---------------------------------------------------------
 
+// Stable fallback stores so the `useStore` hooks stay unconditional while no
+// collab session is provided (collab == null). Never written to.
+const noCollabState = atom<CollabState>(DEFAULT_COLLAB_STATE)
+const noCollabPeers = atom<RemotePeer[]>([])
+const noCollabFollowing = atom<number | null>(null)
+
 function extractRoomId(input: string): string {
   const trimmed = input.trim()
   const queryMatch = /[?&]room=([^&\s]+)/.exec(trimmed)
@@ -49,31 +54,24 @@ function useCollabPanelState() {
   const router = useRouter()
   const collab = useCollabInjected()
   const { dialogs } = useI18n()
-  const [, force] = useReducer((n: number): number => n + 1, 0)
+
+  // Collab session stores drive React renders via useStore subscriptions.
+  const state = useStore(collab?.state ?? noCollabState)
+  const peers = useStore(collab?.remotePeers ?? noCollabPeers)
+  const followingPeer = useStore(collab?.followingPeer ?? noCollabFollowing)
 
   const [joinInput, setJoinInput] = useState('')
-  const [nameDraft, setNameDraft] = useState(collab?.state.value.localName ?? '')
+  const [nameDraft, setNameDraft] = useState(collab?.state.get().localName ?? '')
   const [pendingRoomId, setPendingRoomId] = useState<string | null>(null)
   const [popoverOpen, setPopoverOpen] = useState(false)
   const [copied, setCopied] = useState(false)
   const copyTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  // Bridge the Vue-reactive collab session state into React renders.
-  useEffect(() => {
-    if (!collab) return
-    const stop = watch(
-      [collab.state, collab.remotePeers, collab.followingPeer],
-      () => force(),
-      { deep: true }
-    )
-    return stop
-  }, [collab])
-
   // Pending room from the URL (?room=...): auto-open the join popover.
   useEffect(() => {
     const roomId = new URLSearchParams(window.location.search).get('room')
     setPendingRoomId(roomId)
-    if (roomId && !collab?.state.value.connected) setPopoverOpen(true)
+    if (roomId && !collab?.state.get().connected) setPopoverOpen(true)
   }, [collab])
 
   useEffect(() => {
@@ -82,9 +80,6 @@ function useCollabPanelState() {
     }
   }, [])
 
-  const state = collab?.state.value ?? DEFAULT_COLLAB_STATE
-  const peers = collab?.remotePeers.value ?? []
-  const followingPeer = collab?.followingPeer.value ?? null
   const shareUrl = state.roomId ? getShareUrl(state.roomId) : ''
   const isJoining = !!pendingRoomId && !state.connected
 

@@ -1,6 +1,6 @@
 import React, { useMemo, useRef } from 'react'
 import { useLayerTree } from './context'
-import type { LayerNode } from './context'
+import type { LayerNode, LayerSelectionMode } from './context'
 
 export interface LayerTreeItemSlotProps {
   node: LayerNode
@@ -11,7 +11,7 @@ export interface LayerTreeItemSlotProps {
   focused: boolean
   padLeft: string
   actions: {
-    select: (additive: boolean) => void
+    select: (selection: boolean | LayerSelectionMode) => void
     toggleExpand: () => void
     toggleVisibility: () => void
     toggleLock: () => void
@@ -63,9 +63,10 @@ export function LayerTreeItem({
   }))
 
   const actions = useMemo(() => ({
-    select: (additive: boolean) => {
+    select: (selection: boolean | LayerSelectionMode) => {
+      const additive = typeof selection === 'boolean' ? selection : selection.additive
       onSelect?.(node.id, additive)
-      ctx.select(node.id, additive)
+      ctx.select(node.id, selection)
     },
     toggleExpand: () => {
       onToggleExpand?.(node.id)

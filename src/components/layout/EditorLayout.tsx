@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react'
 import { Panel, Group, Separator } from 'react-resizable-panels'
-import { watch } from 'vue'
 import { Sidebar } from 'lucide-react'
 import EditorCanvas from '@/components/EditorCanvas'
 import LayersPanel from '@/components/LayersPanel'
@@ -10,16 +9,22 @@ import TabBar from '@/components/TabBar'
 import SafariBanner from '@/components/SafariBanner'
 import AppToast from '@/components/shell/AppToast'
 import RenameSelectionDialog from '@/components/selection/RenameSelectionDialog'
+import AcpPermissionDialog from '@/components/chat/AcpPermissionDialog'
 import StorageWorkspace from '@/components/storage/StorageWorkspace'
 import CollabPanel from '@/components/collab-panel/CollabPanel'
 import MobileDrawer from '@/components/MobileDrawer'
 import MobileHud from '@/components/mobile-hud/MobileHud'
 import { useViewportKind } from '@openweave/react'
+import { useEditorState } from '@/app/editor/session/use-editor-state'
 import { getActiveEditorStore } from '@/app/editor/active-store'
 import { loadEditorLayout, saveEditorLayout } from '@/app/shell/layout-storage'
 import { useAppKeyboard } from '@/app/shell/keyboard/use-app-keyboard'
 import { useMenu } from '@/app/shell/menu/use'
+import { openFileFromPath } from '@/app/shell/menu/files'
 import { CollabProvider, useCollab } from '@/app/collab/use'
+import { connectAutomation } from '@/app/automation/bridge/server'
+import { spawnMCPIfNeeded } from '@/app/automation/mcp/spawn'
+import { isTauri } from '@/app/tauri/env'
 import { getActiveStore } from '@/app/tabs'
 
 /**
@@ -28,16 +33,7 @@ import { getActiveStore } from '@/app/tabs'
  * a button to bring the panels back.
  */
 function CollapsedChrome() {
-  const [name, setName] = useState('')
-
-  useEffect(() => {
-    const stop = watch(
-      () => getActiveEditorStore().state.documentName,
-      (value) => setName(value ?? ''),
-      { immediate: true }
-    )
-    return stop
-  }, [])
+  const name = useEditorState((s) => s.documentName ?? '', '')
 
   return (
     <div className="absolute top-7 left-7 z-10 flex items-center gap-2 rounded-lg border border-border bg-panel px-2 py-1 shadow-sm">
@@ -80,26 +76,13 @@ export function EditorLayout() {
 
   // `showUI` (from the editor store) toggles the full panel chrome; `?no-chrome`
   // (from the URL) drops to a bare canvas. Both mirror src/views/EditorView.vue.
-  const [showUI, setShowUI] = useState(true)
+  const showUI = useEditorState((s) => s.showUI, true)
   const [noChrome, setNoChrome] = useState(false)
 
-  // `useViewportKind().isMobile` is a Vue ref (always truthy when read bare) —
-  // bridge it to React state, reactive across the 768px breakpoint.
-  const { isMobile: isMobileRef } = useViewportKind()
-  const [isMobile, setIsMobile] = useState(isMobileRef.value)
-  useEffect(() => {
-    const stop = watch(isMobileRef, (value) => setIsMobile(value), { immediate: true })
-    return stop
-  }, [isMobileRef])
+  const { isMobile } = useViewportKind()
 
   useEffect(() => {
     setNoChrome(new URLSearchParams(window.location.search).has('no-chrome'))
-    const stop = watch(
-      () => getActiveEditorStore().state.showUI,
-      (value) => setShowUI(value),
-      { immediate: true }
-    )
-    return stop
   }, [])
 
   // Ported from src/views/EditorView.vue: block the browser's pinch/⌘-scroll zoom
@@ -112,6 +95,63 @@ export function EditorLayout() {
     return () => document.removeEventListener('wheel', onWheel)
   }, [])
 
+  // Ported from src/views/EditorView.vue onMounted: spawn the MCP sidecar,
+  // connect the automation bridge (dev + Tauri), and handle OS "Open With"
+  // file associations (Tauri).
+  useEffect(() => {
+    let disposed = false
+    let mcpCleanup: (() => void) | null = null
+    let automationCleanup: (() => void) | null = null
+    let fileAssociationCleanup: (() => void) | null = null
+
+    async function openPendingAssociatedFiles() {
+      const { invoke } = await import('@tauri-apps/api/core')
+      const files = await invoke<{ path: string }[]>('take_pending_open')
+      for (const file of files) {
+        await openFileFromPath(file.path)
+      }
+    }
+
+    void (async () => {
+      try {
+        const mcp = await spawnMCPIfNeeded()
+        if (disposed) {
+          mcp?.disconnect()
+          return
+        }
+        mcpCleanup = mcp?.disconnect ?? null
+        if (process.env.NODE_ENV !== 'production' || isTauri()) {
+          automationCleanup = connectAutomation(getActiveStore, mcp?.authToken ?? null).disconnect
+        }
+      } catch (e) {
+        console.warn('[MCP]', e)
+      }
+
+      try {
+        if (!isTauri()) return
+        const { listen } = await import('@tauri-apps/api/event')
+        const unlisten = await listen('open-associated-files', () => {
+          void openPendingAssociatedFiles().catch((e) => console.error('[Open With]', e))
+        })
+        if (disposed) {
+          unlisten()
+          return
+        }
+        fileAssociationCleanup = unlisten
+        await openPendingAssociatedFiles()
+      } catch (e) {
+        console.error('[Open With]', e)
+      }
+    })()
+
+    return () => {
+      disposed = true
+      mcpCleanup?.()
+      automationCleanup?.()
+      fileAssociationCleanup?.()
+    }
+  }, [])
+
   return (
     <CollabProvider value={collab}>
     <div
@@ -120,6 +160,7 @@ export function EditorLayout() {
     >
       <SafariBanner />
       <RenameSelectionDialog />
+      <AcpPermissionDialog />
       <AppToast />
       <TabBar />
 

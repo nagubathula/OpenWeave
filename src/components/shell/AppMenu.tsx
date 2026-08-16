@@ -1,11 +1,12 @@
 import React, { useState, useRef, useEffect, useReducer } from 'react'
-import { watch } from 'vue'
+import { useStore } from '@nanostores/react'
 import * as Menubar from '@radix-ui/react-menubar'
 import { Check, ChevronRight, Settings, PanelLeft } from 'lucide-react'
 
 import type { MenuEntry } from '@openweave/react'
 
-import { getActiveEditorStore, useEditorStore } from '@/app/editor/active-store'
+import { useEditorStore } from '@/app/editor/active-store'
+import { useEditorState } from '@/app/editor/session/use-editor-state'
 import { openSettingsDialog, settingsDialogOpen } from '@/app/settings/dialog'
 import { useAppMenu } from '@/app/shell/menu/app-menu'
 import { isMenuAction, isMenuCheckbox } from '@/app/shell/menu/entry'
@@ -41,7 +42,7 @@ function MenuEntryItems({ items, cls }: { items: MenuEntry[]; cls: ReturnType<ty
               key={i}
               checked={item.checked}
               className={cls.item}
-              onCheckedChange={(checked) => item.onCheckedChange?.(checked === true)}
+              onCheckedChange={(checked: boolean) => item.onCheckedChange?.(checked === true)}
             >
               <span className="flex-1">{item.label}</span>
               <Menubar.ItemIndicator className="text-surface">
@@ -103,26 +104,12 @@ function AppMenubar() {
 export default function AppMenu() {
   const store = useEditorStore()
   const [isEditing, setIsEditing] = useState(false)
-  // documentName lives in the Vue store (and the active store changes on tab
-  // switch); bridge it so renames and opened documents show without a remount.
-  const [documentName, setDocumentName] = useState('')
-  useEffect(() => {
-    const stop = watch(
-      () => getActiveEditorStore().state.documentName,
-      (value) => setDocumentName(value ?? ''),
-      { immediate: true }
-    )
-    return stop
-  }, [])
-  const [settingsOpen, setSettingsOpen] = useState(settingsDialogOpen.value)
+  // documentName follows the active store (tab switches included).
+  const documentName = useEditorState((s) => s.documentName ?? '', '')
+  // openSettingsDialog() is called from app code (menu model, chat provider
+  // setup, vectorize) via a shared atom; this component owns the dialog.
+  const settingsOpen = useStore(settingsDialogOpen)
   const inputRef = useRef<HTMLInputElement>(null)
-
-  // openSettingsDialog() is called from app code (menu model, chat provider setup,
-  // vectorize) via a shared Vue ref; this component owns the dialog, so bridge it.
-  useEffect(() => {
-    const stop = watch(settingsDialogOpen, (value) => setSettingsOpen(value))
-    return stop
-  }, [])
 
   useEffect(() => {
     if (isEditing && inputRef.current) {
@@ -192,8 +179,7 @@ export default function AppMenu() {
       <SettingsDialog
         open={settingsOpen}
         onClose={() => {
-          settingsDialogOpen.value = false
-          setSettingsOpen(false)
+          settingsDialogOpen.set(false)
         }}
       />
     </div>

@@ -1,4 +1,4 @@
-import { ref } from 'vue'
+import { atom } from 'nanostores'
 
 import { IS_TAURI } from '@openweave/core/constants'
 
@@ -17,13 +17,13 @@ import type { CredentialRef, CredentialStore } from '@/app/settings/credentials/
 const legacyCredentialsPresent = hasLegacyCredentialStorage()
 if (legacyCredentialsPresent) setBrowserRemembersCredentials(true)
 
-export const browserCredentialsRemembered = ref(
+export const browserCredentialsRemembered = atom(
   !IS_TAURI && (browserRemembersCredentials() || legacyCredentialsPresent)
 )
 
 function initialCredentialStore(): CredentialStore {
   if (IS_TAURI) return new NativeCredentialStore()
-  if (browserCredentialsRemembered.value) return new BrowserCredentialStore()
+  if (browserCredentialsRemembered.get()) return new BrowserCredentialStore()
   return new MemoryCredentialStore()
 }
 
@@ -39,6 +39,6 @@ export async function setBrowserCredentialPersistence(
   const next = remembered ? new BrowserCredentialStore() : new MemoryCredentialStore()
   await appCredentialStore.switchTo(next, references, { clearPrevious: !remembered })
 
-  browserCredentialsRemembered.value = remembered
+  browserCredentialsRemembered.set(remembered)
   setBrowserRemembersCredentials(remembered)
 }

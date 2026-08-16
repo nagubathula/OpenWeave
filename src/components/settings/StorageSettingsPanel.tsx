@@ -31,7 +31,7 @@ const inputClass =
  */
 export default function StorageSettingsPanel({ onClose }: { onClose: () => void }) {
   const { dialogs } = useI18n()
-  const provider = storageProviderRegistry.get(activeStorageProviderID.value)
+  const provider = storageProviderRegistry.get(activeStorageProviderID.get())
 
   const [preferenceDrafts, setPreferenceDrafts] = useState<Record<string, string>>(() => ({
     ...readStoragePreferences(provider.id)

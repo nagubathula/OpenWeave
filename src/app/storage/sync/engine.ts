@@ -61,7 +61,7 @@ function isPermanentError(error: unknown): boolean {
 async function runJob(job: OutboxJob): Promise<void> {
   const store = getLocalCanvasStore()
   const meta = await store.getMeta(job.canvasId)
-  const providerID = meta?.providerId ?? activeStorageProviderID.value
+  const providerID = meta?.providerId ?? activeStorageProviderID.get()
   if (!storagePreferencesComplete(providerID)) {
     throw new StorageSyncBlockedError('Storage is not configured')
   }

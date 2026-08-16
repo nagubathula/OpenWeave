@@ -1,5 +1,3 @@
-import { computed } from 'vue'
-
 import type { Editor } from '@openweave/core/editor'
 import type { IORegistry } from '@openweave/core/io'
 
@@ -30,22 +28,30 @@ export function defineEditorStoreAccessors(store: object, editor: Editor) {
   })
 }
 
-export function createEditorComputedRefs(editor: Editor, state: AppEditorState) {
-  const selectedNodes = computed(() => {
-    void state.sceneVersion
-    return editor.getSelectedNodes()
+/**
+ * Derived selection/tree views, replacing the old Vue computed refs. Reads are
+ * plain property accesses (`store.selectedNodes`); each access recomputes from
+ * the editor, and React components get change notification through editor
+ * events (`useSelectionState` / `useSceneComputed`) rather than the store.
+ */
+export function defineEditorDerivedAccessors(store: object, editor: Editor) {
+  Object.defineProperties(store, {
+    selectedNodes: {
+      enumerable: true,
+      get: () => editor.getSelectedNodes()
+    },
+    selectedNode: {
+      enumerable: true,
+      get: () => {
+        const nodes = editor.getSelectedNodes()
+        return nodes.length === 1 ? nodes[0] : undefined
+      }
+    },
+    layerTree: {
+      enumerable: true,
+      get: () => editor.getLayerTree()
+    }
   })
-
-  const selectedNode = computed(() =>
-    selectedNodes.value.length === 1 ? selectedNodes.value[0] : undefined
-  )
-
-  const layerTree = computed(() => {
-    void state.sceneVersion
-    return editor.getLayerTree()
-  })
-
-  return { selectedNodes, selectedNode, layerTree }
 }
 
 export function createEditorStoreModules(

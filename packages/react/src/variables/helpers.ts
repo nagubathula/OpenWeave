@@ -1,5 +1,3 @@
-import type { Ref } from 'vue'
-
 import { colorToHexRaw, parseColor } from '@openweave/core/color'
 import { BLACK } from '@openweave/core/constants'
 import type { Editor } from '@openweave/core/editor'
@@ -11,9 +9,18 @@ import type {
   VariableValue
 } from '@openweave/scene-graph'
 
-export function createVariableCollectionActions(editor: Editor, activeCollectionId: Ref<string>) {
+/** Live accessor for the active collection id owned by React state. */
+export interface ActiveCollectionIdAccessor {
+  get(): string
+  set(id: string): void
+}
+
+export function createVariableCollectionActions(
+  editor: Editor,
+  activeCollectionId: ActiveCollectionIdAccessor
+) {
   function setActiveCollection(id: string) {
-    activeCollectionId.value = id
+    activeCollectionId.set(id)
   }
 
   function addCollection() {
@@ -26,7 +33,7 @@ export function createVariableCollectionActions(editor: Editor, activeCollection
       variableIds: []
     }
     editor.addCollection(collection)
-    activeCollectionId.value = id
+    activeCollectionId.set(id)
   }
 
   function renameCollection(id: string, newName: string) {
@@ -36,41 +43,41 @@ export function createVariableCollectionActions(editor: Editor, activeCollection
   function removeCollection(id: string) {
     editor.removeCollection(id)
     const cols = [...editor.getCollections()]
-    activeCollectionId.value = cols[0]?.id ?? ''
+    activeCollectionId.set(cols[0]?.id ?? '')
   }
 
   function addMode(): string | undefined {
-    const colId = activeCollectionId.value
+    const colId = activeCollectionId.get()
     if (!colId) return undefined
     return editor.addMode(colId)
   }
 
   function removeMode(modeId: string) {
-    const colId = activeCollectionId.value
+    const colId = activeCollectionId.get()
     if (!colId) return
     editor.removeMode(colId, modeId)
   }
 
   function renameMode(modeId: string, newName: string) {
-    const colId = activeCollectionId.value
+    const colId = activeCollectionId.get()
     if (!colId) return
     editor.renameMode(colId, modeId, newName)
   }
 
   function setDefaultMode(modeId: string) {
-    const colId = activeCollectionId.value
+    const colId = activeCollectionId.get()
     if (!colId) return
     editor.setDefaultMode(colId, modeId)
   }
 
   function duplicateMode(modeId: string): string | undefined {
-    const colId = activeCollectionId.value
+    const colId = activeCollectionId.get()
     if (!colId) return undefined
     return editor.duplicateMode(colId, modeId)
   }
 
   function setActiveMode(modeId: string) {
-    const colId = activeCollectionId.value
+    const colId = activeCollectionId.get()
     if (!colId) return
     editor.setActiveMode(colId, modeId)
   }

@@ -1,9 +1,8 @@
-import React, { useCallback, useEffect, useReducer, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import * as Tabs from '@radix-ui/react-tabs'
 import { Code, Layers, Sliders, Sparkles } from 'lucide-react'
 import { motion } from 'framer-motion'
 import type { PanInfo } from 'framer-motion'
-import { watch } from 'vue'
 
 import ChatPanel from '@/components/chat/ChatPanel'
 import CodePanel from '@/components/properties/CodePanel'
@@ -18,6 +17,7 @@ import {
   SWIPE_THRESHOLD,
   SWIPE_VELOCITY_THRESHOLD
 } from '@/constants'
+import { useEditorState } from '@/app/editor/session/use-editor-state'
 import { useEditorStore } from '@/app/editor/active-store'
 
 type Snap = 'closed' | 'half' | 'full'
@@ -31,7 +31,6 @@ type DrawerTab = 'layers' | 'design' | 'code' | 'ai'
  */
 export default function MobileDrawer() {
   const store = useEditorStore()
-  const [, force] = useReducer((n: number): number => n + 1, 0)
 
   const headerRef = useRef<HTMLElement | null>(null)
   const [headerH, setHeaderH] = useState(56)
@@ -39,18 +38,9 @@ export default function MobileDrawer() {
     typeof window === 'undefined' ? 800 : window.innerHeight
   )
 
-  // Bridge the Vue-reactive snap/tab state into React renders.
-  useEffect(() => {
-    const stop = watch(
-      () => [
-        store.state.mobileDrawerSnap,
-        store.state.activeRibbonTab,
-        store.state.panelMode
-      ],
-      () => force()
-    )
-    return stop
-  }, [store])
+  useEditorState((s) => s.mobileDrawerSnap, 'closed')
+  useEditorState((s) => s.activeRibbonTab, 'panels')
+  useEditorState((s) => s.panelMode, 'design')
 
   useEffect(() => {
     const onResize = () => setWindowH(window.innerHeight)

@@ -289,7 +289,7 @@ export type {
   BindableValueStateAttrs
 } from '#react/primitives/bindable-value'
 export {
-  provideBindingProvider,
+  BindingProviderProvider,
   useBindingProvider,
   useOpenWeaveBindingProvider,
   useNumberBindingProvider,

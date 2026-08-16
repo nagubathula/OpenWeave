@@ -1,8 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react'
-import { watch } from 'vue'
 
 import { useI18n } from '@openweave/react'
 
+import { useEditorState } from '@/app/editor/session/use-editor-state'
 import { getActiveEditorStore } from '@/app/editor/active-store'
 
 /**
@@ -22,27 +22,21 @@ export default function RenameSelectionDialog() {
   const matchRef = useRef<HTMLInputElement>(null)
   const replacementRef = useRef<HTMLInputElement>(null)
 
+  const renameSelectionOpen = useEditorState((s) => s.renameSelectionOpen, false)
   useEffect(() => {
-    const stop = watch(
-      () => getActiveEditorStore().state.renameSelectionOpen,
-      (isOpen) => {
-        setOpen(!!isOpen)
-        if (isOpen) {
-          setMatch('')
-          setReplacement('')
-          setStartNumber(1)
-          requestAnimationFrame(() => matchRef.current?.focus())
-        }
-      },
-      { immediate: true }
-    )
-    return stop
-  }, [])
+    setOpen(!!renameSelectionOpen)
+    if (renameSelectionOpen) {
+      setMatch('')
+      setReplacement('')
+      setStartNumber(1)
+      requestAnimationFrame(() => matchRef.current?.focus())
+    }
+  }, [renameSelectionOpen])
 
   if (!open) return null
 
   const store = getActiveEditorStore()
-  const selectedNodes = store.selectedNodes.value
+  const selectedNodes = store.selectedNodes
   const options = { match, replacement, startNumber }
   const preview = store.previewRenameSelected(options)
   const hasRenameInput = match.length > 0 || replacement.length > 0

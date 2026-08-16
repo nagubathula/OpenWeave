@@ -18,6 +18,7 @@ import {
 } from 'lucide-react'
 
 import FontPicker from '@/components/font-picker/FontPicker'
+import FontSettingsPopover from '@/components/font-settings/FontSettingsPopover'
 import NumberField from '@/components/inputs/NumberField'
 import IconButton from '@/components/ui/IconButton'
 import PanelGrid from '@/components/ui/panel/PanelGrid'
@@ -86,7 +87,10 @@ export default function TypographySection() {
     <PanelSection label="Typography">
       <div className="mb-2.5">
         <PanelFieldGroup label="Font">
-          <FontPicker value={fontFamily} onSelect={(family) => { void setFamily(family) }} />
+          <div className="flex items-center gap-1.5">
+            <FontPicker value={fontFamily} onSelect={(family) => { void setFamily(family) }} />
+            <FontSettingsPopover />
+          </div>
         </PanelFieldGroup>
       </div>
 

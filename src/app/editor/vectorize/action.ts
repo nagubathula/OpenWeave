@@ -41,7 +41,7 @@ export async function vectorizeImageNode(store: EditorStore, nodeId: string): Pr
   const fill = node ? imageFill(node) : null
   if (!node || fill?.type !== 'IMAGE' || !fill.imageHash) return
 
-  const provider = getVectorizeProvider(vectorizeProviderID.value)
+  const provider = getVectorizeProvider(vectorizeProviderID.get())
   activeStores.add(store)
   try {
     const apiKey = await resolveVectorizeCredential(provider.id)

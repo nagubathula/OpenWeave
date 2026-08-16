@@ -1,5 +1,3 @@
-import { useClipboard } from '@vueuse/core'
-
 import { nodeToXPath } from '@openweave/core/xpath'
 
 import type { EditorStore } from '@/app/editor/active-store'
@@ -17,8 +15,6 @@ function toArrayBuffer(data: Uint8Array): ArrayBuffer {
 }
 
 export function createCanvasMenuActions(store: EditorStore, selectedIds: string[]) {
-  const { copy } = useClipboard()
-
   function ids() {
     return selectedIds
   }
@@ -35,7 +31,7 @@ export function createCanvasMenuActions(store: EditorStore, selectedIds: string[
     if (isTauri()) {
       await writeTauriClipboardText(text)
     } else {
-      await copy(text)
+      await navigator.clipboard.writeText(text)
     }
     toast.info(`Copied as ${label}`)
   }

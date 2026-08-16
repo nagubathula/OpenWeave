@@ -93,7 +93,7 @@ export default function MobileToolbar({
       <motion.div
         layout
         data-test-id="mobile-toolbar-container"
-        className="relative flex h-11 items-center overflow-hidden rounded-[8px] border border-border bg-panel px-2 shadow-lg"
+        className="relative flex h-11 items-center overflow-hidden rounded-full border border-border bg-panel px-2 shadow-lg"
         transition={{ layout: { type: 'spring', damping: 30, stiffness: 500 } }}
       >
         <AnimatePresence mode="popLayout" custom={slideDirection}>

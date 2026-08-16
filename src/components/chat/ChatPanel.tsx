@@ -1,20 +1,25 @@
-import React, { useCallback, useEffect, useReducer, useRef, useState } from 'react'
-import { ArrowUp, Bot, MessageCircle, Settings, Sparkles, Square, Trash2 } from 'lucide-react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
+import { ArrowUp, Bot, MessageCircle, Play, Settings, Sparkles, Square, Trash2 } from 'lucide-react'
 import { readUIMessageStream } from 'ai'
 import type { ChatTransport, UIMessage } from 'ai'
-import { watch } from 'vue'
+import { useStore } from '@nanostores/react'
 
 import { useI18n } from '@openweave/react'
+
+import { ACP_AGENTS } from '@openweave/core/constants'
 
 import { getActiveEditorStore } from '@/app/editor/active-store'
 import { resolveLanguageModelID } from '@/app/ai/chat/model'
 import { createToolLoopTransport } from '@/app/ai/chat/transports'
 import { credentialsReady, isConfigured } from '@/app/ai/chat/storage'
-import { createAIModelRuntime } from '@/app/ai/models'
+import { aiModelSettings, createAIModelRuntime, designModelProfiles } from '@/app/ai/models'
 import { useAIChat } from '@/app/ai/chat/use'
+import { clearToolLogEntries, didHitStepLimit } from '@/app/ai/tools'
 import { openSettingsDialog } from '@/app/settings/dialog'
 import { toast } from '@/app/shell/ui'
+import ChatMessage from '@/components/chat/ChatMessage'
 import ChatModelSelect from '@/components/chat/ChatModelSelect'
+import ChatProfileSelect from '@/components/chat/ChatProfileSelect'
 
 type ChatStatus = 'ready' | 'submitted' | 'streaming'
 
@@ -47,47 +52,10 @@ async function createDesignTransport(): Promise<ChatTransport<UIMessage>> {
   })
 }
 
-function messageText(message: UIMessage): string {
-  return message.parts
-    .map((part) => (part.type === 'text' ? part.text : ''))
-    .join('')
-}
-
-type ToolPartLike = {
-  type: string
-  state?: string
-  output?: unknown
-}
-
-function isToolPart(part: { type: string }): part is ToolPartLike {
-  return part.type.startsWith('tool-') || part.type === 'dynamic-tool'
-}
-
-/** `create_shape` -> `Create Shape`, matching the Vue ChatMessage display names. */
-function toolDisplayName(part: ToolPartLike): string {
-  const raw =
-    part.type === 'dynamic-tool'
-      ? ((part as { toolName?: string }).toolName ?? 'tool')
-      : part.type.slice('tool-'.length)
-  return raw
-    .replace(/^mcp__[^_]+__/, '')
-    .replace(/_/g, ' ')
-    .replace(/\w/g, (c) => c.toUpperCase())
-}
-
-function toolState(part: ToolPartLike): 'pending' | 'done' | 'error' {
-  const hasErrorOutput =
-    part.state === 'output-available' &&
-    typeof part.output === 'object' &&
-    part.output !== null &&
-    'error' in (part.output as object)
-  if (part.state === 'output-error' || hasErrorOutput) return 'error'
-  if (part.state === 'output-available') return 'done'
-  return 'pending'
-}
-
-function toolParts(message: UIMessage): ToolPartLike[] {
-  return message.parts.filter(isToolPart)
+/** `acp:claude-code` -> `Claude Code`, matching ModelsPanel's providerName helper. */
+function acpAgentName(providerID: string): string {
+  const agentID = providerID.slice('acp:'.length)
+  return ACP_AGENTS.find((agent) => agent.id === agentID)?.name ?? agentID
 }
 
 export default function ChatPanel() {
@@ -96,13 +64,19 @@ export default function ChatPanel() {
   const [input, setInput] = useState('')
   const [configured, setConfigured] = useState<boolean | null>(null)
   const { dialogs } = useI18n()
-  const { getOverrideTransport, customModelID, modelID } = useAIChat()
-  const [, forceRender] = useReducer((n: number): number => n + 1, 0)
-
-  useEffect(() => {
-    const stop = watch([customModelID, modelID], () => forceRender())
-    return stop
-  }, [customModelID, modelID])
+  const {
+    getOverrideTransport,
+    customModelID: customModelIDStore,
+    providerID: providerIDStore,
+    providerDef: providerDefStore,
+    resetChat
+  } = useAIChat()
+  const customModelID = useStore(customModelIDStore)
+  const providerID = useStore(providerIDStore)
+  const providerDef = useStore(providerDefStore)
+  // Subscribed only so `designModelProfiles()` below stays live when profiles
+  // are added/removed elsewhere (e.g. Settings) while the panel is mounted.
+  useStore(aiModelSettings)
   const [error, setError] = useState<string | null>(null)
 
   const transportRef = useRef<ChatTransport<UIMessage> | null>(null)
@@ -113,12 +87,13 @@ export default function ChatPanel() {
   useEffect(() => {
     let active = true
     void credentialsReady.then(() => {
-      if (active) setConfigured(isConfigured.value)
+      if (active) setConfigured(isConfigured.get())
       return undefined
     })
     // Saving a key in Settings must flip the panel to the chat UI without a
-    // remount, so track the Vue computed after the initial credential load.
-    const stop = watch(isConfigured, (value) => {
+    // remount, so track the store after the initial credential load. `.listen`
+    // does not fire immediately, so the pre-credentialsReady value never shows.
+    const stop = isConfigured.listen((value) => {
       if (active) setConfigured(value)
     })
     return () => {
@@ -143,7 +118,13 @@ export default function ChatPanel() {
     setError(null)
     transportRef.current = null
     chatIdRef.current = createId()
-  }, [handleStop])
+    resetChat()
+    // Also clears the step counter, so a stale Continue button can't survive a Clear.
+    clearToolLogEntries()
+    // ACP's debug transport is code-split (see transports.ts); load it lazily
+    // instead of pulling the ACP SDK into the main chat bundle for everyone.
+    void import('@/app/ai/acp/transport').then(({ clearAcpDebugLog }) => clearAcpDebugLog())
+  }, [handleStop, resetChat])
 
   const handleSubmit = useCallback(
     async (text: string) => {
@@ -200,6 +181,44 @@ export default function ChatPanel() {
 
   const isBusy = status === 'streaming' || status === 'submitted'
   const isThinking = isBusy && (messages.length === 0 || messages[messages.length - 1].role === 'user')
+  const showContinue =
+    status === 'ready' &&
+    messages.length > 0 &&
+    messages[messages.length - 1].role === 'assistant' &&
+    didHitStepLimit()
+
+  const isACPProvider = providerID.startsWith('acp:')
+  const isCustomProvider = providerID === 'openai-compatible' || providerID === 'anthropic-compatible'
+  const usesCustomModel = Boolean(providerDef.supportsCustomModel) && Boolean(customModelID.trim())
+  // Switching between saved profiles only makes sense once more than one can drive the design agent.
+  const canSwitchProfile = designModelProfiles().length > 1
+
+  let composerControl: React.ReactNode
+  if (isACPProvider) {
+    composerControl = (
+      <div
+        className="ml-auto flex items-center gap-1 px-1.5 py-0.5 text-[10px] text-muted"
+        data-test-id="chat-acp-agent-label"
+      >
+        <Bot className="size-3" />
+        <span className="truncate">{acpAgentName(providerID)}</span>
+      </div>
+    )
+  } else if (canSwitchProfile && (isCustomProvider || usesCustomModel)) {
+    composerControl = <ChatProfileSelect />
+  } else if (isCustomProvider || usesCustomModel) {
+    composerControl = (
+      <div
+        className="ml-auto flex items-center gap-1 px-1.5 py-0.5 text-[10px] text-muted"
+        data-test-id="chat-custom-model-label"
+      >
+        <Bot className="size-3" />
+        <span className="truncate">{usesCustomModel ? customModelID.trim() : 'No model'}</span>
+      </div>
+    )
+  } else {
+    composerControl = <ChatModelSelect />
+  }
 
   if (configured === false) {
     return (
@@ -237,49 +256,9 @@ export default function ChatPanel() {
           </div>
         ) : (
           <div data-test-id="chat-messages" className="flex flex-col gap-3">
-            {messages.map((message) => {
-              const text = messageText(message)
-              const tools = message.role === 'assistant' ? toolParts(message) : []
-              return (
-                <div
-                  key={message.id}
-                  data-test-id="chat-message"
-                  data-role={message.role}
-                  className={`flex gap-2 ${message.role === 'user' ? 'flex-row-reverse' : ''}`}
-                >
-                  <div className="flex size-6 shrink-0 items-center justify-center rounded-full bg-muted/20 text-[10px] font-bold text-muted">
-                    {message.role === 'user' ? 'You' : 'AI'}
-                  </div>
-                  <div
-                    className={`min-w-0 max-w-[85%] rounded-lg px-3 py-2 text-xs leading-5 ${
-                      message.role === 'user'
-                        ? 'bg-accent/10 text-surface'
-                        : 'bg-input/40 text-surface'
-                    }`}
-                  >
-                    {text ? <span className="whitespace-pre-wrap break-words">{text}</span> : null}
-                    {tools.length > 0 ? (
-                      <div className="mt-1 flex flex-col gap-1">
-                        {tools.map((tool, i) => {
-                          const state = toolState(tool)
-                          return (
-                            <div
-                              key={`tool-${i}`}
-                              className="flex items-center gap-2 rounded-lg border border-border bg-canvas px-2 py-1"
-                            >
-                              <span className="text-[11px] text-surface">{toolDisplayName(tool)}</span>
-                              <span className="text-[10px] text-muted">
-                                {state === 'pending' ? 'Running…' : state === 'done' ? 'Done' : 'Error'}
-                              </span>
-                            </div>
-                          )
-                        })}
-                      </div>
-                    ) : null}
-                  </div>
-                </div>
-              )
-            })}
+            {messages.map((message) => (
+              <ChatMessage key={message.id} message={message} />
+            ))}
 
             {isThinking ? (
               <div data-test-id="chat-typing-indicator" className="flex gap-2">
@@ -291,6 +270,20 @@ export default function ChatPanel() {
                   <span className="size-1.5 animate-bounce rounded-full bg-muted" style={{ animationDelay: '150ms' }} />
                   <span className="size-1.5 animate-bounce rounded-full bg-muted" style={{ animationDelay: '300ms' }} />
                 </div>
+              </div>
+            ) : null}
+
+            {showContinue ? (
+              <div className="flex justify-center py-2">
+                <button
+                  type="button"
+                  data-test-id="chat-continue"
+                  className="flex items-center gap-1.5 rounded-full bg-accent/10 px-4 py-1.5 text-xs font-medium text-accent transition-colors hover:bg-accent/20"
+                  onClick={() => void handleSubmit('Continue where you left off')}
+                >
+                  <Play className="size-3" />
+                  Continue
+                </button>
               </div>
             ) : null}
 
@@ -317,17 +310,7 @@ export default function ChatPanel() {
             Clear
           </button>
         )}
-        {customModelID.value.trim() ? (
-          <div
-            className="ml-auto flex items-center gap-1 px-1.5 py-0.5 text-[10px] text-muted"
-            data-test-id="chat-custom-model-label"
-          >
-            <Bot className="size-3" />
-            <span className="truncate">{customModelID.value}</span>
-          </div>
-        ) : (
-          <ChatModelSelect />
-        )}
+        {composerControl}
         <button
           type="button"
           data-test-id="provider-settings-trigger"
@@ -350,6 +333,9 @@ export default function ChatPanel() {
           data-test-id="chat-input"
           value={input}
           onChange={(e) => setInput(e.target.value)}
+          onPaste={(e) => e.stopPropagation()}
+          onCopy={(e) => e.stopPropagation()}
+          onCut={(e) => e.stopPropagation()}
           placeholder={dialogs.describeChange}
           className="min-h-8 min-w-0 flex-1 rounded border border-border bg-input/50 px-2 py-1.5 text-xs text-surface outline-none placeholder:text-muted focus:border-accent"
         />

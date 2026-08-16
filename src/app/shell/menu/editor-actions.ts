@@ -18,13 +18,13 @@ export function alignSelected(
 }
 
 export function updateSelectedText(updates: TextFormatUpdates): void {
-  for (const node of store.selectedNodes.value) {
+  for (const node of store.selectedNodes) {
     if (node.type === 'TEXT') store.updateNodeWithUndo(node.id, updates, 'Format text')
   }
 }
 
 export function selectedTextNode(): SceneNode | undefined {
-  return store.selectedNodes.value.find((item) => item.type === 'TEXT')
+  return store.selectedNodes.find((item) => item.type === 'TEXT')
 }
 
 export function toggleSelectedTextBold(): void {

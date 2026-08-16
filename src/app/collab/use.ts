@@ -1,5 +1,5 @@
-import { useLocalStorage } from '@vueuse/core'
-import { computed, ref } from 'vue'
+import { persistentAtom } from '@nanostores/persistent'
+import { atom, computed } from 'nanostores'
 
 import { createFollowActions, generateRoomId } from '@/app/collab/awareness'
 import { createLocalAwarenessActions } from '@/app/collab/local-awareness'
@@ -19,10 +19,12 @@ export type { CollabState, RemotePeer }
 export function useCollab(storeOrGetter: EditorStore | (() => EditorStore)) {
   const getStore = () =>
     typeof storeOrGetter === 'function' ? (storeOrGetter as () => EditorStore)() : storeOrGetter
-  const storedName = useLocalStorage('op-collab-name', '')
-  const state = ref<CollabState>(createInitialCollabState(storedName.value))
+  // Raw string codec (no JSON): the Vue-era `useLocalStorage` stored this value
+  // unquoted, so a JSON decode would corrupt existing `op-collab-name` entries.
+  const storedName = persistentAtom('op-collab-name', '')
+  const state = atom<CollabState>(createInitialCollabState(storedName.get()))
   const runtime = createCollabRuntime()
-  const remotePeers = computed(() => state.value.peers)
+  const remotePeers = computed([state], (current) => current.peers)
   const getActiveStore = () => runtime.connectedStore ?? getStore()
 
   const { followingPeer, followPeer, resetFollow, tickFollow } = createFollowActions(

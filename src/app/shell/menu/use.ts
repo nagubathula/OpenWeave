@@ -60,7 +60,7 @@ export function useMenu() {
         openStorageWorkspace()
       },
       close: () => {
-        if (activeTab.value) closeTab(activeTab.value.id)
+        if (activeTab.get()) closeTab(activeTab.get()!.id)
       },
       save: () => void store().saveFigFile(),
       'save-as': () => void store().saveFigFileAs(),
@@ -85,10 +85,7 @@ export function useMenu() {
       ...createSelectionMenuActions(useEditorStore()),
       'check-updates': () =>
         void checkForAppUpdate({
-          // oxlint-disable-next-line openweave/no-broad-double-cast
-          messages: { value: latest.current.dialogs } as unknown as Parameters<
-            typeof checkForAppUpdate
-          >[0]['messages']
+          messages: () => latest.current.dialogs
         }),
       settings: openSettingsDialog,
       ...createSharedEditorMenuActions((theme) => latest.current.setTheme(theme))

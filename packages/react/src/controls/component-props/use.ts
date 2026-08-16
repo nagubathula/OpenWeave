@@ -1,4 +1,4 @@
-import { computed } from 'vue'
+import { useMemo } from 'react'
 
 import type { SceneNode } from '@openweave/scene-graph'
 
@@ -26,25 +26,24 @@ export function useComponentProperties() {
     void editor.state.sceneVersion
     return editor.getSelectedNodes().filter((node) => node.type === 'INSTANCE')
   })
-  const selectedCount = computed(() => editor.state.selectedIds.size)
+  const selectedCount = useSceneComputed(() => editor.state.selectedIds.size)
   const definitionSets = useSceneComputed(() => {
     void editor.state.sceneVersion
     return instances.map((instance) =>
       editor.getInstanceComponentPropertyDefinitions(instance.id)
     )
   })
-  const definitions = computed(() => compatibleComponentPropertyDefinitions(definitionSets))
-  const active = computed(
-    () =>
-      instances.length > 0 &&
-      instances.length === selectedCount.value &&
-      definitions.value.length > 0
+  const definitions = useMemo(
+    () => compatibleComponentPropertyDefinitions(definitionSets),
+    [definitionSets]
   )
+  const active =
+    instances.length > 0 && instances.length === selectedCount && definitions.length > 0
   const controls = useSceneComputed<ComponentPropertyControl[]>(() => {
     void editor.state.sceneVersion
-    if (!active.value || instances.length === 0) return []
+    if (!active || instances.length === 0) return []
     const firstInstance = instances[0]
-    return definitions.value.map((definition) => {
+    return definitions.map((definition) => {
       const values = instances.map((instance) =>
         editor.getInstanceComponentPropertyValue(instance.id, definition)
       )
@@ -70,9 +69,9 @@ export function useComponentProperties() {
   })
 
   function setValue(propertyId: string, value: string) {
-    if (!active.value) return
+    if (!active) return
     const targets = [...instances]
-    const definition = definitions.value.find((item) => item.id === propertyId)
+    const definition = definitions.find((item) => item.id === propertyId)
     if (!definition) return
     const label = `Change ${definition.name}`
     const run = () => {

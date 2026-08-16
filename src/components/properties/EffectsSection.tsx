@@ -1,5 +1,5 @@
 import React from 'react'
-import { useEditor, useSelectionState } from '@openweave/react'
+import { useEditorPropertyList, useI18n } from '@openweave/react'
 import { colorToHexRaw } from '@openweave/core/color'
 import type { Effect } from '@openweave/scene-graph'
 import { Plus, Eye, EyeOff, Minus, Settings2 } from 'lucide-react'
@@ -8,37 +8,43 @@ import PanelSection from '@/components/ui/panel/PanelSection'
 import IconButton from '@/components/ui/IconButton'
 import ColorSwatchPopover from '@/components/color-picker/ColorSwatchPopover'
 import NumberField from '@/components/inputs/NumberField'
+import { commitDiscretePropertyListChange } from '@/components/properties/blend-mode/use'
+import SharedStyleField from '@/components/properties/shared-style/SharedStyleField'
 import * as Popover from '@radix-ui/react-popover'
 
 const inputClass = 'w-full bg-input/50 rounded px-2 py-1 border border-border text-surface text-xs outline-none focus:border-accent'
 
 export default function EffectsSection() {
-  const editor = useEditor()
-  const { selectedNode: node } = useSelectionState()
-  
-  if (!node) return null
+  const { items: effects, isMixed, active, flush, actions } = useEditorPropertyList('effects')
+  const { panels } = useI18n()
 
-  const effects = ('effects' in node ? (node.effects) : undefined) ?? []
-
-  const updateEffects = (next: Effect[]) => {
-    editor.updateNodeWithUndo(node.id, { effects: next }, 'Change effect')
-  }
+  if (!active) return null
 
   const addEffect = () => {
-    updateEffects([...effects, { type: 'DROP_SHADOW', color: { r: 0, g: 0, b: 0, a: 0.25 }, offset: { x: 0, y: 4 }, radius: 4, spread: 0, visible: true, blendMode: 'NORMAL' } as any])
+    // With a multi-selection this replaces every layer's effects (mixed included).
+    actions.add({
+      type: 'DROP_SHADOW',
+      color: { r: 0, g: 0, b: 0, a: 0.25 },
+      offset: { x: 0, y: 4 },
+      radius: 4,
+      spread: 0,
+      visible: true,
+      blendMode: 'NORMAL'
+    })
   }
 
   const updateEffect = (index: number, patch: Partial<Effect>) => {
-    updateEffects(effects.map((e, i) => (i === index ? { ...e, ...patch } as any : e)))
+    actions.patch(index, patch)
   }
 
-  const removeEffect = (index: number) => {
-    updateEffects(effects.filter((_, i) => i !== index))
+  const commitEffect = (index: number, patch: Partial<Effect>) => {
+    commitDiscretePropertyListChange(flush, () => actions.patch(index, patch))
   }
 
   return (
     <PanelSection
       label="Effects"
+      empty={!isMixed && effects.length === 0}
       actions={
         <IconButton label="Add effect" onClick={addEffect}>
           <Plus className="size-3.5" />
@@ -46,14 +52,23 @@ export default function EffectsSection() {
       }
     >
       <div className="space-y-3">
-        {effects.map((effect: any, i) => (
-          <div key={i} className="flex flex-col gap-2 relative group">
+        <SharedStyleField kind="effect" label={panels.effectStyle} />
+
+        {isMixed && <p className="text-[11px] text-muted">{panels.mixedEffectsHelp}</p>}
+
+        {effects.map((effect, i) => (
+          <div key={i} className="flex flex-col gap-2 relative group" data-property="effects" data-index={i}>
             <div className="flex items-center gap-1.5">
               <div className="flex-1 flex items-center gap-1 bg-input/50 rounded px-1.5 py-1 border border-border focus-within:border-accent transition-colors">
                 <select
                   className="w-full bg-transparent outline-none text-xs text-surface truncate"
                   value={effect.type}
-                  onChange={(e) => updateEffect(i, { type: e.target.value as any })}
+                  data-property="effect-type"
+                  onChange={(e) =>
+                    commitDiscretePropertyListChange(flush, () =>
+                      actions.patch(i, { type: e.target.value as Effect['type'] })
+                    )
+                  }
                 >
                   <option value="DROP_SHADOW">Drop shadow</option>
                   <option value="INNER_SHADOW">Inner shadow</option>
@@ -72,7 +87,7 @@ export default function EffectsSection() {
                   <Popover.Content side="left" align="start" sideOffset={10} className="w-56 rounded border border-border bg-panel p-3 shadow-lg z-50">
                     <div className="space-y-3">
                       <div className="text-xs font-semibold">{effect.type.replace('_', ' ')}</div>
-                      
+
                       {effect.type.includes('SHADOW') && (
                         <>
                           <div className="flex gap-2">
@@ -81,7 +96,7 @@ export default function EffectsSection() {
                               <NumberField
                                 value={effect.offset?.x ?? 0}
                                 onChange={(v) => updateEffect(i, { offset: { ...(effect.offset ?? { y: 0 }), x: v } })}
-                                onCommit={(v) => updateEffect(i, { offset: { ...(effect.offset ?? { y: 0 }), x: v } })}
+                                onCommit={(v) => commitEffect(i, { offset: { ...(effect.offset ?? { y: 0 }), x: v } })}
                               />
                             </div>
                             <div className="flex-1">
@@ -89,7 +104,7 @@ export default function EffectsSection() {
                               <NumberField
                                 value={effect.offset?.y ?? 0}
                                 onChange={(v) => updateEffect(i, { offset: { ...(effect.offset ?? { x: 0 }), y: v } })}
-                                onCommit={(v) => updateEffect(i, { offset: { ...(effect.offset ?? { x: 0 }), y: v } })}
+                                onCommit={(v) => commitEffect(i, { offset: { ...(effect.offset ?? { x: 0 }), y: v } })}
                               />
                             </div>
                           </div>
@@ -99,7 +114,7 @@ export default function EffectsSection() {
                               <NumberField
                                 value={effect.radius ?? 0}
                                 onChange={(v) => updateEffect(i, { radius: Math.max(0, v) })}
-                                onCommit={(v) => updateEffect(i, { radius: Math.max(0, v) })}
+                                onCommit={(v) => commitEffect(i, { radius: Math.max(0, v) })}
                               />
                             </div>
                             <div className="flex-1">
@@ -107,7 +122,7 @@ export default function EffectsSection() {
                               <NumberField
                                 value={effect.spread ?? 0}
                                 onChange={(v) => updateEffect(i, { spread: v })}
-                                onCommit={(v) => updateEffect(i, { spread: v })}
+                                onCommit={(v) => commitEffect(i, { spread: v })}
                               />
                             </div>
                           </div>
@@ -132,7 +147,7 @@ export default function EffectsSection() {
                                 max={100}
                                 suffix="%"
                                 onChange={(v) => updateEffect(i, { color: { ...(effect.color ?? { r: 0, g: 0, b: 0 }), a: v / 100 } })}
-                                onCommit={(v) => updateEffect(i, { color: { ...(effect.color ?? { r: 0, g: 0, b: 0 }), a: v / 100 } })}
+                                onCommit={(v) => commitEffect(i, { color: { ...(effect.color ?? { r: 0, g: 0, b: 0 }), a: v / 100 } })}
                               />
                             </div>
                           </div>
@@ -145,7 +160,7 @@ export default function EffectsSection() {
                           <NumberField
                             value={effect.radius ?? 0}
                             onChange={(v) => updateEffect(i, { radius: Math.max(0, v) })}
-                            onCommit={(v) => updateEffect(i, { radius: Math.max(0, v) })}
+                            onCommit={(v) => commitEffect(i, { radius: Math.max(0, v) })}
                           />
                         </div>
                       )}
@@ -155,7 +170,12 @@ export default function EffectsSection() {
                         <select
                           className={inputClass + ' h-6 w-full'}
                           value={effect.blendMode ?? 'NORMAL'}
-                          onChange={(e) => updateEffect(i, { blendMode: e.target.value as any })}
+                          data-property="effect-blend-mode"
+                          onChange={(e) =>
+                            commitDiscretePropertyListChange(flush, () =>
+                              actions.patch(i, { blendMode: e.target.value as Effect['blendMode'] })
+                            )
+                          }
                         >
                           <option value="NORMAL">Normal</option>
                           <option value="DARKEN">Darken</option>
@@ -182,12 +202,12 @@ export default function EffectsSection() {
 
               <IconButton
                 label={effect.visible !== false ? 'Hide effect' : 'Show effect'}
-                onClick={() => updateEffect(i, { visible: effect.visible === false ? true : false })}
+                onClick={() => actions.toggleVisibility(i)}
                 className={effect.visible === false ? 'opacity-50' : ''}
               >
                 {effect.visible !== false ? <Eye className="size-3.5" /> : <EyeOff className="size-3.5" />}
               </IconButton>
-              <IconButton label="Remove effect" onClick={() => removeEffect(i)}>
+              <IconButton label="Remove effect" onClick={() => actions.remove(i)}>
                 <Minus className="size-3.5" />
               </IconButton>
             </div>

@@ -1,5 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react'
-import { watch } from 'vue'
+import React, { useMemo } from 'react'
 
 import DesktopToolbar from '@/components/toolbar/DesktopToolbar'
 import MobileToolbar from '@/components/toolbar/MobileToolbar'
@@ -21,16 +20,7 @@ import type { ToolbarActionItem } from '@/components/toolbar/types'
 
 export default function Toolbar() {
   const store = useEditorStore()
-  // `useViewportKind().isMobile` is a Vue ref, so it's always truthy when read
-  // directly — a bare `!isMobile` would always be false and force the mobile
-  // toolbar on desktop. Bridge the ref to React state (also keeps it reactive to
-  // window resizes across the 768px breakpoint).
-  const { isMobile: isMobileRef } = useViewportKind()
-  const [isMobile, setIsMobile] = useState(isMobileRef.value)
-  useEffect(() => {
-    const stop = watch(isMobileRef, (value) => setIsMobile(value), { immediate: true })
-    return stop
-  }, [isMobileRef])
+  const { isMobile } = useViewportKind()
   const { getCommand } = useEditorCommands()
   const { showActionToast } = useActionToast()
   const { menu, tools: toolTexts } = useI18n()

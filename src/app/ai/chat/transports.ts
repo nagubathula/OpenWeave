@@ -1,7 +1,7 @@
-import { Chat } from '@ai-sdk/vue'
+import { Chat } from '@ai-sdk/react'
 import { DirectChatTransport, stepCountIs, ToolLoopAgent } from 'ai'
 import type { ChatTransport, LanguageModel, UIMessage } from 'ai'
-import type { ComputedRef, Ref } from 'vue'
+import type { ReadableAtom } from 'nanostores'
 
 import { ACP_AGENTS } from '@openweave/core/constants'
 import type { ACPAgentID, AIProviderID } from '@openweave/core/constants'
@@ -15,9 +15,9 @@ import type { getActiveEditorStore } from '@/app/editor/active-store'
 type EditorStore = ReturnType<typeof getActiveEditorStore>
 
 type ChatSessionOptions = {
-  isConfigured: ComputedRef<boolean>
-  isACPProvider: ComputedRef<boolean>
-  providerID: Ref<AIProviderID>
+  isConfigured: ReadableAtom<boolean>
+  isACPProvider: ReadableAtom<boolean>
+  providerID: ReadableAtom<AIProviderID>
   credentialsReady: Promise<void>
   getActiveEditorStore: () => EditorStore
 }
@@ -118,7 +118,7 @@ export function createChatSessionManager({
 
   async function createActiveACPTransport() {
     await acpTransportInstance?.destroy()
-    const transport = await createACPTransport(providerID.value)
+    const transport = await createACPTransport(providerID.get())
     acpTransportInstance = transport
     return transport as ChatTransport<UIMessage>
   }
@@ -148,7 +148,7 @@ export function createChatSessionManager({
 
   async function ensureChat(): Promise<Chat<UIMessage> | null> {
     await credentialsReady
-    if (!isConfigured.value) return null
+    if (!isConfigured.get()) return null
 
     const store = getActiveEditorStore()
     if (currentChatStore && chat) {
@@ -157,7 +157,7 @@ export function createChatSessionManager({
 
     if (!chat || transportDirty || currentChatStore !== store) {
       const messages = currentChatMessages.get(store)
-      const transport: ChatTransport<UIMessage> = isACPProvider.value
+      const transport: ChatTransport<UIMessage> = isACPProvider.get()
         ? await createActiveACPTransport()
         : await createTransport(store)
       chat = new Chat<UIMessage>({ transport, messages })

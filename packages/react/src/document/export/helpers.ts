@@ -1,5 +1,3 @@
-import { computed } from 'vue'
-
 import type { Editor } from '@openweave/core/editor'
 import { BUILTIN_IO_FORMATS, IORegistry } from '@openweave/core/io'
 import { MAX_EXPORT_SCALE, MIN_EXPORT_SCALE, clampExportScale } from '@openweave/scene-graph'
@@ -30,15 +28,13 @@ export function formatSupportsScale(format: ExportFormatId) {
 }
 
 export function createExportTargetState(editor: Editor, selectedIds: string[]) {
-  const hasSelection = computed(() => selectedIds.length > 0)
-  const activeTarget = computed<ExportPanelTarget>(() =>
-    hasSelection.value ? 'selection' : 'page'
-  )
+  const hasSelection = selectedIds.length > 0
+  const activeTarget: ExportPanelTarget = hasSelection ? 'selection' : 'page'
   const targetIds = useSceneComputed(() =>
     selectedIds.length > 0 ? selectedIds : [editor.state.currentPageId]
   )
 
-  const selectedNodeName = computed(() => {
+  const selectedNodeName = useSceneComputed<string | null>(() => {
     const ids = editor.state.selectedIds
     if (ids.size === 1) {
       const id = [...ids][0]
@@ -48,16 +44,13 @@ export function createExportTargetState(editor: Editor, selectedIds: string[]) {
     return null
   })
 
-  const currentPageName = computed(() => {
+  const currentPageName = useSceneComputed(() => {
     const page = editor.graph.getNode(editor.state.currentPageId)
     return page?.name ?? 'Page'
   })
 
-  const activeName = computed(() =>
-    activeTarget.value === 'selection'
-      ? (selectedNodeName.value ?? 'Export')
-      : currentPageName.value
-  )
+  const activeName =
+    activeTarget === 'selection' ? (selectedNodeName ?? 'Export') : currentPageName
   const activeSettings = useSceneComputed(() => {
     const firstId = targetIds[0]
     return firstId ? [...(editor.graph.getNode(firstId)?.exportSettings ?? [])] : []

@@ -1,70 +1,173 @@
 import React from 'react'
-import { useConstraints } from '@openweave/react'
+import { tv } from 'tailwind-variants'
+import { ConstraintsControlRoot, MIXED, constraintPins, useI18n } from '@openweave/react'
+import type { ConstraintAxis, ConstraintEdge } from '@openweave/react'
 import type { ConstraintType } from '@openweave/scene-graph'
 
-const HORIZONTAL_OPTIONS: { value: ConstraintType; label: string }[] = [
-  { value: 'MIN', label: 'Left' },
-  { value: 'CENTER', label: 'Center' },
-  { value: 'MAX', label: 'Right' },
-  { value: 'STRETCH', label: 'Left & Right' },
-  { value: 'SCALE', label: 'Scale' }
-]
+import Tip from '@/components/ui/Tip'
+import { AppSelect } from '@/components/ui/AppSelect'
+import { PanelFieldGroup, PanelSection } from '@/components/ui/panel'
+import constraintsTheme from '@/theme/constraints'
 
-const VERTICAL_OPTIONS: { value: ConstraintType; label: string }[] = [
-  { value: 'MIN', label: 'Top' },
-  { value: 'CENTER', label: 'Center' },
-  { value: 'MAX', label: 'Bottom' },
-  { value: 'STRETCH', label: 'Top & Bottom' },
-  { value: 'SCALE', label: 'Scale' }
-]
+type PinPosition = keyof (typeof constraintsTheme)['variants']['pinPosition']
+type ConstraintSelectValue = ConstraintType | 'MIXED'
+type SelectOption = { value: ConstraintSelectValue; label: string }
 
-const selectClass =
-  'w-full bg-input/50 rounded px-2 py-1 border border-border text-surface outline-none'
+type PinItem = {
+  axis: ConstraintAxis
+  edge: ConstraintEdge | 'center'
+  position: PinPosition
+  label: string
+  active: boolean
+}
 
-function isConstraintType(value: string): value is ConstraintType {
-  return value === 'MIN' || value === 'CENTER' || value === 'MAX' || value === 'STRETCH' || value === 'SCALE'
+const constraintStyles = tv(constraintsTheme)
+const baseStyles = constraintStyles()
+
+function optionsWithMixed(options: SelectOption[], mixed: boolean, mixedLabel: string): SelectOption[] {
+  return mixed ? [{ value: 'MIXED', label: mixedLabel }, ...options] : options
 }
 
 export function ConstraintsSection() {
-  const { active, horizontal, vertical, setAxis } = useConstraints()
+  const { panels } = useI18n()
 
-  if (!active) return null
-
-  const horizontalValue = typeof horizontal === 'string' ? horizontal : ''
-  const verticalValue = typeof vertical === 'string' ? vertical : ''
+  const horizontalOptions: SelectOption[] = [
+    { value: 'MIN', label: panels.constraintLeft },
+    { value: 'CENTER', label: panels.constraintCenter },
+    { value: 'MAX', label: panels.constraintRight },
+    { value: 'STRETCH', label: panels.constraintLeftAndRight },
+    { value: 'SCALE', label: panels.constraintScale }
+  ]
+  const verticalOptions: SelectOption[] = [
+    { value: 'MIN', label: panels.constraintTop },
+    { value: 'CENTER', label: panels.constraintCenter },
+    { value: 'MAX', label: panels.constraintBottom },
+    { value: 'STRETCH', label: panels.constraintTopAndBottom },
+    { value: 'SCALE', label: panels.constraintScale }
+  ]
 
   return (
-    <section aria-label="Constraints" className="space-y-2 border-b border-border pb-3">
-      <div className="text-[11px] font-semibold text-muted uppercase tracking-wider">Constraints</div>
-      <div className="grid grid-cols-2 gap-2 text-xs">
-        <label className="flex flex-col gap-1">
-          <span className="text-muted text-[10px]">Horizontal</span>
-          <select
-            className={selectClass}
-            value={horizontalValue}
-            onChange={(e) => { if (isConstraintType(e.target.value)) setAxis('horizontal', e.target.value) }}
-          >
-            {horizontalValue === '' && <option value="">Mixed</option>}
-            {HORIZONTAL_OPTIONS.map((opt) => (
-              <option key={opt.value} value={opt.value}>{opt.label}</option>
-            ))}
-          </select>
-        </label>
-        <label className="flex flex-col gap-1">
-          <span className="text-muted text-[10px]">Vertical</span>
-          <select
-            className={selectClass}
-            value={verticalValue}
-            onChange={(e) => { if (isConstraintType(e.target.value)) setAxis('vertical', e.target.value) }}
-          >
-            {verticalValue === '' && <option value="">Mixed</option>}
-            {VERTICAL_OPTIONS.map((opt) => (
-              <option key={opt.value} value={opt.value}>{opt.label}</option>
-            ))}
-          </select>
-        </label>
-      </div>
-    </section>
+    <ConstraintsControlRoot>
+      {({ active, horizontal, vertical, actions }) => {
+        if (!active) return null
+
+        const horizontalPins = constraintPins(horizontal)
+        const verticalPins = constraintPins(vertical)
+        const isScale = horizontal === 'SCALE' || vertical === 'SCALE'
+        const diagramStyles = constraintStyles({ scale: isScale })
+
+        const pins: PinItem[] = [
+          {
+            axis: 'horizontal',
+            edge: 'leading',
+            position: 'horizontalLeading',
+            label: panels.constraintLeft,
+            active: horizontalPins.leading
+          },
+          {
+            axis: 'horizontal',
+            edge: 'trailing',
+            position: 'horizontalTrailing',
+            label: panels.constraintRight,
+            active: horizontalPins.trailing
+          },
+          {
+            axis: 'vertical',
+            edge: 'leading',
+            position: 'verticalLeading',
+            label: panels.constraintTop,
+            active: verticalPins.leading
+          },
+          {
+            axis: 'vertical',
+            edge: 'trailing',
+            position: 'verticalTrailing',
+            label: panels.constraintBottom,
+            active: verticalPins.trailing
+          },
+          {
+            axis: 'horizontal',
+            edge: 'center',
+            position: 'horizontalCenter',
+            label: panels.constraintHorizontalCenter,
+            active: horizontalPins.center
+          },
+          {
+            axis: 'vertical',
+            edge: 'center',
+            position: 'verticalCenter',
+            label: panels.constraintVerticalCenter,
+            active: verticalPins.center
+          }
+        ]
+
+        return (
+          <PanelSection label={panels.constraints}>
+            <div className={baseStyles.root()}>
+              <div
+                role="group"
+                aria-label={panels.constraints}
+                data-slot="diagram"
+                data-scale={isScale || undefined}
+                className={diagramStyles.diagram()}
+              >
+                {pins.map((pin) => {
+                  const pinStyles = constraintStyles({ active: pin.active, pinPosition: pin.position })
+                  return (
+                    <Tip key={pin.position} label={pin.label}>
+                      <button
+                        type="button"
+                        data-slot="pin"
+                        data-axis={pin.axis}
+                        data-edge={pin.edge}
+                        aria-label={pin.label}
+                        aria-pressed={pin.active}
+                        className={pinStyles.pin()}
+                        onClick={(event) => {
+                          const edge = pin.edge
+                          if (edge === 'center') actions.setCenter(pin.axis)
+                          else actions.togglePin(pin.axis, edge, event.shiftKey)
+                        }}
+                      >
+                        <span className={pinStyles.pinMark()} />
+                      </button>
+                    </Tip>
+                  )
+                })}
+                {(horizontalPins.scale || verticalPins.scale) && (
+                  <span data-slot="scale-badge" className={diagramStyles.scaleBadge()}>
+                    {panels.constraintScale}
+                  </span>
+                )}
+              </div>
+
+              <div className={baseStyles.selects()}>
+                <PanelFieldGroup label={panels.horizontalConstraint}>
+                  <AppSelect
+                    value={horizontal === MIXED ? 'MIXED' : horizontal}
+                    label={panels.horizontalConstraint}
+                    options={optionsWithMixed(horizontalOptions, horizontal === MIXED, panels.mixed)}
+                    onValueChange={(value: ConstraintSelectValue) => {
+                      if (value !== 'MIXED') actions.setHorizontal(value)
+                    }}
+                  />
+                </PanelFieldGroup>
+                <PanelFieldGroup label={panels.verticalConstraint}>
+                  <AppSelect
+                    value={vertical === MIXED ? 'MIXED' : vertical}
+                    label={panels.verticalConstraint}
+                    options={optionsWithMixed(verticalOptions, vertical === MIXED, panels.mixed)}
+                    onValueChange={(value: ConstraintSelectValue) => {
+                      if (value !== 'MIXED') actions.setVertical(value)
+                    }}
+                  />
+                </PanelFieldGroup>
+              </div>
+            </div>
+          </PanelSection>
+        )
+      }}
+    </ConstraintsControlRoot>
   )
 }
 

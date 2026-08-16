@@ -1,7 +1,7 @@
-import React, { useCallback, useEffect, useReducer, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import * as AlertDialog from '@radix-ui/react-alert-dialog'
 import { ArrowLeft, Bot, ChevronRight, Plus } from 'lucide-react'
-import { watch } from 'vue'
+import { useStore } from '@nanostores/react'
 
 import { useI18n } from '@openweave/react'
 import { ACP_AGENTS, AI_PROVIDERS, type AIProviderID } from '@openweave/core/constants'
@@ -75,6 +75,7 @@ interface ProfileEditorProps {
 
 function ProfileEditor({ profileId, onDone }: ProfileEditorProps) {
   const { dialogs } = useI18n()
+  const settings = useStore(aiModelSettings)
   const [draft, setDraft] = useState<AIModelProfileDraft>(() => createModelProfileDraft(profileId))
   const [keyInput, setKeyInput] = useState('')
   const [keyStatus, setKeyStatus] = useState<CredentialStatus>('missing')
@@ -95,7 +96,7 @@ function ProfileEditor({ profileId, onDone }: ProfileEditorProps) {
   const modelDisplayName =
     providerDef.models.find((model) => model.id === activeModelId)?.name || activeModelId
   const hasExistingKey = keyStatus === 'configured'
-  const canDelete = Boolean(profileId) && aiModelSettings.value.models.length > 1
+  const canDelete = Boolean(profileId) && settings.models.length > 1
   const canSave =
     Boolean(draft.name.trim()) &&
     (isACP || Boolean(draft.customModelID.trim() || draft.modelID.trim()))
@@ -525,6 +526,7 @@ const NO_MODEL = '__none__'
 
 function RoleAssignments() {
   const { dialogs } = useI18n()
+  const settings = useStore(aiModelSettings)
 
   const roleDefinitions: { role: AIModelRole; label: string; description: string }[] = [
     { role: 'design', label: dialogs.modelRoleDesign, description: dialogs.modelRoleDesignDescription },
@@ -534,13 +536,13 @@ function RoleAssignments() {
   ]
 
   const assignmentValue = (role: AIModelRole): string => {
-    const assignment = aiModelSettings.value.assignments[role]
+    const assignment = settings.assignments[role]
     if (assignment === null) return NO_MODEL
     return assignment === 'design' ? SAME_AS_DESIGN : assignment
   }
 
   const optionsForRole = (role: AIModelRole) => {
-    const profiles = aiModelSettings.value.models
+    const profiles = settings.models
       .filter((profile) => {
         if (role === 'design') return profile.capabilities.includes('tools')
         if (isACPModelProfile(profile)) return false
@@ -550,7 +552,7 @@ function RoleAssignments() {
       .map((profile) => ({ value: profile.id, label: profile.name }))
     if (role === 'design') return profiles
 
-    const design = modelProfile(aiModelSettings.value.assignments.design)
+    const design = modelProfile(settings.assignments.design)
     const canInherit =
       !isACPModelProfile(design) && (role !== 'vision' || design?.capabilities.includes('vision'))
     return [
@@ -606,14 +608,14 @@ function RoleAssignments() {
 
 export default function ModelsPanel() {
   const { dialogs } = useI18n()
-  const [, force] = useReducer((n: number): number => n + 1, 0)
+  const settings = useStore(aiModelSettings)
   const [editing, setEditing] = useState(false)
   const [editingProfileId, setEditingProfileId] = useState<string | undefined>(undefined)
   const [statusByConnection, setStatusByConnection] = useState<Record<string, CredentialStatus>>({})
 
   const refreshStatuses = useCallback(async () => {
     const entries = await Promise.all(
-      aiModelSettings.value.connections.map(
+      aiModelSettings.get().connections.map(
         async (connection) =>
           [connection.id, await modelConnectionCredentialStatus(connection.id)] as const
       )
@@ -621,21 +623,13 @@ export default function ModelsPanel() {
     setStatusByConnection(Object.fromEntries(entries))
   }, [])
 
-  // aiModelSettings is a Vue ref — bridge changes (and refresh credential
-  // statuses when the connection set changes).
+  // useStore re-renders on settings changes; refresh credential statuses on
+  // mount and whenever the settings (and so the connection set) change.
   useEffect(() => {
-    const stop = watch(
-      () => aiModelSettings.value,
-      () => {
-        force()
-        void refreshStatuses()
-      },
-      { deep: true, immediate: true }
-    )
-    return stop
-  }, [refreshStatuses])
+    void refreshStatuses()
+  }, [settings, refreshStatuses])
 
-  const profiles = aiModelSettings.value.models.map((profile) => {
+  const profiles = settings.models.map((profile) => {
     const connection = modelConnection(profile.connectionId)
     const provider = AI_PROVIDERS.find((definition) => definition.id === connection?.providerID)
     const modelId = profile.customModelID || profile.modelID

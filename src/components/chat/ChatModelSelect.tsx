@@ -1,40 +1,32 @@
-import React, { useEffect, useReducer } from 'react'
+import React from 'react'
 import * as Select from '@radix-ui/react-select'
 import { Bot, Check, ChevronDown } from 'lucide-react'
-import { watch } from 'vue'
+import { useStore } from '@nanostores/react'
 
 import { useAIChat } from '@/app/ai/chat/use'
 import { AppBadge } from '@/components/ui/AppBadge'
 
 /**
  * Model dropdown in the chat footer. Ported from ProviderModelSelect.vue —
- * binds the design-model writable computed from the store layer.
+ * renders the design-model stores from the store layer and writes through
+ * `setModelID`.
  */
 export default function ChatModelSelect() {
-  const { modelID, providerDef } = useAIChat()
-  const [, forceRender] = useReducer((n: number): number => n + 1, 0)
+  const { modelID: modelIDStore, providerDef: providerDefStore, setModelID } = useAIChat()
+  const modelID = useStore(modelIDStore)
+  const providerDef = useStore(providerDefStore)
 
-  useEffect(() => {
-    const stop = watch([modelID, providerDef], () => forceRender())
-    return stop
-  }, [modelID, providerDef])
-
-  const models = providerDef.value.models
-  const selected = models.find((model) => model.id === modelID.value)
+  const models = providerDef.models
+  const selected = models.find((model) => model.id === modelID)
 
   return (
-    <Select.Root
-      value={modelID.value}
-      onValueChange={(value) => {
-        modelID.value = value
-      }}
-    >
+    <Select.Root value={modelID} onValueChange={(value) => setModelID(value)}>
       <Select.Trigger
         data-test-id="chat-model-selector"
         className="ml-auto flex cursor-pointer items-center gap-1 rounded border-none bg-transparent px-1.5 py-0.5 text-[10px] text-muted hover:text-surface"
       >
         <Bot className="size-3" />
-        <span className="truncate">{selected?.name ?? modelID.value}</span>
+        <span className="truncate">{selected?.name ?? modelID}</span>
         <ChevronDown className="size-2.5" />
       </Select.Trigger>
       <Select.Portal>
