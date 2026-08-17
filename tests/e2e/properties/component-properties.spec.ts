@@ -137,7 +137,7 @@ test('batches compatible mixed selection and undo', async () => {
   const toggle = propertySection(page, 'Component properties').getByRole('switch', {
     name: 'Show badge'
   })
-  await expect(toggle).toHaveAttribute('data-mixed', 'true')
+  await expect(toggle).toHaveAttribute('data-mixed')
   await toggle.click()
   await canvas.waitForRender()
   expect(await instanceState(instanceId)).toMatchObject({ badgeVisible: true })

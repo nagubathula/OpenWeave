@@ -234,7 +234,23 @@ export const dialogMessageDefaults = {
   updateInstalled: params('OpenWeave {version} was installed{size}. Restarting now.'),
   updateUnavailable:
     'Updates are not available yet. Publish a signed release with latest.json first.',
-  updateCheckFailed: params('Could not check for updates: {error}')
+  updateCheckFailed: params('Could not check for updates: {error}'),
+  linkCopiedToClipboard: 'Link copied to clipboard',
+  disconnect: 'Disconnect',
+  someoneSharedFileJoin: 'Someone shared this file with you. Enter your name to join.',
+  roomOccupantSingular: '1 person in this room',
+  roomOccupantsPlural: params('{count} people in this room'),
+  inThisRoom: 'In this room',
+  followingBadge: 'following',
+  onlineCount: params('Online: {count}'),
+  connectionOK: 'Connection OK',
+  connectionFailed: 'Failed',
+  continueAction: 'Continue',
+  noModelConfigured: 'No model',
+  addVariableColorDescription: 'Solid color token',
+  addVariableNumberDescription: 'Numeric value',
+  addVariableTextDescription: 'Text value',
+  addVariableBooleanDescription: 'True / false toggle'
 } as const
 
 export const dialogMessages = i18n('dialogs', dialogMessageDefaults)

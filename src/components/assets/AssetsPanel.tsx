@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import * as ContextMenu from '@radix-ui/react-context-menu'
 import { BookOpen, LayoutGrid, List, Loader2, Plus, Component as ComponentIcon } from 'lucide-react'
 import { useI18n } from '@openweave/react'
@@ -49,10 +49,14 @@ function AssetThumbnail({ nodeId, alt, size }: { nodeId: string; alt: string; si
   const [url, setUrl] = useState<string | null>(null)
   const sceneVersion = useSceneComputed(() => editor.state.sceneVersion)
   const isGrid = size === ASSET_GRID_THUMBNAIL_SIZE
+  // Tracks the blob URL currently rendered in the <img>, so it can be revoked
+  // only once a replacement is ready (or on unmount) — never while it's still
+  // the src in the DOM, which would surface as a net::ERR_FILE_NOT_FOUND
+  // console error the next time the browser touches that <img>.
+  const currentUrlRef = useRef<string | null>(null)
 
   useEffect(() => {
     let active = true
-    let objectUrl: string | null = null
     const node = editor.graph.getNode(nodeId)
     if (!node) {
       setUrl(null)
@@ -65,12 +69,17 @@ function AssetThumbnail({ nodeId, alt, size }: { nodeId: string; alt: string; si
       .renderExportImage([nodeId], scale, 'PNG', pageId)
       .then((data) => {
         if (!active) return
+        const previousUrl = currentUrlRef.current
         if (data) {
-          objectUrl = URL.createObjectURL(new Blob([new Uint8Array(data)], { type: 'image/png' }))
+          const objectUrl = URL.createObjectURL(new Blob([new Uint8Array(data)], { type: 'image/png' }))
+          currentUrlRef.current = objectUrl
           setUrl(objectUrl)
         } else {
+          currentUrlRef.current = null
           setUrl(null)
         }
+        // Revoke the outgoing URL only after the new one has taken its place.
+        if (previousUrl) URL.revokeObjectURL(previousUrl)
         return undefined
       })
       .catch(() => {
@@ -78,9 +87,15 @@ function AssetThumbnail({ nodeId, alt, size }: { nodeId: string; alt: string; si
       })
     return () => {
       active = false
-      if (objectUrl) URL.revokeObjectURL(objectUrl)
     }
   }, [editor, nodeId, size, sceneVersion])
+
+  useEffect(
+    () => () => {
+      if (currentUrlRef.current) URL.revokeObjectURL(currentUrlRef.current)
+    },
+    []
+  )
 
   return (
     <div

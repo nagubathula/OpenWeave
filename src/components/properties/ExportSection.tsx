@@ -5,6 +5,7 @@ import { Plus, Minus } from 'lucide-react'
 
 import PanelSection from '@/components/ui/panel/PanelSection'
 import IconButton from '@/components/ui/IconButton'
+import { AppSelect } from '@/components/ui/AppSelect'
 import { getActiveEditorStore } from '@/app/editor/active-store'
 import type { ExportTargetRequest } from '@/app/document/export/create'
 
@@ -104,19 +105,12 @@ export default function ExportSection() {
             )}
 
             <div className="flex-1">
-              <select
-                data-test-id="export-format"
-                aria-label="Export format"
-                className={inputClass + ' h-6 px-1'}
+              <AppSelect
+                label="Export format"
+                options={formats.map((format) => ({ value: format, label: format.toUpperCase() }))}
                 value={setting.format}
-                onChange={(e) => updateFormat(i, e.target.value as ExportFormatId)}
-              >
-                {formats.map((format) => (
-                  <option key={format} value={format}>
-                    {format.toUpperCase()}
-                  </option>
-                ))}
-              </select>
+                onValueChange={(value) => updateFormat(i, value as ExportFormatId)}
+              />
             </div>
 
             <IconButton label="Remove export setting" onClick={() => removeSetting(i)}>

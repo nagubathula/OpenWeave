@@ -50,7 +50,7 @@ function useMobileHudState() {
   const router = useRouter()
   const collab = useCollabInjected()
   const store = useEditorStore()
-  const { dialogs, commands } = useI18n()
+  const { dialogs, commands, menu } = useI18n()
   const { getCommand } = useEditorCommands()
   useEditorState((s) => s.activeTool, 'SELECT')
   useEditorState((s) => s.actionToast, null)
@@ -62,13 +62,13 @@ function useMobileHudState() {
   const menuItems: ToolbarActionItem[] = [
     {
       icon: FilePlus,
-      label: 'New',
+      label: menu.new,
       action: () => void import('@/app/tabs').then((m) => m.createTab())
     },
-    { icon: FolderOpen, label: 'Open…', action: () => void openFileDialog() },
-    { icon: Save, label: 'Save', action: () => void store.saveFigFile() },
-    { icon: ImageDown, label: 'Export…', action: () => void store.exportSelection(1, 'png') },
-    { icon: ZoomIn, label: 'Zoom to fit', action: () => getCommand('view.zoomFit').run() }
+    { icon: FolderOpen, label: menu.open, action: () => void openFileDialog() },
+    { icon: Save, label: menu.save, action: () => void store.saveFigFile() },
+    { icon: ImageDown, label: menu.exportSelection, action: () => void store.exportSelection(1, 'png') },
+    { icon: ZoomIn, label: commands.zoomToFit, action: () => getCommand('view.zoomFit').run() }
   ]
 
   const share = () => {
@@ -76,7 +76,7 @@ function useMobileHudState() {
     const roomId = collab.shareCurrentDoc()
     router.push(`/share?room=${roomId}`)
     void navigator.clipboard.writeText(getShareUrl(roomId))
-    toast.info('Link copied to clipboard')
+    toast.info(dialogs.linkCopiedToClipboard)
   }
 
   const disconnect = () => {
@@ -227,7 +227,9 @@ function MobilePresencePopover() {
       <Popover.Trigger asChild>
         <button type="button" className={styles.presenceTrigger()}>
           <span className={styles.presenceDot()} />
-          <span className="text-xs text-surface">Online: {hud.onlineCount}</span>
+          <span className="text-xs text-surface">
+            {hud.dialogs.onlineCount({ count: String(hud.onlineCount) })}
+          </span>
         </button>
       </Popover.Trigger>
       <Popover.Portal>
@@ -237,19 +239,19 @@ function MobilePresencePopover() {
           align="center"
           className={styles.presenceContent()}
         >
-          <div className="mb-2 text-[11px] tracking-wider text-muted uppercase">In this room</div>
+          <div className="mb-2 text-[11px] tracking-wider text-muted uppercase">{hud.dialogs.inThisRoom}</div>
           <div className="flex flex-col gap-2">
             <div className="flex items-center gap-2">
               <div
                 className={styles.avatar()}
                 style={{ background: colorToCSS(hud.collabState.localColor) }}
               >
-                {initials(hud.collabState.localName || 'You')}
+                {initials(hud.collabState.localName || hud.dialogs.you)}
               </div>
               <span className="min-w-0 flex-1 truncate text-xs text-surface">
-                {hud.collabState.localName || 'You'}
+                {hud.collabState.localName || hud.dialogs.you}
               </span>
-              <span className="text-[10px] text-muted">you</span>
+              <span className="text-[10px] text-muted">{hud.dialogs.youSuffix}</span>
             </div>
 
             {hud.collabPeers.map((peer) => {
@@ -269,14 +271,14 @@ function MobilePresencePopover() {
                     {initials(peer.name)}
                   </div>
                   <span className="min-w-0 flex-1 truncate text-xs text-surface">{peer.name}</span>
-                  {following && <span className="text-[10px] text-accent">following</span>}
+                  {following && <span className="text-[10px] text-accent">{hud.dialogs.followingBadge}</span>}
                 </div>
               )
             })}
           </div>
 
           <button type="button" className={styles.disconnect()} onClick={hud.disconnect}>
-            Disconnect
+            {hud.dialogs.disconnect}
           </button>
         </Popover.Content>
       </Popover.Portal>

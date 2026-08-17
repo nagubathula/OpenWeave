@@ -93,7 +93,7 @@ function useCollabPanelState() {
   const copyLink = () => {
     if (!shareUrl) return
     copy(shareUrl)
-    toast.info('Link copied to clipboard')
+    toast.info(dialogs.linkCopiedToClipboard)
   }
 
   const share = () => {
@@ -102,7 +102,7 @@ function useCollabPanelState() {
     const roomId = collab.shareCurrentDoc()
     router.push(`/share?room=${roomId}`)
     copy(getShareUrl(roomId))
-    toast.info('Link copied to clipboard')
+    toast.info(dialogs.linkCopiedToClipboard)
     setPopoverOpen(false)
   }
 
@@ -229,12 +229,14 @@ function ConnectedRoom() {
           onClick={collab.copyLink}
         >
           {collab.copied ? <Check className="size-3" /> : <Copy className="size-3" />}
-          {collab.copied ? 'Copied' : 'Copy'}
+          {collab.copied ? collab.dialogs.copied : collab.dialogs.copy}
         </button>
       </div>
 
       <div className="mb-2 text-xs font-medium text-surface">
-        {collab.peers.length + 1} {collab.peers.length === 0 ? 'person' : 'people'} in this room
+        {collab.peers.length === 0
+          ? collab.dialogs.roomOccupantSingular
+          : collab.dialogs.roomOccupantsPlural({ count: String(collab.peers.length + 1) })}
       </div>
 
       <button
@@ -243,7 +245,7 @@ function ConnectedRoom() {
         className="flex h-7 w-full cursor-pointer items-center justify-center rounded border border-border bg-transparent text-xs text-muted hover:bg-hover hover:text-surface"
         onClick={collab.disconnect}
       >
-        Disconnect
+        {collab.dialogs.disconnect}
       </button>
     </>
   )
@@ -257,7 +259,7 @@ function JoinRoomPrompt() {
         {collab.dialogs.joinCollaboration}
       </div>
       <div className="mb-3 text-[11px] text-muted">
-        Someone shared this file with you. Enter your name to join.
+        {collab.dialogs.someoneSharedFileJoin}
       </div>
 
       <div className="mb-3">
@@ -280,7 +282,7 @@ function JoinRoomPrompt() {
         onClick={collab.join}
       >
         <Users className="size-3.5" />
-        Join room
+        {collab.dialogs.joinRoom}
       </button>
     </>
   )
@@ -334,7 +336,7 @@ function ShareOrJoinRoom() {
           disabled={!collab.joinInput.trim() || !collab.nameDraft.trim()}
           onClick={collab.join}
         >
-          Join
+          {collab.dialogs.join}
         </button>
       </div>
     </>

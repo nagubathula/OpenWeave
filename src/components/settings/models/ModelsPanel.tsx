@@ -371,7 +371,7 @@ function ProfileEditor({ profileId, onDone }: ProfileEditorProps) {
                     className="shrink-0 rounded border border-border px-2 py-1 text-[11px] text-muted hover:bg-hover hover:text-surface"
                     onClick={() => void clearKey()}
                   >
-                    Clear
+                    {dialogs.clear}
                   </button>
                 )}
               </div>
@@ -409,14 +409,14 @@ function ProfileEditor({ profileId, onDone }: ProfileEditorProps) {
                 disabled={!canTest || testStatus === 'testing'}
                 onClick={() => void testConnection()}
               >
-                {testStatus === 'testing' ? 'Testing…' : 'Test connection'}
+                {testStatus === 'testing' ? dialogs.testingConnection : dialogs.testConnection}
               </button>
               {testStatus === 'success' && (
-                <span className="text-[10px] text-green-500">Connection OK</span>
+                <span className="text-[10px] text-green-500">{dialogs.connectionOK}</span>
               )}
               {testStatus === 'error' && (
                 <span className="text-[10px] text-danger" role="alert">
-                  Failed{testReason ? `: ${testReason}` : ''}
+                  {dialogs.connectionFailed}{testReason ? `: ${testReason}` : ''}
                 </span>
               )}
             </div>

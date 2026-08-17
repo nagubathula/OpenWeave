@@ -213,5 +213,21 @@
   "vectorizeProviderDescription": "Provider details",
   "vectorizeSaveKey": "Save key",
   "vectorizeSavedKey": "Key saved",
-  "vectorizeSavedKeyPlaceholder": "••••••••"
+  "vectorizeSavedKeyPlaceholder": "••••••••",
+  "linkCopiedToClipboard": "链接已复制到剪贴板",
+  "disconnect": "断开连接",
+  "someoneSharedFileJoin": "有人与你共享了此文件。请输入你的姓名以加入。",
+  "roomOccupantSingular": "此房间中有1人",
+  "roomOccupantsPlural": "此房间中有{count}人",
+  "inThisRoom": "此房间内",
+  "followingBadge": "跟随中",
+  "onlineCount": "在线：{count}",
+  "connectionOK": "连接正常",
+  "connectionFailed": "失败",
+  "continueAction": "继续",
+  "noModelConfigured": "无模型",
+  "addVariableColorDescription": "纯色令牌",
+  "addVariableNumberDescription": "数值",
+  "addVariableTextDescription": "文本值",
+  "addVariableBooleanDescription": "真/假切换"
 }

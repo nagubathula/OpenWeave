@@ -18,12 +18,12 @@ function codePanelEmpty() {
   return editor.page.getByTestId('code-panel-empty')
 }
 
-function formatToggle() {
-  return editor.page.getByTestId('code-panel-format-toggle')
+function formatButton(format: 'openweave' | 'tailwind') {
+  return editor.page.getByTestId(`code-format-${format}`)
 }
 
 function copyButton() {
-  return editor.page.getByTestId('code-panel-copy')
+  return editor.page.getByTestId('code-copy')
 }
 
 test('Code tab shows empty state with no selection', async () => {
@@ -42,20 +42,19 @@ test('selecting a rectangle shows JSX code', async () => {
   expect(code).toContain('Rectangle')
 })
 
-test('format toggle switches between OpenWeave and Tailwind', async () => {
-  await expect(formatToggle()).toBeVisible()
+test('format buttons switch between OpenWeave and Tailwind output', async () => {
+  await expect(formatButton('openweave')).toBeVisible()
+  await expect(formatButton('tailwind')).toBeVisible()
+  await expect(formatButton('openweave')).toHaveClass(/bg-accent/)
 
-  const initialFormat = await formatToggle().textContent()
-  expect(initialFormat).toContain('OpenWeave')
-
-  await formatToggle().click()
-  await expect(formatToggle()).toContainText('Tailwind')
+  await formatButton('tailwind').click()
+  await expect(formatButton('tailwind')).toHaveClass(/bg-accent/)
 
   const code = await codePanel().textContent()
   expect(code).toContain('div')
 
-  await formatToggle().click()
-  await expect(formatToggle()).toContainText('OpenWeave')
+  await formatButton('openweave').click()
+  await expect(formatButton('openweave')).toHaveClass(/bg-accent/)
 })
 
 test('copy button works and shows confirmation', async () => {
@@ -101,7 +100,7 @@ test('switching back to Design tab works', async () => {
 
 test('shows import errors in the Code panel', async () => {
   await codeTab().click()
-  await editor.page.getByTestId('code-panel-import-toggle').click()
+  await editor.page.getByTestId('code-import-toggle').click()
   await editor.page.evaluate(() => {
     const store = window.openWeave?.getStore?.()
     if (!store) throw new Error('OpenWeave store not initialized')
@@ -112,27 +111,27 @@ test('shows import errors in the Code panel', async () => {
     }
   })
 
-  await editor.page.getByTestId('code-panel-import-html').fill('<div class="card">Broken DOM</div>')
-  await editor.page.getByTestId('code-panel-import').click()
+  await editor.page.getByTestId('code-import-html').fill('<div class="card">Broken DOM</div>')
+  await editor.page.getByTestId('code-import').click()
 
-  await expect(editor.page.getByTestId('code-panel-import-error')).toBeVisible()
-  await expect(editor.page.getByTestId('code-panel-import-error')).toContainText(
+  await expect(editor.page.getByTestId('code-import-error')).toBeVisible()
+  await expect(editor.page.getByTestId('code-import-error')).toContainText(
     'CSS import failed'
   )
 
-  await editor.page.getByTestId('code-panel-import-html').fill('<div class="card">Recovered</div>')
-  await expect(editor.page.getByTestId('code-panel-import-error')).toBeHidden()
-  await editor.page.getByTestId('code-panel-import-toggle').click()
+  await editor.page.getByTestId('code-import-html').fill('<div class="card">Recovered</div>')
+  await expect(editor.page.getByTestId('code-import-error')).toBeHidden()
+  await editor.page.getByTestId('code-import-toggle').click()
 })
 
 test('imports HTML and CSS into the canvas', async () => {
   await codeTab().click()
-  await editor.page.getByTestId('code-panel-import-toggle').click()
-  await editor.page.getByTestId('code-panel-import-html').fill('<div class="card">Hello DOM</div>')
+  await editor.page.getByTestId('code-import-toggle').click()
+  await editor.page.getByTestId('code-import-html').fill('<div class="card">Hello DOM</div>')
   await editor.page
-    .getByTestId('code-panel-import-css')
+    .getByTestId('code-import-css')
     .fill('.card { width: 240px; height: 120px; padding: 16px; background: #ffffff; }')
-  await editor.page.getByTestId('code-panel-import').click()
+  await editor.page.getByTestId('code-import').click()
   await editor.page.waitForFunction(() => {
     const store = window.openWeave?.getStore?.()
     return store?.graph.getAllNodes().some((node) => node.name.includes('Hello DOM'))

@@ -213,5 +213,21 @@
   "vectorizeProviderDescription": "Provider details",
   "vectorizeSaveKey": "Save key",
   "vectorizeSavedKey": "Key saved",
-  "vectorizeSavedKeyPlaceholder": "••••••••"
+  "vectorizeSavedKeyPlaceholder": "••••••••",
+  "linkCopiedToClipboard": "リンクをクリップボードにコピーしました",
+  "disconnect": "切断",
+  "someoneSharedFileJoin": "誰かがこのファイルをあなたと共有しました。参加するには名前を入力してください。",
+  "roomOccupantSingular": "この部屋には1人います",
+  "roomOccupantsPlural": "この部屋には{count}人います",
+  "inThisRoom": "この部屋にいる人",
+  "followingBadge": "フォロー中",
+  "onlineCount": "オンライン: {count}",
+  "connectionOK": "接続OK",
+  "connectionFailed": "失敗",
+  "continueAction": "続行",
+  "noModelConfigured": "モデルなし",
+  "addVariableColorDescription": "単色トークン",
+  "addVariableNumberDescription": "数値",
+  "addVariableTextDescription": "テキスト値",
+  "addVariableBooleanDescription": "真偽の切り替え"
 }

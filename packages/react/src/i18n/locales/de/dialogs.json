@@ -213,5 +213,21 @@
   "vectorizeProviderDescription": "Provider details",
   "vectorizeSaveKey": "Save key",
   "vectorizeSavedKey": "Key saved",
-  "vectorizeSavedKeyPlaceholder": "••••••••"
+  "vectorizeSavedKeyPlaceholder": "••••••••",
+  "linkCopiedToClipboard": "Link in die Zwischenablage kopiert",
+  "disconnect": "Trennen",
+  "someoneSharedFileJoin": "Jemand hat diese Datei mit dir geteilt. Gib deinen Namen ein, um beizutreten.",
+  "roomOccupantSingular": "1 Person in diesem Raum",
+  "roomOccupantsPlural": "{count} Personen in diesem Raum",
+  "inThisRoom": "In diesem Raum",
+  "followingBadge": "folgt",
+  "onlineCount": "Online: {count}",
+  "connectionOK": "Verbindung OK",
+  "connectionFailed": "Fehlgeschlagen",
+  "continueAction": "Weiter",
+  "noModelConfigured": "Kein Modell",
+  "addVariableColorDescription": "Einfarbiger Token",
+  "addVariableNumberDescription": "Numerischer Wert",
+  "addVariableTextDescription": "Textwert",
+  "addVariableBooleanDescription": "Wahr/Falsch-Umschalter"
 }

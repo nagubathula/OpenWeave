@@ -11,6 +11,7 @@ interface PropertyControl {
   name: string
   type: ComponentPropertyDefinition['type']
   value: string
+  mixed: boolean
   options: { value: string; label: string }[]
 }
 
@@ -18,17 +19,29 @@ const inputCls = 'w-full bg-transparent outline-none text-surface'
 const boxCls = 'flex items-center gap-1.5 bg-input/50 rounded px-2 py-1 border border-border text-xs'
 
 /**
- * Variant and property controls for a selected component instance. Shown only
- * when the active node is an INSTANCE. Renders a dropdown per VARIANT and
- * INSTANCE_SWAP property, a checkbox for BOOLEAN, and a text field for TEXT.
+ * Variant and property controls for the selected component instance(s). Shown
+ * only when every selected node is an INSTANCE. Renders a dropdown per
+ * VARIANT and INSTANCE_SWAP property, a switch for BOOLEAN, and a text field
+ * for TEXT. With a multi-instance selection, values that differ across
+ * instances are flagged `mixed` and edits batch across all of them as one
+ * undo step.
  */
 export default function ComponentPropertiesSection() {
   const editor = useEditor()
-  const { selectedNode: node } = useSelectionState()
+  const { selectedIds } = useSelectionState()
   const { panels } = useI18n()
 
+  const instances = useSceneComputed<SceneNode[]>(() => {
+    void editor.state.sceneVersion
+    return [...selectedIds]
+      .map((id) => editor.graph.getNode(id))
+      .filter((n): n is SceneNode => n?.type === 'INSTANCE')
+  })
+  const allInstances = instances.length > 0 && instances.length === selectedIds.size
+  const node = allInstances ? instances[0] : null
+
   const controls = useSceneComputed<PropertyControl[]>(() => {
-    if (node?.type !== 'INSTANCE') return []
+    if (!node) return []
     const definitions = editor.getInstanceComponentPropertyDefinitions(node.id)
     const component = node.componentId ? editor.graph.getNode(node.componentId) : null
     const parent = component?.parentId ? editor.graph.getNode(component.parentId) : null
@@ -37,7 +50,11 @@ export default function ComponentPropertiesSection() {
     const allNodes: SceneNode[] = [...editor.graph.getAllNodes()]
 
     return definitions.map((definition) => {
-      const value = editor.getInstanceComponentPropertyValue(node.id, definition)
+      const values = instances.map((instance) =>
+        editor.getInstanceComponentPropertyValue(instance.id, definition)
+      )
+      const value = values[0] ?? definition.defaultValue
+      const mixed = values.some((v) => v !== value)
       let options: { value: string; label: string }[] = []
       if (definition.type === 'VARIANT') {
         const values = variantValues?.get(definition.name)
@@ -48,14 +65,19 @@ export default function ComponentPropertiesSection() {
           label: o.label
         }))
       }
-      return { id: definition.id, name: definition.name, type: definition.type, value, options }
+      return { id: definition.id, name: definition.name, type: definition.type, value, mixed, options }
     })
   })
 
-  if (node?.type !== 'INSTANCE' || controls.length === 0) return null
+  if (!node || controls.length === 0) return null
 
   const setValue = (control: PropertyControl, value: string) => {
-    editor.setInstanceComponentProperty(node.id, control.id, value)
+    const label = `Change ${control.name}`
+    const apply = () => {
+      for (const instance of instances) editor.setInstanceComponentProperty(instance.id, control.id, value)
+    }
+    if (instances.length > 1) editor.undo.runBatch(label, apply)
+    else apply()
   }
 
   const sectionLabel = controls.every((control) => control.type === 'VARIANT')
@@ -79,6 +101,7 @@ export default function ComponentPropertiesSection() {
           {control.type === 'BOOLEAN' ? (
             <AppSwitch
               label={control.name}
+              state={control.mixed ? 'mixed' : 'idle'}
               value={control.value === 'true'}
               onValueChange={(checked) => setValue(control, checked ? 'true' : 'false')}
             />

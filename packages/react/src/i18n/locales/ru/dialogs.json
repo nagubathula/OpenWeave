@@ -213,5 +213,21 @@
   "vectorizeProviderDescription": "Provider details",
   "vectorizeSaveKey": "Save key",
   "vectorizeSavedKey": "Key saved",
-  "vectorizeSavedKeyPlaceholder": "••••••••"
+  "vectorizeSavedKeyPlaceholder": "••••••••",
+  "linkCopiedToClipboard": "Ссылка скопирована в буфер обмена",
+  "disconnect": "Отключиться",
+  "someoneSharedFileJoin": "Кто-то поделился с вами этим файлом. Введите своё имя, чтобы присоединиться.",
+  "roomOccupantSingular": "1 человек в этой комнате",
+  "roomOccupantsPlural": "{count} человек в этой комнате",
+  "inThisRoom": "В этой комнате",
+  "followingBadge": "слежение",
+  "onlineCount": "Онлайн: {count}",
+  "connectionOK": "Соединение установлено",
+  "connectionFailed": "Ошибка",
+  "continueAction": "Продолжить",
+  "noModelConfigured": "Нет модели",
+  "addVariableColorDescription": "Токен сплошного цвета",
+  "addVariableNumberDescription": "Числовое значение",
+  "addVariableTextDescription": "Текстовое значение",
+  "addVariableBooleanDescription": "Переключатель истина/ложь"
 }

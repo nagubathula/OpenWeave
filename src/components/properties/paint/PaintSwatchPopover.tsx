@@ -14,6 +14,8 @@ export interface PaintSwatchPopoverProps {
   onOpenChange?: (open: boolean) => void
   onCancel?: () => void
   okhcl?: OkHCLFieldControls | null
+  /** Optional override for the trigger's `data-test-id`, for callers that need a stable e2e hook. */
+  dataTestId?: string
 }
 
 /**
@@ -21,7 +23,15 @@ export interface PaintSwatchPopoverProps {
  * exposes `onOpenChange`, so callers can batch every change made while the
  * popover is open into a single undo entry and commit it on close.
  */
-export function PaintSwatchPopover({ color, label, onChange, onOpenChange, onCancel, okhcl }: PaintSwatchPopoverProps) {
+export function PaintSwatchPopover({
+  color,
+  label,
+  onChange,
+  onOpenChange,
+  onCancel,
+  okhcl,
+  dataTestId
+}: PaintSwatchPopoverProps) {
   return (
     <Popover.Root onOpenChange={onOpenChange}>
       <Popover.Trigger asChild>
@@ -29,6 +39,7 @@ export function PaintSwatchPopover({ color, label, onChange, onOpenChange, onCan
           type="button"
           aria-label={label}
           data-property="paint-swatch"
+          data-test-id={dataTestId}
           className="size-4 shrink-0 cursor-pointer rounded-sm border border-border p-0"
           style={{ backgroundColor: colorToCSS(color) }}
         />

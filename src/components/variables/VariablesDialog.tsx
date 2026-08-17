@@ -44,13 +44,6 @@ const variableTypeIcons: Record<VariableType, React.ElementType> = {
   BOOLEAN: ToggleLeft
 }
 
-const variableTypeOptions: { type: VariableType; label: string; description: string }[] = [
-  { type: 'COLOR', label: 'Color', description: 'Solid color token' },
-  { type: 'FLOAT', label: 'Number', description: 'Numeric value' },
-  { type: 'STRING', label: 'Text', description: 'Text value' },
-  { type: 'BOOLEAN', label: 'Boolean', description: 'True / false toggle' }
-]
-
 // --- Dialog ----------------------------------------------------------------
 
 export interface VariablesDialogProps {
@@ -73,9 +66,16 @@ function VariablesEditor({ onClose }: { onClose: () => void }) {
     fallbackIcon: ToggleLeft,
     deleteIcon: X
   })
-  const { dialogs, panels } = useI18n()
+  const { dialogs, panels, variableTypes } = useI18n()
   const [addOpen, setAddOpen] = useState(false)
   const activeCollection = ctx.collections.find((col) => col.id === ctx.activeCollectionId)
+
+  const variableTypeOptions: { type: VariableType; label: string; description: string }[] = [
+    { type: 'COLOR', label: variableTypes.color, description: dialogs.addVariableColorDescription },
+    { type: 'FLOAT', label: variableTypes.number, description: dialogs.addVariableNumberDescription },
+    { type: 'STRING', label: variableTypes.text, description: dialogs.addVariableTextDescription },
+    { type: 'BOOLEAN', label: variableTypes.boolean, description: dialogs.addVariableBooleanDescription }
+  ]
 
   if (!ctx.hasCollections) {
     return (
@@ -212,7 +212,7 @@ function VariablesEditor({ onClose }: { onClose: () => void }) {
                   )
                 })}
                 <th className="w-8 px-1 py-2">
-                  <Tip label="Add mode">
+                  <Tip label={dialogs.addMode}>
                     <button
                       type="button"
                       data-test-id="variables-add-mode"

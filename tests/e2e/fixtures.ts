@@ -10,6 +10,10 @@ export function useEditorSetup(url = '/') {
 
   test.beforeAll(async ({ browser }) => {
     page = await browser.newPage()
+    // Clipboard reads/writes (e.g. CodePanel's copy-to-clipboard) call the real
+    // navigator.clipboard API, which Chromium blocks without an explicit grant —
+    // without this, `writeText` rejects silently and confirmation UI never shows.
+    await page.context().grantPermissions(['clipboard-read', 'clipboard-write'])
     await page.goto(url)
     canvas = new CanvasHelper(page)
     await canvas.waitForInit()

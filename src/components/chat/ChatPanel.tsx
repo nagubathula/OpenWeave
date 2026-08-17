@@ -214,7 +214,9 @@ export default function ChatPanel() {
         data-test-id="chat-custom-model-label"
       >
         <Bot className="size-3" />
-        <span className="truncate">{usesCustomModel ? customModelID.trim() : 'No model'}</span>
+        <span className="truncate">
+          {usesCustomModel ? customModelID.trim() : dialogs.noModelConfigured}
+        </span>
       </div>
     )
   } else {
@@ -283,7 +285,7 @@ export default function ChatPanel() {
                   onClick={() => void handleSubmit('Continue where you left off')}
                 >
                   <Play className="size-3" />
-                  Continue
+                  {dialogs.continueAction}
                 </button>
               </div>
             ) : null}
@@ -308,7 +310,7 @@ export default function ChatPanel() {
             onClick={handleClear}
           >
             <Trash2 className="size-3" />
-            Clear
+            {dialogs.clear}
           </button>
         )}
         {composerControl}
@@ -341,7 +343,7 @@ export default function ChatPanel() {
           className="min-h-8 min-w-0 flex-1 rounded border border-border bg-input/50 px-2 py-1.5 text-xs text-surface outline-none placeholder:text-muted focus:border-accent"
         />
         {isBusy ? (
-          <Tip label="Stop">
+          <Tip label={dialogs.stopGenerating}>
             <button
               type="button"
               data-test-id="chat-stop"
@@ -352,7 +354,7 @@ export default function ChatPanel() {
             </button>
           </Tip>
         ) : (
-          <Tip label="Send">
+          <Tip label={dialogs.sendMessage}>
             <button
               type="submit"
               data-test-id="chat-send"

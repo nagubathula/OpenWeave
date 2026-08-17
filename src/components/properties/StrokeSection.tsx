@@ -6,7 +6,6 @@ import {
   useEditorPropertyList,
   useI18n,
   useOkHCL,
-  useSelectionState,
   useStrokeControls
 } from '@openweave/react'
 import { BLACK } from '@openweave/core/constants'
@@ -37,9 +36,8 @@ export default function StrokeSection() {
   const paint = usePaintMutation()
   const { panels, dialogs } = useI18n()
   const okhcl = useOkHCL()
-  const { selectedNode } = useSelectionState()
 
-  if (!active || !propertyNode || !selectedNode) return null
+  if (!active || !propertyNode) return null
 
   const node = propertyNode
 
@@ -47,7 +45,7 @@ export default function StrokeSection() {
   const capValue = typeof strokeCtx.cap === 'string' ? strokeCtx.cap : 'MIXED'
   const joinValue = typeof strokeCtx.join === 'string' ? strokeCtx.join : 'MIXED'
   const dashPattern = ('dashPattern' in node ? node.dashPattern : undefined) ?? []
-  const sidesExpanded = selectedNode.independentStrokeWeights
+  const sidesExpanded = node.independentStrokeWeights
   // ARROW_LINES/ARROW_EQUILATERAL have no SDK-provided options entry yet.
   const capOptions = [
     ...strokeCtx.capOptions,
@@ -111,7 +109,7 @@ export default function StrokeSection() {
                       <PaintSwatchPopover
                         label="Stroke color"
                         color={displayColor}
-                        okhcl={createStrokeOkhclAdapter(okhcl, selectedNode, i)}
+                        okhcl={createStrokeOkhclAdapter(okhcl, node, i)}
                         onChange={(c) =>
                           paint.apply(binding, flush, 'Change stroke color', () =>
                             actions.patch(i, { color: c })
@@ -273,7 +271,7 @@ export default function StrokeSection() {
               <IconButton
                 label={panels.strokeSides}
                 onClick={() =>
-                  strokeCtx.selectSide(sidesExpanded ? 'ALL' : 'CUSTOM', selectedNode)
+                  strokeCtx.selectSide(sidesExpanded ? 'ALL' : 'CUSTOM', node)
                 }
                 className={sidesExpanded ? 'opacity-100' : ''}
                 data-property="stroke-sides"
@@ -290,9 +288,9 @@ export default function StrokeSection() {
                     <NumberField
                       ariaLabel={side}
                       min={0}
-                      value={strokeCtx.borderWeight(selectedNode, side)}
-                      onChange={(v) => strokeCtx.updateBorderWeight(side, v, selectedNode)}
-                      onCommit={(v) => strokeCtx.updateBorderWeight(side, v, selectedNode)}
+                      value={strokeCtx.borderWeight(node, side)}
+                      onChange={(v) => strokeCtx.updateBorderWeight(side, v, node)}
+                      onCommit={(v) => strokeCtx.updateBorderWeight(side, v, node)}
                     />
                   </label>
                 ))}

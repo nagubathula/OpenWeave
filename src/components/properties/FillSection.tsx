@@ -74,6 +74,7 @@ export default function FillSection() {
                         <>
                           <PaintSwatchPopover
                             label="Fill color"
+                            dataTestId="fill-picker-swatch"
                             color={displayColor}
                             okhcl={createFillOkhclAdapter(okhcl, selectedNode, i)}
                             onChange={(c) =>
