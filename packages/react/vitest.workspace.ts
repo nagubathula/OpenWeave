@@ -1,7 +1,6 @@
-import { defineWorkspace } from 'vitest/config';
 import { storybookTest } from '@storybook/experimental-addon-test/vitest-plugin';
 
-export default defineWorkspace([
+export default [
   'vitest.config.ts',
   {
     extends: 'vitest.config.ts',
@@ -21,4 +20,4 @@ export default defineWorkspace([
       setupFiles: ['.storybook/vitest.setup.ts'],
     },
   },
-]);
+];
