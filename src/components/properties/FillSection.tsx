@@ -96,6 +96,7 @@ export default function FillSection() {
                           ) : (
                             <input
                               type="text"
+                              data-property="color-hex"
                               className="w-14 bg-transparent outline-none text-xs text-surface font-mono uppercase"
                               value={colorToHexRaw(fill.color)}
                               onChange={() => {}} // Let popover handle actual color changes for simplicity

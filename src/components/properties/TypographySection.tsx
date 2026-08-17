@@ -223,6 +223,7 @@ export default function TypographySection() {
         <div
           className="inline-flex items-center gap-0.5 rounded bg-panel-field p-0.5"
           role="toolbar"
+          aria-label="Text formatting"
         >
           <IconButton
             label="Bold"

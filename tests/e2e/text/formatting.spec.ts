@@ -89,9 +89,8 @@ test('advanced typography controls update case, alignment, truncation, and featu
   await page.getByRole('option', { name: 'Ending ellipsis' }).click()
   const maxLines = typography.getByRole('spinbutton', { name: 'Maximum lines' })
   await maxLines.click()
-  await page.keyboard.press('ControlOrMeta+a')
-  await page.keyboard.type('2')
-  await page.keyboard.press('Enter')
+  await maxLines.fill('2')
+  await maxLines.press('Enter')
 
   await typography.getByRole('switch', { name: 'Standard ligatures' }).click()
   await canvas.waitForRender()

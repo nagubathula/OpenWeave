@@ -3,7 +3,8 @@
   "ignore": [
     "desktop/target/**",
     "**/dist/**",
-    "**/node_modules/**"
+    "**/node_modules/**",
+    "packages/react/vitest.workspace.ts"
   ],
   "ignoreWorkspaces": ["packages/demos"],
   "ignoreUnresolved": [
@@ -11,7 +12,7 @@
     "#core/*"
   ],
   "ignoreDependencies": [
-    "vite"
+    "vue/compiler-sfc"
   ],
   "ignoreBinaries": ["figma-use", "identify", "magick", "open", "osascript"]
 }

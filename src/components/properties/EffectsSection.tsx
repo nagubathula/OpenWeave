@@ -81,6 +81,7 @@ export default function EffectsSection() {
                 <Popover.Trigger asChild>
                   <button
                     type="button"
+                    data-property="effect-expand"
                     aria-label="Expand effect settings"
                     className="flex items-center justify-center size-6 rounded hover:bg-input/50 text-muted hover:text-surface transition-colors"
                   >
@@ -88,7 +89,7 @@ export default function EffectsSection() {
                   </button>
                 </Popover.Trigger>
                 <Popover.Portal>
-                  <Popover.Content side="left" align="start" sideOffset={10} className="w-56 rounded border border-border bg-panel p-3 shadow-lg z-50">
+                  <Popover.Content data-slot="effect-settings" side="left" align="start" sideOffset={10} className="w-56 rounded border border-border bg-panel p-3 shadow-lg z-50">
                     <div className="space-y-3">
                       <div className="text-xs font-semibold">{effect.type.replace('_', ' ')}</div>
 

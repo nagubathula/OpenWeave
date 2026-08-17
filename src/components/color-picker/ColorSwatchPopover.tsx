@@ -49,6 +49,7 @@ export function ColorSwatchPopover({
         side="left"
         align="start"
         sideOffset={8}
+        data-picker-content
         className="z-50 rounded-lg border border-border bg-surface p-3 shadow-lg"
         onOpenAutoFocus={(e) => e.preventDefault()}
       >
@@ -94,6 +95,7 @@ export function ColorSwatchPopover({
       <Popover.Trigger asChild>
         <button
           type="button"
+          aria-label="Edit color"
           className="flex flex-1 items-center gap-2 text-left outline-none"
         >
           <span

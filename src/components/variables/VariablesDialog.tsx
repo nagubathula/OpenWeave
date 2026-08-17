@@ -174,7 +174,7 @@ function VariablesEditor({ onClose }: { onClose: () => void }) {
       <div className="flex-1 overflow-auto">
         <table
           className="w-full border-collapse"
-          style={{ width: `${ctx.table.getCenterTotalSize()}px` }}
+          style={{ minWidth: `${ctx.table.getCenterTotalSize()}px` }}
         >
           <thead className="sticky top-0 z-10 bg-panel">
             {ctx.table.getHeaderGroups().map((headerGroup) => (

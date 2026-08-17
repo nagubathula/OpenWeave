@@ -77,12 +77,12 @@ test('add variable menu creates non-color variable types', async () => {
 
   await editor.page.getByTestId('variables-add-variable').click()
   const numberOption = editor.page.getByTestId(variablesAddTestId('FLOAT'))
-  const numberHint = numberOption.getByText('Sizes, spacing, opacity')
+  const numberHint = numberOption.getByText('Numeric value')
   await expect(numberHint).toBeVisible()
   expect(await numberHint.evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(
     true
   )
-  await editor.page.keyboard.press('Escape')
+  await editor.page.getByTestId('variables-add-variable').click()
   await expect(numberOption).toBeHidden()
   await expect(editor.page.getByTestId('variables-dialog')).toBeVisible()
 
@@ -112,7 +112,7 @@ test('click name cell activates editable input', async () => {
 
   const firstRow = variableRows().first()
   const nameCell = firstRow.locator('td').first()
-  await nameCell.click()
+  await nameCell.locator('span').first().click()
   await editor.canvas.waitForRender()
 
   const editableInput = nameCell.locator('input, [contenteditable]').first()

@@ -129,6 +129,7 @@ export default function StrokeSection() {
                       ) : (
                         <input
                           type="text"
+                          data-property="color-hex"
                           className="w-14 bg-transparent outline-none text-xs text-surface font-mono uppercase"
                           value={colorToHexRaw(stroke.color)}
                           onChange={() => {}} // Let popover handle actual color changes
