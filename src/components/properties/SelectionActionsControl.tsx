@@ -8,6 +8,7 @@ import {
 } from '@openweave/react'
 
 import IconButton from '@/components/ui/IconButton'
+import Tip from '@/components/ui/Tip'
 
 interface Props {
   showBooleanOperations?: boolean
@@ -37,15 +38,15 @@ export default function SelectionActionsControl({ showBooleanOperations = false 
       
       {showBooleanOperations && (
         <DropdownMenu.Root>
-          <DropdownMenu.Trigger asChild>
-            <button
+          <Tip label="Boolean groups">
+            <DropdownMenu.Trigger
+              asChild
               className="flex h-7 items-center gap-1 rounded-md px-1.5 text-muted hover:bg-hover hover:text-surface data-[state=open]:bg-active data-[state=open]:text-surface outline-none"
-              title="Boolean groups"
             >
               <Combine className="size-4" />
               <ChevronDown className="size-3" />
-            </button>
-          </DropdownMenu.Trigger>
+            </DropdownMenu.Trigger>
+          </Tip>
           <DropdownMenu.Portal>
             <DropdownMenu.Content
               align="end"

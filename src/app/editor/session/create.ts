@@ -25,9 +25,11 @@ export type { EditorToolDef as ToolDef, Tool } from '@openweave/core/editor'
 export function createEditorStore(initialGraph?: SceneGraph) {
   const graph = initialGraph ?? new SceneGraph()
 
-  const { state, subscribe: subscribeState } = createObservableState<AppEditorState>(
+  const observable = createObservableState<AppEditorState>(
     createInitialAppEditorState(graph.getPages()[0].id)
   )
+  const state = observable.state
+  const subscribeState = (l: Parameters<typeof observable.subscribe>[0]) => observable.subscribe(l)
 
   const viewportSize = { width: 0, height: 0 }
   const editor = createEditor({

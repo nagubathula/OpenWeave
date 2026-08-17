@@ -1,9 +1,23 @@
+import Script from 'next/script'
 import '../app.css'
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
+
+export const viewport: Viewport = {
+  themeColor: '#0e0e0e',
+}
 
 export const metadata: Metadata = {
   title: 'OpenWeave',
-  description: 'Design editor'
+  description: 'Design editor',
+  manifest: '/manifest.webmanifest',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'OpenWeave',
+  },
+  formatDetection: {
+    telephone: false,
+  },
 }
 
 // Browser extensions (Bitdefender, Grammarly, …) stamp attributes onto the DOM
@@ -46,7 +60,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark" suppressHydrationWarning>
       <head>
-        <script dangerouslySetInnerHTML={{ __html: STRIP_EXTENSION_ATTRIBUTES }} />
+        <Script id="strip-extension-attributes" strategy="beforeInteractive" dangerouslySetInnerHTML={{ __html: STRIP_EXTENSION_ATTRIBUTES }} />
       </head>
       <body className="font-sans antialiased bg-background text-foreground h-screen w-screen overflow-hidden" suppressHydrationWarning>
         {children}

@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test'
 
-import { computed, ref } from 'vue'
+
 
 import { createEditor } from '@openweave/core/editor'
 import type { SceneNode } from '@openweave/scene-graph'
@@ -13,7 +13,7 @@ import { createRect, firstPageId, makeSceneGraph } from '#tests/helpers/scene'
 function appearanceState(node: SceneNode, multi = false) {
   const selected = ref<SceneNode | null>(node)
   const nodes = ref<SceneNode[]>([node])
-  const isMulti = ref(multi)
+  const isMulti = false
 
   function merged<K extends keyof SceneNode>(key: K): MixedValue<SceneNode[K]> {
     const current = selected.value
@@ -22,9 +22,9 @@ function appearanceState(node: SceneNode, multi = false) {
   }
 
   return createAppearanceState({
-    node: computed(() => selected.value),
-    nodes: computed(() => nodes.value),
-    isMulti: computed(() => isMulti.value),
+    node: selected.value,
+    nodes: nodes.value,
+    isMulti,
     merged
   })
 }
@@ -80,9 +80,9 @@ describe('appearance control state', () => {
     const editor = createEditor({ graph })
     const actions = createAppearanceActions({
       editor,
-      node: computed(() => graph.getNode(rect.id) ?? null),
-      nodes: computed(() => []),
-      isMulti: computed(() => false),
+      node: selected.value,
+      nodes: nodes.value,
+      isMulti: false,
       merged: (key) => graph.getNode(rect.id)?.[key] ?? MIXED
     })
 
@@ -99,15 +99,13 @@ describe('appearance control state', () => {
     const first = graph.createNode('RECTANGLE', pageId, { cornerSmoothing: 0.2 })
     const second = graph.createNode('RECTANGLE', pageId, { cornerSmoothing: 0.8 })
     const editor = createEditor({ graph })
-    const nodes = computed(() => {
-      const selected = [graph.getNode(first.id), graph.getNode(second.id)]
-      return selected.filter((value): value is SceneNode => value !== undefined)
-    })
+    const selected = [graph.getNode(first.id), graph.getNode(second.id)]
+    const nodes = selected.filter((value): value is SceneNode => value !== undefined)
     const actions = createAppearanceActions({
       editor,
-      node: computed(() => null),
+      node: nodes[0] ?? null,
       nodes,
-      isMulti: computed(() => true),
+      isMulti: true,
       merged: () => MIXED
     })
 

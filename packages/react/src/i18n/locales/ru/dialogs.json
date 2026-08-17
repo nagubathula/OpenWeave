@@ -201,5 +201,17 @@
   "you": "Вы",
   "youSuffix": "вы",
   "followingPeerStop": "Следите за {name} (нажмите, чтобы остановить)",
-  "clickToFollowPeer": "Нажмите, чтобы следить за {name}"
+  "clickToFollowPeer": "Нажмите, чтобы следить за {name}",
+  "settingsAppearance": "Appearance",
+  "settingsTheme": "Theme",
+  "settingsThemeDark": "Dark",
+  "settingsThemeLight": "Light",
+  "settingsThemeSystem": "System",
+  "vectorizeAPIKey": "API Key",
+  "vectorizeClearKey": "Clear key",
+  "vectorizeGetAPIKey": "Get API Key",
+  "vectorizeProviderDescription": "Provider details",
+  "vectorizeSaveKey": "Save key",
+  "vectorizeSavedKey": "Key saved",
+  "vectorizeSavedKeyPlaceholder": "••••••••"
 }

@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test'
 
-import { computed, ref } from 'vue'
+
 
 import type { EditorCommandId } from '@openweave/react'
 
@@ -9,11 +9,11 @@ import type { CanvasMenuOptions } from '#react/editor/menu-model/canvas'
 
 function selection(overrides: Partial<CanvasMenuOptions['selection']> = {}) {
   return {
-    hasSelection: ref(true),
-    isGroup: ref(false),
-    isComponent: ref(false),
-    isInstance: ref(false),
-    canCreateComponentSet: ref(false),
+    hasSelection: false,
+    isGroup: false,
+    isComponent: false,
+    isInstance: false,
+    canCreateComponentSet: false,
     ...overrides
   } as CanvasMenuOptions['selection']
 }
@@ -68,7 +68,7 @@ describe('buildCanvasContextMenu', () => {
     expect(
       itemIds(
         buildCanvasContextMenu(
-          options({ selection: selection({ isInstance: computed(() => true) }) })
+          options({ selection: selection({ isInstance: true }) })
         )
       )
     ).toContain('selection.detachInstance')

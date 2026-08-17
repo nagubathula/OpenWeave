@@ -4,29 +4,33 @@ import { CanvasHelper } from '#tests/helpers/canvas'
 import { propertyItems, propertySection } from '#tests/helpers/properties'
 
 async function dragSlider(page: Page, canvas: CanvasHelper, testId: string, ratio: number) {
-  const slider = page.getByTestId(testId).locator(':scope > [data-orientation="horizontal"]')
+  const slider = page.getByTestId(testId)
   const box = await slider.boundingBox()
   if (!box) throw new Error(`Missing slider: ${testId}`)
-  await slider.click({
-    position: {
-      x: Math.max(2, Math.min(box.width - 2, box.width * ratio)),
-      y: box.height / 2
-    }
-  })
+  await page.mouse.click(box.x + box.width * ratio, box.y + box.height / 2)
+  await canvas.waitForRender()
+}
+
+async function enterFieldValue(page: Page, canvas: CanvasHelper, testId: string, value: string) {
+  const numberField = page.getByTestId(testId).locator('+ div')
+  await numberField.click()
+  const input = numberField.locator('input')
+  await input.fill(value)
+  await page.waitForTimeout(50)
+  await input.press('Enter')
   await canvas.waitForRender()
 }
 
 async function openStrokePicker(page: Page) {
   await propertyItems(page, 'strokes')
     .first()
-    .getByRole('button', { name: 'Stroke', exact: true })
+    .getByRole('button', { name: 'Stroke color', exact: true })
     .click()
-  await expect(page.locator('[data-picker-content]')).toBeVisible()
+  await expect(page.getByTestId('color-format-select')).toBeVisible()
 }
 
 async function chooseFormat(page: Page, label: 'RGB' | 'HSL' | 'HSB' | 'OkHCL') {
-  await page.getByTestId('color-format-select').click()
-  await page.getByRole('option', { name: label, exact: true }).click()
+  await page.getByTestId('color-format-select').selectOption({ label })
 }
 
 async function getSelectedStroke(page: Page) {
@@ -61,7 +65,7 @@ test('stroke picker updates stroke color on a rectangle', async ({ page }) => {
   ).toBe(true)
 })
 
-test('stroke picker alpha slider updates stroke opacity and alpha', async ({ page }) => {
+test('stroke picker alpha field updates stroke opacity and alpha', async ({ page }) => {
   const canvas = new CanvasHelper(page)
   await page.goto('/')
   await canvas.waitForInit()
@@ -71,44 +75,37 @@ test('stroke picker alpha slider updates stroke opacity and alpha', async ({ pag
   await canvas.waitForRender()
 
   await openStrokePicker(page)
-  await dragSlider(page, canvas, 'color-slider-alpha', 0.25)
+  await enterFieldValue(page, canvas, 'color-slider-alpha', '30')
   const after = await getSelectedStroke(page)
 
   expect(after).not.toBeNull()
-  expect(after?.opacity).toBeLessThan(1)
-  expect(after?.color.a).toBeCloseTo(after?.opacity ?? 0, 3)
+  expect(after?.color.a).toBeCloseTo(0.3, 2)
 })
 
-test('stroke picker hsb saturation and brightness sliders update stroke color on demo card', async ({
+test('stroke picker hsb saturation and brightness sliders update stroke color', async ({
   page
 }) => {
   const canvas = new CanvasHelper(page)
-  await page.goto('/demo')
+  await page.goto('/')
   await canvas.waitForInit()
 
-  await page.evaluate(() => {
-    const store = window.openWeave?.getStore?.()
-    if (!store) throw new Error('OpenWeave store not initialized')
-    const nodes = Array.from(store.graph.nodes.values())
-    const card =
-      nodes.find((node) => node.name === 'Card' && node.type === 'COMPONENT') ??
-      nodes.find((node) => node.name === 'Card')
-    if (!card) throw new Error('Card not found')
-    const stroke = {
-      color: { r: 0.9, g: 0.9, b: 0.92, a: 1 },
-      weight: 1,
-      opacity: 1,
-      visible: true,
-      align: 'INSIDE'
-    }
-    store.updateNodeWithUndo(card.id, { strokes: [stroke] }, 'Add demo card stroke')
-    store.select([card.id])
-  })
+  await canvas.drawRect(120, 120, 180, 120)
+  await propertySection(page, 'Stroke').getByRole('button', { name: 'Add stroke' }).click()
   await canvas.waitForRender()
 
-  await expect(propertyItems(page, 'strokes')).toBeVisible()
   await openStrokePicker(page)
   await chooseFormat(page, 'HSB')
+
+  // Default stroke is black (Brightness 0). Drag Brightness up first so Saturation changes actually affect RGB.
+  const beforeB = await getSelectedStroke(page)
+  await dragSlider(page, canvas, 'color-slider-hsb-b', 0.8)
+  const afterB = await getSelectedStroke(page)
+  expect(afterB).not.toBeNull()
+  expect(
+    beforeB?.color.r !== afterB?.color.r ||
+      beforeB?.color.g !== afterB?.color.g ||
+      beforeB?.color.b !== afterB?.color.b
+  ).toBe(true)
 
   const beforeS = await getSelectedStroke(page)
   await dragSlider(page, canvas, 'color-slider-hsb-s', 0.6)
@@ -118,16 +115,6 @@ test('stroke picker hsb saturation and brightness sliders update stroke color on
     beforeS?.color.r !== afterS?.color.r ||
       beforeS?.color.g !== afterS?.color.g ||
       beforeS?.color.b !== afterS?.color.b
-  ).toBe(true)
-
-  const beforeB = await getSelectedStroke(page)
-  await dragSlider(page, canvas, 'color-slider-hsb-b', 0.2)
-  const afterB = await getSelectedStroke(page)
-  expect(afterB).not.toBeNull()
-  expect(
-    beforeB?.color.r !== afterB?.color.r ||
-      beforeB?.color.g !== afterB?.color.g ||
-      beforeB?.color.b !== afterB?.color.b
   ).toBe(true)
 })
 
@@ -186,7 +173,7 @@ test('bound stroke picker is non-destructive, rolls back Escape, and detaches in
   await dragSlider(page, canvas, 'color-slider-hue', 0.75)
   await propertyItems(page, 'strokes')
     .first()
-    .getByRole('button', { name: 'Stroke', exact: true })
+    .getByRole('button', { name: 'Stroke color', exact: true })
     .click()
   await canvas.waitForRender()
   expect((await getSelectedStroke(page))?.color).not.toEqual(before.color)

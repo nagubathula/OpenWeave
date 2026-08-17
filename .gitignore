@@ -85,3 +85,5 @@ scratch/
 # OpenCode
 .opencode/
 
+
+*storybook.log

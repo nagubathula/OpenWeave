@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test'
 
-import { computed, ref } from 'vue'
+
 
 import { createEditor } from '@openweave/core/editor'
 import type { SceneNode } from '@openweave/scene-graph'
@@ -37,9 +37,9 @@ describe('stroke geometry controls', () => {
     const other = structuredClone(node)
     other.id = 'other'
     other.strokeJoin = 'BEVEL'
-    const nodes = ref([node, other])
+    const nodes = { value: [node, other] }
     const state = createStrokeGeometryState({
-      nodes: computed(() => nodes.value),
+      nodes: nodes.value,
       merged: (key) => merged(nodes.value)(key)
     })
 
@@ -57,10 +57,8 @@ describe('stroke geometry controls', () => {
     const first = graph.createNode('RECTANGLE', pageId, { strokes: [{ ...DEFAULT_STROKE }] })
     const second = graph.createNode('RECTANGLE', pageId, { strokes: [{ ...DEFAULT_STROKE }] })
     const editor = createEditor({ graph })
-    const nodes = computed(() =>
-      [graph.getNode(first.id), graph.getNode(second.id)].filter(Boolean)
-    )
-    const actions = createStrokeGeometryActions(editor, nodes)
+    const nodes = { value: [graph.getNode(first.id), graph.getNode(second.id)].filter(Boolean) as SceneNode[] }
+    const actions = createStrokeGeometryActions(editor, nodes.value)
 
     actions.setCap('ROUND')
     actions.setJoin('BEVEL')
@@ -86,10 +84,8 @@ describe('stroke geometry controls', () => {
       strokeMiterLimit: 8
     })
     const editor = createEditor({ graph })
-    const nodes = computed(() =>
-      [graph.getNode(first.id), graph.getNode(second.id)].filter(Boolean)
-    )
-    const actions = createStrokeGeometryActions(editor, nodes)
+    const nodes = { value: [graph.getNode(first.id), graph.getNode(second.id)].filter(Boolean) as SceneNode[] }
+    const actions = createStrokeGeometryActions(editor, nodes.value)
 
     actions.updateMiterLimit(12)
     expect(graph.getNode(first.id)?.strokeMiterLimit).toBe(12)

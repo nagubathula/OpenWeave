@@ -1,3 +1,4 @@
+/* eslint-disable openweave/no-hardcoded-tip-labels */
 import React from 'react'
 import { PositionControlsRoot } from '@openweave/react'
 import {

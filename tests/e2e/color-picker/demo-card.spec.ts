@@ -8,7 +8,7 @@ async function dragSlider(
   testId: string,
   ratio: number
 ) {
-  const slider = page.getByTestId(testId).getByRole('slider')
+  const slider = page.getByTestId(testId)
   const box = await slider.boundingBox()
   if (!box) throw new Error(`Missing slider: ${testId}`)
   const y = box.y + box.height / 2
@@ -45,7 +45,7 @@ async function selectDemoCard(page: Parameters<typeof test>[0]['page'], canvas: 
 
   const designPanel = page.getByTestId('design-panel-single')
   await expect(designPanel).toBeVisible()
-  await expect(designPanel.getByRole('heading', { name: 'Card' })).toBeVisible()
+  await expect(designPanel.getByText('Card', { exact: true })).toBeVisible()
 }
 
 async function getSelectedFill(page: Parameters<typeof test>[0]['page']) {
@@ -88,8 +88,8 @@ test('demo card fill changes through color picker', async ({ page }) => {
 
   const before = await getSelectedFillOrThrow(page)
 
-  await page.getByTestId('fill-picker-swatch').first().click()
-  await expect(page.getByTestId('fill-picker-tab-solid')).toBeVisible()
+  await page.locator('[data-property="paint-swatch"]').first().click()
+  await expect(page.getByTestId('color-format-select')).toBeVisible()
 
   await dragSlider(page, canvas, 'color-slider-hue', 0.7)
 
@@ -103,11 +103,10 @@ test('demo card fill changes from hsb saturation and brightness sliders', async 
   const canvas = new CanvasHelper(page)
   await selectDemoCard(page, canvas)
 
-  await page.getByTestId('fill-picker-swatch').first().click()
-  await expect(page.getByTestId('fill-picker-tab-solid')).toBeVisible()
+  await page.locator('[data-property="paint-swatch"]').first().click()
+  await expect(page.getByTestId('color-format-select')).toBeVisible()
   await canvas.waitForRender()
-  await page.getByTestId('color-format-select').click()
-  await page.getByRole('option', { name: 'HSB', exact: true }).click()
+  await page.getByTestId('color-format-select').selectOption({ label: 'HSB' })
   await canvas.waitForRender()
 
   const beforeS = await getSelectedFillOrThrow(page)

@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test'
 
-import { ref } from 'vue'
+
 
 import type { Fill } from '@openweave/scene-graph'
 import {
@@ -48,7 +48,7 @@ describe('fill model', () => {
   })
 
   test('converts between categories without mutating the source', () => {
-    const source = ref(structuredClone(solid))
+    const source = solid
     const updates: Fill[] = []
     const model = useFill(source, (fill) => updates.push(fill))
 
@@ -69,7 +69,7 @@ describe('fill model', () => {
 
 describe('gradient stop color model', () => {
   test('preserves alpha while applying hex through useColorModel', () => {
-    const source = ref(gradient())
+    const source = solid
     let updated = source.value
     const model = useGradientStops(source, (fill) => {
       updated = fill
@@ -82,7 +82,7 @@ describe('gradient stop color model', () => {
   })
 
   test('clamps keyboard-compatible percent position updates', () => {
-    const source = ref(gradient())
+    const source = solid
     let updated = source.value
     const model = useGradientStops(source, (fill) => {
       updated = fill

@@ -34,7 +34,7 @@ export default function AcpPermissionDialog() {
     try {
       toolInput = JSON.stringify(toolCall.rawInput, null, 2)
     } catch {
-      toolInput = String(toolCall.rawInput)
+      toolInput = '[Complex object]'
     }
   }
 

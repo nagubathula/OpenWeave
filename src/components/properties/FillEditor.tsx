@@ -4,6 +4,7 @@ import { colorToCSS } from '@openweave/core/color'
 import type { Fill, FillType, ImageScaleMode } from '@openweave/scene-graph'
 import type { Color } from '@openweave/scene-graph/primitives'
 import ColorSwatchPopover from '@/components/color-picker/ColorSwatchPopover'
+import Tip from '@/components/ui/Tip'
 
 const FILL_TYPE_OPTIONS: { value: FillType; label: string }[] = [
   { value: 'SOLID', label: 'Solid' },
@@ -90,14 +91,15 @@ export function FillRow({ fill, onChange, onRemove }: FillRowProps) {
             </option>
           ))}
         </select>
-        <button
-          type="button"
-          className="text-muted hover:text-surface px-1"
-          title="Remove fill"
-          onClick={onRemove}
-        >
-          −
-        </button>
+        <Tip label="Remove fill">
+          <button
+            type="button"
+            className="text-muted hover:text-surface px-1"
+            onClick={onRemove}
+          >
+            −
+          </button>
+        </Tip>
       </div>
 
       {fill.type === 'SOLID' && (
@@ -127,15 +129,16 @@ export function FillRow({ fill, onChange, onRemove }: FillRowProps) {
                   />
                   <span className="text-muted text-[10px]">%</span>
                 </label>
-                <button
-                  type="button"
-                  className="text-muted hover:text-surface disabled:opacity-30 px-1"
-                  title="Remove stop"
-                  disabled={gradient.stops.length <= 2}
-                  onClick={() => gradient.removeStop(i)}
-                >
-                  −
-                </button>
+                <Tip label="Remove stop">
+                  <button
+                    type="button"
+                    className="text-muted hover:text-surface disabled:opacity-30 px-1"
+                    disabled={gradient.stops.length <= 2}
+                    onClick={() => gradient.removeStop(i)}
+                  >
+                    −
+                  </button>
+                </Tip>
               </div>
             ))}
           </div>

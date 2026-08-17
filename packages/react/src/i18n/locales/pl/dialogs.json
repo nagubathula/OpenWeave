@@ -201,5 +201,17 @@
   "you": "Ty",
   "youSuffix": "ty",
   "followingPeerStop": "Obserwujesz {name} (kliknij, aby zatrzymać)",
-  "clickToFollowPeer": "Kliknij, aby obserwować {name}"
+  "clickToFollowPeer": "Kliknij, aby obserwować {name}",
+  "settingsAppearance": "Appearance",
+  "settingsTheme": "Theme",
+  "settingsThemeDark": "Dark",
+  "settingsThemeLight": "Light",
+  "settingsThemeSystem": "System",
+  "vectorizeAPIKey": "API Key",
+  "vectorizeClearKey": "Clear key",
+  "vectorizeGetAPIKey": "Get API Key",
+  "vectorizeProviderDescription": "Provider details",
+  "vectorizeSaveKey": "Save key",
+  "vectorizeSavedKey": "Key saved",
+  "vectorizeSavedKeyPlaceholder": "••••••••"
 }

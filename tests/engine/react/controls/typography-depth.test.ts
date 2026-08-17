@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test'
 
-import { computed } from 'vue'
+
 
 import { createEditor } from '@openweave/core/editor'
 
@@ -13,12 +13,12 @@ describe('typography depth actions', () => {
       maxLines: null,
       textStyleId: '1:20'
     })
-    const node = computed(() => editor.graph.getNode(text.id) ?? null)
+    const node = text ?? null
     const actions = createTypographyActions({
       editor,
       node,
-      currentWeightLabel: computed(() => 'Regular'),
-      activeFormatting: computed(() => []),
+      currentWeightLabel: '',
+      activeFormatting: [],
       options: {}
     })
 
@@ -38,9 +38,9 @@ describe('typography depth actions', () => {
     })
     const actions = createTypographyActions({
       editor,
-      node: computed(() => editor.graph.getNode(text.id) ?? null),
-      currentWeightLabel: computed(() => 'Regular'),
-      activeFormatting: computed(() => []),
+      node,
+      currentWeightLabel: '',
+      activeFormatting: [],
       options: {}
     })
 

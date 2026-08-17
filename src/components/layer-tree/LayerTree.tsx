@@ -153,7 +153,7 @@ export default function LayerTree() {
 
   return (
     <LayerTreeRoot indentPerLevel={INDENT}>
-      {({ visibleRows, selectedIds, expanded, draggingId, instruction, instructionTargetId, actions }) => {
+      {({ visibleRows, selectedIds, expanded, draggingId, instruction, instructionTargetId, focused, actions }) => {
         const styles = layerTree()
 
         // Register our windowing implementation so LayerTreeRoot's own
@@ -231,6 +231,7 @@ export default function LayerTree() {
 
                   const rowStyles = layerTree({
                     selected: isSelected,
+                    focused,
                     dragging: isDragging,
                     visible: node.visible,
                     component: isComponent,

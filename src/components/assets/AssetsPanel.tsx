@@ -17,6 +17,7 @@ import {
   ASSET_LIST_THUMBNAIL_SIZE,
   ASSET_THUMBNAIL_RENDER_SCALE
 } from '@/constants'
+import Tip from '@/components/ui/Tip'
 
 type AssetView = 'grid' | 'list'
 
@@ -291,30 +292,28 @@ export default function AssetsPanel() {
           className="min-w-0 flex-1 rounded border border-border bg-input/50 px-2 py-1 text-xs text-surface outline-none placeholder:text-muted focus:border-accent"
         />
         <div className="flex shrink-0 rounded border border-border" role="group" aria-label={panels.assetView}>
-          <button
-            type="button"
-            data-test-id="assets-view-grid"
-            title={panels.gridView}
-            aria-pressed={assetView === 'grid'}
-            className={`flex size-6 items-center justify-center rounded-l ${
-              assetView === 'grid' ? 'bg-hover text-surface' : 'text-muted hover:text-surface'
-            }`}
-            onClick={() => setAssetView('grid')}
-          >
-            <LayoutGrid className="size-3" />
-          </button>
-          <button
-            type="button"
-            data-test-id="assets-view-list"
-            title={panels.listView}
-            aria-pressed={assetView === 'list'}
-            className={`flex size-6 items-center justify-center rounded-r ${
-              assetView === 'list' ? 'bg-hover text-surface' : 'text-muted hover:text-surface'
-            }`}
-            onClick={() => setAssetView('list')}
-          >
-            <List className="size-3" />
-          </button>
+          <Tip label={panels.gridView}>
+            <button
+              type="button"
+              data-test-id="assets-view-grid"
+              aria-pressed={assetView === 'grid'}
+              className="flex size-7 shrink-0 items-center justify-center rounded text-muted transition-colors hover:bg-hover hover:text-surface aria-pressed:bg-input aria-pressed:text-surface"
+              onClick={() => setAssetView('grid')}
+            >
+              <LayoutGrid className="size-4" />
+            </button>
+          </Tip>
+          <Tip label={panels.listView}>
+            <button
+              type="button"
+              data-test-id="assets-view-list"
+              aria-pressed={assetView === 'list'}
+              className="flex size-7 shrink-0 items-center justify-center rounded text-muted transition-colors hover:bg-hover hover:text-surface aria-pressed:bg-input aria-pressed:text-surface"
+              onClick={() => setAssetView('list')}
+            >
+              <List className="size-4" />
+            </button>
+          </Tip>
         </div>
       </div>
 
@@ -375,18 +374,19 @@ export default function AssetsPanel() {
                           ) : null}
                         </span>
                         {assetView === 'list' ? (
-                          <button
-                            type="button"
-                            data-test-id="asset-insert"
-                            title={panels.insertInstance}
-                            className="flex size-6 shrink-0 items-center justify-center rounded text-muted hover:bg-hover hover:text-surface"
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              insertAsset(asset)
-                            }}
-                          >
-                            <Plus className="size-3" />
-                          </button>
+                          <Tip label={panels.insertInstance}>
+                            <button
+                              type="button"
+                              data-test-id="asset-insert"
+                              className="flex size-6 shrink-0 items-center justify-center rounded text-muted hover:bg-hover hover:text-surface"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                insertAsset(asset)
+                              }}
+                            >
+                              <Plus className="size-4" />
+                            </button>
+                          </Tip>
                         ) : null}
                       </div>
                     </ContextMenu.Trigger>

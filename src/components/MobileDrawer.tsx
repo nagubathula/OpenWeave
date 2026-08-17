@@ -3,6 +3,7 @@ import * as Tabs from '@radix-ui/react-tabs'
 import { Code, Layers, Sliders, Sparkles } from 'lucide-react'
 import { motion } from 'framer-motion'
 import type { PanInfo } from 'framer-motion'
+import { useEventListener } from 'usehooks-ts'
 
 import ChatPanel from '@/components/chat/ChatPanel'
 import CodePanel from '@/components/properties/CodePanel'
@@ -42,11 +43,8 @@ export default function MobileDrawer() {
   useEditorState((s) => s.activeRibbonTab, 'panels')
   useEditorState((s) => s.panelMode, 'design')
 
-  useEffect(() => {
-    const onResize = () => setWindowH(window.innerHeight)
-    window.addEventListener('resize', onResize)
-    return () => window.removeEventListener('resize', onResize)
-  }, [])
+  const onResize = useCallback(() => setWindowH(window.innerHeight), [])
+  useEventListener('resize', onResize)
 
   useEffect(() => {
     const node = headerRef.current

@@ -4,6 +4,7 @@ import * as ContextMenu from '@radix-ui/react-context-menu'
 import { File as IconLucideFile, Pencil as IconLucidePencil, Trash2 as IconLucideTrash2 } from 'lucide-react'
 import { PageListRoot, useFlatReorderDrag, useI18n, useInlineRename } from '@openweave/react'
 import pageListTheme from '@/theme/page-list'
+import Tip from '@/components/ui/Tip'
 
 interface PageItem {
   id: string
@@ -70,14 +71,15 @@ export default function PagesPanel() {
               <span data-test-id="pages-header" className={baseStyles.title()}>
                 {panels.pages}
               </span>
-              <button
-                data-test-id="pages-add"
-                title={panels.addPage}
-                className={baseStyles.add()}
-                onClick={actions.add}
-              >
-                +
-              </button>
+              <Tip label={panels.addPage}>
+                <button
+                  data-test-id="pages-add"
+                  className={baseStyles.add()}
+                  onClick={actions.add}
+                >
+                  +
+                </button>
+              </Tip>
             </div>
             <div className={baseStyles.body()}>
               <div data-test-id="pages-scroll" className={baseStyles.viewport()}>

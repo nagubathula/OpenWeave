@@ -5,6 +5,8 @@ import {
   useEditor,
   useEditorPropertyList,
   useI18n,
+  useOkHCL,
+  useSelectionState,
   useStrokeControls
 } from '@openweave/react'
 import { BLACK } from '@openweave/core/constants'
@@ -19,6 +21,7 @@ import SegmentedControl from '@/components/ui/SegmentedControl'
 import { BindingPill } from '@/components/ui/binding'
 import PaintSwatchPopover from '@/components/properties/paint/PaintSwatchPopover'
 import { paintBindingTargets, usePaintMutation } from '@/components/properties/paint/binding'
+import { createStrokeOkhclAdapter } from '@/components/properties/paint/okhcl'
 import { commitDiscretePropertyListChange } from '@/components/properties/blend-mode/use'
 import SharedStyleField from '@/components/properties/shared-style/SharedStyleField'
 import VariableBindingPicker from '@/components/properties/binding/VariableBindingPicker'
@@ -27,16 +30,18 @@ const inputClass = 'w-full bg-input/50 rounded px-2 py-1 border border-border te
 
 export default function StrokeSection() {
   const editor = useEditor()
-  const { items: strokes, isMixed, active, activeNode, selectedNodeIds, flush, actions } =
+  const { items: strokes, isMixed, active, activeNode: propertyNode, selectedNodeIds, flush, actions } =
     useEditorPropertyList('strokes')
   const strokeCtx = useStrokeControls()
   const colorProvider = useColorBindingProvider()
   const paint = usePaintMutation()
   const { panels, dialogs } = useI18n()
+  const okhcl = useOkHCL()
+  const { selectedNode } = useSelectionState()
 
-  if (!active || !activeNode) return null
+  if (!active || !propertyNode || !selectedNode) return null
 
-  const node = activeNode
+  const node = propertyNode
 
   // Node-level stroke geometry; values can be mixed across a multi-selection.
   const capValue = typeof strokeCtx.cap === 'string' ? strokeCtx.cap : 'MIXED'
@@ -99,6 +104,7 @@ export default function StrokeSection() {
                       <PaintSwatchPopover
                         label="Stroke color"
                         color={displayColor}
+                        okhcl={createStrokeOkhclAdapter(okhcl, selectedNode, i)}
                         onChange={(c) =>
                           paint.apply(binding, flush, 'Change stroke color', () =>
                             actions.patch(i, { color: c })
@@ -107,6 +113,7 @@ export default function StrokeSection() {
                         onOpenChange={(open) => {
                           if (!open) paint.commit()
                         }}
+                        onCancel={() => paint.rollback()}
                       />
                       {binding.variable ? (
                         <BindingPill

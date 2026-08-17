@@ -20,6 +20,7 @@ import { toast } from '@/app/shell/ui'
 import ChatMessage from '@/components/chat/ChatMessage'
 import ChatModelSelect from '@/components/chat/ChatModelSelect'
 import ChatProfileSelect from '@/components/chat/ChatProfileSelect'
+import Tip from '@/components/ui/Tip'
 
 type ChatStatus = 'ready' | 'submitted' | 'streaming'
 
@@ -340,25 +341,27 @@ export default function ChatPanel() {
           className="min-h-8 min-w-0 flex-1 rounded border border-border bg-input/50 px-2 py-1.5 text-xs text-surface outline-none placeholder:text-muted focus:border-accent"
         />
         {isBusy ? (
-          <button
-            type="button"
-            data-test-id="chat-stop"
-            title="Stop"
-            className="flex size-8 shrink-0 items-center justify-center rounded bg-hover text-surface hover:bg-hover/80"
-            onClick={handleStop}
-          >
-            <Square className="size-3.5" />
-          </button>
+          <Tip label="Stop">
+            <button
+              type="button"
+              data-test-id="chat-stop"
+              className="flex size-8 shrink-0 items-center justify-center rounded bg-hover text-surface hover:bg-hover/80"
+              onClick={handleStop}
+            >
+              <Square className="size-3.5" />
+            </button>
+          </Tip>
         ) : (
-          <button
-            type="submit"
-            data-test-id="chat-send"
-            title="Send"
-            disabled={!input.trim()}
-            className="flex size-8 shrink-0 items-center justify-center rounded bg-accent text-accent-foreground hover:bg-accent/90 disabled:opacity-40"
-          >
-            <ArrowUp className="size-3.5" />
-          </button>
+          <Tip label="Send">
+            <button
+              type="submit"
+              data-test-id="chat-send"
+              disabled={!input.trim()}
+              className="flex size-8 shrink-0 items-center justify-center rounded bg-accent text-accent-foreground hover:bg-accent/90 disabled:opacity-40"
+            >
+              <ArrowUp className="size-3.5" />
+            </button>
+          </Tip>
         )}
       </form>
     </div>

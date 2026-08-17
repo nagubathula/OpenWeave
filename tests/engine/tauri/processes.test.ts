@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, test, vi } from 'bun:test'
 
-import { ref } from 'vue'
+
 
 import { spawnAcpProcess } from '@/app/ai/acp/process'
 import { checkForAppUpdate } from '@/app/shell/updater'
@@ -112,9 +112,7 @@ describe('Tauri process helpers', () => {
 })
 
 describe('Tauri updater helper', () => {
-  const messages = ref({
-    appUpToDate: 'Up to date',
-    updateAvailableTitle: 'Update available',
+  const messages = {
     updateAvailable: ({ version }: { version: string }) => `Version ${version}`,
     updateInstallPrompt: 'Install now?',
     downloadingUpdate: ({ version }: { version: string }) => `Downloading ${version}`,
@@ -123,7 +121,7 @@ describe('Tauri updater helper', () => {
       `Installed ${version}${size}`,
     updateUnavailable: 'Unavailable',
     updateCheckFailed: ({ error }: { error: string }) => `Failed: ${error}`
-  })
+  }
 
   test('returns quietly when no Tauri update is available', async () => {
     const calls: string[] = []

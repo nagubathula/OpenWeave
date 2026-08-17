@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useRef, useCallback } from 'react'
 import { Panel, Group, Separator } from 'react-resizable-panels'
 import { Sidebar } from 'lucide-react'
+import { useEventListener } from 'usehooks-ts'
 import EditorCanvas from '@/components/EditorCanvas'
 import LayersPanel from '@/components/LayersPanel'
 import PropertiesPanel from '@/components/PropertiesPanel'
@@ -22,6 +23,7 @@ import { useAppKeyboard } from '@/app/shell/keyboard/use-app-keyboard'
 import { useMenu } from '@/app/shell/menu/use'
 import { openFileFromPath } from '@/app/shell/menu/files'
 import { CollabProvider, useCollab } from '@/app/collab/use'
+import Tip from '@/components/ui/Tip'
 import { connectAutomation } from '@/app/automation/bridge/server'
 import { spawnMCPIfNeeded } from '@/app/automation/mcp/spawn'
 import { isTauri } from '@/app/tauri/env'
@@ -41,18 +43,19 @@ function CollapsedChrome() {
       <span data-test-id="editor-document-name" className="text-xs text-surface">
         {name}
       </span>
-      <button
-        type="button"
-        data-test-id="editor-show-ui"
-        title="Show UI"
-        aria-label="Show UI"
-        className="ml-1 flex size-6 cursor-pointer items-center justify-center rounded text-muted transition-colors hover:bg-hover hover:text-surface"
-        onClick={() => {
-          getActiveEditorStore().state.showUI = true
-        }}
-      >
-        <Sidebar className="size-3.5" />
-      </button>
+      <Tip label="Show UI">
+        <button
+          type="button"
+          data-test-id="editor-show-ui"
+          aria-label="Show UI"
+          className="ml-1 flex size-6 cursor-pointer items-center justify-center rounded text-muted transition-colors hover:bg-hover hover:text-surface"
+          onClick={() => {
+            getActiveEditorStore().state.showUI = true
+          }}
+        >
+          <Sidebar className="size-3.5" />
+        </button>
+      </Tip>
     </div>
   )
 }
@@ -87,13 +90,11 @@ export function EditorLayout() {
 
   // Ported from src/views/EditorView.vue: block the browser's pinch/⌘-scroll zoom
   // so ctrl/meta + wheel drives the canvas zoom instead of the page.
-  useEffect(() => {
-    const onWheel = (e: WheelEvent) => {
-      if (e.ctrlKey || e.metaKey) e.preventDefault()
-    }
-    document.addEventListener('wheel', onWheel, { passive: false })
-    return () => document.removeEventListener('wheel', onWheel)
+  const onWheel = useCallback((e: WheelEvent) => {
+    if (e.ctrlKey || e.metaKey) e.preventDefault()
   }, [])
+  const docRef = useRef<Document>(typeof document !== 'undefined' ? document : null as unknown as Document)
+  useEventListener('wheel', onWheel, docRef, { passive: false })
 
   // Ported from src/views/EditorView.vue onMounted: spawn the MCP sidecar,
   // connect the automation bridge (dev + Tauri), and handle OS "Open With"

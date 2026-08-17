@@ -95,7 +95,8 @@ export function createOkHCLPreviewHelpers(editor: Editor) {
 export function createOkHCLFieldFormats(
   fieldFormats: { current: Map<string, ColorFieldFormat> },
   ensureFillOkHCL: (node: SceneNode, index: number) => void,
-  ensureStrokeOkHCL: (node: SceneNode, index: number) => void
+  ensureStrokeOkHCL: (node: SceneNode, index: number) => void,
+  onChange?: () => void
 ) {
   function getFieldFormat(node: SceneNode | null, index: number, kind: ColorKind) {
     if (!node) return 'rgb' as const
@@ -110,11 +111,13 @@ export function createOkHCLFieldFormats(
   function setFillFieldFormat(node: SceneNode, index: number, format: ColorFieldFormat) {
     fieldFormats.current.set(fieldKey('fill', node.id, index), format)
     if (format === 'okhcl') ensureFillOkHCL(node, index)
+    onChange?.()
   }
 
   function setStrokeFieldFormat(node: SceneNode, index: number, format: ColorFieldFormat) {
     fieldFormats.current.set(fieldKey('stroke', node.id, index), format)
     if (format === 'okhcl') ensureStrokeOkHCL(node, index)
+    onChange?.()
   }
 
   return { getFieldFormat, setFillFieldFormat, setStrokeFieldFormat }

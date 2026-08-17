@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useState } from 'react'
 import { createPortal } from 'react-dom'
 import {
   Palette,
@@ -14,9 +14,11 @@ import {
 } from 'lucide-react'
 import { flexRender } from '@tanstack/react-table'
 
-import { useVariablesEditor } from '@openweave/react'
+import { useEventListener } from 'usehooks-ts'
+import { useVariablesEditor, useI18n } from '@openweave/react'
 import type { Color } from '@openweave/scene-graph/primitives'
 import type { VariableType } from '@openweave/scene-graph'
+import Tip from '@/components/ui/Tip'
 
 import { ColorSwatchPopover } from '@/components/color-picker/ColorSwatchPopover'
 
@@ -71,27 +73,28 @@ function VariablesEditor({ onClose }: { onClose: () => void }) {
     fallbackIcon: ToggleLeft,
     deleteIcon: X
   })
+  const { dialogs, panels } = useI18n()
   const [addOpen, setAddOpen] = useState(false)
 
   if (!ctx.hasCollections) {
     return (
       <div className="flex flex-1 flex-col" data-test-id="variables-empty">
         <div className="flex shrink-0 items-center justify-between border-b border-border px-4 py-3">
-          <h2 className="text-sm font-semibold text-surface">Local variables</h2>
-          <button type="button" className={iconButtonClass} aria-label="Close" onClick={onClose}>
+          <h2 className="text-sm font-semibold text-surface">{dialogs.localVariables}</h2>
+          <button type="button" className={iconButtonClass} aria-label={dialogs.close} onClick={onClose}>
             <X className="size-4" />
           </button>
         </div>
         <div className="flex flex-1 flex-col items-center justify-center gap-3 text-muted">
           <FolderPlus className="size-6" />
-          <p className="text-xs">No variable collections yet.</p>
+          <p className="text-xs">{dialogs.noVariableCollections}</p>
           <button
             type="button"
             data-test-id="variables-create-collection"
             className="cursor-pointer rounded bg-hover px-3 py-1.5 text-xs text-surface hover:bg-border"
             onClick={() => ctx.addCollection()}
           >
-            Create collection
+            {dialogs.createCollection}
           </button>
         </div>
       </div>
@@ -136,29 +139,31 @@ function VariablesEditor({ onClose }: { onClose: () => void }) {
               value={ctx.searchTerm}
               data-test-id="variables-search-input"
               className="w-24 border-none bg-transparent text-xs text-surface outline-none placeholder:text-muted"
-              placeholder="Search"
+              placeholder={dialogs.search}
               onChange={(event) => ctx.setSearchTerm(event.target.value)}
             />
           </div>
-          <button
-            type="button"
-            title="New collection"
-            data-test-id="variables-add-collection"
-            className={iconButtonClass}
-            onClick={() => ctx.addCollection()}
-          >
-            <FolderPlus className="size-3.5" />
-          </button>
-          <button
-            type="button"
-            title="Delete collection"
-            data-test-id="variables-delete-collection"
-            className={iconButtonClass}
-            onClick={() => ctx.removeCollection(ctx.activeCollectionId)}
-          >
-            <Trash2 className="size-3.5" />
-          </button>
-          <button type="button" className={iconButtonClass} aria-label="Close" onClick={onClose}>
+          <Tip label={dialogs.createCollection}>
+            <button
+              type="button"
+              data-test-id="variables-add-collection"
+              className={iconButtonClass}
+              onClick={() => ctx.addCollection()}
+            >
+              <FolderPlus className="size-3.5" />
+            </button>
+          </Tip>
+          <Tip label={dialogs.deleteCollection}>
+            <button
+              type="button"
+              data-test-id="variables-delete-collection"
+              className={iconButtonClass}
+              onClick={() => ctx.removeCollection(ctx.activeCollectionId)}
+            >
+              <Trash2 className="size-3.5" />
+            </button>
+          </Tip>
+          <button type="button" className={iconButtonClass} aria-label={dialogs.close} onClick={onClose}>
             <X className="size-4" />
           </button>
         </div>
@@ -205,15 +210,16 @@ function VariablesEditor({ onClose }: { onClose: () => void }) {
                   )
                 })}
                 <th className="w-8 px-1 py-2">
-                  <button
-                    type="button"
-                    title="Add mode"
-                    data-test-id="variables-add-mode"
-                    className="flex size-5 cursor-pointer items-center justify-center rounded border-none bg-transparent text-muted hover:bg-hover hover:text-surface"
-                    onClick={() => ctx.addMode()}
-                  >
-                    <Plus className="size-3" />
-                  </button>
+                  <Tip label="Add mode">
+                    <button
+                      type="button"
+                      data-test-id="variables-add-mode"
+                      className="flex size-5 cursor-pointer items-center justify-center rounded border-none bg-transparent text-muted hover:bg-hover hover:text-surface"
+                      onClick={() => ctx.addMode()}
+                    >
+                      <Plus className="size-3" />
+                    </button>
+                  </Tip>
                 </th>
               </tr>
             ))}
@@ -243,7 +249,7 @@ function VariablesEditor({ onClose }: { onClose: () => void }) {
 
       {/* Add variable footer */}
       <div className="relative flex w-full shrink-0 items-center justify-between gap-2 border-t border-border px-4 py-2">
-        <span className="text-xs text-muted">Create a variable</span>
+        <span className="text-xs text-muted">{panels.createVariable}</span>
         <div className="relative">
           <button
             type="button"
@@ -252,7 +258,7 @@ function VariablesEditor({ onClose }: { onClose: () => void }) {
             onClick={() => setAddOpen((open) => !open)}
           >
             <Plus className="size-3.5" />
-            Add
+            {panels.add}
             <ChevronDown className="size-3" />
           </button>
           {addOpen && (
@@ -287,14 +293,15 @@ function VariablesEditor({ onClose }: { onClose: () => void }) {
 }
 
 export function VariablesDialog({ open, onClose }: VariablesDialogProps) {
-  useEffect(() => {
-    if (!open) return
-    const onKey = (event: KeyboardEvent) => {
+  const { dialogs } = useI18n()
+  const onKey = useCallback(
+    (event: KeyboardEvent) => {
+      if (!open) return
       if (event.key === 'Escape') onClose()
-    }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [open, onClose])
+    },
+    [open, onClose]
+  )
+  useEventListener('keydown', onKey)
 
   if (!open) return null
 
@@ -310,7 +317,7 @@ export function VariablesDialog({ open, onClose }: VariablesDialogProps) {
         className="flex h-[32rem] w-[50rem] max-w-[90vw] flex-col overflow-hidden rounded-lg border border-border bg-surface shadow-xl"
         role="dialog"
         aria-modal="true"
-        aria-label="Local variables"
+        aria-label={dialogs.localVariables}
         onClick={(event) => event.stopPropagation()}
       >
         <VariablesEditor onClose={onClose} />

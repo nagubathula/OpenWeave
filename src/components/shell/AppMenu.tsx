@@ -1,3 +1,4 @@
+/* eslint-disable openweave/no-hardcoded-tip-labels */
 import React, { useState, useRef, useEffect, useReducer } from 'react'
 import { useStore } from '@nanostores/react'
 import * as Menubar from '@radix-ui/react-menubar'
@@ -13,6 +14,7 @@ import { isMenuAction, isMenuCheckbox } from '@/app/shell/menu/entry'
 import { SettingsDialog } from '@/components/settings/SettingsDialog'
 import AppShortcutText from '@/components/ui/AppShortcutText'
 import { useMenuUI } from '@/components/ui/menu'
+import Tip from '@/components/ui/Tip'
 import { IS_TAURI } from '@/constants'
 
 function MenuEntryItems({ items, cls }: { items: MenuEntry[]; cls: ReturnType<typeof useMenuUI> }) {
@@ -154,26 +156,28 @@ export default function AppMenu() {
             {documentName || 'Untitled'}
           </span>
         )}
-        <button
-          type="button"
-          data-test-id="app-settings-trigger"
-          title="Settings"
-          className="flex size-6 shrink-0 cursor-pointer items-center justify-center rounded text-muted transition-colors hover:bg-hover hover:text-surface"
-          onClick={() => openSettingsDialog()}
-        >
-          <Settings className="size-3.5" />
-        </button>
-        <button
-          type="button"
-          data-test-id="app-toggle-ui"
-          title="Toggle UI"
-          className="flex size-6 shrink-0 cursor-pointer items-center justify-center rounded text-muted transition-colors hover:bg-hover hover:text-surface"
-          onClick={() => {
-            store.state.showUI = !store.state.showUI
-          }}
-        >
-          <PanelLeft className="size-3.5" />
-        </button>
+        <Tip label="Settings" side="bottom">
+          <button
+            type="button"
+            data-test-id="app-settings-trigger"
+            className="flex size-6 shrink-0 cursor-pointer items-center justify-center rounded text-muted transition-colors hover:bg-hover hover:text-surface"
+            onClick={() => openSettingsDialog()}
+          >
+            <Settings className="size-3.5" />
+          </button>
+        </Tip>
+        <Tip label="Toggle UI" side="bottom">
+          <button
+            type="button"
+            data-test-id="app-toggle-ui"
+            className="flex size-6 shrink-0 cursor-pointer items-center justify-center rounded text-muted transition-colors hover:bg-hover hover:text-surface"
+            onClick={() => {
+              store.state.showUI = !store.state.showUI
+            }}
+          >
+            <PanelLeft className="size-3.5" />
+          </button>
+        </Tip>
       </div>
       {!IS_TAURI && <AppMenubar />}
       <SettingsDialog

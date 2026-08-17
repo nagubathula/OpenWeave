@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useCallback } from 'react'
 import { useStore } from '@nanostores/react'
 import { createPortal } from 'react-dom'
 import { Sparkles, Palette, Cloud, X, Wand2 } from 'lucide-react'
 import { useI18n } from '@openweave/react'
+import { useEventListener } from 'usehooks-ts'
 
 import { browserCredentialsRemembered, setRememberCredentials } from '@/app/ai/chat/storage'
 import { settingsDialogSection } from '@/app/settings/dialog'
@@ -62,12 +63,13 @@ const inputClass =
 const labelClass = 'block text-[11px] font-medium text-surface'
 
 function AppearancePanel() {
+  const { dialogs } = useI18n()
   const [theme, setTheme] = useState<ThemeSetting>(() => readThemeSetting())
 
   const options: { value: ThemeSetting; label: string }[] = [
-    { value: 'light', label: 'Light' },
-    { value: 'dark', label: 'Dark' },
-    { value: 'auto', label: 'System' }
+    { value: 'light', label: dialogs.settingsThemeLight },
+    { value: 'dark', label: dialogs.settingsThemeDark },
+    { value: 'auto', label: dialogs.settingsThemeSystem }
   ]
 
   const select = (value: ThemeSetting) => {
@@ -77,10 +79,10 @@ function AppearancePanel() {
 
   return (
     <div className="flex flex-col gap-3" data-test-id="settings-appearance-panel">
-      <h3 className="text-xs font-semibold text-surface">Appearance</h3>
+      <h3 className="text-xs font-semibold text-surface">{dialogs.settingsAppearance}</h3>
       <div className="flex flex-col gap-1.5">
-        <span className={labelClass}>Theme</span>
-        <div className="flex gap-1.5" role="radiogroup" aria-label="Theme">
+        <span className={labelClass}>{dialogs.settingsTheme}</span>
+        <div className="flex gap-1.5" role="radiogroup" aria-label={dialogs.settingsTheme}>
           {options.map((option) => (
             <button
               key={option.value}
@@ -102,6 +104,7 @@ function AppearancePanel() {
 }
 
 function VectorizePanel() {
+  const { dialogs } = useI18n()
   const providerID = useStore(vectorizeProviderID)
   const [keyDraft, setKeyDraft] = useState('')
   const [status, setStatus] =
@@ -141,14 +144,14 @@ function VectorizePanel() {
   return (
     <div className="flex flex-col gap-3" data-test-id="settings-vectorize-panel">
       <div>
-        <h3 className="text-xs font-semibold text-surface">Vectorization</h3>
+        <h3 className="text-xs font-semibold text-surface">{dialogs.vectorization}</h3>
         <p className="mt-0.5 text-[10px] text-muted">
-          Convert raster images to editable vectors using an external provider.
+          {dialogs.vectorizeProviderDescription}
         </p>
       </div>
 
       <label className="flex flex-col gap-1 text-[11px] text-muted">
-        Provider
+        {dialogs.vectorizeProvider}
         <select
           className={inputClass}
           value={providerID}
@@ -166,15 +169,15 @@ function VectorizePanel() {
       {provider && (
         <label className="flex flex-col gap-1 text-[11px] text-muted">
           <span className="flex items-center justify-between">
-            API key
-            {configured && <span className="text-[10px] text-green-500">Saved</span>}
+            {dialogs.vectorizeAPIKey}
+            {configured && <span className="text-[10px] text-green-500">{dialogs.vectorizeSavedKey}</span>}
           </span>
           <input
             type="password"
             className={inputClass}
             value={keyDraft}
             data-test-id="settings-vectorize-key"
-            placeholder={configured ? 'Saved — enter a new key to replace' : provider.keyPlaceholder}
+            placeholder={configured ? dialogs.vectorizeSavedKeyPlaceholder : provider.keyPlaceholder}
             onChange={(e) => setKeyDraft(e.target.value)}
           />
           <div className="mt-1 flex items-center gap-2">
@@ -184,7 +187,7 @@ function VectorizePanel() {
               disabled={!keyDraft.trim()}
               onClick={() => void save()}
             >
-              Save key
+              {dialogs.vectorizeSaveKey}
             </button>
             {configured && (
               <button
@@ -192,7 +195,7 @@ function VectorizePanel() {
                 className="rounded border border-border px-2 py-1 text-[11px] text-muted hover:bg-hover hover:text-surface"
                 onClick={() => void clear()}
               >
-                Clear
+                {dialogs.vectorizeClearKey}
               </button>
             )}
             {provider.keyURL && (
@@ -202,7 +205,7 @@ function VectorizePanel() {
                 rel="noreferrer"
                 className="ml-auto text-[10px] text-accent underline"
               >
-                Get API key
+                {dialogs.vectorizeGetAPIKey}
               </a>
             )}
           </div>
@@ -249,22 +252,22 @@ export function SettingsDialog({ open, onClose }: SettingsDialogProps) {
         ? dialogs.credentialBackendBrowser
         : dialogs.credentialBackendMemory
 
-  useEffect(() => {
-    if (!open) return
-    const onKey = (event: KeyboardEvent) => {
+  const onKey = useCallback(
+    (event: KeyboardEvent) => {
+      if (!open) return
       if (event.key === 'Escape') onClose()
-    }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [open, onClose])
+    },
+    [open, onClose]
+  )
+  useEventListener('keydown', onKey)
 
   if (!open) return null
 
   const nav: { id: SettingsSection; label: string; icon: React.ReactNode }[] = [
-    { id: 'ai', label: 'AI & Agents', icon: <Sparkles className="size-3.5" /> },
-    { id: 'vectorize', label: 'Vectorize', icon: <Wand2 className="size-3.5" /> },
-    { id: 'appearance', label: 'Appearance', icon: <Palette className="size-3.5" /> },
-    { id: 'storage', label: 'Storage', icon: <Cloud className="size-3.5" /> }
+    { id: 'ai', label: dialogs.settingsAIAndAgents, icon: <Sparkles className="size-3.5" /> },
+    { id: 'vectorize', label: dialogs.settingsMedia, icon: <Wand2 className="size-3.5" /> },
+    { id: 'appearance', label: dialogs.settingsAppearance, icon: <Palette className="size-3.5" /> },
+    { id: 'storage', label: dialogs.settingsStorage, icon: <Cloud className="size-3.5" /> }
   ]
 
   // Portal to <body>: these dialogs mount inside panels that set
@@ -281,16 +284,16 @@ export function SettingsDialog({ open, onClose }: SettingsDialogProps) {
         className="flex h-[28rem] w-[40rem] max-w-[90vw] flex-col overflow-hidden rounded-lg border border-border bg-surface shadow-xl"
         role="dialog"
         aria-modal="true"
-        aria-label="Settings"
+        aria-label={dialogs.settings}
         onClick={(event) => event.stopPropagation()}
       >
         <div className="flex items-center justify-between border-b border-border px-4 py-2.5">
-          <h2 className="text-xs font-semibold text-surface">Settings</h2>
+          <h2 className="text-xs font-semibold text-surface">{dialogs.settings}</h2>
           <button
             type="button"
             className="flex size-6 items-center justify-center rounded text-muted hover:bg-hover hover:text-surface"
             data-test-id="app-settings-close"
-            aria-label="Close"
+            aria-label={dialogs.close}
             onClick={onClose}
           >
             <X className="size-3.5" />
@@ -298,7 +301,7 @@ export function SettingsDialog({ open, onClose }: SettingsDialogProps) {
         </div>
 
         <div className="flex min-h-0 flex-1">
-          <nav className="w-40 shrink-0 border-r border-border p-2" aria-label="Settings">
+          <nav className="w-40 shrink-0 border-r border-border p-2" aria-label={dialogs.settings}>
             {nav.map((item) => (
               <button
                 key={item.id}
@@ -348,7 +351,7 @@ export function SettingsDialog({ open, onClose }: SettingsDialogProps) {
             data-test-id="app-settings-done"
             onClick={onClose}
           >
-            Done
+            {dialogs.done}
           </button>
         </div>
       </div>

@@ -4,6 +4,7 @@ import { colorToCSS } from '@openweave/core/color'
 import type { Color } from '@openweave/scene-graph/primitives'
 
 import ColorPicker from '@/components/color-picker/ColorPicker'
+import type { OkHCLFieldControls } from '@/components/color-picker-panel/context'
 
 export interface PaintSwatchPopoverProps {
   color: Color
@@ -11,6 +12,8 @@ export interface PaintSwatchPopoverProps {
   onChange: (color: Color) => void
   /** Fires on open/close; close is the commit point for the editing session. */
   onOpenChange?: (open: boolean) => void
+  onCancel?: () => void
+  okhcl?: OkHCLFieldControls | null
 }
 
 /**
@@ -18,7 +21,7 @@ export interface PaintSwatchPopoverProps {
  * exposes `onOpenChange`, so callers can batch every change made while the
  * popover is open into a single undo entry and commit it on close.
  */
-export function PaintSwatchPopover({ color, label, onChange, onOpenChange }: PaintSwatchPopoverProps) {
+export function PaintSwatchPopover({ color, label, onChange, onOpenChange, onCancel, okhcl }: PaintSwatchPopoverProps) {
   return (
     <Popover.Root onOpenChange={onOpenChange}>
       <Popover.Trigger asChild>
@@ -37,8 +40,13 @@ export function PaintSwatchPopover({ color, label, onChange, onOpenChange }: Pai
           sideOffset={8}
           className="z-50 rounded-lg border border-border bg-surface p-3 shadow-lg"
           onOpenAutoFocus={(e) => e.preventDefault()}
+          onEscapeKeyDown={() => {
+            if (onCancel) {
+              onCancel()
+            }
+          }}
         >
-          <ColorPicker color={color} onChange={onChange} />
+          <ColorPicker color={color} onChange={onChange} okhcl={okhcl} />
         </Popover.Content>
       </Popover.Portal>
     </Popover.Root>

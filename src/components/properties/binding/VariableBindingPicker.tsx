@@ -52,7 +52,7 @@ export default function VariableBindingPicker({
   )
 
   const { open, actions } = binding
-  const setSearchTerm = actions.setSearchTerm
+  const setSearchTerm = (term: string) => actions.setSearchTerm(term)
 
   // Reset transient picker state whenever the popover closes.
   useEffect(() => {

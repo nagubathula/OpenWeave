@@ -2,6 +2,7 @@ import React from 'react'
 import { useEditor, useSceneComputed, useSelectionState } from '@openweave/react'
 import { instanceSwapOptions } from '@openweave/react'
 import type { SceneNode, ComponentPropertyDefinition } from '@openweave/scene-graph'
+import Tip from '@/components/ui/Tip'
 
 interface PropertyControl {
   id: string
@@ -63,9 +64,11 @@ export default function ComponentPropertiesSection() {
       <div className="text-[11px] font-semibold text-muted uppercase tracking-wider">Properties</div>
       {controls.map((control) => (
         <div key={control.id} className="flex items-center gap-2 text-xs">
-          <span className="w-16 shrink-0 truncate text-muted text-[11px]" title={control.name}>
-            {control.name}
-          </span>
+          <Tip label={control.name}>
+            <span className="w-16 shrink-0 truncate text-muted text-[11px]">
+              {control.name}
+            </span>
+          </Tip>
           {control.type === 'BOOLEAN' ? (
             <input
               type="checkbox"

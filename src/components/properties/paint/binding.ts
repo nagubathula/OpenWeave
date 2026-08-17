@@ -55,6 +55,12 @@ export function usePaintMutation() {
     editor.undo.commitBatch()
   }
 
+  function rollback() {
+    if (!activeRef.current) return
+    activeRef.current = false
+    editor.undo.rollbackBatch()
+  }
+
   /** Discrete edit: begin, apply, and commit in one step (e.g. hex entry). */
   function applyAndCommit(
     binding: PaintBinding,
@@ -66,5 +72,5 @@ export function usePaintMutation() {
     commit()
   }
 
-  return { apply, commit, applyAndCommit }
+  return { apply, commit, rollback, applyAndCommit }
 }

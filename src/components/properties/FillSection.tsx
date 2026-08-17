@@ -3,7 +3,9 @@ import {
   BindableValueRoot,
   useColorBindingProvider,
   useEditorPropertyList,
-  useI18n
+  useI18n,
+  useOkHCL,
+  useSelectionState
 } from '@openweave/react'
 import { BLACK } from '@openweave/core/constants'
 import { colorToHexRaw } from '@openweave/core/color'
@@ -17,6 +19,7 @@ import { BindingPill } from '@/components/ui/binding'
 import { FillRow as ComplexFillEditor } from '@/components/properties/FillEditor'
 import PaintSwatchPopover from '@/components/properties/paint/PaintSwatchPopover'
 import { paintBindingTargets, usePaintMutation } from '@/components/properties/paint/binding'
+import { createFillOkhclAdapter } from '@/components/properties/paint/okhcl'
 import { commitDiscretePropertyListChange } from '@/components/properties/blend-mode/use'
 import SharedStyleField from '@/components/properties/shared-style/SharedStyleField'
 import VariableBindingPicker from '@/components/properties/binding/VariableBindingPicker'
@@ -29,6 +32,8 @@ export default function FillSection() {
   const colorProvider = useColorBindingProvider()
   const paint = usePaintMutation()
   const { panels, dialogs } = useI18n()
+  const okhcl = useOkHCL()
+  const { selectedNode } = useSelectionState()
 
   if (!active) return null
 
@@ -70,6 +75,7 @@ export default function FillSection() {
                           <PaintSwatchPopover
                             label="Fill color"
                             color={displayColor}
+                            okhcl={createFillOkhclAdapter(okhcl, selectedNode, i)}
                             onChange={(c) =>
                               paint.apply(binding, flush, 'Change fill color', () =>
                                 actions.patch(i, { color: c })
@@ -78,6 +84,7 @@ export default function FillSection() {
                             onOpenChange={(open) => {
                               if (!open) paint.commit()
                             }}
+                            onCancel={() => paint.rollback()}
                           />
                           {binding.variable ? (
                             <BindingPill

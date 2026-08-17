@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test'
 
-import { ref } from 'vue'
+
 
 import type { Editor } from '@openweave/core/editor'
 import type { Variable, VariableCollection } from '@openweave/scene-graph'
@@ -105,7 +105,7 @@ describe('variables editor helpers', () => {
 
   test('creates and activates new collections', () => {
     const { editor, collections } = createEditorHarness()
-    const activeCollectionId = ref('')
+    const activeCollectionId = { value: '' } 
     const actions = createVariableCollectionActions(editor, activeCollectionId)
 
     actions.addCollection()
