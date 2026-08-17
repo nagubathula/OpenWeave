@@ -7,6 +7,7 @@ import PanelSection from '@/components/ui/panel/PanelSection'
 import IconButton from '@/components/ui/IconButton'
 import SegmentedControl from '@/components/ui/SegmentedControl'
 import NumberField from '@/components/inputs/NumberField'
+import SharedStyleField from '@/components/properties/shared-style/SharedStyleField'
 
 export default function LayoutGridSection() {
   const editor = useEditor()
@@ -63,6 +64,7 @@ export default function LayoutGridSection() {
       }
     >
       <div className="space-y-3">
+        <SharedStyleField kind="grid" label={panels.gridStyle} />
         {grids.map((grid, index) => (
           <div key={index} className="flex gap-2 relative group items-start border-b border-border/50 pb-3 last:border-0 last:pb-0">
             <div className="flex-1 space-y-2">

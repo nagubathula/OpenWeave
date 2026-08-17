@@ -103,7 +103,7 @@ export default function CodePanel() {
   }
 
   return (
-    <div className="flex h-full flex-col">
+    <div className="flex h-full flex-col" data-test-id="code-panel">
       <div className="flex items-center justify-between gap-2 border-b border-border px-3 py-2">
         <div className="flex gap-1" role="tablist" aria-label="Code format">
           {(['openweave', 'tailwind'] as const).map((f) => (
@@ -246,7 +246,10 @@ export default function CodePanel() {
           ))}
         </div>
       ) : (
-        <div className="flex flex-1 items-center justify-center p-4 text-center text-xs text-muted">
+        <div
+          data-test-id="code-panel-empty"
+          className="flex flex-1 items-center justify-center p-4 text-center text-xs text-muted"
+        >
           Select a layer to generate its code.
         </div>
       )}

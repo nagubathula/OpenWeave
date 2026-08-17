@@ -258,7 +258,6 @@ export default function LayerTree() {
                           ref={(el) => setRowElRef(node.id, el)}
                           data-test-id="layers-item"
                           data-slot="row"
-                          data-node-id={node.id}
                           data-selected={isSelected || undefined}
                           data-dragging={isDragging || undefined}
                           data-hidden={!node.visible || undefined}

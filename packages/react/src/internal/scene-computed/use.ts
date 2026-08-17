@@ -2,10 +2,17 @@ import { useSyncExternalStore, useCallback, useRef } from 'react'
 
 import { useEditor } from '#react/editor/context'
 
+function serializeReplacer(_key: string, value: unknown): unknown {
+  if (value instanceof Set) return { __set: [...value] }
+  if (value instanceof Map) return { __map: [...value.entries()] }
+  return value
+}
+
 /**
  * Convenience wrapper for scene-derived computed state in React.
  *
- * It subscribes to render requests which encompassing scene and selection changes.
+ * It subscribes to render requests, encompassing scene, selection, tool, and
+ * page changes.
  *
  * Critical: `getSnapshot` must return the *same reference* when data hasn't
  * changed, otherwise useSyncExternalStore detects a change every call and
@@ -26,10 +33,12 @@ export function useSceneComputed<T>(fn: () => T): T {
     const unsubscribe1 = editor.onEditorEvent('render:requested', callback)
     const unsubscribe2 = editor.onEditorEvent('selection:changed', callback)
     const unsubscribe3 = editor.onEditorEvent('page:changed', callback)
+    const unsubscribe4 = editor.onEditorEvent('tool:changed', callback)
     return () => {
       unsubscribe1()
       unsubscribe2()
       unsubscribe3()
+      unsubscribe4()
     }
   }, [editor])
 
@@ -38,7 +47,12 @@ export function useSceneComputed<T>(fn: () => T): T {
   const getSnapshot = useCallback((): T => {
     const next = fnRef.current()
     try {
-      const serial = JSON.stringify(next)
+      // Plain JSON.stringify serializes every Set/Map (at any depth) to "{}",
+      // which made every computed value that touches e.g. `selectedIds`
+      // (a Set) compare equal to its predecessor forever after the first
+      // snapshot — the memo never updated, so components silently stopped
+      // re-rendering on real selection changes.
+      const serial = JSON.stringify(next, serializeReplacer)
       if (cachedRef.current && cachedRef.current.serial === serial) {
         return cachedRef.current.value
       }

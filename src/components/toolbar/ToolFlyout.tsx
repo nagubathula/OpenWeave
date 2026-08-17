@@ -9,15 +9,12 @@ import ToolButton from '@/components/toolbar/ToolButton'
 
 import type { EditorToolDef, Tool } from '@openweave/core/editor'
 import type { ToolbarUI, ToolIconMap, ToolLabels } from '@/components/toolbar/types'
-import { isToolbarToolActive, toolbarToolTestId } from '@openweave/react'
-
-export function toolbarFlyoutTestId(key: Tool, mobile = false): string {
-  return mobile ? `mobile-flyout-${key.toLowerCase()}` : `flyout-${key.toLowerCase()}`
-}
-
-export function toolbarFlyoutItemTestId(key: Tool, mobile = false): string {
-  return mobile ? `mobile-flyout-item-${key.toLowerCase()}` : `flyout-item-${key.toLowerCase()}`
-}
+import {
+  isToolbarToolActive,
+  toolbarToolTestId,
+  toolbarFlyoutTestId,
+  toolbarFlyoutItemTestId
+} from '@openweave/react'
 
 interface ToolFlyoutProps {
   tool: EditorToolDef

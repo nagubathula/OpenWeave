@@ -75,7 +75,8 @@ export default function EditorCanvas() {
     return { x: abs.x + node.width - node.paddingRight / 2, y: abs.y + node.height / 2 }
   }, [autoLayoutPaddingEdit, store.graph])
 
-  useCanvasVirtualReference(canvasRef, store, paddingEditorAnchor)
+  const paddingEditorVirtualRef = useRef<{ getBoundingClientRect(): DOMRect } | null>(null)
+  paddingEditorVirtualRef.current = useCanvasVirtualReference(canvasRef, store, paddingEditorAnchor)
 
   const cursor = toolCursor(store.state.activeTool, cursorOverride)
 
@@ -107,6 +108,7 @@ export default function EditorCanvas() {
           )}
 
           <Popover.Root open={!!autoLayoutPaddingEdit}>
+            <Popover.Anchor virtualRef={paddingEditorVirtualRef} />
             <Popover.Portal>
               {autoLayoutPaddingEdit && (
                 <Popover.Content

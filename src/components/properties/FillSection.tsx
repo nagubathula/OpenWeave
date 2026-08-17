@@ -15,16 +15,15 @@ import { Plus, Eye, EyeOff, Minus } from 'lucide-react'
 import PanelSection from '@/components/ui/panel/PanelSection'
 import IconButton from '@/components/ui/IconButton'
 import NumberField from '@/components/inputs/NumberField'
+import { AppSelect } from '@/components/ui/AppSelect'
 import { BindingPill } from '@/components/ui/binding'
 import { FillRow as ComplexFillEditor } from '@/components/properties/FillEditor'
 import PaintSwatchPopover from '@/components/properties/paint/PaintSwatchPopover'
 import { paintBindingTargets, usePaintMutation } from '@/components/properties/paint/binding'
 import { createFillOkhclAdapter } from '@/components/properties/paint/okhcl'
-import { commitDiscretePropertyListChange } from '@/components/properties/blend-mode/use'
+import { commitDiscretePropertyListChange, useBlendModeOptions } from '@/components/properties/blend-mode/use'
 import SharedStyleField from '@/components/properties/shared-style/SharedStyleField'
 import VariableBindingPicker from '@/components/properties/binding/VariableBindingPicker'
-
-const inputClass = 'w-full bg-input/50 rounded px-2 py-1 border border-border text-surface text-xs outline-none focus:border-accent'
 
 export default function FillSection() {
   const { items: fills, isMixed, active, selectedNodeIds, flush, actions } =
@@ -34,6 +33,7 @@ export default function FillSection() {
   const { panels, dialogs } = useI18n()
   const okhcl = useOkHCL()
   const { selectedNode } = useSelectionState()
+  const blendOptions = useBlendModeOptions()
 
   if (!active) return null
 
@@ -138,7 +138,7 @@ export default function FillSection() {
                 }}
               </BindableValueRoot>
               <IconButton
-                label={fill.visible ? 'Hide fill' : 'Show fill'}
+                label={panels.toggleVisibility}
                 onClick={() => actions.toggleVisibility(i)}
                 className={!fill.visible ? 'opacity-50' : ''}
               >
@@ -149,35 +149,18 @@ export default function FillSection() {
               </IconButton>
             </div>
             {/* Extended properties: Blend mode */}
-            <div className="pl-1">
+            <div className="pl-1" data-property="fill-blend-mode">
               <div className="text-[10px] text-muted mb-1">Blend mode</div>
-              <select
-                className={inputClass + ' h-6 w-full'}
+              <AppSelect
+                label={panels.blendMode}
+                options={blendOptions}
                 value={fill.blendMode ?? 'NORMAL'}
-                data-property="fill-blend-mode"
-                onChange={(e) =>
+                onValueChange={(value) =>
                   commitDiscretePropertyListChange(flush, () =>
-                    actions.patch(i, { blendMode: e.target.value as Fill['blendMode'] })
+                    actions.patch(i, { blendMode: value as Fill['blendMode'] })
                   )
                 }
-              >
-                <option value="NORMAL">Normal</option>
-                <option value="DARKEN">Darken</option>
-                <option value="MULTIPLY">Multiply</option>
-                <option value="COLOR_BURN">Color burn</option>
-                <option value="LIGHTEN">Lighten</option>
-                <option value="SCREEN">Screen</option>
-                <option value="COLOR_DODGE">Color dodge</option>
-                <option value="OVERLAY">Overlay</option>
-                <option value="SOFT_LIGHT">Soft light</option>
-                <option value="HARD_LIGHT">Hard light</option>
-                <option value="DIFFERENCE">Difference</option>
-                <option value="EXCLUSION">Exclusion</option>
-                <option value="HUE">Hue</option>
-                <option value="SATURATION">Saturation</option>
-                <option value="COLOR">Color</option>
-                <option value="LUMINOSITY">Luminosity</option>
-              </select>
+              />
             </div>
             {/* If it's not SOLID, render the advanced editor below */}
             {fill.type !== 'SOLID' && (

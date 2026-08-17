@@ -39,12 +39,14 @@ export default function SelectionActionsControl({ showBooleanOperations = false 
       {showBooleanOperations && (
         <DropdownMenu.Root>
           <Tip label="Boolean groups">
-            <DropdownMenu.Trigger
-              asChild
-              className="flex h-7 items-center gap-1 rounded-md px-1.5 text-muted hover:bg-hover hover:text-surface data-[state=open]:bg-active data-[state=open]:text-surface outline-none"
-            >
-              <Combine className="size-4" />
-              <ChevronDown className="size-3" />
+            <DropdownMenu.Trigger asChild>
+              <button
+                type="button"
+                className="flex h-7 items-center gap-1 rounded-md px-1.5 text-muted hover:bg-hover hover:text-surface data-[state=open]:bg-active data-[state=open]:text-surface outline-none"
+              >
+                <Combine className="size-4" />
+                <ChevronDown className="size-3" />
+              </button>
             </DropdownMenu.Trigger>
           </Tip>
           <DropdownMenu.Portal>

@@ -30,6 +30,7 @@ type LocalAsset = {
   componentId: string | null
   variants: AssetVariantInfo[]
   variantCount: number
+  hasConflicts: boolean
   sourceLibraryKey: string | null
   description: string
   docsUrl: string | null
@@ -135,6 +136,8 @@ export default function AssetsPanel() {
             ? editor.getDefaultVariantForComponentSet(node.id)
             : node
         const page = findAssetPage(node, editor.graph)
+        const conflicts =
+          node.type === 'COMPONENT_SET' ? editor.getComponentSetVariantConflicts(node.id) : []
         return {
           id: node.id,
           name: node.name,
@@ -142,6 +145,7 @@ export default function AssetsPanel() {
           componentId: defaultVariant?.id ?? null,
           variants: node.type === 'COMPONENT_SET' ? componentSetVariantInfo(node.id) : [],
           variantCount: node.type === 'COMPONENT_SET' ? node.childIds.length : 0,
+          hasConflicts: conflicts.length > 0,
           sourceLibraryKey: node.sourceLibraryKey,
           description: node.symbolDescription,
           docsUrl: node.symbolLinks[0]?.uri ?? null,
@@ -296,6 +300,7 @@ export default function AssetsPanel() {
             <button
               type="button"
               data-test-id="assets-view-grid"
+              aria-label={panels.gridView}
               aria-pressed={assetView === 'grid'}
               className="flex size-7 shrink-0 items-center justify-center rounded text-muted transition-colors hover:bg-hover hover:text-surface aria-pressed:bg-input aria-pressed:text-surface"
               onClick={() => setAssetView('grid')}
@@ -307,6 +312,7 @@ export default function AssetsPanel() {
             <button
               type="button"
               data-test-id="assets-view-list"
+              aria-label={panels.listView}
               aria-pressed={assetView === 'list'}
               className="flex size-7 shrink-0 items-center justify-center rounded text-muted transition-colors hover:bg-hover hover:text-surface aria-pressed:bg-input aria-pressed:text-surface"
               onClick={() => setAssetView('list')}
@@ -340,7 +346,7 @@ export default function AssetsPanel() {
                             ? 'flex min-w-0 flex-col items-center gap-1 p-1.5'
                             : 'flex w-full items-center gap-2 px-1.5 py-1'
                         }`}
-                        onClick={() => insertAsset(asset)}
+                        onClick={() => openDetails(asset)}
                         onKeyDown={(e) => onAssetKeydown(e, asset)}
                         onDragStart={(e) => onDragStart(e, asset)}
                       >
@@ -367,26 +373,67 @@ export default function AssetsPanel() {
                               </span>
                             ) : null}
                           </span>
-                          {assetView === 'list' && asset.variantCount > 0 ? (
-                            <span className="mt-0.5 block truncate text-[10px] text-muted">
-                              {panels.componentSet} · {asset.variantCount}
+                          {assetView === 'list' && asset.variants.length > 0 ? (
+                            <span
+                              data-test-id="asset-variant-summary"
+                              className="mt-0.5 block truncate text-[10px] text-muted"
+                            >
+                              {panels.assetVariantSummary({
+                                count: String(asset.variantCount),
+                                names: asset.variants.map((variant) => variant.name).join(', ')
+                              })}
+                            </span>
+                          ) : null}
+                          {assetView === 'list' && asset.description ? (
+                            <span
+                              data-test-id="asset-description"
+                              className="mt-0.5 block truncate text-[10px] text-muted"
+                            >
+                              {asset.description}
+                            </span>
+                          ) : null}
+                          {assetView === 'list' && asset.hasConflicts ? (
+                            <span
+                              data-test-id="asset-variant-conflict"
+                              className="mt-0.5 block truncate text-[10px] text-warning-text"
+                            >
+                              {panels.duplicateVariantValues}
                             </span>
                           ) : null}
                         </span>
                         {assetView === 'list' ? (
-                          <Tip label={panels.insertInstance}>
-                            <button
-                              type="button"
-                              data-test-id="asset-insert"
-                              className="flex size-6 shrink-0 items-center justify-center rounded text-muted hover:bg-hover hover:text-surface"
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                insertAsset(asset)
-                              }}
-                            >
-                              <Plus className="size-4" />
-                            </button>
-                          </Tip>
+                          <div className="flex shrink-0 items-center">
+                            {asset.docsUrl ? (
+                              <Tip label={panels.openDocumentation}>
+                                <button
+                                  type="button"
+                                  data-test-id="asset-docs"
+                                  className="flex size-6 shrink-0 items-center justify-center rounded text-muted hover:bg-hover hover:text-surface"
+                                  onPointerDown={(e) => e.stopPropagation()}
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    if (asset.docsUrl) void openExternalLink(asset.docsUrl)
+                                  }}
+                                >
+                                  <BookOpen className="size-3" />
+                                </button>
+                              </Tip>
+                            ) : null}
+                            <Tip label={panels.insertInstance}>
+                              <button
+                                type="button"
+                                data-test-id="asset-insert"
+                                className="flex size-6 shrink-0 items-center justify-center rounded text-muted hover:bg-hover hover:text-surface"
+                                onPointerDown={(e) => e.stopPropagation()}
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  insertAsset(asset)
+                                }}
+                              >
+                                <Plus className="size-4" />
+                              </button>
+                            </Tip>
+                          </div>
                         ) : null}
                       </div>
                     </ContextMenu.Trigger>
@@ -435,6 +482,7 @@ export default function AssetsPanel() {
         >
           <AppDialogHeader
             closeLabel={dialogs.close}
+            closeTestId="asset-details-close"
             heading={
               <span className="flex min-w-0 items-center gap-2">
                 {SelectedAssetIcon ? (

@@ -75,6 +75,7 @@ function VariablesEditor({ onClose }: { onClose: () => void }) {
   })
   const { dialogs, panels } = useI18n()
   const [addOpen, setAddOpen] = useState(false)
+  const activeCollection = ctx.collections.find((col) => col.id === ctx.activeCollectionId)
 
   if (!ctx.hasCollections) {
     return (
@@ -197,6 +198,7 @@ function VariablesEditor({ onClose }: { onClose: () => void }) {
                       ) : (
                         <span
                           className={modeId ? 'cursor-text' : undefined}
+                          data-default={modeId === activeCollection?.defaultModeId || undefined}
                           onDoubleClick={
                             modeId ? () => ctx.startRenameMode(modeId) : undefined
                           }

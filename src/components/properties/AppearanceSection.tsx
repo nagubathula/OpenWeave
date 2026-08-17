@@ -14,7 +14,7 @@ import { useBlendModeOptions } from '@/components/properties/blend-mode/use'
  */
 const fieldClass =
   'flex h-6 min-w-0 flex-1 items-center gap-1.5 rounded border border-border bg-input/50 px-1.5 text-xs text-surface focus-within:border-accent'
-const numberInputClass = 'w-full min-w-0 bg-transparent outline-none text-surface text-[11px]'
+const numberInputClass = 'h-6 w-full min-w-0 bg-transparent outline-none text-surface text-[11px]'
 const labelClass = 'text-[10px] text-muted'
 const iconButtonClass =
   'flex size-6 shrink-0 cursor-pointer items-center justify-center rounded text-muted transition-colors hover:bg-hover hover:text-surface data-[active=true]:bg-hover data-[active=true]:text-surface'
@@ -27,11 +27,22 @@ interface NumberInputProps {
   suffix?: string
   icon?: React.ReactNode
   ariaLabel: string
+  dataProperty?: string
   onChange: (value: number) => void
   onCommit?: (value: number) => void
 }
 
-function NumberInput({ value, min, max, suffix, icon, ariaLabel, onChange, onCommit }: NumberInputProps) {
+function NumberInput({
+  value,
+  min,
+  max,
+  suffix,
+  icon,
+  ariaLabel,
+  dataProperty,
+  onChange,
+  onCommit
+}: NumberInputProps) {
   const isMixed = typeof value !== 'number'
   const display = isMixed ? '' : String(value)
   const clamp = (v: number) => {
@@ -41,7 +52,7 @@ function NumberInput({ value, min, max, suffix, icon, ariaLabel, onChange, onCom
     return next
   }
   return (
-    <div className={fieldClass}>
+    <div className={fieldClass} data-property={dataProperty}>
       {icon}
       <input
         type="number"
@@ -58,6 +69,9 @@ function NumberInput({ value, min, max, suffix, icon, ariaLabel, onChange, onCom
         onBlur={(e) => {
           const parsed = Number(e.target.value)
           if (!Number.isNaN(parsed)) onCommit?.(clamp(parsed))
+        }}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === 'Escape') e.currentTarget.blur()
         }}
       />
       {suffix && <span className="shrink-0 text-[10px] text-muted">{suffix}</span>}
@@ -190,7 +204,7 @@ export function AppearanceSection() {
       )}
 
       {hasCornerRadius && showIndependentCorners && !isMulti && node && (
-        <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] gap-1.5">
+        <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] gap-1.5" data-corner-grid>
           <div className="col-span-2 grid grid-cols-2 gap-1.5">
             {corners.map(([label, key, value]) => (
               <label key={key} className="flex min-w-0 flex-col gap-1">
@@ -223,6 +237,7 @@ export function AppearanceSection() {
           <span className={labelClass}>{panels.cornerSmoothing}</span>
           <NumberInput
             ariaLabel={panels.cornerSmoothing}
+            dataProperty="corner-smoothing"
             value={cornerSmoothingPercent}
             min={0}
             max={100}

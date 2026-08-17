@@ -548,7 +548,8 @@
     "node_modules",
     "dist",
     "desktop",
-    "*.config.*"
+    "*.config.*",
+    "src/stories"
   ],
   "categories": {
     "correctness": "error"

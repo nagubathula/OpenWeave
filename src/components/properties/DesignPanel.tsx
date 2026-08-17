@@ -1,6 +1,7 @@
 import React from 'react'
 import {
   useSelectionState,
+  useSceneComputed,
   useI18n,
   useEditorCommands
 } from '@openweave/react'
@@ -29,7 +30,7 @@ import Tip from '@/components/ui/Tip'
 
 export function DesignPanel() {
   const store = getActiveEditorStore()
-  const activeTool = store.state.activeTool
+  const activeTool = useSceneComputed(() => store.state.activeTool)
   const { selectedNode: node, selectedCount: multiCount } = useSelectionState()
   const showBooleanOperations = multiCount >= 2
   const { getCommand } = useEditorCommands()
@@ -78,10 +79,20 @@ export function DesignPanel() {
           <div className="flex items-center gap-2 min-w-0">
             {SelectedIcon && (
               <Tip label={node.type}>
-                <SelectedIcon className={`size-3.5 ${isComponentType ? 'text-component' : 'text-muted'}`} />
+                <SelectedIcon
+                  role="img"
+                  aria-label={node.type}
+                  className={`size-3.5 ${isComponentType ? 'text-component' : 'text-muted'}`}
+                />
               </Tip>
             )}
-            <span className={`text-xs font-semibold truncate ${isComponentType ? 'text-component' : 'text-surface'}`}>{node.name}</span>
+            <span
+              role="heading"
+              aria-level={3}
+              className={`text-xs font-semibold truncate ${isComponentType ? 'text-component' : 'text-surface'}`}
+            >
+              {node.name}
+            </span>
           </div>
           <SelectionActionsControl />
         </div>

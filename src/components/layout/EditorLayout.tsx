@@ -121,8 +121,8 @@ export function EditorLayout() {
           return
         }
         mcpCleanup = mcp?.disconnect ?? null
-        if (process.env.NODE_ENV !== 'production' || isTauri()) {
-          automationCleanup = connectAutomation(getActiveStore, mcp?.authToken ?? null).disconnect
+        if (mcp) {
+          automationCleanup = connectAutomation(getActiveStore, mcp.authToken).disconnect
         }
       } catch (e) {
         console.warn('[MCP]', e)

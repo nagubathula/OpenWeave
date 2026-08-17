@@ -1,6 +1,6 @@
 /* eslint-disable openweave/no-hardcoded-tip-labels */
 import React from 'react'
-import { PositionControlsRoot } from '@openweave/react'
+import { PositionControlsRoot, useI18n } from '@openweave/react'
 import {
   AlignStartVertical,
   AlignCenterVertical,
@@ -23,6 +23,7 @@ import Tip from '@/components/ui/Tip'
 
 export default function PositionSection() {
   const store = useEditorStore()
+  const { panels } = useI18n()
 
   function handleAlign(
     nodeAlign: (axis: 'horizontal' | 'vertical', pos: 'min' | 'center' | 'max') => void,
@@ -95,7 +96,8 @@ export default function PositionSection() {
               <Tip label="X">
                 <NumberField
                   icon="X"
-                  ariaLabel="X"
+                  ariaLabel={panels.xAxis}
+                  dataProperty="x"
                   value={xValue}
                   onChange={(v) => actions.updateProp('x', v)}
                   onCommit={(v, p) => actions.commitProp('x', v, p)}
@@ -104,7 +106,8 @@ export default function PositionSection() {
               <Tip label="Y">
                 <NumberField
                   icon="Y"
-                  ariaLabel="Y"
+                  ariaLabel={panels.yAxis}
+                  dataProperty="y"
                   value={yValue}
                   onChange={(v) => actions.updateProp('y', v)}
                   onCommit={(v, p) => actions.commitProp('y', v, p)}
@@ -118,7 +121,8 @@ export default function PositionSection() {
               <Tip label="Width">
                 <NumberField
                   icon="W"
-                  ariaLabel="Width"
+                  ariaLabel={panels.width}
+                  dataProperty="width"
                   value={wValue}
                   min={1}
                   onChange={(v) => actions.updateProp('width', v)}
@@ -128,7 +132,8 @@ export default function PositionSection() {
               <Tip label="Height">
                 <NumberField
                   icon="H"
-                  ariaLabel="Height"
+                  ariaLabel={panels.height}
+                  dataProperty="height"
                   value={hValue}
                   min={1}
                   onChange={(v) => actions.updateProp('height', v)}
@@ -141,7 +146,8 @@ export default function PositionSection() {
               <Tip label="Rotation">
                 <NumberField
                   suffix="°"
-                  ariaLabel="Rotation"
+                  ariaLabel={panels.rotation}
+                  dataProperty="rotation"
                   value={rotationValue}
                   min={-360}
                   max={360}

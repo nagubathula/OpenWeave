@@ -1,8 +1,8 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { useI18n } from '@openweave/react'
 import { getActiveEditorStore } from '@/app/editor/active-store'
 import type { Color } from '@openweave/scene-graph/primitives'
-import { colorToHexRaw } from '@openweave/core/color'
+import { colorToHexRaw, parseColor } from '@openweave/core/color'
 
 import PanelSection from '@/components/ui/panel/PanelSection'
 import ColorSwatchPopover from '@/components/color-picker/ColorSwatchPopover'
@@ -13,6 +13,7 @@ export default function PageSection() {
   const { panels } = useI18n()
 
   const pageColor = editor.state.pageColor
+  const [hexDraft, setHexDraft] = useState<string | null>(null)
 
   const updatePageColor = (color: Color) => {
     editor.setPageColor(color)
@@ -20,6 +21,11 @@ export default function PageSection() {
 
   const updatePageAlpha = (alpha: number) => {
     editor.setPageColor({ ...pageColor, a: alpha })
+  }
+
+  const commitHexDraft = () => {
+    if (hexDraft !== null) updatePageColor({ ...parseColor(`#${hexDraft}`), a: pageColor.a })
+    setHexDraft(null)
   }
 
   return (
@@ -33,14 +39,20 @@ export default function PageSection() {
             />
             <input
               type="text"
+              aria-label={panels.pageBackground}
               className="w-14 bg-transparent outline-none text-xs text-surface font-mono uppercase"
-              value={colorToHexRaw(pageColor)}
-              onChange={() => {}} // Let popover handle color changes
-              readOnly
+              value={hexDraft ?? colorToHexRaw(pageColor)}
+              onChange={(e) => setHexDraft(e.target.value)}
+              onBlur={commitHexDraft}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') e.currentTarget.blur()
+                if (e.key === 'Escape') setHexDraft(null)
+              }}
             />
             <div className="w-[1px] h-3 bg-border mx-1"></div>
             <div className="w-14">
               <NumberField
+                ariaLabel={panels.opacity}
                 value={Math.round((pageColor.a ?? 1) * 100)}
                 min={0}
                 max={100}

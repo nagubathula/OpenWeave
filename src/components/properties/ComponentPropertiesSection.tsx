@@ -1,8 +1,10 @@
 import React from 'react'
-import { useEditor, useSceneComputed, useSelectionState } from '@openweave/react'
+import { useEditor, useSceneComputed, useSelectionState, useI18n } from '@openweave/react'
 import { instanceSwapOptions } from '@openweave/react'
 import type { SceneNode, ComponentPropertyDefinition } from '@openweave/scene-graph'
 import Tip from '@/components/ui/Tip'
+import { AppSwitch } from '@/components/ui/AppSwitch'
+import { AppSelect } from '@/components/ui/AppSelect'
 
 interface PropertyControl {
   id: string
@@ -23,6 +25,7 @@ const boxCls = 'flex items-center gap-1.5 bg-input/50 rounded px-2 py-1 border b
 export default function ComponentPropertiesSection() {
   const editor = useEditor()
   const { selectedNode: node } = useSelectionState()
+  const { panels } = useI18n()
 
   const controls = useSceneComputed<PropertyControl[]>(() => {
     if (node?.type !== 'INSTANCE') return []
@@ -55,9 +58,13 @@ export default function ComponentPropertiesSection() {
     editor.setInstanceComponentProperty(node.id, control.id, value)
   }
 
+  const sectionLabel = controls.every((control) => control.type === 'VARIANT')
+    ? panels.variants
+    : panels.componentProperties
+
   return (
     <section
-      aria-label="Component properties"
+      aria-label={sectionLabel}
       className="space-y-2 border-b border-border pb-3"
       data-test-id="component-properties-section"
     >
@@ -70,34 +77,29 @@ export default function ComponentPropertiesSection() {
             </span>
           </Tip>
           {control.type === 'BOOLEAN' ? (
-            <input
-              type="checkbox"
-              checked={control.value === 'true'}
-              onChange={(e) => setValue(control, e.target.checked ? 'true' : 'false')}
+            <AppSwitch
+              label={control.name}
+              value={control.value === 'true'}
+              onValueChange={(checked) => setValue(control, checked ? 'true' : 'false')}
             />
           ) : (control.type === 'TEXT' ? (
             <div className={boxCls + ' flex-1'}>
               <input
                 type="text"
+                aria-label={control.name}
                 className={inputCls}
                 value={control.value}
                 onChange={(e) => setValue(control, e.target.value)}
               />
             </div>
           ) : (
-            <div className={boxCls + ' flex-1'}>
-              <select
-                className={inputCls}
+            <div className="flex-1">
+              <AppSelect
+                label={control.name}
+                options={control.options.length > 0 ? control.options : [{ value: control.value, label: control.value }]}
                 value={control.value}
-                onChange={(e) => setValue(control, e.target.value)}
-              >
-                {control.options.length === 0 && <option value={control.value}>{control.value}</option>}
-                {control.options.map((o) => (
-                  <option key={o.value} value={o.value}>
-                    {o.label}
-                  </option>
-                ))}
-              </select>
+                onValueChange={(value) => setValue(control, value)}
+              />
             </div>
           ))}
         </div>

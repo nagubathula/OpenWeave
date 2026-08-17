@@ -1,6 +1,8 @@
 import type { ChatTransport, UIMessage } from 'ai'
+import { fontManager, type FontManager } from '@openweave/core/text'
 
 import type { EditorStore } from '@/app/editor/session/create'
+import { ensureGraphFonts, loadFont } from '@/app/editor/fonts'
 
 export interface OpenWeaveTestHooks {
   writeCount?: () => number
@@ -10,6 +12,9 @@ export interface OpenWeaveTestHooks {
 
 export interface OpenWeaveWindowAPI {
   getStore?: () => EditorStore
+  getFontManager?: () => FontManager
+  ensureGraphFonts?: typeof ensureGraphFonts
+  loadFont?: typeof loadFont
   setChatTransport?: (factory: () => ChatTransport<UIMessage>) => void
   openFile?: (path: string) => Promise<void>
   test?: OpenWeaveTestHooks
@@ -29,6 +34,9 @@ function windowApi(): OpenWeaveWindowAPI {
     if (!activeStore) throw new Error('OpenWeave store not initialized')
     return activeStore
   }
+  window.openWeave.getFontManager ??= () => fontManager
+  window.openWeave.ensureGraphFonts ??= ensureGraphFonts
+  window.openWeave.loadFont ??= loadFont
   return window.openWeave
 }
 

@@ -61,6 +61,7 @@ export default function ExportSection() {
   return (
     <PanelSection
       label="Export"
+      empty={!mixed && activeSettings.length === 0}
       data-test-id="export-section"
       actions={
         <IconButton label="Add export setting" onClick={addSetting}>
@@ -76,7 +77,12 @@ export default function ExportSection() {
         )}
 
         {activeSettings.map((setting, i) => (
-          <div key={i} className="group relative flex items-center gap-1.5">
+          <div
+            key={i}
+            data-property="exportSettings"
+            data-index={i}
+            className="group relative flex items-center gap-1.5"
+          >
             {formatSupportsScale(setting.format) ? (
               <div className="w-20">
                 <select

@@ -1,7 +1,5 @@
 import { test, expect } from '@playwright/test'
 
-import type { FontManager } from '#core/text/fonts'
-
 import { CanvasHelper } from '#tests/helpers/canvas'
 
 test('tool-created CJK text requests fallback through app font loading', async ({ page }) => {
@@ -13,16 +11,12 @@ test('tool-created CJK text requests fallback through app font loading', async (
     const store = window.openWeave?.getStore?.()
     if (!store) throw new Error('OpenWeave store not initialized')
 
-    const { ensureGraphFonts, loadFont } = await import('/src/app/editor/fonts/index.ts')
-    await loadFont('Inter', 'Regular')
-    const fontModuleUrl = performance
-      .getEntriesByType('resource')
-      .map((entry) => entry.name)
-      .find((url) => url.includes('/packages/core/src/text/fonts.ts'))
-    if (!fontModuleUrl) throw new Error('Active font manager module not found')
-    const { fontManager } = (await import(/* @vite-ignore */ fontModuleUrl)) as {
-      fontManager: FontManager
+    const { ensureGraphFonts, loadFont, getFontManager } = window.openWeave ?? {}
+    if (!ensureGraphFonts || !loadFont || !getFontManager) {
+      throw new Error('OpenWeave font test hooks not initialized')
     }
+    await loadFont('Inter', 'Regular')
+    const fontManager = getFontManager()
     const originalEnsureFallbackPack = fontManager.ensureFallbackPack.bind(fontManager)
     let requestedScripts: string[] = []
 
@@ -77,14 +71,9 @@ test('CJK text waits for fallback fonts and repaints after they load', async ({ 
     const renderer = store.renderer
     const response = await fetch('/tests/fixtures/fonts/NotoSansCJK-Test.otf')
     const fallbackData = await response.arrayBuffer()
-    const fontModuleUrl = performance
-      .getEntriesByType('resource')
-      .map((entry) => entry.name)
-      .find((url) => url.includes('/packages/core/src/text/fonts.ts'))
-    if (!fontModuleUrl) throw new Error('Active font manager module not found')
-    const { fontManager } = (await import(/* @vite-ignore */ fontModuleUrl)) as {
-      fontManager: FontManager
-    }
+    const getFontManager = window.openWeave?.getFontManager
+    if (!getFontManager) throw new Error('OpenWeave font test hooks not initialized')
+    const fontManager = getFontManager()
     const manager = fontManager as typeof fontManager & { cjkFallbackFamilies: string[] }
     const originalFamilies = [...manager.cjkFallbackFamilies]
     const originalEnsureFallbackPack = fontManager.ensureFallbackPack.bind(fontManager)

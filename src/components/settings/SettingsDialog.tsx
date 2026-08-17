@@ -142,7 +142,7 @@ function VectorizePanel() {
   }
 
   return (
-    <div className="flex flex-col gap-3" data-test-id="settings-vectorize-panel">
+    <div className="flex flex-col gap-3" data-test-id="settings-vectorize-panel" data-vectorize-settings>
       <div>
         <h3 className="text-xs font-semibold text-surface">{dialogs.vectorization}</h3>
         <p className="mt-0.5 text-[10px] text-muted">
@@ -176,7 +176,7 @@ function VectorizePanel() {
             type="password"
             className={inputClass}
             value={keyDraft}
-            data-test-id="settings-vectorize-key"
+            data-test-id="provider-settings-api-key"
             placeholder={configured ? dialogs.vectorizeSavedKeyPlaceholder : provider.keyPlaceholder}
             onChange={(e) => setKeyDraft(e.target.value)}
           />

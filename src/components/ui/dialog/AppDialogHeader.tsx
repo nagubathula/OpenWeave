@@ -9,6 +9,7 @@ export interface AppDialogHeaderProps extends React.HTMLAttributes<HTMLElement> 
   heading: ReactNode
   description?: ReactNode
   closeLabel?: string
+  closeTestId?: string
   showClose?: boolean
   titleVisuallyHidden?: boolean
   ui?: DialogUI
@@ -17,7 +18,7 @@ export interface AppDialogHeaderProps extends React.HTMLAttributes<HTMLElement> 
 }
 
 export const AppDialogHeader = forwardRef<HTMLElement, AppDialogHeaderProps>(
-  ({ heading, description, closeLabel, showClose = true, titleVisuallyHidden = false, ui, actions, closeIcon, className, ...props }, ref) => {
+  ({ heading, description, closeLabel, closeTestId, showClose = true, titleVisuallyHidden = false, ui, actions, closeIcon, className, ...props }, ref) => {
     const cls = useDialogUI(ui)
 
     return (
@@ -42,7 +43,13 @@ export const AppDialogHeader = forwardRef<HTMLElement, AppDialogHeaderProps>(
         {actions}
         {showClose && (
           <DialogPrimitive.Close asChild>
-            <button type="button" data-slot="dialog-close" className={cls.close} aria-label={closeLabel}>
+            <button
+              type="button"
+              data-slot="dialog-close"
+              data-test-id={closeTestId}
+              className={cls.close}
+              aria-label={closeLabel}
+            >
               {closeIcon || <X className="h-4 w-4" />}
             </button>
           </DialogPrimitive.Close>

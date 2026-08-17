@@ -1,28 +1,30 @@
-import React from 'react'
+import React, { useMemo } from 'react'
 import { useI18n, useSelectionState } from '@openweave/react'
 import { getActiveEditorStore } from '@/app/editor/active-store'
-import {
-  findFrameResizePreset,
-  FRAME_RESIZE_PRESET_CATEGORIES,
-  FRAME_RESIZE_PRESETS
-} from '@/app/editor/frame-presets'
+import { findFrameResizePreset, FRAME_RESIZE_PRESETS } from '@/app/editor/frame-presets'
 
 import PanelSection from '@/components/ui/panel/PanelSection'
-
-const inputClass = 'w-full bg-input/50 rounded px-2 py-1 border border-border text-surface text-xs outline-none focus:border-accent'
+import { AppSelect } from '@/components/ui/AppSelect'
 
 export default function FramePresetSelect() {
   const store = getActiveEditorStore()
   const { selectedNode } = useSelectionState()
   const { panels } = useI18n()
 
+  const options = useMemo(
+    () => [
+      { value: 'custom', label: panels.framePresetCustom },
+      ...FRAME_RESIZE_PRESETS.map((p) => ({ value: p.id, label: p.name }))
+    ],
+    [panels]
+  )
+
   if (selectedNode?.type !== 'FRAME') return null
 
   const preset = findFrameResizePreset(selectedNode.width, selectedNode.height, selectedNode.name)
   const presetId = preset?.id ?? 'custom'
 
-  const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const id = e.target.value
+  const handleChange = (id: string) => {
     if (id === 'custom') return
     const newPreset = FRAME_RESIZE_PRESETS.find((candidate) => candidate.id === id)
     if (newPreset) {
@@ -33,25 +35,12 @@ export default function FramePresetSelect() {
   return (
     <PanelSection label={panels.frame}>
       <div className="flex flex-col gap-1">
-        <select
-          className={inputClass}
+        <AppSelect
+          label={panels.framePreset}
+          options={options}
           value={presetId}
-          onChange={handleChange}
-        >
-          {presetId === 'custom' && (
-            <option value="custom">{panels.framePresetCustom}</option>
-          )}
-          
-          {FRAME_RESIZE_PRESET_CATEGORIES.map((category, i) => (
-            <optgroup key={i} label={panels[category.labelKey] as string}>
-              {category.presets.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.name}
-                </option>
-              ))}
-            </optgroup>
-          ))}
-        </select>
+          onValueChange={handleChange}
+        />
       </div>
     </PanelSection>
   )

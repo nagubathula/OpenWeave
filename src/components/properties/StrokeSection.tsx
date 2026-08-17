@@ -47,6 +47,13 @@ export default function StrokeSection() {
   const capValue = typeof strokeCtx.cap === 'string' ? strokeCtx.cap : 'MIXED'
   const joinValue = typeof strokeCtx.join === 'string' ? strokeCtx.join : 'MIXED'
   const dashPattern = ('dashPattern' in node ? node.dashPattern : undefined) ?? []
+  const sidesExpanded = selectedNode.independentStrokeWeights
+  // ARROW_LINES/ARROW_EQUILATERAL have no SDK-provided options entry yet.
+  const capOptions = [
+    ...strokeCtx.capOptions,
+    { value: 'ARROW_LINES', label: 'Arrow cap' },
+    { value: 'ARROW_EQUILATERAL', label: 'Triangle cap' }
+  ]
 
   /** Applies a node-level patch to every selected node as one undo step. */
   const updateNodeLevel = (patch: Partial<SceneNode>, label: string) => {
@@ -161,7 +168,7 @@ export default function StrokeSection() {
                 }}
               </BindableValueRoot>
               <IconButton
-                label={stroke.visible ? 'Hide stroke' : 'Show stroke'}
+                label={panels.toggleVisibility}
                 onClick={() => actions.toggleVisibility(i)}
                 className={!stroke.visible ? 'opacity-50' : ''}
               >
@@ -208,53 +215,89 @@ export default function StrokeSection() {
 
         {strokes.length > 0 && 'strokeCap' in node && (
           <div className="pt-2 border-t border-border mt-2 space-y-3">
+            <div data-property="stroke-cap">
+              <div className="text-[10px] text-muted mb-1">Cap</div>
+              <div className="flex flex-wrap gap-1">
+                {capOptions.map((option) => (
+                  <button
+                    key={option.value}
+                    type="button"
+                    aria-label={option.label}
+                    aria-pressed={capValue === option.value}
+                    className={`rounded px-1.5 py-1 text-[10px] ${
+                      capValue === option.value
+                        ? 'bg-active text-surface'
+                        : 'bg-input/50 text-muted hover:bg-hover hover:text-surface'
+                    }`}
+                    onClick={() => setCap(option.value as StrokeCap)}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div data-property="stroke-join">
+              <div className="text-[10px] text-muted mb-1">Join</div>
+              <div className="flex flex-wrap gap-1">
+                {strokeCtx.joinOptions.map((option) => (
+                  <button
+                    key={option.value}
+                    type="button"
+                    aria-label={option.label}
+                    aria-pressed={joinValue === option.value}
+                    className={`rounded px-1.5 py-1 text-[10px] ${
+                      joinValue === option.value
+                        ? 'bg-active text-surface'
+                        : 'bg-input/50 text-muted hover:bg-hover hover:text-surface'
+                    }`}
+                    onClick={() => setJoin(option.value as StrokeJoin)}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+            </div>
 
             <div className="flex items-center gap-2">
               <div className="flex-1">
-                <div className="text-[10px] text-muted mb-1">Cap</div>
-                <select
-                  className={inputClass + ' h-6'}
-                  value={capValue}
-                  data-property="stroke-cap"
-                  onChange={(e) => {
-                    if (e.target.value === 'MIXED') return
-                    setCap(e.target.value as StrokeCap)
-                  }}
-                >
-                  {capValue === 'MIXED' && (
-                    <option value="MIXED" disabled hidden>
-                      {panels.mixed}
-                    </option>
-                  )}
-                  <option value="NONE">None</option>
-                  <option value="ROUND">Round</option>
-                  <option value="SQUARE">Square</option>
-                  <option value="ARROW_LINES">Arrow</option>
-                  <option value="ARROW_EQUILATERAL">Triangle</option>
-                </select>
+                <div className="text-[10px] text-muted mb-1">{panels.strokeMiterLimit}</div>
+                <NumberField
+                  ariaLabel={panels.strokeMiterLimit}
+                  dataProperty="stroke-miter-limit"
+                  value={strokeCtx.miterLimit}
+                  min={1}
+                  onChange={(v) => strokeCtx.updateMiterLimit(v)}
+                  onCommit={(v) => strokeCtx.commitMiterLimit(v)}
+                />
               </div>
-              <div className="flex-1">
-                <div className="text-[10px] text-muted mb-1">Join</div>
-                <select
-                  className={inputClass + ' h-6'}
-                  value={joinValue}
-                  data-property="stroke-join"
-                  onChange={(e) => {
-                    if (e.target.value === 'MIXED') return
-                    setJoin(e.target.value as StrokeJoin)
-                  }}
-                >
-                  {joinValue === 'MIXED' && (
-                    <option value="MIXED" disabled hidden>
-                      {panels.mixed}
-                    </option>
-                  )}
-                  <option value="MITER">Miter</option>
-                  <option value="BEVEL">Bevel</option>
-                  <option value="ROUND">Round</option>
-                </select>
-              </div>
+              <IconButton
+                label={panels.strokeSides}
+                onClick={() =>
+                  strokeCtx.selectSide(sidesExpanded ? 'ALL' : 'CUSTOM', selectedNode)
+                }
+                className={sidesExpanded ? 'opacity-100' : ''}
+                data-property="stroke-sides"
+              >
+                <span className="text-[10px] font-semibold">TRBL</span>
+              </IconButton>
             </div>
+
+            {sidesExpanded && (
+              <div className="grid grid-cols-4 gap-1.5">
+                {strokeCtx.borderSides.map((side) => (
+                  <label key={side} className="flex flex-col gap-1">
+                    <span className="text-[10px] text-muted capitalize">{side}</span>
+                    <NumberField
+                      ariaLabel={side}
+                      min={0}
+                      value={strokeCtx.borderWeight(selectedNode, side)}
+                      onChange={(v) => strokeCtx.updateBorderWeight(side, v, selectedNode)}
+                      onCommit={(v) => strokeCtx.updateBorderWeight(side, v, selectedNode)}
+                    />
+                  </label>
+                ))}
+              </div>
+            )}
 
             <div className="flex-1">
               <div className="text-[10px] text-muted mb-1">Dashes (e.g. 5, 2)</div>

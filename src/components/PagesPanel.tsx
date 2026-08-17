@@ -32,6 +32,20 @@ export default function PagesPanel() {
     onMove: handleMove
   })
 
+  // Inline `ref={(el) => pageReorder.setupItem(el, ...)}` creates a new
+  // function every render, so React detaches+reattaches the drag
+  // registration (and its `draggable` attribute) on every re-render, not
+  // just mount/unmount. Cache one stable ref-callback per page id instead.
+  const rowRefsRef = useRef<Map<string, (el: HTMLElement | null) => void>>(new Map())
+  const getRowRef = useCallback((id: string) => {
+    let ref = rowRefsRef.current.get(id)
+    if (!ref) {
+      ref = (el) => pageReorder.setupItem(el, () => ({ id }))
+      rowRefsRef.current.set(id, ref)
+    }
+    return ref
+  }, [pageReorder])
+
   const handleRenameCommit = useCallback((_id: string, _name: string) => {
     // Handled in input onBlur/onKeyDown via actions.rename
   }, [])
@@ -93,7 +107,7 @@ export default function PagesPanel() {
                       <ContextMenu.Trigger asChild>
                         <div
                           data-test-id="pages-row"
-                          ref={(el) => pageReorder.setupItem(el, () => ({ id: pg.id }))}
+                          ref={getRowRef(pg.id)}
                           className={styles.row()}
                           data-page-id={pg.id}
                           data-active={pg.id === currentPageId || undefined}

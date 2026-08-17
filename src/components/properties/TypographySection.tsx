@@ -1,5 +1,5 @@
 import React from 'react'
-import { useTypography } from '@openweave/react'
+import { useTypography, useI18n } from '@openweave/react'
 import type { SceneNode } from '@openweave/scene-graph'
 import {
   AlignLeft,
@@ -14,7 +14,8 @@ import {
   Underline,
   Strikethrough,
   Baseline,
-  ALargeSmall
+  ALargeSmall,
+  AlertTriangle
 } from 'lucide-react'
 
 import FontPicker from '@/components/font-picker/FontPicker'
@@ -23,8 +24,10 @@ import NumberField from '@/components/inputs/NumberField'
 import IconButton from '@/components/ui/IconButton'
 import PanelGrid from '@/components/ui/panel/PanelGrid'
 import PanelSection from '@/components/ui/panel/PanelSection'
-import SegmentedControl from '@/components/ui/SegmentedControl'
 import { AppSwitch } from '@/components/ui/AppSwitch'
+import { AppSelect } from '@/components/ui/AppSelect'
+import SharedStyleField from '@/components/properties/shared-style/SharedStyleField'
+import Tip from '@/components/ui/Tip'
 
 type TextAlign = SceneNode['textAlignHorizontal']
 type TextVerticalAlign = SceneNode['textAlignVertical']
@@ -65,8 +68,11 @@ export default function TypographySection() {
     toggleItalic,
     toggleDecoration,
     updateProp,
-    commitProp
+    commitProp,
+    missingFonts,
+    hasMissingFonts
   } = useTypography()
+  const { panels } = useI18n()
 
   if (!node || !('textAlignHorizontal' in node)) return null
 
@@ -85,19 +91,30 @@ export default function TypographySection() {
 
   return (
     <PanelSection label="Typography">
+      <SharedStyleField kind="text" label={panels.textStyle} />
       <div className="mb-2.5">
         <PanelFieldGroup label="Font">
           <div className="flex items-center gap-1.5">
             <FontPicker value={fontFamily} onSelect={(family) => { void setFamily(family) }} />
             <FontSettingsPopover />
+            {hasMissingFonts && (
+              <Tip label={`Missing font${missingFonts.length > 1 ? 's' : ''}: ${missingFonts.join(', ')}`}>
+                <AlertTriangle
+                  role="img"
+                  aria-label={`Missing font${missingFonts.length > 1 ? 's' : ''}: ${missingFonts.join(', ')}`}
+                  className="size-3.5 shrink-0 text-warning-text"
+                />
+              </Tip>
+            )}
           </div>
         </PanelFieldGroup>
       </div>
 
       <PanelGrid columns={2} className="mb-3">
-        <PanelFieldGroup label="Weight">
+        <PanelFieldGroup label={panels.fontWeight}>
           <select
             className={inputClass + ' h-6'}
+            aria-label={panels.fontWeight}
             value={fontWeight}
             onChange={(e) => { void setWeight(Number(e.target.value)) }}
           >
@@ -106,8 +123,9 @@ export default function TypographySection() {
             ))}
           </select>
         </PanelFieldGroup>
-        <PanelFieldGroup label="Size">
+        <PanelFieldGroup label={panels.fontSize}>
           <NumberField
+            ariaLabel={panels.fontSize}
             value={fontSize}
             min={1}
             max={1000}
@@ -118,8 +136,9 @@ export default function TypographySection() {
       </PanelGrid>
 
       <PanelGrid columns={2} className="mb-3">
-        <PanelFieldGroup label="Line height">
+        <PanelFieldGroup label={panels.lineHeight}>
           <NumberField
+            ariaLabel={panels.lineHeight}
             value={typeof lineHeight === 'number' ? lineHeight : Math.round((fontSize || 14) * 1.2)}
             min={0}
             onChange={(v) => updateProp('lineHeight', v)}
@@ -127,8 +146,9 @@ export default function TypographySection() {
             icon={<Baseline className="size-3" />}
           />
         </PanelFieldGroup>
-        <PanelFieldGroup label="Letter spacing">
+        <PanelFieldGroup label={panels.letterSpacing}>
           <NumberField
+            ariaLabel={panels.letterSpacing}
             suffix="%"
             value={letterSpacing}
             onChange={(v) => updateProp('letterSpacing', v)}
@@ -150,29 +170,53 @@ export default function TypographySection() {
         </select>
       </PanelFieldGroup>
 
-      <PanelFieldGroup label="Text alignment" className="mb-3">
-        <SegmentedControl
-          value={textAlign}
-          onChange={(v) => setAlign(v as TextAlign)}
-          options={[
-            { value: 'LEFT', label: 'Left', icon: <AlignLeft className="size-3.5" /> },
-            { value: 'CENTER', label: 'Center', icon: <AlignCenter className="size-3.5" /> },
-            { value: 'RIGHT', label: 'Right', icon: <AlignRight className="size-3.5" /> },
-            { value: 'JUSTIFIED', label: 'Justify', icon: <AlignJustify className="size-3.5" /> }
-          ]}
-        />
+      <PanelFieldGroup label={panels.textAlignment} className="mb-3">
+        <div
+          role="group"
+          aria-label={panels.textAlignment}
+          className="inline-flex items-center gap-0.5 rounded bg-panel-field p-0.5"
+        >
+          {[
+            { value: 'LEFT', label: panels.alignLeft, icon: <AlignLeft className="size-3.5" /> },
+            { value: 'CENTER', label: panels.alignCenterHorizontally, icon: <AlignCenter className="size-3.5" /> },
+            { value: 'RIGHT', label: panels.alignRight, icon: <AlignRight className="size-3.5" /> },
+            { value: 'JUSTIFIED', label: panels.textAlignment, icon: <AlignJustify className="size-3.5" /> }
+          ].map((option) => (
+            <IconButton
+              key={option.value}
+              label={option.label}
+              size="md"
+              active={textAlign === option.value}
+              onClick={() => setAlign(option.value as TextAlign)}
+            >
+              {option.icon}
+            </IconButton>
+          ))}
+        </div>
       </PanelFieldGroup>
 
-      <PanelFieldGroup label="Vertical alignment" className="mb-3">
-        <SegmentedControl
-          value={verticalAlign}
-          onChange={(v) => setVerticalAlign(v as TextVerticalAlign)}
-          options={[
-            { value: 'TOP', label: 'Top', icon: <AlignVerticalJustifyStart className="size-3.5" /> },
-            { value: 'CENTER', label: 'Middle', icon: <AlignVerticalJustifyCenter className="size-3.5" /> },
-            { value: 'BOTTOM', label: 'Bottom', icon: <AlignVerticalJustifyEnd className="size-3.5" /> }
-          ]}
-        />
+      <PanelFieldGroup label={panels.verticalTextAlignment} className="mb-3">
+        <div
+          role="group"
+          aria-label={panels.verticalTextAlignment}
+          className="inline-flex items-center gap-0.5 rounded bg-panel-field p-0.5"
+        >
+          {[
+            { value: 'TOP', label: panels.alignTop, icon: <AlignVerticalJustifyStart className="size-3.5" /> },
+            { value: 'CENTER', label: panels.alignCenterVertically, icon: <AlignVerticalJustifyCenter className="size-3.5" /> },
+            { value: 'BOTTOM', label: panels.alignBottom, icon: <AlignVerticalJustifyEnd className="size-3.5" /> }
+          ].map((option) => (
+            <IconButton
+              key={option.value}
+              label={option.label}
+              size="md"
+              active={verticalAlign === option.value}
+              onClick={() => setVerticalAlign(option.value as TextVerticalAlign)}
+            >
+              {option.icon}
+            </IconButton>
+          ))}
+        </div>
       </PanelFieldGroup>
 
       <PanelFieldGroup label="Text formatting" className="mb-3">
@@ -216,33 +260,36 @@ export default function TypographySection() {
       </PanelFieldGroup>
 
       <PanelGrid columns={2} className="mb-3">
-        <PanelFieldGroup label="Case">
-          <select
-            className={inputClass + ' h-6'}
+        <PanelFieldGroup label={panels.textCase}>
+          <AppSelect
+            label={panels.textCase}
             value={textCase}
-            onChange={(e) => setTextCase(e.target.value as TextCase)}
-          >
-            <option value="ORIGINAL">Original</option>
-            <option value="UPPER">Uppercase</option>
-            <option value="LOWER">Lowercase</option>
-            <option value="TITLE">Titlecase</option>
-          </select>
+            onValueChange={(v) => setTextCase(v as TextCase)}
+            options={[
+              { value: 'ORIGINAL', label: panels.textCaseOriginal },
+              { value: 'UPPER', label: panels.textCaseUpper },
+              { value: 'LOWER', label: panels.textCaseLower },
+              { value: 'TITLE', label: panels.textCaseTitle }
+            ]}
+          />
         </PanelFieldGroup>
-        <PanelFieldGroup label="Truncation">
-          <select
-            className={inputClass + ' h-6'}
+        <PanelFieldGroup label={panels.truncation}>
+          <AppSelect
+            label={panels.truncation}
             value={textTruncation}
-            onChange={(e) => setTruncation(e.target.value as TextTruncation)}
-          >
-            <option value="DISABLED">Disabled</option>
-            <option value="ENDING">Ending</option>
-          </select>
+            onValueChange={(v) => setTruncation(v as TextTruncation)}
+            options={[
+              { value: 'DISABLED', label: panels.truncationDisabled },
+              { value: 'ENDING', label: panels.truncationEnding }
+            ]}
+          />
         </PanelFieldGroup>
       </PanelGrid>
 
       {textTruncation === 'ENDING' && (
-        <PanelFieldGroup label="Max lines" className="mb-3">
+        <PanelFieldGroup label={panels.maxLines} className="mb-3">
           <NumberField
+            ariaLabel={panels.maxLines}
             value={maxLines}
             min={1}
             step={1}

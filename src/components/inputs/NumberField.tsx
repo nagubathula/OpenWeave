@@ -26,6 +26,7 @@ export interface NumberFieldProps {
   onEditingChange?: (editing: boolean) => void
   className?: string
   ariaLabel?: string
+  dataProperty?: string
 }
 
 export default function NumberField({
@@ -44,7 +45,8 @@ export default function NumberField({
   onCommit,
   onEditingChange,
   className,
-  ariaLabel
+  ariaLabel,
+  dataProperty
 }: NumberFieldProps) {
   const styles = useMemo(() => tv(theme)({ suffix: Boolean(suffix) }), [suffix])
 
@@ -65,17 +67,28 @@ export default function NumberField({
       onCommit={onCommit}
       onEditingChange={onEditingChange}
     >
-      <NumberFieldInner styles={styles} icon={icon} label={label} suffix={suffix} placeholder={placeholder} className={className} />
+      <NumberFieldInner
+        styles={styles}
+        icon={icon}
+        label={label}
+        suffix={suffix}
+        placeholder={placeholder}
+        className={className}
+        dataProperty={dataProperty}
+      />
     </NumberFieldRoot>
   )
 }
 
-function NumberFieldInner({ styles, icon, label, suffix, placeholder, className }: any) {
-  const { editing, actions } = useNumberField()
-  
+function NumberFieldInner({ styles, icon, label, suffix, placeholder, className, dataProperty }: any) {
+  const { editing, actions, rootAttrs, stateAttrs } = useNumberField()
+
   return (
     <div
+      {...rootAttrs}
+      {...stateAttrs}
       data-slot="root"
+      data-property={dataProperty}
       className={styles.root({ class: className })}
       onPointerDown={(e) => {
         if (!editing && !(e.target as HTMLElement).closest('button')) {

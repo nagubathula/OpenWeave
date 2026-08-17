@@ -2,8 +2,6 @@ import { Buffer } from 'node:buffer'
 
 import type { Page } from '@playwright/test'
 
-import type { FontManager } from '#core/text/fonts'
-
 import { expect, test } from '#tests/e2e/fixtures'
 import { CanvasHelper } from '#tests/helpers/canvas'
 
@@ -51,14 +49,9 @@ test('international text is correct on its first visible paint', async ({ page }
   const result = await page.evaluate(async () => {
     const store = window.openWeave?.getStore?.()
     if (!store?.renderer) throw new Error('OpenWeave renderer not initialized')
-    const fontModuleUrl = performance
-      .getEntriesByType('resource')
-      .map((entry) => entry.name)
-      .find((url) => url.includes('/packages/core/src/text/fonts.ts'))
-    if (!fontModuleUrl) throw new Error('Active font manager module not found')
-    const { fontManager } = (await import(/* @vite-ignore */ fontModuleUrl)) as {
-      fontManager: FontManager
-    }
+    const getFontManager = window.openWeave?.getFontManager
+    if (!getFontManager) throw new Error('OpenWeave font test hooks not initialized')
+    const fontManager = getFontManager()
     const pageId = store.state.currentPageId
     const samples = [
       {
@@ -250,14 +243,9 @@ test('typed and tool-created text repaint with the same resolved fallbacks', asy
       text: ''
     })
     const nodeIds = [tool.id, typed.id]
-    const fontModuleUrl = performance
-      .getEntriesByType('resource')
-      .map((entry) => entry.name)
-      .find((url) => url.includes('/packages/core/src/text/fonts.ts'))
-    if (!fontModuleUrl) throw new Error('Active font manager module not found')
-    const { fontManager } = (await import(/* @vite-ignore */ fontModuleUrl)) as {
-      fontManager: FontManager
-    }
+    const getFontManager = window.openWeave?.getFontManager
+    if (!getFontManager) throw new Error('OpenWeave font test hooks not initialized')
+    const fontManager = getFontManager()
     fontManager.blockNodesUntilFontsResolve(nodeIds)
     store.select([typed.id])
     store.startTextEditing(typed.id)
@@ -282,14 +270,9 @@ test('typed and tool-created text repaint with the same resolved fallbacks', asy
   })
   await canvas.waitForRender()
   const pending = await page.evaluate(async (nodeIds) => {
-    const fontModuleUrl = performance
-      .getEntriesByType('resource')
-      .map((entry) => entry.name)
-      .find((url) => url.includes('/packages/core/src/text/fonts.ts'))
-    if (!fontModuleUrl) throw new Error('Active font manager module not found')
-    const { fontManager } = (await import(/* @vite-ignore */ fontModuleUrl)) as {
-      fontManager: FontManager
-    }
+    const getFontManager = window.openWeave?.getFontManager
+    if (!getFontManager) throw new Error('OpenWeave font test hooks not initialized')
+    const fontManager = getFontManager()
     return nodeIds.every((id) => fontManager.isNodeBlocked(id))
   }, ids.nodeIds)
   expect(pending).toBe(true)
@@ -298,14 +281,9 @@ test('typed and tool-created text repaint with the same resolved fallbacks', asy
   const resolved = await page.evaluate(async ({ nodeIds, toolId, typedId }) => {
     const store = window.openWeave?.getStore?.()
     if (!store?.renderer) throw new Error('OpenWeave renderer not initialized')
-    const fontModuleUrl = performance
-      .getEntriesByType('resource')
-      .map((entry) => entry.name)
-      .find((url) => url.includes('/packages/core/src/text/fonts.ts'))
-    if (!fontModuleUrl) throw new Error('Active font manager module not found')
-    const { fontManager } = (await import(/* @vite-ignore */ fontModuleUrl)) as {
-      fontManager: FontManager
-    }
+    const getFontManager = window.openWeave?.getFontManager
+    if (!getFontManager) throw new Error('OpenWeave font test hooks not initialized')
+    const fontManager = getFontManager()
     const [cjk, arabic] = await Promise.all([
       fetch('/tests/fixtures/fonts/NotoSansCJK-Test.otf').then((response) =>
         response.arrayBuffer()

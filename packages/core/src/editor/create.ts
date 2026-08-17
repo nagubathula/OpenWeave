@@ -94,6 +94,19 @@ export function createEditor(options?: EditorOptions) {
     })
   }
 
+  // `updateNodeWithUndo` etc. call `requestRender()` for each node mutated
+  // *while* a batch is still open (before `commitBatch()` pushes the merged
+  // undo entry), so React consumers subscribed to `render:requested` (e.g.
+  // `useSceneComputed`) can observe stale `canUndo`/`canRedo` state right
+  // after a multi-node batched edit finishes — `commitBatch()` itself never
+  // notifies. Request one more render once the batch is actually committed.
+  const originalRunBatch = undo.runBatch.bind(undo)
+  undo.runBatch = ((label, fn, coalesceKey) => {
+    const result = originalRunBatch(label, fn, coalesceKey)
+    requestRender()
+    return result
+  }) as typeof undo.runBatch
+
   function setSelectedIds(ids: Set<string>) {
     const previous = [...state.selectedIds]
     state.selectedIds = ids

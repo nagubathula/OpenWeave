@@ -26,7 +26,7 @@ export const Default: Story = {
     
     // Radix portals to document.body, not canvasElement.
     const body = canvasElement.ownerDocument.body;
-    const option = await body.querySelector('[role="option"]');
+    const option = body.querySelector('[role="option"]');
     await expect(option).not.toBeNull();
   },
 };

@@ -592,12 +592,14 @@ function RoleAssignments() {
             <p className="text-[11px] font-medium text-surface">{definition.label}</p>
             <p className="text-[10px] leading-tight text-muted">{definition.description}</p>
           </div>
-          <AppSelect
-            value={assignmentValue(definition.role)}
-            options={optionsForRole(definition.role)}
-            label={definition.label}
-            onValueChange={(value: string) => updateAssignment(definition.role, value)}
-          />
+          <div data-test-id={`settings-model-assignment-${definition.role}`}>
+            <AppSelect
+              value={assignmentValue(definition.role)}
+              options={optionsForRole(definition.role)}
+              label={definition.label}
+              onValueChange={(value: string) => updateAssignment(definition.role, value)}
+            />
+          </div>
         </div>
       ))}
     </div>

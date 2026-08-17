@@ -8,15 +8,15 @@ import PanelSection from '@/components/ui/panel/PanelSection'
 import IconButton from '@/components/ui/IconButton'
 import ColorSwatchPopover from '@/components/color-picker/ColorSwatchPopover'
 import NumberField from '@/components/inputs/NumberField'
-import { commitDiscretePropertyListChange } from '@/components/properties/blend-mode/use'
+import { AppSelect } from '@/components/ui/AppSelect'
+import { commitDiscretePropertyListChange, useBlendModeOptions } from '@/components/properties/blend-mode/use'
 import SharedStyleField from '@/components/properties/shared-style/SharedStyleField'
 import * as Popover from '@radix-ui/react-popover'
-
-const inputClass = 'w-full bg-input/50 rounded px-2 py-1 border border-border text-surface text-xs outline-none focus:border-accent'
 
 export default function EffectsSection() {
   const { items: effects, isMixed, active, flush, actions } = useEditorPropertyList('effects')
   const { panels } = useI18n()
+  const blendOptions = useBlendModeOptions()
 
   if (!active) return null
 
@@ -79,7 +79,11 @@ export default function EffectsSection() {
 
               <Popover.Root>
                 <Popover.Trigger asChild>
-                  <button className="flex items-center justify-center size-6 rounded hover:bg-input/50 text-muted hover:text-surface transition-colors">
+                  <button
+                    type="button"
+                    aria-label="Expand effect settings"
+                    className="flex items-center justify-center size-6 rounded hover:bg-input/50 text-muted hover:text-surface transition-colors"
+                  >
                     <Settings2 className="size-3.5" />
                   </button>
                 </Popover.Trigger>
@@ -165,35 +169,18 @@ export default function EffectsSection() {
                         </div>
                       )}
 
-                      <div>
+                      <div data-property="effect-blend-mode">
                         <div className="text-[10px] text-muted mb-1">Blend mode</div>
-                        <select
-                          className={inputClass + ' h-6 w-full'}
+                        <AppSelect
+                          label={panels.blendMode}
+                          options={blendOptions}
                           value={effect.blendMode ?? 'NORMAL'}
-                          data-property="effect-blend-mode"
-                          onChange={(e) =>
+                          onValueChange={(value) =>
                             commitDiscretePropertyListChange(flush, () =>
-                              actions.patch(i, { blendMode: e.target.value as Effect['blendMode'] })
+                              actions.patch(i, { blendMode: value as Effect['blendMode'] })
                             )
                           }
-                        >
-                          <option value="NORMAL">Normal</option>
-                          <option value="DARKEN">Darken</option>
-                          <option value="MULTIPLY">Multiply</option>
-                          <option value="COLOR_BURN">Color burn</option>
-                          <option value="LIGHTEN">Lighten</option>
-                          <option value="SCREEN">Screen</option>
-                          <option value="COLOR_DODGE">Color dodge</option>
-                          <option value="OVERLAY">Overlay</option>
-                          <option value="SOFT_LIGHT">Soft light</option>
-                          <option value="HARD_LIGHT">Hard light</option>
-                          <option value="DIFFERENCE">Difference</option>
-                          <option value="EXCLUSION">Exclusion</option>
-                          <option value="HUE">Hue</option>
-                          <option value="SATURATION">Saturation</option>
-                          <option value="COLOR">Color</option>
-                          <option value="LUMINOSITY">Luminosity</option>
-                        </select>
+                        />
                       </div>
                     </div>
                   </Popover.Content>
