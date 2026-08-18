@@ -1,7 +1,7 @@
-import type { Editor } from '@openweave/core/editor'
-
 import type { useSelectionCapabilities } from '#react/editor/selection-capabilities/use'
 import type { useSelectionState } from '#react/editor/selection-state/use'
+
+import type { Editor } from '@openweave/core/editor'
 
 export type CommandMessagesStore = { value: Record<string, string> }
 export type SelectionState = ReturnType<typeof useSelectionState>

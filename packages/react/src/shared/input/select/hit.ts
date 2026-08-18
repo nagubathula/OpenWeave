@@ -1,7 +1,7 @@
+import type { HitTestFns } from '#react/shared/input/select'
+
 import type { Editor } from '@openweave/core/editor'
 import type { SceneNode } from '@openweave/scene-graph'
-
-import type { HitTestFns } from '#react/shared/input/select'
 
 export function resolveHit(
   cx: number,

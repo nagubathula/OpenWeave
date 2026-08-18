@@ -1,8 +1,10 @@
 import React from 'react'
-import { useGradientStops } from '@openweave/react'
+
 import { colorToCSS } from '@openweave/core/color'
+import { useGradientStops } from '@openweave/react'
 import type { Fill, FillType, ImageScaleMode } from '@openweave/scene-graph'
 import type { Color } from '@openweave/scene-graph/primitives'
+
 import ColorSwatchPopover from '@/components/color-picker/ColorSwatchPopover'
 import Tip from '@/components/ui/Tip'
 
@@ -91,12 +93,8 @@ export function FillRow({ fill, onChange, onRemove }: FillRowProps) {
             </option>
           ))}
         </select>
-        <Tip label="Remove fill">
-          <button
-            type="button"
-            className="text-muted hover:text-surface px-1"
-            onClick={onRemove}
-          >
+        {/* oxlint-disable-next-line openweave/no-hardcoded-tip-labels */}`n        <Tip label="Remove fill">
+          <button type="button" className="text-muted hover:text-surface px-1" onClick={onRemove}>
             −
           </button>
         </Tip>
@@ -104,7 +102,10 @@ export function FillRow({ fill, onChange, onRemove }: FillRowProps) {
 
       {fill.type === 'SOLID' && (
         <div className="flex items-center gap-2 px-0.5">
-          <ColorSwatchPopover color={fill.color} onChange={(c) => onChange({ ...fill, color: c })} />
+          <ColorSwatchPopover
+            color={fill.color}
+            onChange={(c) => onChange({ ...fill, color: c })}
+          />
         </div>
       )}
 
@@ -129,7 +130,7 @@ export function FillRow({ fill, onChange, onRemove }: FillRowProps) {
                   />
                   <span className="text-muted text-[10px]">%</span>
                 </label>
-                <Tip label="Remove stop">
+                {/* oxlint-disable-next-line openweave/no-hardcoded-tip-labels */}`n                <Tip label="Remove stop">
                   <button
                     type="button"
                     className="text-muted hover:text-surface disabled:opacity-30 px-1"

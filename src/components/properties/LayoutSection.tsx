@@ -1,19 +1,20 @@
 'use client'
 
+import { LayoutPanelTop } from 'lucide-react'
 import React from 'react'
+
 import { LayoutControlsRoot, useI18n, useLayoutControlsContext } from '@openweave/react'
 import type { LayoutMode, NodeType } from '@openweave/scene-graph'
-import { LayoutPanelTop } from 'lucide-react'
 
-import IconButton from '@/components/ui/IconButton'
-import PanelSection from '@/components/ui/panel/PanelSection'
 import AutoLayoutControls from '@/components/properties/LayoutSection/AutoLayoutControls'
 import ClipContentControl from '@/components/properties/LayoutSection/ClipContentControl'
 import FlexControls from '@/components/properties/LayoutSection/FlexControls'
 import GridControls from '@/components/properties/LayoutSection/GridControls'
 import PaddingControls from '@/components/properties/LayoutSection/PaddingControls'
-import TextResizingControl from '@/components/properties/LayoutSection/TextResizingControl'
 import SizeControls from '@/components/properties/LayoutSection/size/SizeControls'
+import TextResizingControl from '@/components/properties/LayoutSection/TextResizingControl'
+import IconButton from '@/components/ui/IconButton'
+import PanelSection from '@/components/ui/panel/PanelSection'
 
 const CONTAINER_TYPES = new Set<NodeType>([
   'FRAME',

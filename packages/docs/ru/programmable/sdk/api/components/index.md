@@ -1,6 +1,6 @@
 ---
 title: Компоненты
-description: Справочник компонентов — headless-примитивы Vue в @openweave/react.
+description: Справочник компонентов — headless-примитивы React в @openweave/react.
 ---
 
 # Компоненты

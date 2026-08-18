@@ -1,8 +1,8 @@
+import { Variable as VariableIcon } from 'lucide-react'
 /* eslint-disable openweave/no-hardcoded-tip-labels */
 import React, { useState } from 'react'
-import { Variable as VariableIcon } from 'lucide-react'
-import Tip from '@/components/ui/Tip'
 
+import Tip from '@/components/ui/Tip'
 import { VariablesDialog } from '@/components/variables/VariablesDialog'
 
 export interface VariablesButtonProps {

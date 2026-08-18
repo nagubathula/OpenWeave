@@ -1,13 +1,15 @@
 'use client'
 
 import React, { useEffect, useState } from 'react'
+
 import { EditorProvider } from '@openweave/react'
-import { EditorLayout } from '@/components/layout/EditorLayout'
+
+import { createDemoShapes } from '@/app/demo/document'
 import { getActiveEditorStoreOrNull } from '@/app/editor/active-store'
 import { preloadFonts } from '@/app/editor/fonts'
 import { kickSyncEngine } from '@/app/storage/sync'
 import { createTab, activeTab, tabCount } from '@/app/tabs'
-import { createDemoShapes } from '@/app/demo/document'
+import { EditorLayout } from '@/components/layout/EditorLayout'
 
 export default function DemoPage() {
   const [isReady, setIsReady] = useState(false)
@@ -15,9 +17,9 @@ export default function DemoPage() {
   useEffect(() => {
     const createdInitialTab = tabCount() === 0
     const firstTab = createdInitialTab ? createTab() : (activeTab.get() ?? createTab())
-    
+
     if (createdInitialTab) {
-       createDemoShapes(firstTab.store)
+      createDemoShapes(firstTab.store)
     }
 
     setIsReady(true)

@@ -1,3 +1,5 @@
+import type { useI18n } from '#react/i18n'
+import { useSceneComputed } from '#react/internal/scene-computed/use'
 import { useMemo, useState } from 'react'
 
 import type { Editor } from '@openweave/core/editor'
@@ -9,13 +11,9 @@ import type {
   SceneNode
 } from '@openweave/scene-graph'
 
-import type { useI18n } from '#react/i18n'
-import { useSceneComputed } from '#react/internal/scene-computed/use'
-
 export type AlignCell = { primary: LayoutAlign; counter: LayoutCounterAlign }
 
 type GridTrackProp = 'gridTemplateColumns' | 'gridTemplateRows'
-
 
 export type LayoutAxis = 'width' | 'height'
 export type SizeLimitProp = 'minWidth' | 'maxWidth' | 'minHeight' | 'maxHeight'
@@ -49,15 +47,15 @@ export function createLayoutSelectionState(
   panels: ReturnType<typeof useI18n>['panels']
 ) {
   const node = useSceneComputed<SceneNode | null>(() => editor.getSelectedNode() ?? null)
-  
+
   const layoutDirection = useMemo<SceneNode['layoutDirection']>(
     () => node?.layoutDirection ?? 'AUTO',
     [node]
   )
   const sizingState = createLayoutSizingState(editor, node, panels)
   const gapAuto = useMemo(() => node?.primaryAxisAlign === 'SPACE_BETWEEN', [node])
-  const alignGrid = useMemo(() =>
-    node?.layoutMode === 'VERTICAL' ? ALIGN_VERTICAL : ALIGN_HORIZONTAL,
+  const alignGrid = useMemo(
+    () => (node?.layoutMode === 'VERTICAL' ? ALIGN_VERTICAL : ALIGN_HORIZONTAL),
     [node]
   )
 
@@ -239,11 +237,7 @@ export function createLayoutActions({
 
   function commitProp(key: string, _value: number | string, previous: number | string) {
     if (node) {
-      editor.commitNodeUpdate(
-        node.id,
-        { [key]: previous } as Partial<SceneNode>,
-        `Change ${key}`
-      )
+      editor.commitNodeUpdate(node.id, { [key]: previous } as Partial<SceneNode>, `Change ${key}`)
     }
   }
 
@@ -290,11 +284,7 @@ export function createLayoutActions({
 
   function setLayoutDirection(direction: SceneNode['layoutDirection']) {
     if (!node) return
-    editor.updateNodeWithUndo(
-      node.id,
-      { layoutDirection: direction },
-      'Change layout direction'
-    )
+    editor.updateNodeWithUndo(node.id, { layoutDirection: direction }, 'Change layout direction')
   }
 
   return {
@@ -366,12 +356,14 @@ export function createLayoutSizingState(
     () => node?.layoutMode === 'HORIZONTAL' || node?.layoutMode === 'VERTICAL',
     [node]
   )
-  const widthSizing = useMemo<LayoutSizing>(() =>
-    widthSizingForNode(node, isInAutoLayout), [node, isInAutoLayout]
+  const widthSizing = useMemo<LayoutSizing>(
+    () => widthSizingForNode(node, isInAutoLayout),
+    [node, isInAutoLayout]
   )
 
-  const heightSizing = useMemo<LayoutSizing>(() =>
-    heightSizingForNode(node, isInAutoLayout), [node, isInAutoLayout]
+  const heightSizing = useMemo<LayoutSizing>(
+    () => heightSizingForNode(node, isInAutoLayout),
+    [node, isInAutoLayout]
   )
 
   const widthSizingOptions = useMemo(() => {

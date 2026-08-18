@@ -2,11 +2,7 @@ import * as Popover from '@radix-ui/react-popover'
 import React, { useEffect, useRef } from 'react'
 
 import type { FontPickerUI } from './types'
-import {
-  useFontPicker,
-  type FontAccessController,
-  type FontFamilyOption
-} from './useFontPicker'
+import { useFontPicker, type FontAccessController, type FontFamilyOption } from './useFontPicker'
 
 export interface FontPickerRootProps {
   modelValue: string
@@ -60,19 +56,18 @@ export function FontPickerRoot({
     }
   }, [open])
 
-  const renderedTrigger = typeof trigger === 'function' ? trigger({ value: modelValue, open }) : trigger ?? (
-    <button className={ui?.trigger}>
-      <span className="truncate">{modelValue}</span>
-    </button>
-  )
+  const renderedTrigger =
+    typeof trigger === 'function'
+      ? trigger({ value: modelValue, open })
+      : (trigger ?? (
+          <button className={ui?.trigger}>
+            <span className="truncate">{modelValue}</span>
+          </button>
+        ))
 
   function renderEmptyState() {
     if (searchTerm) {
-      return (
-        <div className={ui?.empty}>
-          {emptySearchText ?? 'No fonts found'}
-        </div>
-      )
+      return <div className={ui?.empty}>{emptySearchText ?? 'No fonts found'}</div>
     }
 
     return (
@@ -81,9 +76,9 @@ export function FontPickerRoot({
           {accessState === 'prompt' && <p>Allow local font access to browse installed fonts.</p>}
           {accessState === 'denied' && <p>Local font access is blocked for this site.</p>}
           {accessState === 'unsupported' && <p>Local fonts are not available in this browser.</p>}
-          {accessState !== 'prompt' && accessState !== 'denied' && accessState !== 'unsupported' && (
-            <p>{emptyFontsText ?? 'No local fonts available.'}</p>
-          )}
+          {accessState !== 'prompt' &&
+            accessState !== 'denied' &&
+            accessState !== 'unsupported' && <p>{emptyFontsText ?? 'No local fonts available.'}</p>}
           {emptyFontsHint && <p className="mt-1">{emptyFontsHint}</p>}
           {accessState === 'prompt' && (
             <button
@@ -102,9 +97,7 @@ export function FontPickerRoot({
 
   return (
     <Popover.Root open={open} onOpenChange={setOpen}>
-      <Popover.Trigger asChild>
-        {renderedTrigger}
-      </Popover.Trigger>
+      <Popover.Trigger asChild>{renderedTrigger}</Popover.Trigger>
 
       <Popover.Portal>
         <Popover.Content
@@ -126,19 +119,19 @@ export function FontPickerRoot({
           />
 
           <div className={ui?.viewport ?? 'max-h-72 overflow-y-auto'}>
-            {filtered.length > 0 ? (
-              filtered.map((option) => (
-                <div
-                  key={option.family}
-                  onClick={() => select(option.family)}
-                  className={ui?.item}
-                  style={{ fontFamily: `'${option.family}', sans-serif` }}
-                  data-selected={option.family === modelValue ? '' : undefined}
-                >
-                  <span className="truncate">{option.family}</span>
-                </div>
-              ))
-            ) : renderEmptyState()}
+            {filtered.length > 0
+              ? filtered.map((option) => (
+                  <div
+                    key={option.family}
+                    onClick={() => select(option.family)}
+                    className={ui?.item}
+                    style={{ fontFamily: `'${option.family}', sans-serif` }}
+                    data-selected={option.family === modelValue ? '' : undefined}
+                  >
+                    <span className="truncate">{option.family}</span>
+                  </div>
+                ))
+              : renderEmptyState()}
           </div>
         </Popover.Content>
       </Popover.Portal>

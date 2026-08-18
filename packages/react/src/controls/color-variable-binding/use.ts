@@ -1,6 +1,6 @@
-import { randomHex } from '@openweave/core/random'
-
 import { useVariableBinding } from '#react/controls/variable-binding/use'
+
+import { randomHex } from '@openweave/core/random'
 
 const FALLBACK_COLOR_VARIABLE_NAME = 'New color'
 

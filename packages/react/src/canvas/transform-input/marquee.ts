@@ -1,6 +1,6 @@
-import type { Editor } from '@openweave/core/editor'
-
 import type { DragMarquee } from '#react/shared/input/types'
+
+import type { Editor } from '@openweave/core/editor'
 
 type CanvasToLocal = (cx: number, cy: number, scopeId: string) => { lx: number; ly: number }
 

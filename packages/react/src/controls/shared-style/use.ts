@@ -1,3 +1,6 @@
+import { useNodeProps } from '#react/controls/node-props/use'
+import { sharedStyleDetachPatch, sharedStylePatch } from '#react/controls/shared-style/model'
+import { useSceneComputed } from '#react/internal/scene-computed/use'
 import { useMemo } from 'react'
 
 import {
@@ -7,10 +10,6 @@ import {
   type SceneNode,
   type SharedStyleKind
 } from '@openweave/scene-graph'
-
-import { useNodeProps } from '#react/controls/node-props/use'
-import { sharedStyleDetachPatch, sharedStylePatch } from '#react/controls/shared-style/model'
-import { useSceneComputed } from '#react/internal/scene-computed/use'
 
 function supportsStyle(node: SceneNode, kind: SharedStyleKind): boolean {
   if (kind === 'text') return node.type === 'TEXT'

@@ -1,11 +1,11 @@
-import type { Editor } from '@openweave/core/editor'
-
 import { startPenInput } from '#react/canvas/pen-input/use'
 import { startShapeDraw, startTextDraw } from '#react/shared/input/draw'
 import { startPanDrag } from '#react/shared/input/pan'
 import { handleSelectDown } from '#react/shared/input/select'
 import type { HitTestFns } from '#react/shared/input/select'
 import type { DragState } from '#react/shared/input/types'
+
+import type { Editor } from '@openweave/core/editor'
 
 type ToolMouseDownOptions = {
   event: MouseEvent

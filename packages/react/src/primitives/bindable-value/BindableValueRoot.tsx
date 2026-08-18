@@ -1,6 +1,6 @@
+import type { BindingTarget } from '#react/controls/binding-provider/types'
 import React, { useState, useMemo, useEffect, useRef } from 'react'
 
-import type { BindingTarget } from '#react/controls/binding-provider/types'
 import { BindableValueProvider } from './context'
 import type {
   BindableValueActions,
@@ -33,7 +33,7 @@ export function BindableValueRoot<V = unknown>({
   // When provider.revision changes, a re-render should be triggered externally.
 
   const state = provider.getState(targets)
-  
+
   const variable = useMemo(() => {
     const target = targets[0]
     return state === 'bound' && target ? provider.getBound(target) : undefined
@@ -47,13 +47,16 @@ export function BindableValueRoot<V = unknown>({
     return provider.filterVariables(searchTerm)
   }, [searchTerm, provider])
 
-  const stateAttrs = useMemo<BindableValueStateAttrs>(() => ({
-    'data-unbound': state === 'unbound' ? '' : undefined,
-    'data-bound': state === 'bound' ? '' : undefined,
-    'data-mixed': state === 'mixed' ? '' : undefined,
-    'data-picker-open': open ? '' : undefined,
-    'data-policy': policy
-  }), [state, open, policy])
+  const stateAttrs = useMemo<BindableValueStateAttrs>(
+    () => ({
+      'data-unbound': state === 'unbound' ? '' : undefined,
+      'data-bound': state === 'bound' ? '' : undefined,
+      'data-mixed': state === 'mixed' ? '' : undefined,
+      'data-picker-open': open ? '' : undefined,
+      'data-policy': policy
+    }),
+    [state, open, policy]
+  )
 
   const interactionRef = useRef({
     active: false,
@@ -174,41 +177,57 @@ export function BindableValueRoot<V = unknown>({
     }
   }, [actions])
 
-  const slotProps = useMemo<BindableValueSlotProps<V>>(() => ({
-    state,
-    variable,
-    resolvedValue,
-    policy,
-    open,
-    searchTerm,
-    variables,
-    stateAttrs,
-    actions
-  }), [state, variable, resolvedValue, policy, open, searchTerm, variables, stateAttrs, actions])
+  const slotProps = useMemo<BindableValueSlotProps<V>>(
+    () => ({
+      state,
+      variable,
+      resolvedValue,
+      policy,
+      open,
+      searchTerm,
+      variables,
+      stateAttrs,
+      actions
+    }),
+    [state, variable, resolvedValue, policy, open, searchTerm, variables, stateAttrs, actions]
+  )
 
-  const contextValue = useMemo<BindableValueContext<V>>(() => ({
-    provider,
-    targets,
-    value,
-    state,
-    variable,
-    resolvedValue,
-    policy,
-    open,
-    searchTerm,
-    variables,
-    stateAttrs,
-    slotProps,
-    actions
-  }), [provider, targets, value, state, variable, resolvedValue, policy, open, searchTerm, variables, stateAttrs, slotProps, actions])
+  const contextValue = useMemo<BindableValueContext<V>>(
+    () => ({
+      provider,
+      targets,
+      value,
+      state,
+      variable,
+      resolvedValue,
+      policy,
+      open,
+      searchTerm,
+      variables,
+      stateAttrs,
+      slotProps,
+      actions
+    }),
+    [
+      provider,
+      targets,
+      value,
+      state,
+      variable,
+      resolvedValue,
+      policy,
+      open,
+      searchTerm,
+      variables,
+      stateAttrs,
+      slotProps,
+      actions
+    ]
+  )
 
   const renderedChildren = typeof children === 'function' ? children(slotProps) : children
 
-  return (
-    <BindableValueProvider value={contextValue}>
-      {renderedChildren}
-    </BindableValueProvider>
-  )
+  return <BindableValueProvider value={contextValue}>{renderedChildren}</BindableValueProvider>
 }
 
 export default BindableValueRoot

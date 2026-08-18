@@ -1,13 +1,8 @@
+import * as ContextMenu from '@radix-ui/react-context-menu'
+import { ChevronRight, Eye, EyeOff, Lock, Unlock } from 'lucide-react'
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { tv } from 'tailwind-variants'
-import * as ContextMenu from '@radix-ui/react-context-menu'
-import {
-  ChevronRight,
-  Eye,
-  EyeOff,
-  Lock,
-  Unlock
-} from 'lucide-react'
+
 import {
   LayerTreeRoot,
   LayerTreeItem,
@@ -15,9 +10,11 @@ import {
   useI18n,
   type LayerSelectionMode
 } from '@openweave/react'
+
 import { useEditorStore } from '@/app/editor/active-store'
 import { COMPONENT_TYPES, nodeIcon } from '@/app/editor/icons'
 import layerTreeTheme from '@/theme/layer-tree'
+
 import CanvasMenu from '../canvas/CanvasMenu'
 import Tip from '../ui/Tip'
 
@@ -34,9 +31,12 @@ export default function LayerTree() {
   const { menu } = useI18n()
   const pageInputRef = useRef<HTMLInputElement>(null)
 
-  const handleRenameCommit = useCallback((id: string, name: string) => {
-    store.renameNode(id, name)
-  }, [store])
+  const handleRenameCommit = useCallback(
+    (id: string, name: string) => {
+      store.renameNode(id, name)
+    },
+    [store]
+  )
 
   const rename = useInlineRename(handleRenameCommit)
 
@@ -119,24 +119,25 @@ export default function LayerTree() {
     }
   })
 
-  const scrollToIndex = useCallback((
-    index: number,
-    options?: { align?: 'auto' | 'center' | 'end' | 'start' }
-  ) => {
-    const scroller = scrollerRef.current
-    if (!scroller) return
-    const rowTop = index * rowHeight
-    const rowBottom = rowTop + rowHeight
-    const viewTop = scroller.scrollTop
-    const viewBottom = viewTop + scroller.clientHeight
-    const align = options?.align ?? 'auto'
+  const scrollToIndex = useCallback(
+    (index: number, options?: { align?: 'auto' | 'center' | 'end' | 'start' }) => {
+      const scroller = scrollerRef.current
+      if (!scroller) return
+      const rowTop = index * rowHeight
+      const rowBottom = rowTop + rowHeight
+      const viewTop = scroller.scrollTop
+      const viewBottom = viewTop + scroller.clientHeight
+      const align = options?.align ?? 'auto'
 
-    if (align === 'start') scroller.scrollTop = rowTop
-    else if (align === 'end') scroller.scrollTop = rowBottom - scroller.clientHeight
-    else if (align === 'center') scroller.scrollTop = rowTop - scroller.clientHeight / 2 + rowHeight / 2
-    else if (rowTop < viewTop) scroller.scrollTop = rowTop
-    else if (rowBottom > viewBottom) scroller.scrollTop = rowBottom - scroller.clientHeight
-  }, [rowHeight])
+      if (align === 'start') scroller.scrollTop = rowTop
+      else if (align === 'end') scroller.scrollTop = rowBottom - scroller.clientHeight
+      else if (align === 'center')
+        scroller.scrollTop = rowTop - scroller.clientHeight / 2 + rowHeight / 2
+      else if (rowTop < viewTop) scroller.scrollTop = rowTop
+      else if (rowBottom > viewBottom) scroller.scrollTop = rowBottom - scroller.clientHeight
+    },
+    [rowHeight]
+  )
 
   function onLayerContextMenu(_e: React.MouseEvent, nodeId: string) {
     if (!store.state.selectedIds.has(nodeId)) {
@@ -153,7 +154,16 @@ export default function LayerTree() {
 
   return (
     <LayerTreeRoot indentPerLevel={INDENT}>
-      {({ visibleRows, selectedIds, expanded, draggingId, instruction, instructionTargetId, focused, actions }) => {
+      {({
+        visibleRows,
+        selectedIds,
+        expanded,
+        draggingId,
+        instruction,
+        instructionTargetId,
+        focused,
+        actions
+      }) => {
         const styles = layerTree()
 
         // Register our windowing implementation so LayerTreeRoot's own
@@ -163,7 +173,10 @@ export default function LayerTree() {
 
         const rowCount = visibleRows.length
         const startIndex = Math.max(0, Math.floor(scrollTop / rowHeight) - OVERSCAN)
-        const endIndex = Math.min(rowCount, Math.ceil((scrollTop + viewportHeight) / rowHeight) + OVERSCAN)
+        const endIndex = Math.min(
+          rowCount,
+          Math.ceil((scrollTop + viewportHeight) / rowHeight) + OVERSCAN
+        )
         const topSpacer = startIndex * rowHeight
         const bottomSpacer = (rowCount - endIndex) * rowHeight
         const windowedRows = visibleRows.slice(startIndex, endIndex)
@@ -180,7 +193,9 @@ export default function LayerTree() {
           if (rowCount === 0) return
           e.preventDefault()
 
-          const currentIndex = activeId ? visibleRows.findIndex((row) => row.node.id === activeId) : -1
+          const currentIndex = activeId
+            ? visibleRows.findIndex((row) => row.node.id === activeId)
+            : -1
           let nextIndex = currentIndex
           if (e.key === 'Home') nextIndex = 0
           else if (e.key === 'End') nextIndex = rowCount - 1
@@ -243,7 +258,10 @@ export default function LayerTree() {
                   const dropIndicatorStyle: React.CSSProperties | undefined = dropPosition
                     ? dropPosition === 'child'
                       ? { left: `${level * INDENT}px`, right: '4px' }
-                      : { left: `${(level - 1) * INDENT}px`, width: `calc(100% - ${(level - 1) * INDENT}px)` }
+                      : {
+                          left: `${(level - 1) * INDENT}px`,
+                          width: `calc(100% - ${(level - 1) * INDENT}px)`
+                        }
                     : undefined
 
                   return (
@@ -333,7 +351,9 @@ export default function LayerTree() {
                                 {node.locked ? (
                                   <Lock className={rowStyles.actionIcon()} />
                                 ) : (
-                                  <Unlock className={`${rowStyles.actionIcon()} opacity-0 group-hover/row:opacity-50`} />
+                                  <Unlock
+                                    className={`${rowStyles.actionIcon()} opacity-0 group-hover/row:opacity-50`}
+                                  />
                                 )}
                               </button>
                             </Tip>
@@ -350,7 +370,9 @@ export default function LayerTree() {
                                 }}
                               >
                                 {node.visible ? (
-                                  <Eye className={`${rowStyles.actionIcon()} opacity-0 group-hover/row:opacity-50`} />
+                                  <Eye
+                                    className={`${rowStyles.actionIcon()} opacity-0 group-hover/row:opacity-50`}
+                                  />
                                 ) : (
                                   <EyeOff className={rowStyles.actionIcon()} />
                                 )}

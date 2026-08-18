@@ -1,8 +1,8 @@
 import React, { forwardRef } from 'react'
 
-import Tip from '@/components/ui/Tip'
 import { useBindingFieldUI } from '@/components/ui/binding/ui'
 import type { BindingFieldUI } from '@/components/ui/binding/ui'
+import Tip from '@/components/ui/Tip'
 
 export interface BindingPillProps extends React.HTMLAttributes<HTMLSpanElement> {
   label: string

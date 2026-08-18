@@ -1,11 +1,7 @@
 import { describe, expect, test } from 'bun:test'
 
 import { importNodeChanges } from '@openweave/core'
-import {
-  protectField,
-  syncNodeProps,
-  type ProtectionMap
-} from '@openweave/fig/instance-overrides'
+import { protectField, syncNodeProps, type ProtectionMap } from '@openweave/fig/instance-overrides'
 import type { NodeChange } from '@openweave/kiwi/fig/codec'
 import { SceneGraph } from '@openweave/scene-graph'
 import type { Fill, Stroke } from '@openweave/scene-graph'

@@ -1,10 +1,9 @@
-import { useMemo, useState } from 'react'
-
-import type { Variable, VariableType } from '@openweave/scene-graph'
-
 import { useEditor } from '#react/editor/context'
 import { useSceneComputed } from '#react/internal/scene-computed/use'
 import { createBaseFilter } from '#react/shared/filter'
+import { useMemo, useState } from 'react'
+
+import type { Variable, VariableType } from '@openweave/scene-graph'
 
 export type VariableBindingState = 'unbound' | 'bound' | 'mixed'
 

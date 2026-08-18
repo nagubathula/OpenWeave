@@ -1,11 +1,12 @@
+import * as ContextMenu from '@radix-ui/react-context-menu'
+import * as Popover from '@radix-ui/react-popover'
+import { Pencil as IconLucidePencilLine } from 'lucide-react'
 import React, { useMemo, useRef } from 'react'
+
 import {
   AUTO_LAYOUT_PADDING_EDITOR_OFFSET_X,
   AUTO_LAYOUT_PADDING_EDITOR_OFFSET_Y
 } from '@openweave/core/constants'
-import * as ContextMenu from '@radix-ui/react-context-menu'
-import * as Popover from '@radix-ui/react-popover'
-
 import {
   toolCursor,
   useCanvas,
@@ -14,12 +15,13 @@ import {
   useCanvasVirtualReference,
   useTextEdit
 } from '@openweave/react'
+
 import { useCollabInjected } from '@/app/collab/use'
 import { useEditorStore } from '@/app/editor/active-store'
 import { useCanvasCollaborationAwareness } from '@/app/editor/canvas/collaboration-awareness'
 import { createCanvasContextSelection } from '@/app/editor/canvas/context-selection'
-import { Pencil as IconLucidePencilLine } from 'lucide-react'
-import CanvasMenu from './canvas/CanvasMenu'
+
+import CanvasMenu from '../canvas/CanvasMenu'
 
 export default function EditorCanvas() {
   const store = useEditorStore()
@@ -34,7 +36,7 @@ export default function EditorCanvas() {
     layer: 'scene',
     showRulers: false
   })
-  
+
   const { hitTestSectionTitle, hitTestComponentLabel, hitTestFrameTitle } = useCanvas(
     canvasRef,
     store,
@@ -100,11 +102,9 @@ export default function EditorCanvas() {
             style={{ cursor }}
             className="absolute inset-0 block size-full touch-none outline-none"
           />
-          
+
           {isDraggingOver && (
-            <div
-              className="pointer-events-none absolute inset-0 z-40 border-2 border-dashed border-accent/60 bg-accent/5 transition-opacity duration-150"
-            />
+            <div className="pointer-events-none absolute inset-0 z-40 border-2 border-dashed border-accent/60 bg-accent/5 transition-opacity duration-150" />
           )}
 
           <Popover.Root open={!!autoLayoutPaddingEdit}>
@@ -158,12 +158,8 @@ export default function EditorCanvas() {
               className="absolute inset-0 z-50 flex items-center justify-center bg-canvas transition-opacity duration-300"
             >
               <IconLucidePencilLine className="size-8 text-surface opacity-45" />
-              <div
-                className="absolute bottom-1/2 left-1/2 h-0.5 w-25 -translate-x-1/2 translate-y-10 overflow-hidden rounded-full bg-surface/8"
-              >
-                <div
-                  className="h-full w-2/5 animate-[slide_1s_ease-in-out_infinite] rounded-full bg-surface/25"
-                />
+              <div className="absolute bottom-1/2 left-1/2 h-0.5 w-25 -translate-x-1/2 translate-y-10 overflow-hidden rounded-full bg-surface/8">
+                <div className="h-full w-2/5 animate-[slide_1s_ease-in-out_infinite] rounded-full bg-surface/25" />
               </div>
             </div>
           )}

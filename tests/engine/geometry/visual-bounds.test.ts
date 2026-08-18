@@ -1,10 +1,7 @@
 import { describe, test, expect } from 'bun:test'
 
 import type { Vector } from '@openweave/core'
-import {
-  computeDescendantVisualBounds,
-  computeVisualBounds
-} from '@openweave/scene-graph/geometry'
+import { computeDescendantVisualBounds, computeVisualBounds } from '@openweave/scene-graph/geometry'
 
 function commandsBlobFromPoints(points: Vector[]): Uint8Array {
   const blob = new Uint8Array(points.length * 9 + 1)

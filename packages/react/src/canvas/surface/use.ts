@@ -1,14 +1,13 @@
-import type { CanvasKit } from 'canvaskit-wasm'
-import { useMemo, useRef, type RefObject } from 'react'
-
-import type { Editor } from '@openweave/core/editor'
-
 import {
   createCanvasSurfaceManager,
   useCanvasSurfaceLifecycle
 } from '#react/canvas/surface/lifecycle'
 import { createCanvasHitTests, createRulerVisibility } from '#react/canvas/surface/overlays'
 import type { UseCanvasOptions } from '#react/canvas/surface/types'
+import type { CanvasKit } from 'canvaskit-wasm'
+import { useMemo, useRef, type RefObject } from 'react'
+
+import type { Editor } from '@openweave/core/editor'
 
 export type { UseCanvasOptions } from '#react/canvas/surface/types'
 
@@ -27,7 +26,11 @@ export function useCanvas(
   // Canvas surface code expects a .value accessor (Vue-style).
   // Wrap the React .current ref into a .value adapter.
   const canvasRefAdapter = useMemo(
-    () => ({ get value() { return canvasRef.current } }),
+    () => ({
+      get value() {
+        return canvasRef.current
+      }
+    }),
     [canvasRef]
   )
 

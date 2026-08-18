@@ -1,7 +1,5 @@
 import { afterEach, describe, expect, test, vi } from 'bun:test'
 
-
-
 import { spawnAcpProcess } from '@/app/ai/acp/process'
 import { checkForAppUpdate } from '@/app/shell/updater'
 

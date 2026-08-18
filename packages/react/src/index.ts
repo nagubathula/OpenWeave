@@ -39,7 +39,11 @@ export { EDITOR_COMMAND_METADATA, editorCommandMetadata } from '#react/editor/co
 export { formatShortcut, shortcutPlatform } from '#react/editor/commands/shortcut'
 export type { EditorCommandMetadata } from '#react/editor/commands/registry'
 export type { ShortcutPlatform } from '#react/editor/commands/shortcut'
-export type { EditorCommand, EditorCommandId, EditorCommandMenuEntry } from '#react/editor/commands/use'
+export type {
+  EditorCommand,
+  EditorCommandId,
+  EditorCommandMenuEntry
+} from '#react/editor/commands/use'
 export { useMenuModel } from '#react/editor/menu-model/use'
 export type { MenuActionNode, MenuEntry, MenuSeparatorNode } from '#react/editor/menu-model/use'
 

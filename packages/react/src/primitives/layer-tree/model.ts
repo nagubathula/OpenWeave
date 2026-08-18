@@ -1,6 +1,6 @@
-import type { SceneGraph, SceneNode } from '@openweave/scene-graph'
-
 import type { LayerNode, LayerRow, LayerSelectionMode } from '#react/primitives/layer-tree/context'
+
+import type { SceneGraph, SceneNode } from '@openweave/scene-graph'
 
 function nodeToLayerNode(node: SceneNode): LayerNode {
   return {

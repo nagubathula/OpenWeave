@@ -1,16 +1,16 @@
 import { describe, expect, test } from 'bun:test'
 
+import { applyResize } from '#react/shared/input/resize'
+import type { DragResize } from '#react/shared/input/types'
+
 import { createEditor } from '@openweave/core/editor'
+import { constraintPins, isConstraintEligible, toggleConstraintPin } from '@openweave/react'
 import type { ConstraintType } from '@openweave/scene-graph'
 import {
   collectResizeDescendants,
   constrainedChildRect,
   type ResizeSnapshot
 } from '@openweave/scene-graph/resize'
-import { constraintPins, isConstraintEligible, toggleConstraintPin } from '@openweave/react'
-
-import { applyResize } from '#react/shared/input/resize'
-import type { DragResize } from '#react/shared/input/types'
 
 import { createRect, firstPageId, makeSceneGraph } from '#tests/helpers/scene'
 

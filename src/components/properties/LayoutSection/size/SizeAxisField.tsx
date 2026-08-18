@@ -1,12 +1,13 @@
 import React from 'react'
-import { useI18n, useLayoutControlsContext } from '@openweave/react'
-import type { LayoutSizing } from '@openweave/scene-graph'
-import type { SizeLimitProp } from '@openweave/react'
 
-import Tip from '@/components/ui/Tip'
+import { useI18n, useLayoutControlsContext } from '@openweave/react'
+import type { SizeLimitProp } from '@openweave/react'
+import type { LayoutSizing } from '@openweave/scene-graph'
+
 import FieldSelectMenu from '@/components/properties/LayoutSection/FieldSelectMenu'
-import VariableNumberField from '@/components/properties/LayoutSection/VariableNumberField'
 import type { SizeAxisFieldProps } from '@/components/properties/LayoutSection/size/types'
+import VariableNumberField from '@/components/properties/LayoutSection/VariableNumberField'
+import Tip from '@/components/ui/Tip'
 
 type SizeSelectValue = LayoutSizing | `add-${SizeLimitProp}` | `remove-${SizeLimitProp}`
 
@@ -24,12 +25,28 @@ export default function SizeAxisField({ axis, icon, label }: SizeAxisFieldProps)
   const limitItems =
     axis === 'width'
       ? [
-          { prop: 'minWidth' as const, addLabel: panels.addMinWidth, removeLabel: panels.removeMinWidth },
-          { prop: 'maxWidth' as const, addLabel: panels.addMaxWidth, removeLabel: panels.removeMaxWidth }
+          {
+            prop: 'minWidth' as const,
+            addLabel: panels.addMinWidth,
+            removeLabel: panels.removeMinWidth
+          },
+          {
+            prop: 'maxWidth' as const,
+            addLabel: panels.addMaxWidth,
+            removeLabel: panels.removeMaxWidth
+          }
         ]
       : [
-          { prop: 'minHeight' as const, addLabel: panels.addMinHeight, removeLabel: panels.removeMinHeight },
-          { prop: 'maxHeight' as const, addLabel: panels.addMaxHeight, removeLabel: panels.removeMaxHeight }
+          {
+            prop: 'minHeight' as const,
+            addLabel: panels.addMinHeight,
+            removeLabel: panels.removeMinHeight
+          },
+          {
+            prop: 'maxHeight' as const,
+            addLabel: panels.addMaxHeight,
+            removeLabel: panels.removeMaxHeight
+          }
         ]
 
   function handleSelect(value: SizeSelectValue) {

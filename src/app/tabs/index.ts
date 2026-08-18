@@ -45,14 +45,12 @@ export const activeTab = computed([tabsAtom, activeTabId], (tabs, id) =>
   tabs.find((t) => t.id === id)
 )
 
-export const allTabs = computed(
-  [tabsAtom, activeTabId, tabNamesRevision],
-  (tabs, id) =>
-    tabs.map((t) => ({
-      id: t.id,
-      name: t.store.state.documentName,
-      isActive: t.id === id
-    }))
+export const allTabs = computed([tabsAtom, activeTabId, tabNamesRevision], (tabs, id) =>
+  tabs.map((t) => ({
+    id: t.id,
+    name: t.store.state.documentName,
+    isActive: t.id === id
+  }))
 )
 
 export function getActiveStore(): EditorStore {

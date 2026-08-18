@@ -1,4 +1,5 @@
 import { createContext, useContext } from 'react'
+
 import type { PropertySectionContext } from './types'
 
 const PropertySectionReactContext = createContext<PropertySectionContext | null>(null)

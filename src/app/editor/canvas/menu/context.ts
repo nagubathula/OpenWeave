@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 
-import { formatShortcut, type MenuEntry } from '@openweave/react'
 import type { Editor } from '@openweave/core/editor'
+import { formatShortcut, type MenuEntry } from '@openweave/react'
 
 import type { createCanvasMenuActions } from '@/app/editor/canvas/menu/actions'
 import {

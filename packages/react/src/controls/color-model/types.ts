@@ -1,7 +1,7 @@
-import type { ColorValue as RekaColor } from './convert'
-
 import type { OkHCLColor, RenderColorSpace } from '@openweave/core/color'
 import type { Color } from '@openweave/scene-graph/primitives'
+
+import type { ColorValue as RekaColor } from './convert'
 
 export type BuiltInColorFormat = 'hex' | 'rgb' | 'hsl' | 'hsb' | 'okhcl'
 export type ColorFieldFormat = BuiltInColorFormat | (string & {})

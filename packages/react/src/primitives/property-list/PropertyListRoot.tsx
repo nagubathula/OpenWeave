@@ -1,4 +1,5 @@
 import React, { useMemo, useCallback } from 'react'
+
 import { PropertyListProvider } from './context'
 import type {
   PropertyListActions,
@@ -79,11 +80,7 @@ export function PropertyListRoot<K extends PropertyListKey>({
 
   const renderedChildren = typeof children === 'function' ? children(slotProps) : children
 
-  return (
-    <PropertyListProvider value={contextValue}>
-      {renderedChildren}
-    </PropertyListProvider>
-  )
+  return <PropertyListProvider value={contextValue}>{renderedChildren}</PropertyListProvider>
 }
 
 export default PropertyListRoot

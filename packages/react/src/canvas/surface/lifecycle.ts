@@ -1,9 +1,3 @@
-import { useEffect } from 'react'
-import type { CanvasKit } from 'canvaskit-wasm'
-
-import { SkiaRenderer } from '@openweave/core/canvas'
-import type { Editor } from '@openweave/core/editor'
-
 import {
   isCanvasContextLost,
   makeGLSurface,
@@ -14,6 +8,11 @@ import { useCanvasKitLoader } from '#react/canvas/surface/kit-loader'
 import { createCanvasRenderLoop } from '#react/canvas/surface/render-loop'
 import { useCanvasResizeObserver } from '#react/canvas/surface/resize-observer'
 import type { UseCanvasOptions } from '#react/canvas/surface/types'
+import type { CanvasKit } from 'canvaskit-wasm'
+import { useEffect } from 'react'
+
+import { SkiaRenderer } from '@openweave/core/canvas'
+import type { Editor } from '@openweave/core/editor'
 
 type SurfaceManagerState = {
   renderer: SkiaRenderer | null
@@ -218,6 +217,6 @@ export function useCanvasSurfaceLifecycle({
       cancelResize()
       surface.destroy()
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 }

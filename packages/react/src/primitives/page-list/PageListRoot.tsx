@@ -1,6 +1,8 @@
 import React, { useMemo, useCallback } from 'react'
-import { usePageList } from './usePageList'
+
 import type { SceneNode } from '@openweave/scene-graph'
+
+import { usePageList } from './usePageList'
 
 export interface PageListRootSlotProps {
   pages: SceneNode[]
@@ -39,49 +41,70 @@ export function PageListRoot({
 
   const dividerPattern = customDividerPattern ?? /^[-=*\s]+$/
 
-  const isDivider = useCallback((page: { name: string; childIds: string[] }) => {
-    return page.childIds.length === 0 && dividerPattern.test(page.name)
-  }, [dividerPattern])
+  const isDivider = useCallback(
+    (page: { name: string; childIds: string[] }) => {
+      return page.childIds.length === 0 && dividerPattern.test(page.name)
+    },
+    [dividerPattern]
+  )
 
   const handleAdd = useCallback(() => {
     addPage()
     onAdd?.()
   }, [addPage, onAdd])
 
-  const handleSwitch = useCallback((pageId: string) => {
-    switchPage(pageId)
-    onSwitch?.(pageId)
-  }, [switchPage, onSwitch])
+  const handleSwitch = useCallback(
+    (pageId: string) => {
+      switchPage(pageId)
+      onSwitch?.(pageId)
+    },
+    [switchPage, onSwitch]
+  )
 
-  const handleRename = useCallback((pageId: string, name: string) => {
-    renamePage(pageId, name)
-    onRename?.(pageId, name)
-  }, [renamePage, onRename])
+  const handleRename = useCallback(
+    (pageId: string, name: string) => {
+      renamePage(pageId, name)
+      onRename?.(pageId, name)
+    },
+    [renamePage, onRename]
+  )
 
-  const handleDelete = useCallback((pageId: string) => {
-    deletePage(pageId)
-    onDelete?.(pageId)
-  }, [deletePage, onDelete])
+  const handleDelete = useCallback(
+    (pageId: string) => {
+      deletePage(pageId)
+      onDelete?.(pageId)
+    },
+    [deletePage, onDelete]
+  )
 
-  const handleMove = useCallback((pageId: string, index: number) => {
-    movePage(pageId, index)
-    onMove?.(pageId, index)
-  }, [movePage, onMove])
+  const handleMove = useCallback(
+    (pageId: string, index: number) => {
+      movePage(pageId, index)
+      onMove?.(pageId, index)
+    },
+    [movePage, onMove]
+  )
 
-  const actions = useMemo(() => ({
-    add: handleAdd,
-    switch: handleSwitch,
-    rename: handleRename,
-    delete: handleDelete,
-    move: handleMove
-  }), [handleAdd, handleSwitch, handleRename, handleDelete, handleMove])
+  const actions = useMemo(
+    () => ({
+      add: handleAdd,
+      switch: handleSwitch,
+      rename: handleRename,
+      delete: handleDelete,
+      move: handleMove
+    }),
+    [handleAdd, handleSwitch, handleRename, handleDelete, handleMove]
+  )
 
-  const renderedChildren = typeof children === 'function' ? children({
-    pages,
-    currentPageId,
-    isDivider,
-    actions
-  }) : children
+  const renderedChildren =
+    typeof children === 'function'
+      ? children({
+          pages,
+          currentPageId,
+          isDivider,
+          actions
+        })
+      : children
 
   return <>{renderedChildren}</>
 }

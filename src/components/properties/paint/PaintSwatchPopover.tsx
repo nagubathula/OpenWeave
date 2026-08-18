@@ -1,10 +1,11 @@
-import React from 'react'
 import * as Popover from '@radix-ui/react-popover'
+import React from 'react'
+
 import { colorToCSS } from '@openweave/core/color'
 import type { Color } from '@openweave/scene-graph/primitives'
 
-import ColorPicker from '@/components/color-picker/ColorPicker'
 import type { OkHCLFieldControls } from '@/components/color-picker-panel/context'
+import ColorPicker from '@/components/color-picker/ColorPicker'
 
 export interface PaintSwatchPopoverProps {
   color: Color

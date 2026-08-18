@@ -5,7 +5,7 @@ description: Dokumentacja referencyjna komponentów, kompozytów i zaawansowanyc
 
 # Dokumentacja API
 
-Dokumentacja Vue SDK jest zorganizowana w trzy sekcje.
+Dokumentacja React SDK jest zorganizowana w trzy sekcje.
 
 <SdkCardGroup>
   <SdkCard title="Komponenty" to="/programmable/sdk/api/components/" description="Bezstanowe prymitywy strukturalne jak CanvasRoot, ToolbarRoot, FontPickerRoot i NumberFieldRoot." />

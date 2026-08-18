@@ -1,10 +1,6 @@
 import { describe, expect, test } from 'bun:test'
 
-import {
-  cjkLocalFallbackFamilies,
-  fontFallbackEntry,
-  fontFallbackManifest
-} from '@openweave/core'
+import { cjkLocalFallbackFamilies, fontFallbackEntry, fontFallbackManifest } from '@openweave/core'
 
 describe('font fallback manifest', () => {
   test('selects platform CJK local candidates', () => {

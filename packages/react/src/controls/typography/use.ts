@@ -1,9 +1,6 @@
-import {
-  TYPOGRAPHY_WEIGHTS,
-  useTypographyActions,
-  useTypographyState
-} from './actions'
 import { useEditor } from '#react/editor/context'
+
+import { TYPOGRAPHY_WEIGHTS, useTypographyActions, useTypographyState } from './actions'
 
 /**
  * Options for {@link useTypography}.

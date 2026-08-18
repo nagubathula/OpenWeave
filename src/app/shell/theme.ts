@@ -17,7 +17,9 @@ export const theme = persistentAtom<AppTheme>(THEME_STORAGE_KEY, DEFAULT_THEME, 
   decode: (raw) => (raw === 'light' || raw === 'auto' ? raw : 'dark')
 })
 
-const prefersDark = atom(IS_BROWSER ? window.matchMedia('(prefers-color-scheme: dark)').matches : true)
+const prefersDark = atom(
+  IS_BROWSER ? window.matchMedia('(prefers-color-scheme: dark)').matches : true
+)
 if (IS_BROWSER) {
   window
     .matchMedia('(prefers-color-scheme: dark)')
@@ -76,4 +78,8 @@ export function toggleTheme(): void {
 
 export function useAppTheme() {
   return { theme, resolvedTheme, isLight, setTheme, toggleTheme }
+}
+
+if (IS_BROWSER) {
+  ;(window as any).__setAppTheme = (t: AppTheme) => theme.set(t)
 }

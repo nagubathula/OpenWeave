@@ -1,12 +1,13 @@
 import React from 'react'
 import { tv } from 'tailwind-variants'
+
 import { ConstraintsControlRoot, MIXED, constraintPins, useI18n } from '@openweave/react'
 import type { ConstraintAxis, ConstraintEdge } from '@openweave/react'
 import type { ConstraintType } from '@openweave/scene-graph'
 
-import Tip from '@/components/ui/Tip'
 import { AppSelect } from '@/components/ui/AppSelect'
 import { PanelFieldGroup, PanelSection } from '@/components/ui/panel'
+import Tip from '@/components/ui/Tip'
 import constraintsTheme from '@/theme/constraints'
 
 type PinPosition = keyof (typeof constraintsTheme)['variants']['pinPosition']
@@ -24,7 +25,11 @@ type PinItem = {
 const constraintStyles = tv(constraintsTheme)
 const baseStyles = constraintStyles()
 
-function optionsWithMixed(options: SelectOption[], mixed: boolean, mixedLabel: string): SelectOption[] {
+function optionsWithMixed(
+  options: SelectOption[],
+  mixed: boolean,
+  mixedLabel: string
+): SelectOption[] {
   return mixed ? [{ value: 'MIXED', label: mixedLabel }, ...options] : options
 }
 
@@ -112,7 +117,10 @@ export function ConstraintsSection() {
                 className={diagramStyles.diagram()}
               >
                 {pins.map((pin) => {
-                  const pinStyles = constraintStyles({ active: pin.active, pinPosition: pin.position })
+                  const pinStyles = constraintStyles({
+                    active: pin.active,
+                    pinPosition: pin.position
+                  })
                   return (
                     <Tip key={pin.position} label={pin.label}>
                       <button
@@ -146,7 +154,11 @@ export function ConstraintsSection() {
                   <AppSelect
                     value={horizontal === MIXED ? 'MIXED' : horizontal}
                     label={panels.horizontalConstraint}
-                    options={optionsWithMixed(horizontalOptions, horizontal === MIXED, panels.mixed)}
+                    options={optionsWithMixed(
+                      horizontalOptions,
+                      horizontal === MIXED,
+                      panels.mixed
+                    )}
                     onValueChange={(value: ConstraintSelectValue) => {
                       if (value !== 'MIXED') actions.setHorizontal(value)
                     }}

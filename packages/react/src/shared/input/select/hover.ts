@@ -1,6 +1,3 @@
-import type { Editor } from '@openweave/core/editor'
-import { getAbsoluteRotation } from '@openweave/scene-graph/coordinate'
-
 import {
   buildResizeCursor,
   cornerRotationCursor,
@@ -9,6 +6,9 @@ import {
 } from '#react/shared/input/geometry'
 import { getNodeEditState } from '#react/shared/input/node-edit'
 import type { HitTestFns } from '#react/shared/input/select'
+
+import type { Editor } from '@openweave/core/editor'
+import { getAbsoluteRotation } from '@openweave/scene-graph/coordinate'
 
 function getResizeCursorForSelection(cx: number, cy: number, editor: Editor): string | null {
   for (const id of editor.state.selectedIds) {

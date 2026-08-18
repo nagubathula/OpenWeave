@@ -1,10 +1,12 @@
 import React from 'react'
+
 import { useI18n, useEditor, useSelectionState } from '@openweave/react'
 import type { MaskType } from '@openweave/scene-graph'
 
 import PanelSection from '@/components/ui/panel/PanelSection'
 
-const inputClass = 'w-full bg-input/50 rounded px-2 py-1 border border-border text-surface text-xs outline-none focus:border-accent'
+const inputClass =
+  'w-full bg-input/50 rounded px-2 py-1 border border-border text-surface text-xs outline-none focus:border-accent'
 
 export default function MaskSection() {
   const { panels } = useI18n()

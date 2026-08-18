@@ -1,4 +1,5 @@
 import { createContext, useContext, type RefObject } from 'react'
+
 import type { SceneNode } from '@openweave/scene-graph'
 
 export interface CanvasContext {

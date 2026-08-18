@@ -1,5 +1,3 @@
-import React from 'react'
-import { useLayoutControlsContext } from '@openweave/react'
 import {
   PanelBottom,
   PanelLeft,
@@ -8,10 +6,13 @@ import {
   SeparatorHorizontal,
   SeparatorVertical
 } from 'lucide-react'
+import React from 'react'
 
-import PanelGrid from '@/components/ui/panel/PanelGrid'
-import VariableNumberField from '@/components/properties/LayoutSection/VariableNumberField'
+import { useLayoutControlsContext } from '@openweave/react'
+
 import type { PaddingProp } from '@/components/properties/LayoutSection/types'
+import VariableNumberField from '@/components/properties/LayoutSection/VariableNumberField'
+import PanelGrid from '@/components/ui/panel/PanelGrid'
 
 const PADDING_SIDES: { prop: PaddingProp; icon: React.ReactNode }[] = [
   { prop: 'paddingTop', icon: <PanelTop className="size-3.5" /> },

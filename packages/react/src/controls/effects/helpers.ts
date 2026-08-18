@@ -79,7 +79,10 @@ export function createEffectEditActions(
   return { scrubEffect, commitEffect }
 }
 
-export function createEffectControlActions(expandedIndexState: { value: number | null; setValue: (v: number | null) => void }) {
+export function createEffectControlActions(expandedIndexState: {
+  value: number | null
+  setValue: (v: number | null) => void
+}) {
   function updateType(
     patch: (index: number, changes: Partial<Effect>) => void,
     node: SceneNode | null,
@@ -108,7 +111,8 @@ export function createEffectControlActions(expandedIndexState: { value: number |
 
   function adjustExpandedAfterRemove(index: number) {
     if (expandedIndexState.value === index) expandedIndexState.setValue(null)
-    else if (expandedIndexState.value !== null && expandedIndexState.value > index) expandedIndexState.setValue(expandedIndexState.value - 1)
+    else if (expandedIndexState.value !== null && expandedIndexState.value > index)
+      expandedIndexState.setValue(expandedIndexState.value - 1)
   }
 
   function handleRemove(removeFn: (index: number) => void, index: number) {

@@ -1,10 +1,10 @@
 import { describe, expect, test } from 'bun:test'
 
+import { sharedStyleDetachPatch, sharedStylePatch } from '#react/controls/shared-style/model'
+
 import { createEditor } from '@openweave/core/editor'
 import { effectiveFigmaRawNodeFields } from '@openweave/fig'
 import { getSharedStyles, type Effect, type Fill, type SceneNode } from '@openweave/scene-graph'
-
-import { sharedStyleDetachPatch, sharedStylePatch } from '#react/controls/shared-style/model'
 
 import { firstPageId, makeSceneGraph } from '#tests/helpers/scene'
 

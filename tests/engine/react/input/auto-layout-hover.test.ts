@@ -1,9 +1,9 @@
 import { describe, expect, test } from 'bun:test'
 
+import { resolveAutoLayoutHover } from '#react/shared/input/auto-layout-hover'
+
 import type { Editor } from '@openweave/core/editor'
 import type { SceneNode } from '@openweave/scene-graph'
-
-import { resolveAutoLayoutHover } from '#react/shared/input/auto-layout-hover'
 
 function frame(overrides: Partial<SceneNode> = {}): SceneNode {
   return {

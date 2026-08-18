@@ -1,9 +1,10 @@
+import { MIXED, type MixedValue } from '#react/controls/node-props/use'
 import { useMemo, useRef, useCallback } from 'react'
+
 import type { Editor } from '@openweave/core/editor'
 import type { BlendMode, SceneNode } from '@openweave/scene-graph'
 
 import type { CornerGeometryKey } from './types'
-import { MIXED, type MixedValue } from '#react/controls/node-props/use'
 
 const CORNER_RADIUS_TYPES = new Set([
   'RECTANGLE',
@@ -89,18 +90,21 @@ export function useAppearanceState({ node, nodes, isMulti, merged }: AppearanceS
 export function useAppearanceActions({ editor, node, nodes, isMulti }: AppearanceActionOptions) {
   const previousCornerValuesRef = useRef(new Map<CornerGeometryKey, Map<string, number>>())
 
-  const setBlendMode = useCallback((value: BlendMode) => {
-    const targets = isMulti ? [...nodes] : []
-    if (!isMulti && node) targets.push(node)
-    const changed = targets.filter((target) => target.blendMode !== value)
-    if (changed.length === 0) return
+  const setBlendMode = useCallback(
+    (value: BlendMode) => {
+      const targets = isMulti ? [...nodes] : []
+      if (!isMulti && node) targets.push(node)
+      const changed = targets.filter((target) => target.blendMode !== value)
+      if (changed.length === 0) return
 
-    editor.undo.runBatch('Change blend mode', () => {
-      for (const target of changed) {
-        editor.updateNodeWithUndo(target.id, { blendMode: value }, 'Change blend mode')
-      }
-    })
-  }, [isMulti, nodes, node, editor])
+      editor.undo.runBatch('Change blend mode', () => {
+        for (const target of changed) {
+          editor.updateNodeWithUndo(target.id, { blendMode: value }, 'Change blend mode')
+        }
+      })
+    },
+    [isMulti, nodes, node, editor]
+  )
 
   const toggleVisibility = useCallback(() => {
     if (isMulti) {
@@ -173,35 +177,41 @@ export function useAppearanceActions({ editor, node, nodes, isMulti }: Appearanc
     return node ? [node] : []
   }, [isMulti, nodes, node])
 
-  const updateCornerProp = useCallback((key: CornerGeometryKey, value: number) => {
-    let snapshots = previousCornerValuesRef.current.get(key)
-    if (!snapshots) {
-      snapshots = new Map()
-      previousCornerValuesRef.current.set(key, snapshots)
-    }
-    const normalized = key === 'cornerSmoothing' ? Math.max(0, Math.min(value, 1)) : value
-    for (const target of cornerTargets()) {
-      if (!snapshots.has(target.id)) snapshots.set(target.id, target[key])
-      editor.updateNode(target.id, { [key]: normalized })
-    }
-  }, [cornerTargets, editor])
-
-  const commitCornerProp = useCallback((key: CornerGeometryKey, _value: number, previous: number) => {
-    const targets = cornerTargets()
-    const snapshots = previousCornerValuesRef.current.get(key)
-    const commit = () => {
-      for (const target of targets) {
-        editor.commitNodeUpdate(
-          target.id,
-          { [key]: snapshots?.get(target.id) ?? previous } as Partial<SceneNode>,
-          `Change ${key}`
-        )
+  const updateCornerProp = useCallback(
+    (key: CornerGeometryKey, value: number) => {
+      let snapshots = previousCornerValuesRef.current.get(key)
+      if (!snapshots) {
+        snapshots = new Map()
+        previousCornerValuesRef.current.set(key, snapshots)
       }
-    }
-    if (targets.length > 1) editor.undo.runBatch(`Change ${key}`, commit)
-    else commit()
-    previousCornerValuesRef.current.delete(key)
-  }, [cornerTargets, editor])
+      const normalized = key === 'cornerSmoothing' ? Math.max(0, Math.min(value, 1)) : value
+      for (const target of cornerTargets()) {
+        if (!snapshots.has(target.id)) snapshots.set(target.id, target[key])
+        editor.updateNode(target.id, { [key]: normalized })
+      }
+    },
+    [cornerTargets, editor]
+  )
+
+  const commitCornerProp = useCallback(
+    (key: CornerGeometryKey, _value: number, previous: number) => {
+      const targets = cornerTargets()
+      const snapshots = previousCornerValuesRef.current.get(key)
+      const commit = () => {
+        for (const target of targets) {
+          editor.commitNodeUpdate(
+            target.id,
+            { [key]: snapshots?.get(target.id) ?? previous } as Partial<SceneNode>,
+            `Change ${key}`
+          )
+        }
+      }
+      if (targets.length > 1) editor.undo.runBatch(`Change ${key}`, commit)
+      else commit()
+      previousCornerValuesRef.current.delete(key)
+    },
+    [cornerTargets, editor]
+  )
 
   return {
     setBlendMode,

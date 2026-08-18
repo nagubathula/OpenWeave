@@ -11,7 +11,7 @@ export interface PropertySectionRootProps {
   disabled?: boolean
   /** Keep collapsed content mounted in the DOM. @default false */
   unmountOnHide?: boolean
-  
+
   onOpenChange?: (open: boolean) => void
 
   asChild?: boolean

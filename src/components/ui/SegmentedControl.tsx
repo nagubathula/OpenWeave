@@ -1,9 +1,10 @@
 import React from 'react'
 import { tv } from 'tailwind-variants'
+
 import { SegmentedControlRoot, SegmentedControlItem } from '@openweave/react'
 
-import theme from '@/theme/segmented-control'
 import Tip from '@/components/ui/Tip'
+import theme from '@/theme/segmented-control'
 
 export interface SegmentedControlOption {
   value: string

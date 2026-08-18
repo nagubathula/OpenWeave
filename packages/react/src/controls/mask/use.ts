@@ -1,7 +1,7 @@
-import type { MaskType } from '@openweave/scene-graph'
-
 import { useEditor } from '#react/editor/context'
 import { useSelectionState } from '#react/editor/selection-state/use'
+
+import type { MaskType } from '@openweave/scene-graph'
 
 /** Headless state and actions for the selected mask node. */
 export function useMask() {

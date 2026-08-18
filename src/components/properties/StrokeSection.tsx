@@ -1,4 +1,8 @@
+import { Plus, Eye, EyeOff, Minus, AlignCenter, AlignLeft, AlignRight } from 'lucide-react'
 import React from 'react'
+
+import { colorToHexRaw } from '@openweave/core/color'
+import { BLACK } from '@openweave/core/constants'
 import {
   BindableValueRoot,
   useColorBindingProvider,
@@ -8,29 +12,34 @@ import {
   useOkHCL,
   useStrokeControls
 } from '@openweave/react'
-import { BLACK } from '@openweave/core/constants'
-import { colorToHexRaw } from '@openweave/core/color'
 import type { SceneNode, Stroke, StrokeCap, StrokeJoin } from '@openweave/scene-graph'
-import { Plus, Eye, EyeOff, Minus, AlignCenter, AlignLeft, AlignRight } from 'lucide-react'
 
-import PanelSection from '@/components/ui/panel/PanelSection'
-import IconButton from '@/components/ui/IconButton'
 import NumberField from '@/components/inputs/NumberField'
-import SegmentedControl from '@/components/ui/SegmentedControl'
-import { BindingPill } from '@/components/ui/binding'
-import PaintSwatchPopover from '@/components/properties/paint/PaintSwatchPopover'
+import VariableBindingPicker from '@/components/properties/binding/VariableBindingPicker'
+import { commitDiscretePropertyListChange } from '@/components/properties/blend-mode/use'
 import { paintBindingTargets, usePaintMutation } from '@/components/properties/paint/binding'
 import { createStrokeOkhclAdapter } from '@/components/properties/paint/okhcl'
-import { commitDiscretePropertyListChange } from '@/components/properties/blend-mode/use'
+import PaintSwatchPopover from '@/components/properties/paint/PaintSwatchPopover'
 import SharedStyleField from '@/components/properties/shared-style/SharedStyleField'
-import VariableBindingPicker from '@/components/properties/binding/VariableBindingPicker'
+import { BindingPill } from '@/components/ui/binding'
+import IconButton from '@/components/ui/IconButton'
+import PanelSection from '@/components/ui/panel/PanelSection'
+import SegmentedControl from '@/components/ui/SegmentedControl'
 
-const inputClass = 'w-full bg-input/50 rounded px-2 py-1 border border-border text-surface text-xs outline-none focus:border-accent'
+const inputClass =
+  'w-full bg-input/50 rounded px-2 py-1 border border-border text-surface text-xs outline-none focus:border-accent'
 
 export default function StrokeSection() {
   const editor = useEditor()
-  const { items: strokes, isMixed, active, activeNode: propertyNode, selectedNodeIds, flush, actions } =
-    useEditorPropertyList('strokes')
+  const {
+    items: strokes,
+    isMixed,
+    active,
+    activeNode: propertyNode,
+    selectedNodeIds,
+    flush,
+    actions
+  } = useEditorPropertyList('strokes')
   const strokeCtx = useStrokeControls()
   const colorProvider = useColorBindingProvider()
   const paint = usePaintMutation()
@@ -94,7 +103,12 @@ export default function StrokeSection() {
         {isMixed && <p className="text-[11px] text-muted">{panels.mixedStrokesHelp}</p>}
 
         {strokes.map((stroke, i) => (
-          <div key={i} className="flex flex-col gap-2 relative group pb-2 border-b border-border/50 last:border-0 last:pb-0" data-property="strokes" data-index={i}>
+          <div
+            key={i}
+            className="flex flex-col gap-2 relative group pb-2 border-b border-border/50 last:border-0 last:pb-0"
+            data-property="strokes"
+            data-index={i}
+          >
             <div className="flex items-center gap-1.5">
               <BindableValueRoot
                 provider={colorProvider}
@@ -203,8 +217,16 @@ export default function StrokeSection() {
                   }
                   options={[
                     { value: 'INSIDE', label: 'Inside', icon: <AlignLeft className="size-3.5" /> },
-                    { value: 'CENTER', label: 'Center', icon: <AlignCenter className="size-3.5" /> },
-                    { value: 'OUTSIDE', label: 'Outside', icon: <AlignRight className="size-3.5" /> }
+                    {
+                      value: 'CENTER',
+                      label: 'Center',
+                      icon: <AlignCenter className="size-3.5" />
+                    },
+                    {
+                      value: 'OUTSIDE',
+                      label: 'Outside',
+                      icon: <AlignRight className="size-3.5" />
+                    }
                   ]}
                 />
               </div>
@@ -271,9 +293,7 @@ export default function StrokeSection() {
               </div>
               <IconButton
                 label={panels.strokeSides}
-                onClick={() =>
-                  strokeCtx.selectSide(sidesExpanded ? 'ALL' : 'CUSTOM', node)
-                }
+                onClick={() => strokeCtx.selectSide(sidesExpanded ? 'ALL' : 'CUSTOM', node)}
                 className={sidesExpanded ? 'opacity-100' : ''}
                 data-property="stroke-sides"
               >
@@ -308,7 +328,10 @@ export default function StrokeSection() {
                 data-property="stroke-dash"
                 onChange={(e) => {
                   const val = e.target.value
-                  const dashes = val.split(/[, ]+/).map(Number).filter(n => !isNaN(n))
+                  const dashes = val
+                    .split(/[, ]+/)
+                    .map(Number)
+                    .filter((n) => !isNaN(n))
                   updateNodeLevel({ dashPattern: dashes }, 'Change dash pattern')
                 }}
               />

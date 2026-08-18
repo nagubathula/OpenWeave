@@ -21,12 +21,12 @@ export const UNIT_TEST_GROUPS = {
     'tests/engine/scene-graph',
     'tests/engine/text'
   ],
-  vue: [
+  react: [
     'tests/engine/mcp',
     'tests/engine/profiler',
     'tests/engine/tools',
     'tests/engine/vector',
-    'tests/engine/vue'
+    'tests/engine/react'
   ]
 } as const
 

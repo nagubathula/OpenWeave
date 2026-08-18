@@ -1,8 +1,7 @@
-import { createI18n } from '@nanostores/i18n'
-import type { ComponentsJSON } from '@nanostores/i18n'
-
 import { locale } from '#react/i18n/locale'
 import type { Locale, TranslatedLocale } from '#react/i18n/locale'
+import { createI18n } from '@nanostores/i18n'
+import type { ComponentsJSON } from '@nanostores/i18n'
 
 const localeLoaders = {
   de: () => import('#react/i18n/locales/de'),

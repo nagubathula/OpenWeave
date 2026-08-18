@@ -5,7 +5,7 @@ description: Reference documentation for @openweave/react components, composable
 
 # API Reference
 
-The Vue SDK reference is organized into three sections.
+The React SDK reference is organized into three sections.
 
 <SdkCardGroup>
   <SdkCard title="Components" to="/programmable/sdk/api/components/" description="Headless structural primitives like CanvasRoot, ToolbarRoot, FontPickerRoot, and NumberFieldRoot." />

@@ -2,12 +2,12 @@ import { getNodeEditState, handleNodeEditDown } from '#react/shared/input/node-e
 export { resolveHit } from '#react/shared/input/select/hit'
 import { resolveHit } from '#react/shared/input/select/hit'
 export { updateHoverCursor } from '#react/shared/input/select/hover'
-import type { Editor } from '@openweave/core/editor'
-import type { SceneNode } from '@openweave/scene-graph'
-
 import { tryStartResize } from '#react/shared/input/resize'
 import { createSelectionMoveDrag, selectionIsLocked } from '#react/shared/input/select/move'
 import type { DragState } from '#react/shared/input/types'
+
+import type { Editor } from '@openweave/core/editor'
+import type { SceneNode } from '@openweave/scene-graph'
 
 export interface HitTestFns {
   hitTestInScope: (cx: number, cy: number, deep: boolean) => SceneNode | null

@@ -1,8 +1,7 @@
+import { useSceneComputed } from '#react/internal/scene-computed/use'
 import { useEffect, type RefObject } from 'react'
 
 import type { Editor } from '@openweave/core/editor'
-
-import { useSceneComputed } from '#react/internal/scene-computed/use'
 
 export function createHiddenTextArea() {
   const textarea = document.createElement('textarea')
@@ -80,9 +79,9 @@ export function useTextEditingSession({
       textareaRef.current = null
       resetComposition()
     }
-  // Handlers close over stable references (`store`, `textareaRef`) and always
-  // read live state, so a fresh closure snapshot taken once per edit-session
-  // is equivalent to any other — only `editingTextId` should retrigger this.
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // Handlers close over stable references (`store`, `textareaRef`) and always
+    // read live state, so a fresh closure snapshot taken once per edit-session
+    // is equivalent to any other — only `editingTextId` should retrigger this.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editingTextId])
 }

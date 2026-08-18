@@ -1,5 +1,5 @@
-import type { BlendMode } from '@openweave/scene-graph'
 import { useI18n } from '@openweave/react'
+import type { BlendMode } from '@openweave/scene-graph'
 
 export function commitDiscretePropertyListChange(flush: () => void, update: () => void): void {
   update()

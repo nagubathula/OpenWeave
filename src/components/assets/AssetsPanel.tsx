@@ -1,23 +1,24 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react'
 import * as ContextMenu from '@radix-ui/react-context-menu'
 import { BookOpen, LayoutGrid, List, Loader2, Plus, Component as ComponentIcon } from 'lucide-react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
+
 import { useI18n } from '@openweave/react'
+import { useSceneComputed } from '@openweave/react'
 import type { SceneNode } from '@openweave/scene-graph'
 
 import { useEditorStore } from '@/app/editor/active-store'
-import { useSceneComputed } from '@openweave/react'
 import { nodeIcon } from '@/app/editor/icons'
-import { findAssetPage } from '@/components/assets/page'
 import { openExternalLink } from '@/app/shell/ui'
-import { AppDialogRoot, AppDialogHeader } from '@/components/ui/dialog'
+import { findAssetPage } from '@/components/assets/page'
 import { useButtonUI } from '@/components/ui/button'
+import { AppDialogRoot, AppDialogHeader } from '@/components/ui/dialog'
 import { useMenuUI } from '@/components/ui/menu'
+import Tip from '@/components/ui/Tip'
 import {
   ASSET_GRID_THUMBNAIL_SIZE,
   ASSET_LIST_THUMBNAIL_SIZE,
   ASSET_THUMBNAIL_RENDER_SCALE
 } from '@/constants'
-import Tip from '@/components/ui/Tip'
 
 type AssetView = 'grid' | 'list'
 
@@ -71,7 +72,9 @@ function AssetThumbnail({ nodeId, alt, size }: { nodeId: string; alt: string; si
         if (!active) return
         const previousUrl = currentUrlRef.current
         if (data) {
-          const objectUrl = URL.createObjectURL(new Blob([new Uint8Array(data)], { type: 'image/png' }))
+          const objectUrl = URL.createObjectURL(
+            new Blob([new Uint8Array(data)], { type: 'image/png' })
+          )
           currentUrlRef.current = objectUrl
           setUrl(objectUrl)
         } else {
@@ -105,7 +108,12 @@ function AssetThumbnail({ nodeId, alt, size }: { nodeId: string; alt: string; si
       }`}
     >
       {url ? (
-        <img src={url} alt={alt} className="max-h-full max-w-full object-contain" draggable={false} />
+        <img
+          src={url}
+          alt={alt}
+          className="max-h-full max-w-full object-contain"
+          draggable={false}
+        />
       ) : (
         <ComponentIcon className="size-4 text-component" aria-hidden="true" />
       )}
@@ -147,9 +155,7 @@ export default function AssetsPanel() {
       })
       .map((node) => {
         const defaultVariant =
-          node.type === 'COMPONENT_SET'
-            ? editor.getDefaultVariantForComponentSet(node.id)
-            : node
+          node.type === 'COMPONENT_SET' ? editor.getDefaultVariantForComponentSet(node.id) : node
         const page = findAssetPage(node, editor.graph)
         const conflicts =
           node.type === 'COMPONENT_SET' ? editor.getComponentSetVariantConflicts(node.id) : []
@@ -297,10 +303,7 @@ export default function AssetsPanel() {
   }
 
   return (
-    <section
-      data-test-id="assets-panel"
-      className="flex min-h-0 flex-1 flex-col overflow-hidden"
-    >
+    <section data-test-id="assets-panel" className="flex min-h-0 flex-1 flex-col overflow-hidden">
       <div className="flex shrink-0 items-center gap-2 px-2 py-2">
         <input
           type="search"
@@ -310,7 +313,11 @@ export default function AssetsPanel() {
           placeholder={panels.searchLocalComponents}
           className="min-w-0 flex-1 rounded border border-border bg-input/50 px-2 py-1 text-xs text-surface outline-none placeholder:text-muted focus:border-accent"
         />
-        <div className="flex shrink-0 rounded border border-border" role="group" aria-label={panels.assetView}>
+        <div
+          className="flex shrink-0 rounded border border-border"
+          role="group"
+          aria-label={panels.assetView}
+        >
           <Tip label={panels.gridView}>
             <button
               type="button"
@@ -344,7 +351,9 @@ export default function AssetsPanel() {
             <h2 className="mb-1 px-1 text-[10px] font-medium uppercase tracking-wide text-muted">
               {group.pageName}
             </h2>
-            <div className={assetView === 'grid' ? 'grid grid-cols-2 gap-2' : 'flex flex-col gap-0.5'}>
+            <div
+              className={assetView === 'grid' ? 'grid grid-cols-2 gap-2' : 'flex flex-col gap-0.5'}
+            >
               {group.assets.map((asset) => {
                 const NodeIconComp = nodeIcon(asset.node)
                 return (
@@ -369,12 +378,21 @@ export default function AssetsPanel() {
                           <AssetThumbnail
                             nodeId={asset.componentId}
                             alt={`${asset.name} preview`}
-                            size={assetView === 'grid' ? ASSET_GRID_THUMBNAIL_SIZE : ASSET_LIST_THUMBNAIL_SIZE}
+                            size={
+                              assetView === 'grid'
+                                ? ASSET_GRID_THUMBNAIL_SIZE
+                                : ASSET_LIST_THUMBNAIL_SIZE
+                            }
                           />
                         ) : (
-                          <NodeIconComp className="size-4 shrink-0 text-component" aria-hidden="true" />
+                          <NodeIconComp
+                            className="size-4 shrink-0 text-component"
+                            aria-hidden="true"
+                          />
                         )}
-                        <span className={assetView === 'grid' ? 'w-full min-w-0' : 'min-w-0 flex-1'}>
+                        <span
+                          className={assetView === 'grid' ? 'w-full min-w-0' : 'min-w-0 flex-1'}
+                        >
                           <span className="flex min-w-0 items-center gap-1">
                             <span data-test-id="asset-name" className="truncate">
                               {asset.name}
@@ -501,14 +519,19 @@ export default function AssetsPanel() {
             heading={
               <span className="flex min-w-0 items-center gap-2">
                 {SelectedAssetIcon ? (
-                  <SelectedAssetIcon className="size-4 shrink-0 text-component" aria-hidden="true" />
+                  <SelectedAssetIcon
+                    className="size-4 shrink-0 text-component"
+                    aria-hidden="true"
+                  />
                 ) : null}
                 <span className="truncate">{selectedAsset.name}</span>
               </span>
             }
             description={
               <>
-                {selectedAsset.node.type === 'COMPONENT_SET' ? panels.componentSet : panels.component}
+                {selectedAsset.node.type === 'COMPONENT_SET'
+                  ? panels.componentSet
+                  : panels.component}
                 {selectedAsset.variantCount > 0 ? ` · ${selectedAsset.variantCount} variants` : ''}
               </>
             }
@@ -532,7 +555,9 @@ export default function AssetsPanel() {
                     {previewLoading ? (
                       <Loader2 className="mx-auto size-5 animate-spin text-muted" />
                     ) : (
-                      SelectedAssetIcon && <SelectedAssetIcon className="mx-auto size-8 text-component" />
+                      SelectedAssetIcon && (
+                        <SelectedAssetIcon className="mx-auto size-8 text-component" />
+                      )
                     )}
                     <p className="mt-2 max-w-44 truncate text-xs font-medium text-surface">
                       {selectedAsset.name}
@@ -556,7 +581,10 @@ export default function AssetsPanel() {
                   <h3 className="text-[11px] font-medium uppercase tracking-wider text-muted">
                     {panels.description}
                   </h3>
-                  <p data-test-id="asset-details-description" className="mt-1 text-xs leading-5 text-surface">
+                  <p
+                    data-test-id="asset-details-description"
+                    className="mt-1 text-xs leading-5 text-surface"
+                  >
                     {selectedAsset.description}
                   </p>
                 </section>
@@ -567,7 +595,10 @@ export default function AssetsPanel() {
                   <h3 className="text-[11px] font-medium uppercase tracking-wider text-muted">
                     {panels.assetLibraryBadge}
                   </h3>
-                  <p data-test-id="asset-details-library" className="mt-1 break-all text-xs text-muted">
+                  <p
+                    data-test-id="asset-details-library"
+                    className="mt-1 break-all text-xs text-muted"
+                  >
                     {selectedAsset.sourceLibraryKey}
                   </p>
                 </section>
@@ -605,7 +636,9 @@ export default function AssetsPanel() {
                         className="rounded border border-border bg-input/40 px-2 py-1.5"
                       >
                         <div className="text-xs font-medium text-surface">{variant.name}</div>
-                        <div className="mt-1 text-[11px] text-muted">{variant.values.join(', ')}</div>
+                        <div className="mt-1 text-[11px] text-muted">
+                          {variant.values.join(', ')}
+                        </div>
                       </div>
                     ))}
                   </div>

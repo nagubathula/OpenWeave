@@ -1,8 +1,7 @@
-import { useMemo } from 'react'
-import { useReactTable, getCoreRowModel } from '@tanstack/react-table'
-
 import { useVariablesDialogState } from '#react/variables/dialog/use'
 import { useVariablesTable } from '#react/variables/table/use'
+import { useReactTable, getCoreRowModel } from '@tanstack/react-table'
+import { useMemo } from 'react'
 
 /**
  * Composes variables dialog state, table columns, and TanStack table wiring

@@ -1,5 +1,5 @@
-import React, { type ReactNode } from 'react'
 import * as Slider from '@radix-ui/react-slider'
+import React, { type ReactNode } from 'react'
 
 import { useChannelSlider } from './context'
 import type { ChannelSliderPartProps, ChannelSliderThumbSlotProps } from './types'

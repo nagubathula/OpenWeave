@@ -1,12 +1,6 @@
 import path from 'node:path'
 
-import { parse as parseVueSfc } from 'vue/compiler-sfc'
-
 import { noCrossPackageReexportShims } from './cross-package-reexport-shims.ts'
-import {
-  noDynamicTailwindStateClasses,
-  noVueTemplateUiHooksOrSvg
-} from './dynamic-tailwind-classes.ts'
 import {
   collectFolders,
   createFileRule,
@@ -193,15 +187,12 @@ const noE2EImportsInEngineTests = createImportRule(
   }
 )
 
-const noRootMarkdownClutter = createFileRule(
-  'openweave/no-root-markdown-clutter',
-  (sourceRel) => {
-    if (sourceRel.includes('/')) return null
-    if (!sourceRel.endsWith('.md')) return null
-    if (ROOT_MARKDOWN_ALLOWLIST.has(sourceRel)) return null
-    return 'Do not add ad hoc root Markdown files. Put durable docs under packages/docs/** or update the root allowlist deliberately.'
-  }
-)
+const noRootMarkdownClutter = createFileRule('openweave/no-root-markdown-clutter', (sourceRel) => {
+  if (sourceRel.includes('/')) return null
+  if (!sourceRel.endsWith('.md')) return null
+  if (ROOT_MARKDOWN_ALLOWLIST.has(sourceRel)) return null
+  return 'Do not add ad hoc root Markdown files. Put durable docs under packages/docs/** or update the root allowlist deliberately.'
+})
 
 const noPrototypeOrGeneratedImports = createImportRule(
   'openweave/no-prototype-or-generated-imports',
@@ -228,10 +219,10 @@ const noPropertyPanelImportsInCanvas = createImportRule(
   'openweave/no-property-panel-imports-in-canvas',
   (sourceRel, _specifier, resolved) => {
     const isCanvasSurface =
-      sourceRel === 'src/components/EditorCanvas.vue' ||
+      sourceRel === 'src/components/editor-canvas/EditorCanvas.tsx' ||
       sourceRel.startsWith('src/app/editor/canvas/') ||
       sourceRel.startsWith('src/components/canvas/') ||
-      sourceRel.startsWith('packages/vue/src/canvas/')
+      sourceRel.startsWith('packages/react/src/canvas/')
 
     if (isCanvasSurface && resolved?.startsWith('src/components/properties/')) {
       return 'Canvas/editor overlay code must not import property-panel internals. Extract app-neutral UI or keep concerns local.'
@@ -259,7 +250,7 @@ const noPackageInternalsInApp = createImportRule(
       specifier in PACKAGE_ALIASES ||
       Object.keys(PACKAGE_ALIASES).some((alias) => specifier.startsWith(alias))
     ) {
-      return 'App code must use package public exports such as @openweave/core or @openweave/vue, not package-local aliases.'
+      return 'App code must use package public exports such as @openweave/core or @openweave/react, not package-local aliases.'
     }
     if (resolved?.startsWith('packages/')) {
       return 'App code must not import workspace package internals. Use package public exports instead.'
@@ -288,12 +279,18 @@ const noAppImportsComponentsOrViews = createImportRule(
 
     // Next.js App Router uses src/app/** for views. These are allowed to import UI components.
     const basename = sourceRel.split('/').pop() || ''
-    if (['page.tsx', 'layout.tsx', 'not-found.tsx', 'error.tsx', 'loading.tsx'].includes(basename)) {
+    if (
+      ['page.tsx', 'layout.tsx', 'not-found.tsx', 'error.tsx', 'loading.tsx'].includes(basename)
+    ) {
       return null
     }
 
     // Explicit exception for shell menu binding to storage workspace action
-    if (sourceRel === 'src/app/shell/menu/use.ts' && resolved?.startsWith('src/components/storage/StorageWorkspace')) {
+    if (
+      (sourceRel === 'src/app/shell/menu/use.ts' ||
+        sourceRel === 'src/app/shell/menu/app-menu.ts') &&
+      resolved?.startsWith('src/components/storage/StorageWorkspace')
+    ) {
       return null
     }
 
@@ -332,7 +329,7 @@ const noViewsImportedOutsideEntry = createImportRule(
   'openweave/no-views-imported-outside-entry',
   (sourceRel, _specifier, resolved) => {
     if (!resolved?.startsWith('src/views/')) return null
-    if (sourceRel === 'src/App.vue' || sourceRel === 'src/main.ts' || sourceRel === 'src/router.ts')
+    if (sourceRel === 'src/App.tsx' || sourceRel === 'src/main.ts' || sourceRel === 'src/router.ts')
       return null
     return 'Views are top-level composition entrypoints and must not be imported by app services or reusable components.'
   }
@@ -354,11 +351,11 @@ const noPropertyPanelInternalsOutsidePanel = createImportRule(
   (sourceRel, _specifier, resolved) => {
     if (!resolved?.startsWith('src/components/properties/')) return null
     if (sourceRel.startsWith('src/components/properties/')) return null
-    
-    if (sourceRel === 'src/components/DesignPanel.vue') return null
-    if (sourceRel === 'src/components/PropertiesPanel.tsx') return null
-    if (sourceRel === 'src/components/MobileDrawer.tsx') return null
-    
+
+    if (sourceRel === 'src/components/DesignPanel.tsx') return null
+    if (sourceRel === 'src/components/properties-panel/PropertiesPanel.tsx') return null
+    if (sourceRel === 'src/components/mobile-drawer/MobileDrawer.tsx') return null
+
     return 'Property-panel internals must stay inside the property panel. Extract app-neutral UI before reusing elsewhere.'
   }
 )
@@ -368,7 +365,7 @@ const MACOS_MODIFIER_GLYPH_PATTERN = /[⌘⌥⌃]/u
 const noHardcodedMacOSShortcutGlyphs = createTextRule(
   'openweave/no-hardcoded-macos-shortcut-glyphs',
   (sourceRel, content) => {
-    if (!sourceRel.endsWith('.vue')) return []
+    if (!sourceRel.endsWith('.tsx')) return []
     const diagnostics: Array<{ message: string; line?: number; column?: number }> = []
     for (const match of content.matchAll(MACOS_MODIFIER_GLYPH_PATTERN)) {
       const before = content.slice(0, match.index)
@@ -383,32 +380,8 @@ const noHardcodedMacOSShortcutGlyphs = createTextRule(
   }
 )
 
-const VUE_ATTRIBUTE_NODE = 6
-const VUE_DIRECTIVE_NODE = 7
-
-type VueTemplateNode = {
-  type?: number
-  name?: string
-  arg?: { content?: string }
-  props?: VueTemplateNode[]
-  children?: VueTemplateNode[]
-  loc?: { start?: { line?: number; column?: number } }
-}
-
-function walkVueTemplateAst(node: VueTemplateNode, visitor: (node: VueTemplateNode) => void) {
-  visitor(node)
-  for (const prop of node.props ?? []) walkVueTemplateAst(prop, visitor)
-  for (const child of node.children ?? []) walkVueTemplateAst(child, visitor)
-}
-
-function vuePropName(prop: VueTemplateNode) {
-  if (prop.type === VUE_ATTRIBUTE_NODE) return prop.name ?? null
-  if (prop.type === VUE_DIRECTIVE_NODE && prop.name === 'bind') return prop.arg?.content ?? null
-  return null
-}
-
 const SHARED_TEST_ID_ALLOWLIST = new Set([
-  'packages/vue/src/primitives/ColorPicker/ColorPickerRoot.vue'
+  'packages/react/src/primitives/ColorPicker/ColorPickerRoot.tsx'
 ])
 
 const noProductionTestIdsInSharedLayers = createTextRule(
@@ -416,7 +389,7 @@ const noProductionTestIdsInSharedLayers = createTextRule(
   (sourceRel, content) => {
     const inSharedLayer =
       sourceRel.startsWith('src/components/ui/') ||
-      sourceRel.startsWith('packages/vue/src/primitives/')
+      sourceRel.startsWith('packages/react/src/primitives/')
     const isFixture = sourceRel.includes('/demo/') || sourceRel.endsWith('.stories.ts')
     if (!inSharedLayer || isFixture || SHARED_TEST_ID_ALLOWLIST.has(sourceRel)) return []
 
@@ -435,42 +408,15 @@ const noProductionTestIdsInSharedLayers = createTextRule(
   }
 )
 
-const noNativeTitleAttributesInVue = createTextRule(
-  'openweave/no-native-title-attributes-in-vue',
-  (sourceRel, content) => {
-    if (
-      !sourceRel.endsWith('.vue') ||
-      (!sourceRel.startsWith('src/') && !sourceRel.startsWith('packages/vue/src/'))
-    ) {
-      return []
-    }
-
-    const template = parseVueSfc(content, { filename: sourceRel }).descriptor.template?.ast
-    if (!template) return []
-
-    const diagnostics: Array<{ message: string; line?: number; column?: number }> = []
-    walkVueTemplateAst(template as VueTemplateNode, (node) => {
-      if (vuePropName(node) !== 'title') return
-      const loc = node.loc?.start
-      diagnostics.push({
-        message: 'Use Tip/Reka tooltip patterns instead of native title attributes.',
-        line: loc?.line,
-        column: loc?.column
-      })
-    })
-    return diagnostics
-  }
-)
-
 const SHORTCUT_LABEL_PATTERN = /(?:Shift|Ctrl|Alt|Option|Cmd|Command|⌘|⇧|⌥|⌃)\s*[+)\w]/u
 
 const noShortcutTextInLabels = createTextRule(
   'openweave/no-shortcut-text-in-labels',
   (sourceRel, content) => {
     if (
-      sourceRel !== 'packages/vue/src/i18n/messages.ts' &&
-      !sourceRel.startsWith('packages/vue/src/i18n/messages/') &&
-      !sourceRel.startsWith('packages/vue/src/i18n/locales/')
+      sourceRel !== 'packages/react/src/i18n/messages.ts' &&
+      !sourceRel.startsWith('packages/react/src/i18n/messages/') &&
+      !sourceRel.startsWith('packages/react/src/i18n/locales/')
     ) {
       return []
     }
@@ -500,8 +446,8 @@ const noUiImportsInCore = createImportRule(
       specifier === 'vue' ||
       specifier.startsWith('@vueuse/') ||
       specifier === 'reka-ui' ||
-      specifier.startsWith('#vue/') ||
-      specifier.startsWith('@openweave/vue')
+      specifier.startsWith('#react/') ||
+      specifier.startsWith('@openweave/react')
     ) {
       return 'Core must stay framework-agnostic and cannot import Vue/UI modules.'
     }
@@ -534,9 +480,6 @@ export const openWeaveArchitecturePlugin = {
     noAppImportsInSharedUi,
     noPropertyPanelInternalsOutsidePanel,
     noProductionTestIdsInSharedLayers,
-    noDynamicTailwindStateClasses,
-    noVueTemplateUiHooksOrSvg,
-    noNativeTitleAttributesInVue,
     noShortcutTextInLabels,
     noHardcodedMacOSShortcutGlyphs,
     noUiImportsInCore

@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react'
 import { tv } from 'tailwind-variants'
+
 import {
   NumberFieldRoot,
   NumberFieldInput,
@@ -80,7 +81,15 @@ export default function NumberField({
   )
 }
 
-function NumberFieldInner({ styles, icon, label, suffix, placeholder, className, dataProperty }: any) {
+function NumberFieldInner({
+  styles,
+  icon,
+  label,
+  suffix,
+  placeholder,
+  className,
+  dataProperty
+}: any) {
   const { editing, actions, rootAttrs, stateAttrs } = useNumberField()
 
   return (

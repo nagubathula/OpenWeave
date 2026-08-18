@@ -1,5 +1,3 @@
-import React, { useState } from 'react'
-
 import { MIXED } from '#react/controls/node-props/use'
 import { NumberFieldInput } from '#react/primitives/number-field/NumberFieldInput'
 import { NumberFieldRoot } from '#react/primitives/number-field/NumberFieldRoot'
@@ -10,6 +8,7 @@ import {
   NumberFieldTrailing,
   NumberFieldUnit
 } from '#react/primitives/number-field/parts'
+import React, { useState } from 'react'
 
 const fieldClass =
   'flex h-[26px] min-w-0 items-center overflow-hidden rounded border border-transparent bg-[var(--vp-c-bg-alt)] px-2 text-xs outline-none focus-within:border-[var(--vp-c-brand-1)]'

@@ -1,5 +1,6 @@
-import React, { useMemo, useCallback } from 'react'
 import * as Popover from '@radix-ui/react-popover'
+import React, { useMemo, useCallback } from 'react'
+
 import { colorToCSS } from '@openweave/core/color'
 import type { Color } from '@openweave/scene-graph/primitives'
 
@@ -31,29 +32,31 @@ export function ColorPickerRoot({
 }: ColorPickerRootProps) {
   const swatchBg = useMemo(() => colorToCSS(color), [color])
 
-  const cancelFromEscape = useCallback((event: KeyboardEvent) => {
-    event.stopPropagation()
-    onCancel?.()
-  }, [onCancel])
+  const cancelFromEscape = useCallback(
+    (event: KeyboardEvent) => {
+      event.stopPropagation()
+      onCancel?.()
+    },
+    [onCancel]
+  )
 
-  const renderedTrigger = typeof trigger === 'function' 
-    ? trigger({ style: { background: swatchBg } }) 
-    : trigger ?? (
-      <button
-        type="button"
-        aria-label={label}
-        className={ui?.swatch}
-        style={{ background: swatchBg }}
-      />
-    )
+  const renderedTrigger =
+    typeof trigger === 'function'
+      ? trigger({ style: { background: swatchBg } })
+      : (trigger ?? (
+          <button
+            type="button"
+            aria-label={label}
+            className={ui?.swatch}
+            style={{ background: swatchBg }}
+          />
+        ))
 
   const renderedChildren = typeof children === 'function' ? children({ color }) : children
 
   return (
     <Popover.Root onOpenChange={onOpenChange}>
-      <Popover.Trigger asChild>
-        {renderedTrigger}
-      </Popover.Trigger>
+      <Popover.Trigger asChild>{renderedTrigger}</Popover.Trigger>
 
       <Popover.Portal>
         <Popover.Content

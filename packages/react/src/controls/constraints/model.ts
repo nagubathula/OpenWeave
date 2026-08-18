@@ -1,6 +1,6 @@
-import type { ConstraintType, SceneGraph, SceneNode } from '@openweave/scene-graph'
-
 import type { MIXED } from '#react/controls/node-props/use'
+
+import type { ConstraintType, SceneGraph, SceneNode } from '@openweave/scene-graph'
 
 export type ConstraintAxis = 'horizontal' | 'vertical'
 export type ConstraintEdge = 'leading' | 'trailing'

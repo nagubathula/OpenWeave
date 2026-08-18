@@ -4,11 +4,11 @@ import {
 } from '#react/shared/input/auto-layout'
 import { findMoveDropTarget, reparentOutsideNodes } from '#react/shared/input/drop-target'
 export { duplicateAndDrag } from '#react/shared/input/duplicate-drag'
-import { AUTO_LAYOUT_BREAK_THRESHOLD } from '@openweave/core/constants'
-import type { Editor } from '@openweave/core/editor'
-
 import { applyMoveSnap } from '#react/shared/input/move-snap'
 import type { DragMove } from '#react/shared/input/types'
+
+import { AUTO_LAYOUT_BREAK_THRESHOLD } from '@openweave/core/constants'
+import type { Editor } from '@openweave/core/editor'
 
 const AUTO_LAYOUT_REORDER_CLICK_SLOP = 3
 const AUTO_LAYOUT_CROSS_AXIS_DRAG_TOLERANCE = 96

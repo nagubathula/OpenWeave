@@ -1,5 +1,6 @@
-import React, { useState, useCallback, useMemo } from 'react'
 import * as Collapsible from '@radix-ui/react-collapsible'
+import React, { useState, useCallback, useMemo } from 'react'
+
 import { PropertySectionProvider } from './context'
 import type {
   PropertySectionActionAPI,
@@ -21,7 +22,7 @@ export function PropertySectionRoot({
 }: PropertySectionRootProps & Omit<React.HTMLAttributes<HTMLDivElement>, 'children'>) {
   const isControlled = openProp !== undefined
   const [uncontrolledOpen, setUncontrolledOpen] = useState(defaultOpen)
-  
+
   const open = isControlled ? openProp : uncontrolledOpen
 
   const handleOpenChange = useCallback(

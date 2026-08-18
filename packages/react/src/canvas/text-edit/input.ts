@@ -1,7 +1,7 @@
+import type { DragState } from '#react/shared/input/types'
+
 import type { Editor } from '@openweave/core/editor'
 import type { SceneNode } from '@openweave/scene-graph'
-
-import type { DragState } from '#react/shared/input/types'
 
 type NodeEditMethods = Partial<{ enterNodeEditMode: (nodeId: string) => void }>
 type GetCoords = (e: MouseEvent) => { cx: number; cy: number }

@@ -1,12 +1,12 @@
-import type { Editor } from '@openweave/core/editor'
-
 import { addListener } from '#react/shared/input/add-listener'
 import { createRafScheduler } from '#react/shared/input/raf-scheduler'
+
+import type { Editor } from '@openweave/core/editor'
 
 type CanvasRefLike = { current?: HTMLCanvasElement | null; value?: HTMLCanvasElement | null }
 
 function getCanvas(ref: CanvasRefLike): HTMLCanvasElement | null {
-  return (ref.current ?? ref.value) ?? null
+  return ref.current ?? ref.value ?? null
 }
 
 export function setupSafariGestureZoom(canvasRef: CanvasRefLike, editor: Editor) {

@@ -1,5 +1,6 @@
 import React from 'react'
 import { tv } from 'tailwind-variants'
+
 import { PropertyGridRoot } from '@openweave/react'
 
 import theme from '@/theme/panel/grid'
@@ -22,17 +23,9 @@ export default function PanelGrid({
   const styles = tv(theme)({ columns, distribution, class: className })
 
   return (
-    <PropertyGridRoot
-      columns={columns}
-      distribution={distribution}
-      className={styles}
-    >
+    <PropertyGridRoot columns={columns} distribution={distribution} className={styles}>
       {children}
-      {actions && (
-        <React.Fragment key="actions">
-          {actions}
-        </React.Fragment>
-      )}
+      {actions && <React.Fragment key="actions">{actions}</React.Fragment>}
     </PropertyGridRoot>
   )
 }

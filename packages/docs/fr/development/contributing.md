@@ -11,7 +11,7 @@ packages/
   mcp/               @openweave/mcp — serveur MCP pour outils IA
     src/             Transports stdio + HTTP (Hono), 87 outils
 src/
-  components/        Vue SFCs (canevas, panneaux, barre d'outils, sélecteur de couleur)
+  components/        React Components (canevas, panneaux, barre d'outils, sélecteur de couleur)
     properties/      Sections du panneau de propriétés (Apparence, Remplissage, Contour, etc.)
   hooks/       Entrée canevas, raccourcis clavier, hooks de rendu
   stores/            État de l'éditeur (réactivité Vue)
@@ -55,7 +55,7 @@ bun run check
 ### Conventions
 
 - **Noms de fichiers** — kebab-case (`scene-graph.ts`, `use-canvas-input.ts`)
-- **Composants** — PascalCase Vue SFCs (`EditorCanvas.vue`, `NumberField.vue`)
+- **Composants** — PascalCase React Components (`EditorCanvas.tsx`, `NumberField.vue`)
 - **Constantes** — SCREAMING_SNAKE_CASE
 - **Fonctions/variables** — camelCase
 - **Types/interfaces** — PascalCase
@@ -72,7 +72,7 @@ Les développeurs et agents IA doivent lire `AGENTS.md` à la racine du repo ([v
 
 ## Fichiers clés
 
-Le code source du moteur core se trouve dans `packages/core/src/`. Le code propre à l'app pour l'éditeur, les documents, l'IA, la collaboration, le shell, les démos et l'automatisation vit sous `src/app/*`; le SDK Vue contient le code canvas et composable réutilisable dans `packages/vue/src/`.
+Le code source du moteur core se trouve dans `packages/core/src/`. Le code propre à l'app pour l'éditeur, les documents, l'IA, la collaboration, le shell, les démos et l'automatisation vit sous `src/app/*`; le SDK Vue contient le code canvas et composable réutilisable dans `packages/react/src/`.
 
 | Fichier | Objectif |
 |---------|----------|
@@ -91,6 +91,6 @@ Le code source du moteur core se trouve dans `packages/core/src/`. Le code propr
 | `packages/mcp/src/server.ts` | Factory du serveur MCP |
 | `packages/cli/src/commands/` | Commandes CLI (info, tree, find, export, eval, analyze) |
 | `src/app/editor/session/create.ts` | Editor session assembly |
-| `packages/vue/src/canvas/CanvasRoot.vue` | Composable de rendu du canevas |
-| `packages/vue/src/canvas/useCanvasInput.ts` | Gestion des entrées souris/touch |
+| `packages/react/src/canvas/CanvasRoot.vue` | Composable de rendu du canevas |
+| `packages/react/src/canvas/useCanvasInput.ts` | Gestion des entrées souris/touch |
 | `src/app/shell/keyboard/use.ts` | Gestion des raccourcis clavier |

@@ -1,12 +1,13 @@
+import { MoveHorizontal, MoveVertical, Plus, X } from 'lucide-react'
 import React from 'react'
+
 import { useI18n, useLayoutControlsContext } from '@openweave/react'
 import type { GridTrackSizing } from '@openweave/scene-graph'
-import { MoveHorizontal, MoveVertical, Plus, X } from 'lucide-react'
 
-import { AppSelect } from '@/components/ui/AppSelect'
-import IconButton from '@/components/ui/IconButton'
 import NumberField from '@/components/inputs/NumberField'
 import type { GridTrackProp } from '@/components/properties/LayoutSection/types'
+import { AppSelect } from '@/components/ui/AppSelect'
+import IconButton from '@/components/ui/IconButton'
 
 const TRACK_PROPS: GridTrackProp[] = ['gridTemplateColumns', 'gridTemplateRows']
 

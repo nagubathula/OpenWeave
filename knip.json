@@ -8,11 +8,11 @@
   ],
   "ignoreWorkspaces": ["packages/demos"],
   "ignoreUnresolved": [
-    "/src/app/editor/fonts/index.ts",
+    
     "#core/*"
   ],
   "ignoreDependencies": [
-    "vue/compiler-sfc"
+    
   ],
   "ignoreBinaries": ["figma-use", "identify", "magick", "open", "osascript"]
 }

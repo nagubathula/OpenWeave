@@ -1,5 +1,5 @@
 /// <reference lib="webworker" />
-import { defaultCache } from '@serwist/next/worker'
+import { defaultCache } from '@serwist/turbopack/worker'
 import type { PrecacheEntry, SerwistGlobalConfig } from 'serwist'
 import { Serwist } from 'serwist'
 
@@ -16,7 +16,7 @@ const serwist = new Serwist({
   skipWaiting: true,
   clientsClaim: true,
   navigationPreload: true,
-  runtimeCaching: defaultCache,
+  runtimeCaching: defaultCache
 })
 
 serwist.addEventListeners()

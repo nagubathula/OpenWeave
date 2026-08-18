@@ -1,12 +1,13 @@
 'use client'
 
-import React, { useMemo, useState } from 'react'
+import { BookOpen, Check, ClipboardPaste, Copy, FileInput } from 'lucide-react'
 import Prism from 'prismjs'
 import 'prismjs/components/prism-jsx'
-import { BookOpen, Check, ClipboardPaste, Copy, FileInput } from 'lucide-react'
+import React, { useMemo, useState } from 'react'
 
-import { useEditor, useI18n, useSceneComputed, useSelectionState } from '@openweave/react'
 import { JSX_REFERENCE, selectionToJSX, type JSXFormat } from '@openweave/core/design-jsx'
+import { useEditor, useI18n, useSceneComputed, useSelectionState } from '@openweave/react'
+
 import { getActiveEditorStore } from '@/app/editor/active-store'
 import Tip from '@/components/ui/Tip'
 
@@ -131,9 +132,7 @@ export default function CodePanel() {
             aria-pressed={showImporter}
             className={
               'flex items-center gap-1 rounded px-2 py-0.5 text-[11px] transition-colors ' +
-              (showImporter
-                ? 'bg-accent text-accent-foreground'
-                : 'text-muted hover:text-surface')
+              (showImporter ? 'bg-accent text-accent-foreground' : 'text-muted hover:text-surface')
             }
           >
             <FileInput className="size-3" />

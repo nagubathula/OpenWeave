@@ -1,11 +1,10 @@
 import React from 'react'
 
 import { MIXED, useI18n, useSharedStyleBinding } from '@openweave/react'
+import type { SharedStyleKind } from '@openweave/scene-graph'
 
 import { AppSelect } from '@/components/ui/AppSelect'
 import { PanelFieldGroup, PanelGrid } from '@/components/ui/panel'
-
-import type { SharedStyleKind } from '@openweave/scene-graph'
 
 export interface SharedStyleFieldProps {
   kind: SharedStyleKind
@@ -27,9 +26,7 @@ export default function SharedStyleField({ kind, label }: SharedStyleFieldProps)
 
   if (!visible) return null
 
-  const options: Array<{ value: string; label: string }> = [
-    { value: 'NONE', label: panels.none }
-  ]
+  const options: Array<{ value: string; label: string }> = [{ value: 'NONE', label: panels.none }]
   if (styleId === MIXED) options.unshift({ value: 'MIXED', label: panels.mixed })
   for (const style of styles) options.push({ value: style.id, label: style.name })
   if (typeof styleId === 'string' && !styles.some((style) => style.id === styleId)) {

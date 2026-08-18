@@ -1,28 +1,29 @@
-import type { Meta, StoryObj } from '@storybook/react';
-import { expect, userEvent } from 'storybook/test';
-import SegmentedControl from './SegmentedControl';
+import type { Meta, StoryObj } from '@storybook/react'
+import { expect, userEvent } from 'storybook/test'
+
+import SegmentedControl from './SegmentedControl'
 
 const meta = {
   component: SegmentedControl,
-  tags: ['ai-generated', 'needs-work'],
-} satisfies Meta<typeof SegmentedControl>;
+  tags: ['ai-generated', 'needs-work']
+} satisfies Meta<typeof SegmentedControl>
 
-export default meta;
-type Story = StoryObj<typeof meta>;
+export default meta
+type Story = StoryObj<typeof meta>
 
 export const Default: Story = {
-  args: { 
+  args: {
     label: 'View mode',
     value: 'design',
     options: [
       { value: 'design', label: 'Design' },
-      { value: 'prototype', label: 'Prototype' },
+      { value: 'prototype', label: 'Prototype' }
     ],
-    onChange: () => {} 
+    onChange: () => {}
   },
   play: async ({ canvas, userEvent }) => {
-    const prototypeBtn = canvas.getByRole('radio', { name: /prototype/i });
-    await expect(prototypeBtn).toBeVisible();
-    await userEvent.click(prototypeBtn);
-  },
-};
+    const prototypeBtn = canvas.getByRole('radio', { name: /prototype/i })
+    await expect(prototypeBtn).toBeVisible()
+    await userEvent.click(prototypeBtn)
+  }
+}

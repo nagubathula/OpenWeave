@@ -1,10 +1,10 @@
+import { getHitHandleByMatrix } from '#react/shared/input/geometry'
+import type { DragResize } from '#react/shared/input/types'
+
 import type { Editor } from '@openweave/core/editor'
 import { cloneVectorNetwork } from '@openweave/scene-graph'
 import { copyGeometryPaths } from '@openweave/scene-graph/copy'
 import { collectResizeDescendants } from '@openweave/scene-graph/resize'
-
-import { getHitHandleByMatrix } from '#react/shared/input/geometry'
-import type { DragResize } from '#react/shared/input/types'
 
 export function tryStartResize(cx: number, cy: number, editor: Editor): DragResize | null {
   for (const id of editor.state.selectedIds) {

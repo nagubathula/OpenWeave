@@ -1,6 +1,5 @@
 import { persistentAtom } from '@nanostores/persistent'
 
-
 import {
   DEFAULT_WEB_FONT_PROVIDER_SETTINGS,
   WEB_FONT_PROVIDER_IDS,
@@ -11,8 +10,8 @@ import {
   type LocalFontAccessState,
   type WebFontProviderId
 } from '@openweave/core/text'
-import type { SceneGraph } from '@openweave/scene-graph'
 import { dialogMessages } from '@openweave/react'
+import type { SceneGraph } from '@openweave/scene-graph'
 
 import {
   clearDownloadedFontCache as clearTauriDownloadedFontCache,
@@ -43,10 +42,7 @@ function applyOnlineFontProviders() {
   fontManager.setOnlineFontProviders(
     onlineFontsEnabled.get()
       ? Object.fromEntries(
-          WEB_FONT_PROVIDER_IDS.map((provider) => [
-            provider,
-            fontProviderSettings.get()[provider]
-          ])
+          WEB_FONT_PROVIDER_IDS.map((provider) => [provider, fontProviderSettings.get()[provider]])
         )
       : {}
   )

@@ -1,4 +1,5 @@
 import React, { useMemo, useRef } from 'react'
+
 import { useLayerTree } from './context'
 import type { LayerNode, LayerSelectionMode } from './context'
 
@@ -62,40 +63,46 @@ export function LayerTreeItem({
     parentId: null
   }))
 
-  const actions = useMemo(() => ({
-    select: (selection: boolean | LayerSelectionMode) => {
-      const additive = typeof selection === 'boolean' ? selection : selection.additive
-      onSelect?.(node.id, additive)
-      ctx.select(node.id, selection)
-    },
-    toggleExpand: () => {
-      onToggleExpand?.(node.id)
-      ctx.toggleExpand(node.id)
-    },
-    toggleVisibility: () => {
-      onToggleVisibility?.(node.id)
-      ctx.toggleVisibility(node.id)
-    },
-    toggleLock: () => {
-      onToggleLock?.(node.id)
-      ctx.toggleLock(node.id)
-    },
-    rename: (name: string) => {
-      onRename?.(node.id, name)
-      ctx.rename(node.id, name)
-    }
-  }), [ctx, node.id, onSelect, onToggleExpand, onToggleVisibility, onToggleLock, onRename])
+  const actions = useMemo(
+    () => ({
+      select: (selection: boolean | LayerSelectionMode) => {
+        const additive = typeof selection === 'boolean' ? selection : selection.additive
+        onSelect?.(node.id, additive)
+        ctx.select(node.id, selection)
+      },
+      toggleExpand: () => {
+        onToggleExpand?.(node.id)
+        ctx.toggleExpand(node.id)
+      },
+      toggleVisibility: () => {
+        onToggleVisibility?.(node.id)
+        ctx.toggleVisibility(node.id)
+      },
+      toggleLock: () => {
+        onToggleLock?.(node.id)
+        ctx.toggleLock(node.id)
+      },
+      rename: (name: string) => {
+        onRename?.(node.id, name)
+        ctx.rename(node.id, name)
+      }
+    }),
+    [ctx, node.id, onSelect, onToggleExpand, onToggleVisibility, onToggleLock, onRename]
+  )
 
-  const renderedChildren = typeof children === 'function' ? children({
-    node,
-    level,
-    hasChildren,
-    isSelected,
-    isDragging,
-    focused: ctx.focused,
-    padLeft,
-    actions
-  }) : children
+  const renderedChildren =
+    typeof children === 'function'
+      ? children({
+          node,
+          level,
+          hasChildren,
+          isSelected,
+          isDragging,
+          focused: ctx.focused,
+          padLeft,
+          actions
+        })
+      : children
 
   return (
     <div ref={onRef} data-node-id={node.id} className="w-full">

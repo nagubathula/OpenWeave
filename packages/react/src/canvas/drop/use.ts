@@ -1,8 +1,7 @@
+import { findMoveDropTarget } from '#react/shared/input/drop-target'
 import { useEffect, useState, type RefObject } from 'react'
 
 import type { Editor } from '@openweave/core/editor'
-
-import { findMoveDropTarget } from '#react/shared/input/drop-target'
 
 const RASTER_IMAGE_TYPES = new Set([
   'image/png',
@@ -72,7 +71,12 @@ export function useCanvasDrop(canvasRef: RefObject<HTMLCanvasElement | null>, ed
       if (componentId) {
         const placement = componentDropPlacement(componentId, point.x, point.y, editor)
         if (!placement) return
-        editor.createInstanceFromComponent(componentId, placement.x, placement.y, placement.parentId)
+        editor.createInstanceFromComponent(
+          componentId,
+          placement.x,
+          placement.y,
+          placement.parentId
+        )
         editor.requestRender()
         return
       }
@@ -94,7 +98,7 @@ export function useCanvasDrop(canvasRef: RefObject<HTMLCanvasElement | null>, ed
       canvas.removeEventListener('dragleave', onDragLeave)
       canvas.removeEventListener('drop', onDrop)
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   return { isDraggingOver }

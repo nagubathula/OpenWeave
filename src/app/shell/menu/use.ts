@@ -7,13 +7,13 @@ import { useEditorStore } from '@/app/editor/active-store'
 import { openSettingsDialog } from '@/app/settings/dialog'
 import { createSharedEditorMenuActions } from '@/app/shell/menu/editor-actions'
 import { importFileDialog, openFileDialog } from '@/app/shell/menu/files'
-import { openStorageWorkspace } from '@/components/storage/StorageWorkspace'
 import { APP_MENU_SCHEMA, type AppMenuEntry } from '@/app/shell/menu/schema'
 import { createSelectionMenuActions } from '@/app/shell/menu/selection-actions'
 import { useAppTheme } from '@/app/shell/theme'
 import { checkForAppUpdate } from '@/app/shell/updater'
 import { createTab, closeTab, activeTab } from '@/app/tabs'
 import { isTauri } from '@/app/tauri/env'
+import { openStorageWorkspace } from '@/components/storage/StorageWorkspace'
 
 function commandMenuIds(entries: readonly AppMenuEntry[]): EditorCommandId[] {
   return entries.flatMap((entry) => {

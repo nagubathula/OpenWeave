@@ -1,11 +1,12 @@
 import { describe, expect, test } from 'bun:test'
 
-
+import {
+  createVariableCollectionActions,
+  createVariableValueActions
+} from '#react/variables/helpers'
 
 import type { Editor } from '@openweave/core/editor'
 import type { Variable, VariableCollection } from '@openweave/scene-graph'
-
-import { createVariableCollectionActions, createVariableValueActions } from '#react/variables/helpers'
 
 function createEditorHarness() {
   const collections = new Map<string, VariableCollection>()
@@ -105,7 +106,7 @@ describe('variables editor helpers', () => {
 
   test('creates and activates new collections', () => {
     const { editor, collections } = createEditorHarness()
-    const activeCollectionId = { value: '' } 
+    const activeCollectionId = { value: '' }
     const actions = createVariableCollectionActions(editor, activeCollectionId)
 
     actions.addCollection()

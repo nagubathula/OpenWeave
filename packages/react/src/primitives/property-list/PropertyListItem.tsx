@@ -1,5 +1,5 @@
-import React, { useMemo, type ElementType } from 'react'
 import { Slot } from '@radix-ui/react-slot'
+import React, { useMemo, type ElementType } from 'react'
 
 import { usePropertyListPart } from './context'
 import type {

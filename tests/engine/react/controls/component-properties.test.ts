@@ -1,12 +1,12 @@
 import { describe, expect, test } from 'bun:test'
 
-import { SceneGraph } from '@openweave/scene-graph'
 import {
   MIXED,
   compatibleComponentPropertyDefinitions,
   instanceSwapOptions,
   mergedComponentPropertyValue
 } from '@openweave/react'
+import { SceneGraph } from '@openweave/scene-graph'
 
 describe('component property control model', () => {
   test('requires identical ordered property IDs and types', () => {

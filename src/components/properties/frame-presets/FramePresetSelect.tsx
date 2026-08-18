@@ -1,10 +1,11 @@
 import React, { useMemo } from 'react'
+
 import { useI18n, useSelectionState } from '@openweave/react'
+
 import { getActiveEditorStore } from '@/app/editor/active-store'
 import { findFrameResizePreset, FRAME_RESIZE_PRESETS } from '@/app/editor/frame-presets'
-
-import PanelSection from '@/components/ui/panel/PanelSection'
 import { AppSelect } from '@/components/ui/AppSelect'
+import PanelSection from '@/components/ui/panel/PanelSection'
 
 export default function FramePresetSelect() {
   const store = getActiveEditorStore()

@@ -4,7 +4,7 @@
 
 OpenWeave runs in the browser — no installation required. Open [app.openweave.dev](https://app.openweave.dev) to start designing.
 
-If you want to build on top of it instead of only using the default app, see the [Programmable](/programmable/) section and the [Vue SDK](/programmable/sdk/).
+If you want to build on top of it instead of only using the default app, see the [Programmable](/programmable/) section and the [React SDK](/programmable/sdk/).
 
 ## Download Desktop App
 

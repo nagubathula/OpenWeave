@@ -1,4 +1,5 @@
 import React from 'react'
+
 import type { PropertyGridRootProps } from './types'
 
 export function PropertyGridRoot({
@@ -16,14 +17,8 @@ export function PropertyGridRoot({
       data-columns={columns}
       data-distribution={distribution}
     >
-      <div data-slot="fields">
-        {children}
-      </div>
-      {actions && (
-        <div data-slot="actions">
-          {actions}
-        </div>
-      )}
+      <div data-slot="fields">{children}</div>
+      {actions && <div data-slot="actions">{actions}</div>}
     </div>
   )
 }

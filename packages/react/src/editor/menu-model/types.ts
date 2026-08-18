@@ -1,7 +1,6 @@
-import type { ComponentType } from 'react'
-
 import type { EditorCommandId } from '#react/editor/commands/types'
 import type { TestId } from '#react/testing/test-id'
+import type { ComponentType } from 'react'
 
 export interface MenuActionNode {
   separator?: false

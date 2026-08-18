@@ -1,11 +1,9 @@
 import { describe, expect, test } from 'bun:test'
 
-
-
-import type { EditorCommandId } from '@openweave/react'
-
 import { buildCanvasContextMenu } from '#react/editor/menu-model/canvas'
 import type { CanvasMenuOptions } from '#react/editor/menu-model/canvas'
+
+import type { EditorCommandId } from '@openweave/react'
 
 function selection(overrides: Partial<CanvasMenuOptions['selection']> = {}) {
   return {
@@ -66,11 +64,7 @@ describe('buildCanvasContextMenu', () => {
 
   test('shows instance actions only for instances', () => {
     expect(
-      itemIds(
-        buildCanvasContextMenu(
-          options({ selection: selection({ isInstance: true }) })
-        )
-      )
+      itemIds(buildCanvasContextMenu(options({ selection: selection({ isInstance: true }) })))
     ).toContain('selection.detachInstance')
   })
 

@@ -5,7 +5,7 @@ description: Справочная документация по компонен
 
 # Справочник API
 
-Справочник Vue SDK разбит на три раздела.
+Справочник React SDK разбит на три раздела.
 
 <SdkCardGroup>
   <SdkCard title="Компоненты" to="/programmable/sdk/api/components/" description="Headless-структурные примитивы: CanvasRoot, ToolbarRoot, FontPickerRoot, NumberFieldRoot и другие." />

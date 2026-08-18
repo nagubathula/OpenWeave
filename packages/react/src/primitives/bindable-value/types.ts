@@ -1,5 +1,3 @@
-import type { ReactNode } from 'react'
-import type { Variable } from '@openweave/scene-graph'
 import type {
   BindingMutationSource,
   BindingProvider,
@@ -7,6 +5,9 @@ import type {
   BindingTarget,
   BoundEditPolicy
 } from '#react/controls/binding-provider/types'
+import type { ReactNode } from 'react'
+
+import type { Variable } from '@openweave/scene-graph'
 
 export interface BindableValueRootProps<V = unknown> {
   /** Binding implementation. Falls back to the nearest injected provider. */

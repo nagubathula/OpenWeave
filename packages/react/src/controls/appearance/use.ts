@@ -1,6 +1,7 @@
-import { useAppearanceActions, useAppearanceState } from './helpers'
 import { useNodeProps } from '#react/controls/node-props/use'
 import { useEditor } from '#react/editor/context'
+
+import { useAppearanceActions, useAppearanceState } from './helpers'
 
 /**
  * Returns appearance-related state and actions for the current selection.

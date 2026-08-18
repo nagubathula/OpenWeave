@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react'
 import { tv } from 'tailwind-variants'
+
 import { ChannelSliderRoot, ChannelSliderThumb, ChannelSliderTrack } from '@openweave/react'
 
 import NumberField from '@/components/inputs/NumberField'

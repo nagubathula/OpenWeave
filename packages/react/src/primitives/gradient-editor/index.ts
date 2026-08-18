@@ -5,5 +5,5 @@ export { useGradientStops } from './useGradientStops'
 export type {
   GradientEditorStopActions,
   GradientEditorStopProps,
-  GradientEditorStopSlotProps,
+  GradientEditorStopSlotProps
 } from './types'

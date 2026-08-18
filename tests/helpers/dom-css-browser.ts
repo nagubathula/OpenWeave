@@ -23,10 +23,14 @@ function bundledModuleSource(entry: string): string {
   if (source === undefined) {
     const outfile = join(mkdtempSync(join(tmpdir(), 'openweave-domcss-')), 'bundle.mjs')
     // shell: true lets Windows resolve `bun` -> bun.exe via PATHEXT.
-    execFileSync('bun', ['build', entry, '--target=browser', '--format=esm', `--outfile=${outfile}`], {
-      stdio: 'pipe',
-      shell: process.platform === 'win32'
-    })
+    execFileSync(
+      'bun',
+      ['build', entry, '--target=browser', '--format=esm', `--outfile=${outfile}`],
+      {
+        stdio: 'pipe',
+        shell: process.platform === 'win32'
+      }
+    )
     source = readFileSync(outfile, 'utf8')
     bundleCache.set(entry, source)
   }

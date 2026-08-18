@@ -1,11 +1,11 @@
 ---
 title: provideEditor
-description: Передача экземпляра редактора OpenWeave в Vue-поддерево через инъекцию.
+description: Передача экземпляра редактора OpenWeave в React-поддерево через context.
 ---
 
 # provideEditor
 
-`provideEditor(editor)` делает редактор OpenWeave доступным для дочерних компосаблов и headless-примитивов через Vue-инъекцию.
+`provideEditor(editor)` делает редактор OpenWeave доступным для дочерних компосаблов и headless-примитивов через React-контекст.
 
 Это основа для `useEditor()`.
 

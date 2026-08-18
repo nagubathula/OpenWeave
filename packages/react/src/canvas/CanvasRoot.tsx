@@ -1,6 +1,7 @@
-import React, { useRef, useImperativeHandle, forwardRef } from 'react'
-import { useEditor } from '#react/editor/context'
 import { useCanvas } from '#react/canvas/surface/use'
+import { useEditor } from '#react/editor/context'
+import React, { useRef, useImperativeHandle, forwardRef } from 'react'
+
 import { CanvasContext, type CanvasContext as CanvasContextType } from './context'
 
 export interface CanvasRootProps {
@@ -18,8 +19,11 @@ export const CanvasRoot = forwardRef<CanvasRootRef, CanvasRootProps>(function Ca
 ) {
   const store = useEditor()
   const canvasRef = useRef<HTMLCanvasElement>(null)
-  const { renderNow, hitTestSectionTitle, hitTestComponentLabel, hitTestFrameTitle } =
-    useCanvas(canvasRef, store, { showRulers })
+  const { renderNow, hitTestSectionTitle, hitTestComponentLabel, hitTestFrameTitle } = useCanvas(
+    canvasRef,
+    store,
+    { showRulers }
+  )
 
   useImperativeHandle(ref, () => ({ renderNow }), [renderNow])
 
@@ -31,11 +35,7 @@ export const CanvasRoot = forwardRef<CanvasRootRef, CanvasRootProps>(function Ca
     hitTestFrameTitle
   }
 
-  return (
-    <CanvasContext.Provider value={contextValue}>
-      {children}
-    </CanvasContext.Provider>
-  )
+  return <CanvasContext.Provider value={contextValue}>{children}</CanvasContext.Provider>
 })
 
 export default CanvasRoot

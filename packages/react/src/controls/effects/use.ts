@@ -1,5 +1,3 @@
-import { useRef, useState } from 'react'
-
 import {
   EFFECT_OPTIONS,
   createDefaultEffect,
@@ -9,6 +7,7 @@ import {
   type EffectEditSnapshot
 } from '#react/controls/effects/helpers'
 import { useEditor } from '#react/editor/context'
+import { useRef, useState } from 'react'
 
 /**
  * Returns effect-editing helpers for property panels.

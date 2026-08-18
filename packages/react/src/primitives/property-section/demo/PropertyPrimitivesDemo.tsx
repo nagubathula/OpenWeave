@@ -1,7 +1,3 @@
-import React, { useState } from 'react'
-
-import type { Fill } from '@openweave/scene-graph'
-
 import { PropertyListAdd } from '#react/primitives/property-list/PropertyListAdd'
 import { PropertyListItem } from '#react/primitives/property-list/PropertyListItem'
 import { PropertyListRemove } from '#react/primitives/property-list/PropertyListRemove'
@@ -15,6 +11,9 @@ import { PropertySectionRoot } from '#react/primitives/property-section/Property
 import { PropertySectionTitle } from '#react/primitives/property-section/PropertySectionTitle'
 import { SegmentedControlItem } from '#react/primitives/segmented-control/SegmentedControlItem'
 import { SegmentedControlRoot } from '#react/primitives/segmented-control/SegmentedControlRoot'
+import React, { useState } from 'react'
+
+import type { Fill } from '@openweave/scene-graph'
 
 const defaultFill: Fill = {
   type: 'SOLID',
@@ -34,8 +33,7 @@ export function PropertyPrimitivesDemo() {
   ])
 
   const addFill = (fill: Fill) => setFills((current) => [...current, structuredClone(fill)])
-  const removeFill = (index: number) =>
-    setFills((current) => current.filter((_, i) => i !== index))
+  const removeFill = (index: number) => setFills((current) => current.filter((_, i) => i !== index))
   const toggleFill = (index: number) =>
     setFills((current) =>
       current.map((fill, i) => (i === index ? { ...fill, visible: !fill.visible } : fill))
@@ -50,7 +48,9 @@ export function PropertyPrimitivesDemo() {
         >
           <PropertySectionHeader className="flex items-center justify-between px-3 py-2">
             <PropertySectionTitle className="font-semibold">Layer</PropertySectionTitle>
-            <PropertySectionActions className="text-[var(--vp-c-text-2)]">⌘ L</PropertySectionActions>
+            <PropertySectionActions className="text-[var(--vp-c-text-2)]">
+              ⌘ L
+            </PropertySectionActions>
           </PropertySectionHeader>
           <PropertySectionContent className="border-t border-[var(--vp-c-divider)] px-3 py-2">
             Collapsible content

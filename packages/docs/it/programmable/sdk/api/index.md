@@ -5,7 +5,7 @@ description: Documentazione di riferimento per componenti, composable e API avan
 
 # Riferimento API
 
-Il riferimento del Vue SDK è organizzato in tre sezioni.
+Il riferimento del React SDK è organizzato in tre sezioni.
 
 <SdkCardGroup>
   <SdkCard title="Componenti" to="/programmable/sdk/api/components/" description="Primitive strutturali headless come CanvasRoot, ToolbarRoot, FontPickerRoot e NumberFieldRoot." />

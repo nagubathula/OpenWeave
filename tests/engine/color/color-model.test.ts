@@ -1,7 +1,5 @@
 import { describe, expect, test } from 'bun:test'
 
-
-
 import type { Color, OkHCLColor } from '@openweave/core'
 import type { ColorFieldFormat } from '@openweave/react'
 import { BUILT_IN_COLOR_FORMATS, fromPercent, toPercent, useColorModel } from '@openweave/react'

@@ -1,8 +1,8 @@
-import { DEFAULT_TEXT_HEIGHT, DEFAULT_TEXT_WIDTH } from '@openweave/core/constants'
-import type { Editor } from '@openweave/core/editor'
-
 import { TOOL_TO_NODE } from '#react/shared/input/types'
 import type { DragDraw, DragState } from '#react/shared/input/types'
+
+import { DEFAULT_TEXT_HEIGHT, DEFAULT_TEXT_WIDTH } from '@openweave/core/constants'
+import type { Editor } from '@openweave/core/editor'
 
 export function startTextDraw(
   cx: number,

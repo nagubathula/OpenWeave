@@ -1,7 +1,7 @@
-import type { BlendMode, SceneNode } from '@openweave/scene-graph'
-
 import type { CornerGeometryKey } from '#react/controls/appearance/types'
 import type { MixedValue } from '#react/controls/node-props/use'
+
+import type { BlendMode, SceneNode } from '@openweave/scene-graph'
 
 export interface AppearanceControlsActions {
   updateProp(key: string, value: number): void

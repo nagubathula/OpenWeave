@@ -1,5 +1,5 @@
-import { useEffect } from 'react'
 import type { CanvasKit } from 'canvaskit-wasm'
+import { useEffect } from 'react'
 
 import { getCanvasKit } from '@openweave/core/canvaskit'
 
@@ -62,6 +62,6 @@ export function useCanvasKitLoader({
       cancelled = true
       lifecycle.destroyed = true
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 }

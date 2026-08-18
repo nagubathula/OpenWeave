@@ -1,12 +1,12 @@
-import React, { useEffect, useRef, useState } from 'react'
 import * as Popover from '@radix-ui/react-popover'
 import { Check, Diamond, Plus, Unlink } from 'lucide-react'
+import React, { useEffect, useRef, useState } from 'react'
 
 import { useBindableValue } from '@openweave/react'
 
-import Tip from '@/components/ui/Tip'
 import { BindingTrigger, useBindingFieldUI } from '@/components/ui/binding'
 import type { BindingFieldUI } from '@/components/ui/binding'
+import Tip from '@/components/ui/Tip'
 
 export interface VariableBindingPickerProps {
   triggerLabel: string
@@ -161,7 +161,12 @@ export default function VariableBindingPicker({
 
           <div className={styles.pickerFooter} data-slot="footer">
             {binding.state === 'bound' && (
-              <button type="button" className={styles.pickerAction} data-slot="action" onClick={detach}>
+              <button
+                type="button"
+                className={styles.pickerAction}
+                data-slot="action"
+                onClick={detach}
+              >
                 <Unlink className="size-3" />
                 <span>{detachLabel}</span>
               </button>

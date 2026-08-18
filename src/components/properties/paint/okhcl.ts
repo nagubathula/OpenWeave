@@ -1,5 +1,5 @@
-import type { SceneNode } from '@openweave/scene-graph'
 import type { OkHCLControls } from '@openweave/react'
+import type { SceneNode } from '@openweave/scene-graph'
 
 type OkhclControls = OkHCLControls
 type ColorFieldFormat = Parameters<OkhclControls['setFillFieldFormat']>[2]

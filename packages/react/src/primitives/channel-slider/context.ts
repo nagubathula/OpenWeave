@@ -1,4 +1,5 @@
 import { createContext, useContext } from 'react'
+
 import type { ChannelSliderContext } from './types'
 
 const ChannelSliderReactContext = createContext<ChannelSliderContext | null>(null)

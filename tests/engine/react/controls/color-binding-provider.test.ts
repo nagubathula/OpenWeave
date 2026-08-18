@@ -1,12 +1,12 @@
 import { describe, expect, test } from 'bun:test'
 
-import { createEditor } from '@openweave/core/editor'
-import type { Color, Fill } from '@openweave/scene-graph'
-
 import {
   createAndBindColorVariable,
   setColorVariableValue
 } from '#react/controls/binding-provider/color'
+
+import { createEditor } from '@openweave/core/editor'
+import type { Color, Fill } from '@openweave/scene-graph'
 
 const fill: Fill = {
   type: 'SOLID',

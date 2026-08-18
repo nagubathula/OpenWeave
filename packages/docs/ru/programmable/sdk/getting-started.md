@@ -23,7 +23,7 @@ import { provideEditor, useCanvas } from '@openweave/react'
 Три уровня:
 
 1. `@openweave/core` — не зависящий от фреймворка движок редактора
-2. `@openweave/react` — Vue-компосаблы и headless-примитивы
+2. `@openweave/react` — React-хуки и headless-примитивы
 3. ваше приложение — стили, маршрутизация, файловые потоки, UI под конкретный продукт
 
 ## Минимальная настройка

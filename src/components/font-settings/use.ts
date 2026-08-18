@@ -124,7 +124,9 @@ export function useFontSettings(actions: FontSettingsActions = defaultActions) {
   function setFontProviderEnabled(provider: WebFontProviderId, enabled: boolean) {
     actions.fontProviderSettings.set({ ...actions.fontProviderSettings.get(), [provider]: enabled })
     setStatus(
-      enabled ? dialogs.fontProviderEnabled({ provider }) : dialogs.fontProviderDisabled({ provider })
+      enabled
+        ? dialogs.fontProviderEnabled({ provider })
+        : dialogs.fontProviderDisabled({ provider })
     )
   }
 

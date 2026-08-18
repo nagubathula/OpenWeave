@@ -1,10 +1,16 @@
+import * as ContextMenu from '@radix-ui/react-context-menu'
+import {
+  File as IconLucideFile,
+  Pencil as IconLucidePencil,
+  Trash2 as IconLucideTrash2
+} from 'lucide-react'
 import React, { useRef, useCallback, useEffect } from 'react'
 import { tv } from 'tailwind-variants'
-import * as ContextMenu from '@radix-ui/react-context-menu'
-import { File as IconLucideFile, Pencil as IconLucidePencil, Trash2 as IconLucideTrash2 } from 'lucide-react'
+
 import { PageListRoot, useFlatReorderDrag, useI18n, useInlineRename } from '@openweave/react'
-import pageListTheme from '@/theme/page-list'
+
 import Tip from '@/components/ui/Tip'
+import pageListTheme from '@/theme/page-list'
 
 interface PageItem {
   id: string
@@ -37,14 +43,17 @@ export default function PagesPanel() {
   // registration (and its `draggable` attribute) on every re-render, not
   // just mount/unmount. Cache one stable ref-callback per page id instead.
   const rowRefsRef = useRef<Map<string, (el: HTMLElement | null) => void>>(new Map())
-  const getRowRef = useCallback((id: string) => {
-    let ref = rowRefsRef.current.get(id)
-    if (!ref) {
-      ref = (el) => pageReorder.setupItem(el, () => ({ id }))
-      rowRefsRef.current.set(id, ref)
-    }
-    return ref
-  }, [pageReorder])
+  const getRowRef = useCallback(
+    (id: string) => {
+      let ref = rowRefsRef.current.get(id)
+      if (!ref) {
+        ref = (el) => pageReorder.setupItem(el, () => ({ id }))
+        rowRefsRef.current.set(id, ref)
+      }
+      return ref
+    },
+    [pageReorder]
+  )
 
   const handleRenameCommit = useCallback((_id: string, _name: string) => {
     // Handled in input onBlur/onKeyDown via actions.rename
@@ -86,11 +95,7 @@ export default function PagesPanel() {
                 {panels.pages}
               </span>
               <Tip label={panels.addPage}>
-                <button
-                  data-test-id="pages-add"
-                  className={baseStyles.add()}
-                  onClick={actions.add}
-                >
+                <button data-test-id="pages-add" className={baseStyles.add()} onClick={actions.add}>
                   +
                 </button>
               </Tip>
@@ -143,26 +148,24 @@ export default function PagesPanel() {
                                 }}
                               />
                             </div>
+                          ) : isDivider(pg) ? (
+                            <div
+                              data-test-id="pages-divider"
+                              className={styles.divider()}
+                              onDoubleClick={() => rename.start(pg.id, pg.name)}
+                            >
+                              <div className={styles.dividerLine()} />
+                            </div>
                           ) : (
-                            isDivider(pg) ? (
-                              <div
-                                data-test-id="pages-divider"
-                                className={styles.divider()}
-                                onDoubleClick={() => rename.start(pg.id, pg.name)}
-                              >
-                                <div className={styles.dividerLine()} />
-                              </div>
-                            ) : (
-                              <button
-                                data-test-id="pages-item"
-                                className={styles.item()}
-                                onClick={() => actions.switch(pg.id)}
-                                onDoubleClick={() => rename.start(pg.id, pg.name)}
-                              >
-                                <IconLucideFile className={styles.icon()} />
-                                <span className={styles.label()}>{pg.name}</span>
-                              </button>
-                            )
+                            <button
+                              data-test-id="pages-item"
+                              className={styles.item()}
+                              onClick={() => actions.switch(pg.id)}
+                              onDoubleClick={() => rename.start(pg.id, pg.name)}
+                            >
+                              <IconLucideFile className={styles.icon()} />
+                              <span className={styles.label()}>{pg.name}</span>
+                            </button>
                           )}
 
                           {dropPos === 'after' && (
@@ -175,9 +178,7 @@ export default function PagesPanel() {
                       </ContextMenu.Trigger>
 
                       <ContextMenu.Portal>
-                        <ContextMenu.Content
-                          className="z-50 min-w-36 rounded-md bg-panel p-1 shadow-lg border border-border"
-                        >
+                        <ContextMenu.Content className="z-50 min-w-36 rounded-md bg-panel p-1 shadow-lg border border-border">
                           <ContextMenu.Item
                             data-test-id="pages-context-rename"
                             className="flex cursor-pointer items-center gap-2 rounded px-2 py-1 text-xs outline-none hover:bg-hover hover:text-surface"

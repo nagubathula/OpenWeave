@@ -12,7 +12,7 @@ Penpot 2.x inclut un renderer Rust/Skia WASM (`render-wasm/v1`) activable via le
 |----------|-------------|--------|
 | LOC total | **~26 000** | **~299 000** |
 | Fichiers source | ~143 | ~2 900 |
-| Langages | TypeScript, Vue | Clojure, ClojureScript, Rust, JS, SQL, SCSS |
+| Langages | TypeScript, React | Clojure, ClojureScript, Rust, JS, SQL, SCSS |
 | Moteur de rendu | ~3 200 LOC (TS, 10 plików) | 22 000 LOC (Rust/Skia WASM) |
 | Code UI | ~4 500 LOC | ~175 000 LOC (CLJS + SCSS) |
 | Backend | Aucun (local-first) | 32 600 LOC + 151 fichiers SQL |
@@ -28,7 +28,7 @@ Open Pencil est **~11× plus petit** — et c'est tout l'intérêt. Ce n'est pas
 ┌─────────────────────────────────┐
 │         Tauri (shell natif)     │
 │  ┌───────────────────────────┐  │
-│  │  Vue 3 + TypeScript       │  │
+│  │  React + TypeScript       │  │
 │  │  ┌─────────┐ ┌──────────┐│  │
 │  │  │  Editor  │ │  Kiwi    ││  │
 │  │  │  Store   │ │  Codec   ││  │
@@ -202,9 +202,9 @@ Gestion d'état via Potok (bibliothèque Redux-like pour atomes ClojureScript). 
 | Rechargement à chaud | Vite HMR (~50ms) | shadow-cljs (secondes) |
 | Vérification de types | TypeScript (strict) | Runtime (schémas Malli) |
 | Temps de build | <5s (Vite) | Minutes (JVM + CLJS + Rust WASM) |
-| Barrière première contribution | Basse (TS/Vue) | Haute (Clojure + Rust + Docker) |
+| Barrière première contribution | Basse (TS/React) | Haute (Clojure + Rust + Docker) |
 | Desktop | Tauri v2 (~5Mo) | N/A (navigateur uniquement) |
-| Bassin de recrutement | Massif (devs TS/Vue) | Petit (ClojureScript + Rust) |
+| Bassin de recrutement | Massif (devs TS/React) | Petit (ClojureScript + Rust) |
 
 ## 9. Caractéristiques de performance
 
@@ -239,7 +239,7 @@ OpenWeave inclut une [commande `eval`](/programmable/cli/scripting) offrant une 
 | **Performance de rendu** | Open Pencil | CanvasKit direct vs SVG DOM (défaut) ou WASM empaqueté |
 | **Maintenabilité du code** | Open Pencil | ~26K LOC en 1 langage vs 299K en 4+ |
 | **Compatibilité Figma** | Open Pencil | Codec Kiwi natif vs pas de support .fig |
-| **Onboarding développeur** | Open Pencil | TS/Vue vs Clojure/Rust/Docker |
+| **Onboarding développeur** | Open Pencil | TS/React vs Clojure/Rust/Docker |
 | **Expérience desktop** | Open Pencil | Tauri natif vs navigateur uniquement |
 | **Moteur de layout** | Open Pencil | Yoga (éprouvé) vs double implémentation |
 | **Collaboration** | Égalité | Penpot : serveur avec contrôle d'accès ; Open Pencil : P2P via Trystero + Yjs |

@@ -11,7 +11,7 @@ packages/
   mcp/               @openweave/mcp — server MCP per strumenti IA
     src/             Trasporti stdio + HTTP (Hono), 87 strumenti
 src/
-  components/        Vue SFCs (canvas, pannelli, barra strumenti, selettore colore)
+  components/        React Components (canvas, pannelli, barra strumenti, selettore colore)
     properties/      Sezioni pannello proprietà (Aspetto, Riempimento, Contorno, ecc.)
   hooks/       Input canvas, scorciatoie tastiera, hook di rendering
   stores/            Stato editor (reattività Vue)
@@ -55,7 +55,7 @@ bun run check
 ### Convenzioni
 
 - **Nomi file** — kebab-case (`scene-graph.ts`, `use-canvas-input.ts`)
-- **Componenti** — PascalCase Vue SFCs (`EditorCanvas.vue`, `NumberField.vue`)
+- **Componenti** — PascalCase React Components (`EditorCanvas.tsx`, `NumberField.vue`)
 - **Costanti** — SCREAMING_SNAKE_CASE
 - **Funzioni/variabili** — camelCase
 - **Tipi/interfacce** — PascalCase
@@ -72,7 +72,7 @@ Sviluppatori e agenti IA dovrebbero leggere `AGENTS.md` nella root del repo ([ve
 
 ## File chiave
 
-Il codice sorgente del motore core si trova in `packages/core/src/`. Il codice specifico dell'app per editor, documenti, IA, collaborazione, shell, demo e automazione vive in `src/app/*`; l'SDK Vue contiene il codice canvas e composable riutilizzabile in `packages/vue/src/`.
+Il codice sorgente del motore core si trova in `packages/core/src/`. Il codice specifico dell'app per editor, documenti, IA, collaborazione, shell, demo e automazione vive in `src/app/*`; l'SDK Vue contiene il codice canvas e composable riutilizzabile in `packages/react/src/`.
 
 | File | Scopo |
 |------|-------|
@@ -91,6 +91,6 @@ Il codice sorgente del motore core si trova in `packages/core/src/`. Il codice s
 | `packages/mcp/src/server.ts` | Factory del server MCP |
 | `packages/cli/src/commands/` | Comandi CLI (info, tree, find, export, eval, analyze) |
 | `src/app/editor/session/create.ts` | Editor session assembly |
-| `packages/vue/src/canvas/CanvasRoot.vue` | Composable rendering canvas |
-| `packages/vue/src/canvas/useCanvasInput.ts` | Gestione input mouse/touch |
+| `packages/react/src/canvas/CanvasRoot.vue` | Composable rendering canvas |
+| `packages/react/src/canvas/useCanvasInput.ts` | Gestione input mouse/touch |
 | `src/app/shell/keyboard/use.ts` | Gestione scorciatoie tastiera |

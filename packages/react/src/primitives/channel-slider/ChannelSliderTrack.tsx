@@ -1,5 +1,5 @@
-import React, { type ReactNode } from 'react'
 import * as Slider from '@radix-ui/react-slider'
+import React, { type ReactNode } from 'react'
 
 import { useChannelSlider } from './context'
 import type { ChannelSliderPartProps, ChannelSliderRootSlotProps } from './types'
@@ -18,11 +18,7 @@ export function ChannelSliderTrack({
   const renderedChildren = typeof children === 'function' ? children(ctx.slotProps) : children
 
   return (
-    <Slider.Track
-      asChild={asChild}
-      data-slot="track"
-      {...(props as any)}
-    >
+    <Slider.Track asChild={asChild} data-slot="track" {...(props as any)}>
       {!asChild && Component !== 'span' ? (
         <Component>{renderedChildren}</Component>
       ) : (

@@ -1,10 +1,6 @@
 import { describe, test, expect } from 'bun:test'
 
-import {
-  normalizeVectorNetwork,
-  validateVectorNetwork,
-  type VectorNetwork
-} from '@openweave/core'
+import { normalizeVectorNetwork, validateVectorNetwork, type VectorNetwork } from '@openweave/core'
 
 describe('validateVectorNetwork', () => {
   test('valid network returns no errors', () => {

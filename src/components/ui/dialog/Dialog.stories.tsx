@@ -1,5 +1,5 @@
-import type { Meta, StoryObj } from '@storybook/react'
 import * as Dialog from '@radix-ui/react-dialog'
+import type { Meta, StoryObj } from '@storybook/react'
 import { expect, userEvent, within } from '@storybook/test'
 import { useState } from 'react'
 
@@ -22,7 +22,9 @@ export const Standard: Story = {
     const [open, setOpen] = useState(false)
     return (
       <>
-        <button type="button" onClick={() => setOpen(true)}>Open dialog</button>
+        <button type="button" onClick={() => setOpen(true)}>
+          Open dialog
+        </button>
         <AppDialogRoot open={open} onOpenChange={setOpen} size="sm">
           <AppDialogHeader
             heading="Integration settings"
@@ -30,11 +32,15 @@ export const Standard: Story = {
             closeLabel="Close"
           />
           <AppDialogBody>
-            <p className="text-xs text-surface">Dialog bodies scroll independently of their header and footer.</p>
+            <p className="text-xs text-surface">
+              Dialog bodies scroll independently of their header and footer.
+            </p>
           </AppDialogBody>
           <AppDialogFooter>
             <Dialog.Close asChild>
-              <button type="button" className="rounded bg-accent px-3 py-1.5 text-xs text-white">Done</button>
+              <button type="button" className="rounded bg-accent px-3 py-1.5 text-xs text-white">
+                Done
+              </button>
             </Dialog.Close>
           </AppDialogFooter>
         </AppDialogRoot>
@@ -52,7 +58,11 @@ export const Standard: Story = {
 }
 
 export const CssCheck: Story = {
-  render: () => <button type="button" className="bg-accent">Test</button>,
+  render: () => (
+    <button type="button" className="bg-accent">
+      Test
+    </button>
+  ),
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement)
     const button = canvas.getByRole('button', { name: 'Test' })

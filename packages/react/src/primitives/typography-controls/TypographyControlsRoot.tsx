@@ -1,15 +1,12 @@
-import React from 'react'
 import { useTypography, type TypographyFontLoader } from '#react/controls/typography/use'
+import React from 'react'
 
 export interface TypographyControlsRootProps {
   fontLoader?: TypographyFontLoader
   children?: React.ReactNode | ((props: any) => React.ReactNode)
 }
 
-export function TypographyControlsRoot({
-  fontLoader,
-  children
-}: TypographyControlsRootProps) {
+export function TypographyControlsRoot({ fontLoader, children }: TypographyControlsRootProps) {
   const ctx = useTypography({ fontLoader })
 
   function onAlignChange(val: string) {
@@ -37,14 +34,17 @@ export function TypographyControlsRoot({
     toggleDecoration: ctx.toggleDecoration
   }
 
-  const renderedChildren = typeof children === 'function' ? children({
-    node: ctx.node,
-    weights: ctx.weights,
-    missingFonts: ctx.missingFonts,
-    hasMissingFonts: ctx.hasMissingFonts,
-    activeFormatting: ctx.activeFormatting,
-    actions
-  }) : children
+  const renderedChildren =
+    typeof children === 'function'
+      ? children({
+          node: ctx.node,
+          weights: ctx.weights,
+          missingFonts: ctx.missingFonts,
+          hasMissingFonts: ctx.hasMissingFonts,
+          activeFormatting: ctx.activeFormatting,
+          actions
+        })
+      : children
 
   return <>{renderedChildren}</>
 }

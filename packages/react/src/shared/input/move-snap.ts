@@ -1,8 +1,8 @@
+import type { DragMove } from '#react/shared/input/types'
+
 import type { Editor } from '@openweave/core/editor'
 import { computeSelectionBounds, computeSnap } from '@openweave/scene-graph'
 import type { SceneNode } from '@openweave/scene-graph'
-
-import type { DragMove } from '#react/shared/input/types'
 
 export function applyMoveSnap(
   d: DragMove,

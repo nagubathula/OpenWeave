@@ -1,7 +1,3 @@
-import { useMemo } from 'react'
-
-import type { SceneNode } from '@openweave/scene-graph'
-
 import { useNodeProps } from '#react/controls/node-props/use'
 import { useUndoBatch } from '#react/controls/undo-batch/use'
 import { useEditor } from '#react/editor/context'
@@ -12,6 +8,9 @@ import type {
   PropertyListKey,
   PropertyListPatchFor
 } from '#react/primitives/property-list/types.ts'
+import { useMemo } from 'react'
+
+import type { SceneNode } from '@openweave/scene-graph'
 
 function moveItem<T>(items: T[], fromIndex: number, toIndex: number): T[] {
   if (fromIndex === toIndex || fromIndex < 0 || fromIndex >= items.length) return items

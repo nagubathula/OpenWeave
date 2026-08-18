@@ -37,9 +37,14 @@ export default function SafariBanner() {
       className="flex items-center gap-2 border-b border-[var(--color-warning-border)] bg-[var(--color-warning-bg)] px-3 py-1.5 text-xs text-[var(--color-warning-text)]"
     >
       <span className="flex-1">
-        Your browser doesn't support the local file API. Files will be downloaded instead of saved in
-        place.{' '}
-        <a href="https://www.google.com/chrome/" target="_blank" rel="noreferrer" className="font-medium underline">
+        Your browser doesn't support the local file API. Files will be downloaded instead of saved
+        in place.{' '}
+        <a
+          href="https://www.google.com/chrome/"
+          target="_blank"
+          rel="noreferrer"
+          className="font-medium underline"
+        >
           Use Chrome
         </a>{' '}
         or Edge for full support.

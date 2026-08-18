@@ -1,12 +1,7 @@
 import type { Canvas, Paint } from 'canvaskit-wasm'
 
 import { transformVectorNetwork } from '@openweave/scene-graph'
-import type {
-  VectorVertex,
-  VectorSegment,
-  VectorRegion,
-  SceneGraph
-} from '@openweave/scene-graph'
+import type { VectorVertex, VectorSegment, VectorRegion, SceneGraph } from '@openweave/scene-graph'
 import { getWorldMatrix } from '@openweave/scene-graph/coordinate'
 import Matrix from '@openweave/scene-graph/matrix'
 import type { Vector } from '@openweave/scene-graph/primitives'

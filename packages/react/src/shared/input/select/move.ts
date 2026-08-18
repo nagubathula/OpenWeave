@@ -1,8 +1,8 @@
-import type { Editor } from '@openweave/core/editor'
-
 import type { DragOriginal as MoveOriginal } from '#react/shared/input/drag-original'
 import { duplicateAndDrag } from '#react/shared/input/duplicate-drag'
 import type { DragState } from '#react/shared/input/types'
+
+import type { Editor } from '@openweave/core/editor'
 
 export function selectionIsLocked(editor: Editor) {
   return [...editor.state.selectedIds].every((id) => editor.graph.getNode(id)?.locked)

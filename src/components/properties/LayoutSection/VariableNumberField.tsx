@@ -1,10 +1,11 @@
 import React, { useMemo } from 'react'
+
 import { BindableValueRoot, useI18n, useNumberBindingProvider } from '@openweave/react'
 import type { NumberBindingPath } from '@openweave/react'
 
 import NumberField from '@/components/inputs/NumberField'
-import { BindingPill } from '@/components/ui/binding'
 import VariableBindingPicker from '@/components/properties/binding/VariableBindingPicker'
+import { BindingPill } from '@/components/ui/binding'
 
 export interface VariableNumberFieldProps {
   value: number

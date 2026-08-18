@@ -1,5 +1,6 @@
-import React, { type ElementType, type ReactNode } from 'react'
 import { Slot } from '@radix-ui/react-slot'
+import React, { type ElementType, type ReactNode } from 'react'
+
 import { useBindableValue } from './context'
 import type { BindableValueSlotProps } from './types'
 
@@ -16,9 +17,9 @@ export function BindableValueTrigger({
   ...props
 }: BindableValueTriggerProps & Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, 'children'>) {
   const ctx = useBindableValue()
-  
+
   const semanticAttrs = {
-    type: !asChild && Component === 'button' ? 'button' as const : undefined,
+    type: !asChild && Component === 'button' ? ('button' as const) : undefined,
     'aria-expanded': ctx.open,
     'aria-haspopup': 'listbox' as const
   }

@@ -1,11 +1,7 @@
 import type { SceneNode } from '@openweave/scene-graph'
 import type { Vector } from '@openweave/scene-graph/primitives'
 
-import {
-  importClipboardNodes,
-  parseFigmaClipboard,
-  parseOpenWeaveClipboard
-} from '#core/clipboard'
+import { importClipboardNodes, parseFigmaClipboard, parseOpenWeaveClipboard } from '#core/clipboard'
 import { computeAllLayouts } from '#core/layout'
 
 import { createClipboardAssetActions } from './clipboard/assets'

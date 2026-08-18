@@ -1,7 +1,6 @@
 import React from 'react'
-import Tip from '@/components/ui/Tip'
-import ToolButton from '@/components/toolbar/ToolButton'
-import ToolFlyout from '@/components/toolbar/ToolFlyout'
+
+import type { Tool, EditorToolDef } from '@openweave/core/editor'
 import {
   getToolbarToolSelection,
   isToolbarToolActive,
@@ -9,8 +8,10 @@ import {
   ToolbarItem
 } from '@openweave/react'
 
-import type { Tool, EditorToolDef } from '@openweave/core/editor'
+import ToolButton from '@/components/toolbar/ToolButton'
+import ToolFlyout from '@/components/toolbar/ToolFlyout'
 import type { ToolbarUI, ToolIconMap, ToolLabels } from '@/components/toolbar/types'
+import Tip from '@/components/ui/Tip'
 
 interface DesktopToolbarProps {
   tools: EditorToolDef[]
@@ -39,7 +40,7 @@ export default function DesktopToolbar({
         data-test-id="toolbar"
         className="flex items-center gap-0.5 rounded-full bg-panel px-1.5 py-1.5 shadow-[0_8px_30px_rgb(0_0_0/0.45)]"
       >
-        {tools.map(tool => {
+        {tools.map((tool) => {
           if (tool.flyout && tool.flyout.length > 1) {
             const selected = getToolbarToolSelection(tool, activeTool, flyoutSelections)
             const labelStr = `${toolLabels[selected]} (${tool.shortcut})`

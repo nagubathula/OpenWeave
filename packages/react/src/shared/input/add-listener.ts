@@ -11,7 +11,11 @@ const noop = () => undefined
  * Returns a cleanup function.
  */
 export function addListener<K extends keyof HTMLElementEventMap>(
-  target: { current?: HTMLElement | null; value?: HTMLElement | null } | EventTarget | null | undefined,
+  target:
+    | { current?: HTMLElement | null; value?: HTMLElement | null }
+    | EventTarget
+    | null
+    | undefined,
   event: K | (string & Record<string, unknown>),
   handler: (e: Event) => void,
   options?: AddEventListenerOptions

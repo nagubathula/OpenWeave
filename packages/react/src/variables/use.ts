@@ -1,10 +1,12 @@
+import { useEditor } from '#react/editor/context'
+import { useSceneComputed } from '#react/internal/scene-computed/use'
+import {
+  createVariableCollectionActions,
+  createVariableValueActions
+} from '#react/variables/helpers'
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 
 import type { Variable } from '@openweave/scene-graph'
-
-import { useEditor } from '#react/editor/context'
-import { useSceneComputed } from '#react/internal/scene-computed/use'
-import { createVariableCollectionActions, createVariableValueActions } from '#react/variables/helpers'
 
 export function useVariables() {
   const editor = useEditor()
@@ -27,10 +29,7 @@ export function useVariables() {
     [editor, activeCollectionId]
   )
 
-  const activeModes = useMemo(
-    () => activeCollection?.modes ?? [],
-    [activeCollection]
-  )
+  const activeModes = useMemo(() => activeCollection?.modes ?? [], [activeCollection])
 
   const variables = useSceneComputed(() => {
     if (!activeCollectionId) return [] as Variable[]
@@ -53,7 +52,8 @@ export function useVariables() {
     [editor]
   )
   const variableActions = useMemo(
-    () => createVariableValueActions(editor, () => editor.getCollection(activeIdRef.current) ?? null),
+    () =>
+      createVariableValueActions(editor, () => editor.getCollection(activeIdRef.current) ?? null),
     [editor]
   )
 

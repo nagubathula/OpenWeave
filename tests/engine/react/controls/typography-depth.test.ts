@@ -1,10 +1,8 @@
 import { describe, expect, test } from 'bun:test'
 
-
+import { createTypographyActions } from '#react/controls/typography/actions'
 
 import { createEditor } from '@openweave/core/editor'
-
-import { createTypographyActions } from '#react/controls/typography/actions'
 
 describe('typography depth actions', () => {
   test('restores nullable max lines and text style after preview undo', () => {

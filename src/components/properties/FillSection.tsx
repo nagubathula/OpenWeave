@@ -1,4 +1,8 @@
+import { Plus, Eye, EyeOff, Minus } from 'lucide-react'
 import React from 'react'
+
+import { colorToHexRaw } from '@openweave/core/color'
+import { BLACK } from '@openweave/core/constants'
 import {
   BindableValueRoot,
   useColorBindingProvider,
@@ -7,27 +11,33 @@ import {
   useOkHCL,
   useSelectionState
 } from '@openweave/react'
-import { BLACK } from '@openweave/core/constants'
-import { colorToHexRaw } from '@openweave/core/color'
 import type { Fill } from '@openweave/scene-graph'
-import { Plus, Eye, EyeOff, Minus } from 'lucide-react'
 
-import PanelSection from '@/components/ui/panel/PanelSection'
-import IconButton from '@/components/ui/IconButton'
 import NumberField from '@/components/inputs/NumberField'
-import { AppSelect } from '@/components/ui/AppSelect'
-import { BindingPill } from '@/components/ui/binding'
+import VariableBindingPicker from '@/components/properties/binding/VariableBindingPicker'
+import {
+  commitDiscretePropertyListChange,
+  useBlendModeOptions
+} from '@/components/properties/blend-mode/use'
 import { FillRow as ComplexFillEditor } from '@/components/properties/FillEditor'
-import PaintSwatchPopover from '@/components/properties/paint/PaintSwatchPopover'
 import { paintBindingTargets, usePaintMutation } from '@/components/properties/paint/binding'
 import { createFillOkhclAdapter } from '@/components/properties/paint/okhcl'
-import { commitDiscretePropertyListChange, useBlendModeOptions } from '@/components/properties/blend-mode/use'
+import PaintSwatchPopover from '@/components/properties/paint/PaintSwatchPopover'
 import SharedStyleField from '@/components/properties/shared-style/SharedStyleField'
-import VariableBindingPicker from '@/components/properties/binding/VariableBindingPicker'
+import { AppSelect } from '@/components/ui/AppSelect'
+import { BindingPill } from '@/components/ui/binding'
+import IconButton from '@/components/ui/IconButton'
+import PanelSection from '@/components/ui/panel/PanelSection'
 
 export default function FillSection() {
-  const { items: fills, isMixed, active, selectedNodeIds, flush, actions } =
-    useEditorPropertyList('fills')
+  const {
+    items: fills,
+    isMixed,
+    active,
+    selectedNodeIds,
+    flush,
+    actions
+  } = useEditorPropertyList('fills')
   const colorProvider = useColorBindingProvider()
   const paint = usePaintMutation()
   const { panels, dialogs } = useI18n()
@@ -58,7 +68,12 @@ export default function FillSection() {
         {isMixed && <p className="text-[11px] text-muted">{panels.mixedFillsHelp}</p>}
 
         {fills.map((fill, i) => (
-          <div key={i} className="flex flex-col gap-2 relative group" data-property="fills" data-index={i}>
+          <div
+            key={i}
+            className="flex flex-col gap-2 relative group"
+            data-property="fills"
+            data-index={i}
+          >
             <div className="flex items-center gap-1.5">
               <BindableValueRoot
                 provider={colorProvider}

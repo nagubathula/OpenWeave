@@ -1,6 +1,6 @@
+import type { UIMessage } from 'ai'
 import React from 'react'
 import ReactMarkdown from 'react-markdown'
-import type { UIMessage } from 'ai'
 
 import ChatToolCall, { isToolPart } from '@/components/chat/ChatToolCall'
 import type { ToolPartLike } from '@/components/chat/ChatToolCall'

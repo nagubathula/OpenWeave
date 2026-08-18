@@ -2,8 +2,8 @@ import React, { useEffect, useRef, useState } from 'react'
 
 import { useI18n } from '@openweave/react'
 
-import { useEditorState } from '@/app/editor/session/use-editor-state'
 import { getActiveEditorStore } from '@/app/editor/active-store'
+import { useEditorState } from '@/app/editor/session/use-editor-state'
 
 /**
  * Ported from src/components/selection/RenameSelectionDialog.vue.
@@ -105,7 +105,10 @@ export default function RenameSelectionDialog() {
           <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-4">
             <div className="min-w-0">
               <div className="mb-1.5 text-xs text-muted">{dialogs.renamePreview}</div>
-              <ul aria-label={dialogs.renamePreview} className="max-h-36 space-y-1 overflow-auto text-xs">
+              <ul
+                aria-label={dialogs.renamePreview}
+                className="max-h-36 space-y-1 overflow-auto text-xs"
+              >
                 {selectedNodes.map((node) => (
                   <li key={node.id} className="truncate text-surface">
                     {hasRenameInput ? (preview.names.get(node.id) ?? node.name) : node.name}

@@ -17,7 +17,10 @@ const meta = {
         {...args}
         icon={<Files className="size-5" />}
         action={
-          <button type="button" className="rounded bg-accent px-3 py-1.5 text-xs font-medium text-white">
+          <button
+            type="button"
+            className="rounded bg-accent px-3 py-1.5 text-xs font-medium text-white"
+          >
             Create document
           </button>
         }
@@ -38,4 +41,3 @@ export const Compact: Story = {
     size: 'compact'
   }
 }
-

@@ -2,13 +2,13 @@
 import { existsSync, readFileSync, readdirSync } from 'node:fs'
 import { join } from 'node:path'
 
-import type { JsonObject } from '@openweave/scene-graph/primitives'
 import {
   LOCALE_DIR_NAMES,
   TRANSLATED_LOCALES,
   messageDefaults,
   type TranslatedLocale
 } from '@openweave/react'
+import type { JsonObject } from '@openweave/scene-graph/primitives'
 
 const LOCALES_DIR = 'packages/react/src/i18n/locales'
 const LOCALE_FILE_NAMES: Record<string, string> = {

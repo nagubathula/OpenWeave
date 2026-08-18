@@ -1,5 +1,5 @@
-import React from 'react'
 import { Slot } from '@radix-ui/react-slot'
+import React from 'react'
 
 import { usePropertySection } from './context'
 import type { PropertySectionPartProps } from './types'
@@ -10,13 +10,14 @@ export function PropertySectionEmptyAction({
   ...props
 }: PropertySectionPartProps & React.ButtonHTMLAttributes<HTMLButtonElement>) {
   const ctx = usePropertySection()
-  
+
   if (!ctx.empty) {
     return null
   }
 
   const Comp = asChild ? Slot : 'button'
-  const renderedChildren = typeof children === 'function' ? (children as any)(ctx.slotProps) : children
+  const renderedChildren =
+    typeof children === 'function' ? (children as any)(ctx.slotProps) : children
 
   return (
     <Comp type="button" data-slot="empty-action" {...ctx.stateAttrs} {...props}>

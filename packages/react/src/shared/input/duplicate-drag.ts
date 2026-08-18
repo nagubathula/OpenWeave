@@ -1,8 +1,8 @@
-import type { Editor } from '@openweave/core/editor'
-
 import { panelMessages } from '#react/i18n/messages'
 import type { DragOriginal } from '#react/shared/input/drag-original'
 import type { DragState } from '#react/shared/input/types'
+
+import type { Editor } from '@openweave/core/editor'
 
 export function duplicateAndDrag(
   cx: number,

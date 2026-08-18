@@ -1,12 +1,6 @@
 import { beforeAll, describe, expect, setDefaultTimeout, test } from 'bun:test'
 
-import {
-  exportFigFile,
-  initCodec,
-  parseFigFile,
-  SceneGraph,
-  type SceneNode
-} from '@openweave/core'
+import { exportFigFile, initCodec, parseFigFile, SceneGraph, type SceneNode } from '@openweave/core'
 
 import { expectDefined } from '#tests/helpers/assert'
 import { collectAllNodes, countByType } from '#tests/helpers/fig-traversal'

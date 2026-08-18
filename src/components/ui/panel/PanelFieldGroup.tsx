@@ -1,4 +1,4 @@
-import type { HTMLAttributes } from 'react';
+import type { HTMLAttributes } from 'react'
 import React, { forwardRef } from 'react'
 import { tv } from 'tailwind-variants'
 

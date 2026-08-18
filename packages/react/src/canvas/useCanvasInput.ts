@@ -1,8 +1,3 @@
-import { useEffect, useRef, useState, type RefObject } from 'react'
-
-import type { Editor } from '@openweave/core/editor'
-import type { SceneNode } from '@openweave/scene-graph'
-
 import {
   handleBendHandleMove,
   handleNodeEditMouseUp,
@@ -23,6 +18,10 @@ import { applyResize, commitResizePreview } from '#react/shared/input/resize'
 import { updateHoverCursor } from '#react/shared/input/select'
 import { useSpaceHeld } from '#react/shared/input/space-key'
 import type { DragState } from '#react/shared/input/types'
+import { useEffect, useRef, useState, type RefObject } from 'react'
+
+import type { Editor } from '@openweave/core/editor'
+import type { SceneNode } from '@openweave/scene-graph'
 
 export interface AutoLayoutPaddingEditState {
   nodeId: string
@@ -48,7 +47,8 @@ export function useCanvasInput(
 ) {
   const drag = useRef<DragState | null>(null)
   const [cursorOverride, setCursorOverride] = useState<string | null>(null)
-  const [autoLayoutPaddingEdit, setAutoLayoutPaddingEdit] = useState<AutoLayoutPaddingEditState | null>(null)
+  const [autoLayoutPaddingEdit, setAutoLayoutPaddingEdit] =
+    useState<AutoLayoutPaddingEditState | null>(null)
   const selectedIdsBeforeClickSequence = useRef<ReadonlySet<string>>(new Set())
   const spaceHeld = useSpaceHeld()
   const { recordClick, getClickCount } = createClickCounter()
@@ -121,7 +121,9 @@ export function useCanvasInput(
     if (!autoLayoutPaddingEdit || !Number.isFinite(value)) return
     const next = Math.max(0, value)
     setAutoLayoutPaddingEdit({ ...autoLayoutPaddingEdit, value: next })
-    editor.updateNode(autoLayoutPaddingEdit.nodeId, { [paddingKey(autoLayoutPaddingEdit.side)]: next })
+    editor.updateNode(autoLayoutPaddingEdit.nodeId, {
+      [paddingKey(autoLayoutPaddingEdit.side)]: next
+    })
   }
 
   function commitAutoLayoutPaddingEdit(value: number) {
@@ -130,13 +132,22 @@ export function useCanvasInput(
       return
     }
     const next = Math.max(0, value)
-    editor.updateNode(autoLayoutPaddingEdit.nodeId, { [paddingKey(autoLayoutPaddingEdit.side)]: autoLayoutPaddingEdit.previous })
-    editor.updateNodeWithUndo(autoLayoutPaddingEdit.nodeId, { [paddingKey(autoLayoutPaddingEdit.side)]: next }, 'Update padding')
+    editor.updateNode(autoLayoutPaddingEdit.nodeId, {
+      [paddingKey(autoLayoutPaddingEdit.side)]: autoLayoutPaddingEdit.previous
+    })
+    editor.updateNodeWithUndo(
+      autoLayoutPaddingEdit.nodeId,
+      { [paddingKey(autoLayoutPaddingEdit.side)]: next },
+      'Update padding'
+    )
     setAutoLayoutPaddingEdit(null)
   }
 
   function cancelAutoLayoutPaddingEdit() {
-    if (autoLayoutPaddingEdit) editor.updateNode(autoLayoutPaddingEdit.nodeId, { [paddingKey(autoLayoutPaddingEdit.side)]: autoLayoutPaddingEdit.previous })
+    if (autoLayoutPaddingEdit)
+      editor.updateNode(autoLayoutPaddingEdit.nodeId, {
+        [paddingKey(autoLayoutPaddingEdit.side)]: autoLayoutPaddingEdit.previous
+      })
     setAutoLayoutPaddingEdit(null)
   }
 
@@ -281,7 +292,9 @@ export function useCanvasInput(
     canvas.addEventListener('mousemove', onMouseMove)
     canvas.addEventListener('mouseup', onMouseUp)
     canvas.addEventListener('mouseleave', onMouseLeave)
-    const onWindowMouseUp = () => { if (drag.current) onMouseUp() }
+    const onWindowMouseUp = () => {
+      if (drag.current) onMouseUp()
+    }
     window.addEventListener('mouseup', onWindowMouseUp)
     return () => {
       canvas.removeEventListener('dblclick', onDblClick)
@@ -291,7 +304,7 @@ export function useCanvasInput(
       canvas.removeEventListener('mouseleave', onMouseLeave)
       window.removeEventListener('mouseup', onWindowMouseUp)
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [autoLayoutPaddingEdit])
 
   setupPanZoom(canvasRef, editor, drag, onMouseDown, onMouseMove, onMouseUp)

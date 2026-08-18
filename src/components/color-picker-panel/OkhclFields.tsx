@@ -1,8 +1,9 @@
 import React from 'react'
+
 import { fromPercent, toPercent } from '@openweave/react'
 
-import { useColorPickerPanelContext } from './context'
 import ColorSliderField from './ColorSliderField'
+import { useColorPickerPanelContext } from './context'
 import { HUE_RAINBOW_GRADIENT } from './helpers'
 
 const formatDegrees = (value: number) => `${Math.round(value)}°`

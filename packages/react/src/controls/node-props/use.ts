@@ -1,4 +1,6 @@
+import { useEditor } from '#react/editor/context'
 import { useCallback } from 'react'
+
 import {
   MIXED,
   useNodePropArrayActions,
@@ -6,7 +8,6 @@ import {
   useNodePropSelectionState,
   isNodeArrayMixed
 } from './helpers'
-import { useEditor } from '#react/editor/context'
 
 /** Sentinel value returned when a property differs across multiple selected nodes. */
 export { MIXED }
@@ -25,9 +26,12 @@ export function useNodeProps() {
   const { node, nodes, isMulti, active, activeNode, prop, merged, updateAllWithUndo } =
     useNodePropSelectionState(store)
 
-  const isArrayMixed = useCallback((key: Parameters<typeof isNodeArrayMixed>[1]): boolean => {
-    return isNodeArrayMixed(nodes, key)
-  }, [nodes])
+  const isArrayMixed = useCallback(
+    (key: Parameters<typeof isNodeArrayMixed>[1]): boolean => {
+      return isNodeArrayMixed(nodes, key)
+    },
+    [nodes]
+  )
 
   const { targetNodes, updateArrayItem, removeArrayItem, toggleArrayVisibility } =
     useNodePropArrayActions({ store, nodes, activeNode, isMulti })

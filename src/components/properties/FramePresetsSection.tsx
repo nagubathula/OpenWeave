@@ -1,5 +1,7 @@
 import React, { useState } from 'react'
+
 import { useEditor, useI18n } from '@openweave/react'
+
 import { FRAME_PRESET_CATEGORIES } from '@/app/editor/frame-presets'
 
 /**
@@ -13,7 +15,9 @@ import { FRAME_PRESET_CATEGORIES } from '@/app/editor/frame-presets'
 export default function FramePresetsSection() {
   const editor = useEditor()
   const { panels } = useI18n()
-  const [expanded, setExpanded] = useState<Set<string>>(() => new Set([FRAME_PRESET_CATEGORIES[0].id]))
+  const [expanded, setExpanded] = useState<Set<string>>(
+    () => new Set([FRAME_PRESET_CATEGORIES[0].id])
+  )
 
   const toggleCategory = (id: string) => {
     setExpanded((prev) => {

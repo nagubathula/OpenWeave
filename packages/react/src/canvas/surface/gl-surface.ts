@@ -1,8 +1,7 @@
+import type { UseCanvasOptions } from '#react/canvas/surface/types'
 import type { CanvasKit, Surface } from 'canvaskit-wasm'
 
 import type { Editor } from '@openweave/core/editor'
-
-import type { UseCanvasOptions } from '#react/canvas/surface/types'
 
 type GLContext = ReturnType<CanvasKit['MakeGrContext']>
 

@@ -1,16 +1,16 @@
-import React, { useCallback, useEffect, useState } from 'react'
+import { useStore } from '@nanostores/react'
 import * as AlertDialog from '@radix-ui/react-alert-dialog'
 import { ArrowLeft, Bot, ChevronRight, Plus } from 'lucide-react'
-import { useStore } from '@nanostores/react'
+import React, { useCallback, useEffect, useState } from 'react'
 
-import { useI18n } from '@openweave/react'
 import { ACP_AGENTS, AI_PROVIDERS, type AIProviderID } from '@openweave/core/constants'
+import { useI18n } from '@openweave/react'
 
-import { refreshAIProviderStatus } from '@/app/ai/chat/storage'
 import {
   testProviderConnection,
   type ProviderConnectionTestFailureReason
 } from '@/app/ai/chat/connection-test'
+import { refreshAIProviderStatus } from '@/app/ai/chat/storage'
 import {
   aiModelSettings,
   createModelProfileDraft,
@@ -33,9 +33,9 @@ import type {
   OptionalAIModelRole
 } from '@/app/ai/models/types'
 import type { CredentialStatus } from '@/app/settings/credentials/types'
+import { openExternalLink } from '@/app/shell/ui'
 import { AppInput } from '@/components/ui/AppInput'
 import { AppSelect } from '@/components/ui/AppSelect'
-import { openExternalLink } from '@/app/shell/ui'
 import { AppSwitch } from '@/components/ui/AppSwitch'
 
 /**
@@ -131,9 +131,9 @@ function ProfileEditor({ profileId, onDone }: ProfileEditorProps) {
     setDraft((prev) => ({
       ...prev,
       capabilities: enabled
-        ? (prev.capabilities.includes(capability)
+        ? prev.capabilities.includes(capability)
           ? prev.capabilities
-          : [...prev.capabilities, capability])
+          : [...prev.capabilities, capability]
         : prev.capabilities.filter((value) => value !== capability)
     }))
   }
@@ -358,7 +358,9 @@ function ProfileEditor({ profileId, onDone }: ProfileEditorProps) {
                   data-test-id="provider-settings-api-key"
                   className={inputClass}
                   value={keyInput}
-                  placeholder={hasExistingKey ? dialogs.keySavedReplace : providerDef.keyPlaceholder}
+                  placeholder={
+                    hasExistingKey ? dialogs.keySavedReplace : providerDef.keyPlaceholder
+                  }
                   onChange={(event) => {
                     setKeyInput(event.target.value)
                     resetConnectionTest()
@@ -416,7 +418,8 @@ function ProfileEditor({ profileId, onDone }: ProfileEditorProps) {
               )}
               {testStatus === 'error' && (
                 <span className="text-[10px] text-danger" role="alert">
-                  {dialogs.connectionFailed}{testReason ? `: ${testReason}` : ''}
+                  {dialogs.connectionFailed}
+                  {testReason ? `: ${testReason}` : ''}
                 </span>
               )}
             </div>
@@ -498,7 +501,10 @@ function ProfileEditor({ profileId, onDone }: ProfileEditorProps) {
             </div>
             <div className="flex justify-end gap-2 border-t border-border px-4 py-3">
               <AlertDialog.Cancel asChild>
-                <button type="button" className="rounded px-3 py-1.5 text-xs text-muted hover:bg-hover">
+                <button
+                  type="button"
+                  className="rounded px-3 py-1.5 text-xs text-muted hover:bg-hover"
+                >
                   {dialogs.cancel}
                 </button>
               </AlertDialog.Cancel>
@@ -529,10 +535,22 @@ function RoleAssignments() {
   const settings = useStore(aiModelSettings)
 
   const roleDefinitions: { role: AIModelRole; label: string; description: string }[] = [
-    { role: 'design', label: dialogs.modelRoleDesign, description: dialogs.modelRoleDesignDescription },
-    { role: 'review', label: dialogs.modelRoleReview, description: dialogs.modelRoleReviewDescription },
+    {
+      role: 'design',
+      label: dialogs.modelRoleDesign,
+      description: dialogs.modelRoleDesignDescription
+    },
+    {
+      role: 'review',
+      label: dialogs.modelRoleReview,
+      description: dialogs.modelRoleReviewDescription
+    },
     { role: 'fast', label: dialogs.modelRoleFast, description: dialogs.modelRoleFastDescription },
-    { role: 'vision', label: dialogs.modelRoleVision, description: dialogs.modelRoleVisionDescription }
+    {
+      role: 'vision',
+      label: dialogs.modelRoleVision,
+      description: dialogs.modelRoleVisionDescription
+    }
   ]
 
   const assignmentValue = (role: AIModelRole): string => {
@@ -617,10 +635,12 @@ export default function ModelsPanel() {
 
   const refreshStatuses = useCallback(async () => {
     const entries = await Promise.all(
-      aiModelSettings.get().connections.map(
-        async (connection) =>
-          [connection.id, await modelConnectionCredentialStatus(connection.id)] as const
-      )
+      aiModelSettings
+        .get()
+        .connections.map(
+          async (connection) =>
+            [connection.id, await modelConnectionCredentialStatus(connection.id)] as const
+        )
     )
     setStatusByConnection(Object.fromEntries(entries))
   }, [])

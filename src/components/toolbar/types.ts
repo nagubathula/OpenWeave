@@ -1,5 +1,7 @@
 import type React from 'react'
+
 import type { Tool } from '@openweave/react'
+
 import type { ComponentUI } from '@/components/ui/types'
 import type { ToolbarTheme } from '@/theme/toolbar'
 

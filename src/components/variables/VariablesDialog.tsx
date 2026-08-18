@@ -1,5 +1,4 @@
-import React, { useCallback, useState } from 'react'
-import { createPortal } from 'react-dom'
+import { flexRender } from '@tanstack/react-table'
 import {
   Palette,
   Hash,
@@ -12,15 +11,16 @@ import {
   Search,
   ChevronDown
 } from 'lucide-react'
-import { flexRender } from '@tanstack/react-table'
-
+import React, { useCallback, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { useEventListener } from 'usehooks-ts'
+
 import { useVariablesEditor, useI18n } from '@openweave/react'
-import type { Color } from '@openweave/scene-graph/primitives'
 import type { VariableType } from '@openweave/scene-graph'
-import Tip from '@/components/ui/Tip'
+import type { Color } from '@openweave/scene-graph/primitives'
 
 import { ColorSwatchPopover } from '@/components/color-picker/ColorSwatchPopover'
+import Tip from '@/components/ui/Tip'
 
 // --- Color adapter ---------------------------------------------------------
 
@@ -72,9 +72,17 @@ function VariablesEditor({ onClose }: { onClose: () => void }) {
 
   const variableTypeOptions: { type: VariableType; label: string; description: string }[] = [
     { type: 'COLOR', label: variableTypes.color, description: dialogs.addVariableColorDescription },
-    { type: 'FLOAT', label: variableTypes.number, description: dialogs.addVariableNumberDescription },
+    {
+      type: 'FLOAT',
+      label: variableTypes.number,
+      description: dialogs.addVariableNumberDescription
+    },
     { type: 'STRING', label: variableTypes.text, description: dialogs.addVariableTextDescription },
-    { type: 'BOOLEAN', label: variableTypes.boolean, description: dialogs.addVariableBooleanDescription }
+    {
+      type: 'BOOLEAN',
+      label: variableTypes.boolean,
+      description: dialogs.addVariableBooleanDescription
+    }
   ]
 
   if (!ctx.hasCollections) {
@@ -82,7 +90,12 @@ function VariablesEditor({ onClose }: { onClose: () => void }) {
       <div className="flex flex-1 flex-col" data-test-id="variables-empty">
         <div className="flex shrink-0 items-center justify-between border-b border-border px-4 py-3">
           <h2 className="text-sm font-semibold text-surface">{dialogs.localVariables}</h2>
-          <button type="button" className={iconButtonClass} aria-label={dialogs.close} onClick={onClose}>
+          <button
+            type="button"
+            className={iconButtonClass}
+            aria-label={dialogs.close}
+            onClick={onClose}
+          >
             <X className="size-4" />
           </button>
         </div>
@@ -164,7 +177,12 @@ function VariablesEditor({ onClose }: { onClose: () => void }) {
               <Trash2 className="size-3.5" />
             </button>
           </Tip>
-          <button type="button" className={iconButtonClass} aria-label={dialogs.close} onClick={onClose}>
+          <button
+            type="button"
+            className={iconButtonClass}
+            aria-label={dialogs.close}
+            onClick={onClose}
+          >
             <X className="size-4" />
           </button>
         </div>
@@ -199,9 +217,7 @@ function VariablesEditor({ onClose }: { onClose: () => void }) {
                         <span
                           className={modeId ? 'cursor-text' : undefined}
                           data-default={modeId === activeCollection?.defaultModeId || undefined}
-                          onDoubleClick={
-                            modeId ? () => ctx.startRenameMode(modeId) : undefined
-                          }
+                          onDoubleClick={modeId ? () => ctx.startRenameMode(modeId) : undefined}
                         >
                           {header.isPlaceholder
                             ? null

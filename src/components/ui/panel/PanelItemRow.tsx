@@ -1,4 +1,4 @@
-import type { HTMLAttributes, ReactNode } from 'react';
+import type { HTMLAttributes, ReactNode } from 'react'
 import React, { forwardRef } from 'react'
 import { tv } from 'tailwind-variants'
 
@@ -19,7 +19,12 @@ export const PanelItemRow = forwardRef<HTMLDivElement, PanelItemRowProps>(
     const styles = tv(itemRowTheme)()
 
     return (
-      <div ref={ref} data-slot="item-row" className={styles.root({ className: [ui?.root, className] })} {...props}>
+      <div
+        ref={ref}
+        data-slot="item-row"
+        className={styles.root({ className: [ui?.root, className] })}
+        {...props}
+      >
         <div className={styles.content({ className: ui?.content })} data-slot="content">
           {children}
         </div>

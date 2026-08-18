@@ -5,7 +5,7 @@ description: Store di locale di livello inferiore e metadati esportati da @openw
 
 # API Locale
 
-Oltre a `useI18n()`, il Vue SDK esporta primitive di locale di livello inferiore per integrazioni avanzate:
+Oltre a `useI18n()`, il React SDK esporta primitive di locale di livello inferiore per integrazioni avanzate:
 
 - `locale`
 - `localeSetting`

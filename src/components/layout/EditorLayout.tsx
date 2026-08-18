@@ -1,33 +1,35 @@
+import { Sidebar } from 'lucide-react'
 import React, { useEffect, useState, useRef, useCallback } from 'react'
 import { Panel, Group, Separator } from 'react-resizable-panels'
-import { Sidebar } from 'lucide-react'
 import { useEventListener } from 'usehooks-ts'
-import EditorCanvas from '@/components/EditorCanvas'
-import LayersPanel from '@/components/LayersPanel'
-import PropertiesPanel from '@/components/PropertiesPanel'
-import Toolbar from '@/components/toolbar/Toolbar'
-import TabBar from '@/components/TabBar'
-import SafariBanner from '@/components/SafariBanner'
-import AppToast from '@/components/shell/AppToast'
-import RenameSelectionDialog from '@/components/selection/RenameSelectionDialog'
-import AcpPermissionDialog from '@/components/chat/AcpPermissionDialog'
-import StorageWorkspace from '@/components/storage/StorageWorkspace'
-import CollabPanel from '@/components/collab-panel/CollabPanel'
-import MobileDrawer from '@/components/MobileDrawer'
-import MobileHud from '@/components/mobile-hud/MobileHud'
+
 import { useViewportKind } from '@openweave/react'
-import { useEditorState } from '@/app/editor/session/use-editor-state'
-import { getActiveEditorStore } from '@/app/editor/active-store'
-import { loadEditorLayout, saveEditorLayout } from '@/app/shell/layout-storage'
-import { useAppKeyboard } from '@/app/shell/keyboard/use-app-keyboard'
-import { useMenu } from '@/app/shell/menu/use'
-import { openFileFromPath } from '@/app/shell/menu/files'
-import { CollabProvider, useCollab } from '@/app/collab/use'
-import Tip from '@/components/ui/Tip'
+
 import { connectAutomation } from '@/app/automation/bridge/server'
 import { spawnMCPIfNeeded } from '@/app/automation/mcp/spawn'
-import { isTauri } from '@/app/tauri/env'
+import { CollabProvider, useCollab } from '@/app/collab/use'
+import { getActiveEditorStore } from '@/app/editor/active-store'
+import { useEditorState } from '@/app/editor/session/use-editor-state'
+import { useAppKeyboard } from '@/app/shell/keyboard/use-app-keyboard'
+import { loadEditorLayout, saveEditorLayout } from '@/app/shell/layout-storage'
+import { openFileFromPath } from '@/app/shell/menu/files'
+import { useMenu } from '@/app/shell/menu/use'
 import { getActiveStore } from '@/app/tabs'
+import { isTauri } from '@/app/tauri/env'
+import AcpPermissionDialog from '@/components/chat/AcpPermissionDialog'
+import CollabPanel from '@/components/collab-panel/CollabPanel'
+import EditorCanvas from '@/components/editor-canvas/EditorCanvas'
+import LayersPanel from '@/components/layers-panel/LayersPanel'
+import MobileDrawer from '@/components/mobile-drawer/MobileDrawer'
+import MobileHud from '@/components/mobile-hud/MobileHud'
+import PropertiesPanel from '@/components/properties-panel/PropertiesPanel'
+import SafariBanner from '@/components/safari-banner/SafariBanner'
+import RenameSelectionDialog from '@/components/selection/RenameSelectionDialog'
+import AppToast from '@/components/shell/AppToast'
+import StorageWorkspace from '@/components/storage/StorageWorkspace'
+import TabBar from '@/components/tab-bar/TabBar'
+import Toolbar from '@/components/toolbar/Toolbar'
+import Tip from '@/components/ui/Tip'
 
 /**
  * Chrome shown top-left when the UI chrome is hidden (`state.showUI = false`),
@@ -43,7 +45,7 @@ function CollapsedChrome() {
       <span data-test-id="editor-document-name" className="text-xs text-surface">
         {name}
       </span>
-      <Tip label="Show UI">
+      {/* oxlint-disable-next-line openweave/no-hardcoded-tip-labels */}`n      <Tip label="Show UI">
         <button
           type="button"
           data-test-id="editor-show-ui"
@@ -93,7 +95,9 @@ export function EditorLayout() {
   const onWheel = useCallback((e: WheelEvent) => {
     if (e.ctrlKey || e.metaKey) e.preventDefault()
   }, [])
-  const docRef = useRef<Document>(typeof document !== 'undefined' ? document : null as unknown as Document)
+  const docRef = useRef<Document>(
+    typeof document !== 'undefined' ? document : (null as unknown as Document)
+  )
   useEventListener('wheel', onWheel, docRef, { passive: false })
 
   // Ported from src/views/EditorView.vue onMounted: spawn the MCP sidecar,
@@ -155,97 +159,97 @@ export function EditorLayout() {
 
   return (
     <CollabProvider value={collab}>
-    <div
-      data-test-id="editor-root"
-      className="flex h-screen w-screen flex-col overflow-hidden bg-background text-foreground"
-    >
-      <SafariBanner />
-      <RenameSelectionDialog />
-      <AcpPermissionDialog />
-      <AppToast />
-      <TabBar />
+      <div
+        data-test-id="editor-root"
+        className="flex h-screen w-screen flex-col overflow-hidden bg-background text-foreground"
+      >
+        <SafariBanner />
+        <RenameSelectionDialog />
+        <AcpPermissionDialog />
+        <AppToast />
+        <TabBar />
 
-      {noChrome ? (
-        <div className="flex flex-1 overflow-hidden">
-          <div className="relative flex min-w-0 flex-1">
-            <EditorCanvas />
-          </div>
-        </div>
-      ) : isMobile && showUI ? (
-        <div className="flex flex-1 overflow-hidden">
-          <div className="relative flex min-w-0 flex-1">
-            <EditorCanvas />
-            <MobileHud />
-            <Toolbar />
-          </div>
-          <MobileDrawer />
-        </div>
-      ) : showUI ? (
-        <Group
-          orientation="horizontal"
-          className="flex-1 min-h-0"
-          defaultLayout={(() => {
-            const [layers, canvas, properties] = loadEditorLayout()
-            return { layers, canvas, properties }
-          })()}
-          onLayoutChanged={(layout) => {
-            const sizes = [layout.layers, layout.canvas, layout.properties]
-            if (sizes.every((size) => typeof size === 'number')) saveEditorLayout(sizes)
-          }}
-        >
-          <Panel
-            id="layers"
-            defaultSize="20%"
-            minSize="15%"
-            maxSize="40%"
-            className="bg-panel/50 border-r border-border/50"
-          >
-            <LayersPanel />
-          </Panel>
-
-          <Separator
-            data-test-id="left-splitter-handle"
-            className="w-1 bg-border/50 hover:bg-accent hover:w-2 transition-all"
-          />
-
-          <Panel id="canvas" minSize="30%">
-            <div className="relative flex h-full flex-col">
-              <Toolbar />
+        {noChrome ? (
+          <div className="flex flex-1 overflow-hidden">
+            <div className="relative flex min-w-0 flex-1">
               <EditorCanvas />
             </div>
-          </Panel>
-
-          <Separator
-            data-test-id="right-splitter-handle"
-            className="w-1 bg-border/50 hover:bg-accent hover:w-2 transition-all"
-          />
-
-          <Panel
-            id="properties"
-            defaultSize="20%"
-            minSize="15%"
-            maxSize="40%"
-            className="bg-panel/50 border-l border-border/50"
-          >
-            <div className="flex h-full flex-col">
-              <div className="flex shrink-0 items-center justify-between border-b border-border px-1.5 py-1.5">
-                <CollabPanel />
-              </div>
-              <PropertiesPanel />
-            </div>
-          </Panel>
-        </Group>
-      ) : (
-        <div className="flex flex-1 overflow-hidden">
-          <div className="relative flex min-w-0 flex-1">
-            <EditorCanvas />
-            <CollapsedChrome />
           </div>
-        </div>
-      )}
+        ) : isMobile && showUI ? (
+          <div className="flex flex-1 overflow-hidden">
+            <div className="relative flex min-w-0 flex-1">
+              <EditorCanvas />
+              <MobileHud />
+              <Toolbar />
+            </div>
+            <MobileDrawer />
+          </div>
+        ) : showUI ? (
+          <Group
+            orientation="horizontal"
+            className="flex-1 min-h-0"
+            defaultLayout={(() => {
+              const [layers, canvas, properties] = loadEditorLayout()
+              return { layers, canvas, properties }
+            })()}
+            onLayoutChanged={(layout) => {
+              const sizes = [layout.layers, layout.canvas, layout.properties]
+              if (sizes.every((size) => typeof size === 'number')) saveEditorLayout(sizes)
+            }}
+          >
+            <Panel
+              id="layers"
+              defaultSize="20%"
+              minSize="15%"
+              maxSize="40%"
+              className="bg-panel/50 border-r border-border/50"
+            >
+              <LayersPanel />
+            </Panel>
 
-      <StorageWorkspace />
-    </div>
+            <Separator
+              data-test-id="left-splitter-handle"
+              className="w-1 bg-border/50 hover:bg-accent hover:w-2 transition-all"
+            />
+
+            <Panel id="canvas" minSize="30%">
+              <div className="relative flex h-full flex-col">
+                <Toolbar />
+                <EditorCanvas />
+              </div>
+            </Panel>
+
+            <Separator
+              data-test-id="right-splitter-handle"
+              className="w-1 bg-border/50 hover:bg-accent hover:w-2 transition-all"
+            />
+
+            <Panel
+              id="properties"
+              defaultSize="20%"
+              minSize="15%"
+              maxSize="40%"
+              className="bg-panel/50 border-l border-border/50"
+            >
+              <div className="flex h-full flex-col">
+                <div className="flex shrink-0 items-center justify-between border-b border-border px-1.5 py-1.5">
+                  <CollabPanel />
+                </div>
+                <PropertiesPanel />
+              </div>
+            </Panel>
+          </Group>
+        ) : (
+          <div className="flex flex-1 overflow-hidden">
+            <div className="relative flex min-w-0 flex-1">
+              <EditorCanvas />
+              <CollapsedChrome />
+            </div>
+          </div>
+        )}
+
+        <StorageWorkspace />
+      </div>
     </CollabProvider>
   )
 }

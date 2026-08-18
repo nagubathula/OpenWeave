@@ -1,10 +1,9 @@
-import { useMemo } from 'react'
-
-import type { SceneNode } from '@openweave/scene-graph'
-
 import { usePropScrub } from '#react/controls/prop-scrub/use'
 import { useEditor } from '#react/editor/context'
 import { useSceneComputed } from '#react/internal/scene-computed/use'
+import { useMemo } from 'react'
+
+import type { SceneNode } from '@openweave/scene-graph'
 
 /**
  * Returns position-related state and actions for the current selection.

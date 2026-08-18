@@ -1,7 +1,7 @@
+import type { DragState } from '#react/shared/input/types'
+
 import type { Editor } from '@openweave/core/editor'
 import type { Vector } from '@openweave/scene-graph/primitives'
-
-import type { DragState } from '#react/shared/input/types'
 
 type PenDragState = Extract<DragState, { type: 'pen-drag' }>
 type PenState = NonNullable<Editor['state']['penState']>

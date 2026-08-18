@@ -1,7 +1,7 @@
 import React from 'react'
 
-import { useColorPickerPanelContext } from './context'
 import ColorSliderField from './ColorSliderField'
+import { useColorPickerPanelContext } from './context'
 
 const formatPercent = (value: number) => `${Math.round(value)}%`
 

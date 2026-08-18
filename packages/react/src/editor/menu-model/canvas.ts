@@ -74,9 +74,7 @@ function componentItems({ commandMenuItem, selection }: CanvasMenuOptions): Menu
 }
 
 function componentSetItems({ commandMenuItem, selection }: CanvasMenuOptions): MenuEntry[] {
-  return selection.canCreateComponentSet
-    ? [commandMenuItem('selection.createComponentSet')]
-    : []
+  return selection.canCreateComponentSet ? [commandMenuItem('selection.createComponentSet')] : []
 }
 
 function instanceItems({ commandMenuItem, selection }: CanvasMenuOptions): MenuEntry[] {

@@ -1,6 +1,5 @@
-import { useSyncExternalStore, useCallback, useRef } from 'react'
-
 import { useEditor } from '#react/editor/context'
+import { useSyncExternalStore, useCallback, useRef } from 'react'
 
 function serializeReplacer(_key: string, value: unknown): unknown {
   if (value instanceof Set) return { __set: [...value] }
@@ -29,18 +28,21 @@ export function useSceneComputed<T>(fn: () => T): T {
   // Cache the last snapshot value so we return the same reference when unchanged.
   const cachedRef = useRef<{ value: T; serial: string } | null>(null)
 
-  const subscribe = useCallback((callback: () => void) => {
-    const unsubscribe1 = editor.onEditorEvent('render:requested', callback)
-    const unsubscribe2 = editor.onEditorEvent('selection:changed', callback)
-    const unsubscribe3 = editor.onEditorEvent('page:changed', callback)
-    const unsubscribe4 = editor.onEditorEvent('tool:changed', callback)
-    return () => {
-      unsubscribe1()
-      unsubscribe2()
-      unsubscribe3()
-      unsubscribe4()
-    }
-  }, [editor])
+  const subscribe = useCallback(
+    (callback: () => void) => {
+      const unsubscribe1 = editor.onEditorEvent('render:requested', callback)
+      const unsubscribe2 = editor.onEditorEvent('selection:changed', callback)
+      const unsubscribe3 = editor.onEditorEvent('page:changed', callback)
+      const unsubscribe4 = editor.onEditorEvent('tool:changed', callback)
+      return () => {
+        unsubscribe1()
+        unsubscribe2()
+        unsubscribe3()
+        unsubscribe4()
+      }
+    },
+    [editor]
+  )
 
   // Stable reference — computes fn() but returns the previous value if
   // the serialized result hasn't changed, avoiding referential churn.

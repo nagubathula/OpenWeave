@@ -1,9 +1,9 @@
 ---
-title: Vue SDK
+title: React SDK
 description: Erstellen Sie OpenWeave-gestützte Editoren mit headless Vue Composables und Primitiven.
 ---
 
-# Vue SDK
+# React SDK
 
 `@openweave/react` gibt es, damit OpenWeave mehr als eine eigenständige Design-App sein kann.
 
@@ -40,7 +40,7 @@ Das SDK ist die Schicht, die all das ermöglicht.
 
 - **Headless-First**: Logik und Struktur, kein App-Styling
 - **Composable statt Wrapper**: Composables verwenden, wenn keine bedeutungsvolle strukturelle Koordination erforderlich ist
-- **Bewusste öffentliche API**: stabile Exporte aus `packages/vue/src/index.ts`
+- **Bewusste öffentliche API**: stabile Exporte aus `packages/react/src/index.ts`
 - **Framework-bewusst**: Vue-Integration über `@openweave/core`
 
 ## Das Paket verstehen

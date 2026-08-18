@@ -1,12 +1,14 @@
 'use client'
 
 import React, { useEffect, useState } from 'react'
+
 import { EditorProvider } from '@openweave/react'
-import { EditorLayout } from '@/components/layout/EditorLayout'
+
 import { getActiveEditorStoreOrNull } from '@/app/editor/active-store'
 import { preloadFonts } from '@/app/editor/fonts'
 import { kickSyncEngine } from '@/app/storage/sync'
 import { createTab, tabCount } from '@/app/tabs'
+import { EditorLayout } from '@/components/layout/EditorLayout'
 
 /**
  * Collab share entry point.

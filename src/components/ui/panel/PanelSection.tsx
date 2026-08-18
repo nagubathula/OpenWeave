@@ -1,5 +1,6 @@
 import React from 'react'
 import { tv } from 'tailwind-variants'
+
 import {
   PropertySectionRoot,
   PropertySectionHeader,
@@ -47,20 +48,18 @@ export default function PanelSection({
     >
       <PropertySectionHeader className={styles.header()}>
         <PropertySectionTitle className={styles.title()}>
-          <span role="heading" aria-level={3}>{label}</span>
+          <span role="heading" aria-level={3}>
+            {label}
+          </span>
         </PropertySectionTitle>
         {actions && (
-          <PropertySectionActions className={styles.actions()}>
-            {actions}
-          </PropertySectionActions>
+          <PropertySectionActions className={styles.actions()}>{actions}</PropertySectionActions>
         )}
       </PropertySectionHeader>
       <PropertySectionContent className={styles.body()}>
         {children}
         {emptyAction && (
-          <PropertySectionEmptyAction asChild>
-            {emptyAction}
-          </PropertySectionEmptyAction>
+          <PropertySectionEmptyAction asChild>{emptyAction}</PropertySectionEmptyAction>
         )}
       </PropertySectionContent>
     </PropertySectionRoot>

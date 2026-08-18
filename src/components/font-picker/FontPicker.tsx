@@ -1,9 +1,9 @@
-import React, { useEffect } from 'react'
 import * as Popover from '@radix-ui/react-popover'
 import { Check, ChevronDown } from 'lucide-react'
+import React, { useEffect } from 'react'
 
-import { useFontPicker } from '@openweave/react'
 import { WEB_FONT_PROVIDER_IDS } from '@openweave/core/text'
+import { useFontPicker } from '@openweave/react'
 
 import {
   listFamilies,
@@ -117,7 +117,10 @@ export default function FontPicker({ value, onSelect, label = 'Font family' }: F
                   ) : (
                     <span className="size-3 shrink-0" />
                   )}
-                  <span className="truncate" style={{ fontFamily: `'${option.family}', sans-serif` }}>
+                  <span
+                    className="truncate"
+                    style={{ fontFamily: `'${option.family}', sans-serif` }}
+                  >
                     {option.family}
                   </span>
                   <span className="ml-auto shrink-0 rounded bg-input px-1.5 py-0.5 font-sans text-[9px] uppercase text-muted">

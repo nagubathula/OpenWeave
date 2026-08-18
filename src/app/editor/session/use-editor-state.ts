@@ -2,10 +2,7 @@
 
 import { useCallback, useRef, useSyncExternalStore } from 'react'
 
-import {
-  getActiveEditorStoreOrNull,
-  onActiveEditorStoreChange
-} from '@/app/editor/active-store'
+import { getActiveEditorStoreOrNull, onActiveEditorStoreChange } from '@/app/editor/active-store'
 import type { AppEditorState } from '@/app/editor/session/types'
 
 /**

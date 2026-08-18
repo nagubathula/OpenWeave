@@ -1,11 +1,7 @@
 import { describe, expect, test } from 'bun:test'
 
 import { figmaSchema as figSchema } from '@openweave/kiwi/fig'
-import {
-  expectEnumValue,
-  expectFieldNumber,
-  validateSchema
-} from '@openweave/kiwi/schema-runtime'
+import { expectEnumValue, expectFieldNumber, validateSchema } from '@openweave/kiwi/schema-runtime'
 
 describe('Kiwi schema runtime', () => {
   test('validates the static Figma schema', () => {

@@ -1,8 +1,8 @@
-/* eslint-disable openweave/no-hardcoded-tip-labels */
-import React, { useState, useRef, useEffect, useReducer } from 'react'
 import { useStore } from '@nanostores/react'
 import * as Menubar from '@radix-ui/react-menubar'
 import { Check, ChevronRight, Settings, PanelLeft } from 'lucide-react'
+/* eslint-disable openweave/no-hardcoded-tip-labels */
+import React, { useState, useRef, useEffect, useReducer } from 'react'
 
 import type { MenuEntry } from '@openweave/react'
 

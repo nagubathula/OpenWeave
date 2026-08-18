@@ -1,6 +1,3 @@
-import React from 'react'
-import { useTypography, useI18n } from '@openweave/react'
-import type { SceneNode } from '@openweave/scene-graph'
 import {
   AlignLeft,
   AlignCenter,
@@ -17,16 +14,20 @@ import {
   ALargeSmall,
   AlertTriangle
 } from 'lucide-react'
+import React from 'react'
+
+import { useTypography, useI18n } from '@openweave/react'
+import type { SceneNode } from '@openweave/scene-graph'
 
 import FontPicker from '@/components/font-picker/FontPicker'
 import FontSettingsPopover from '@/components/font-settings/FontSettingsPopover'
 import NumberField from '@/components/inputs/NumberField'
+import SharedStyleField from '@/components/properties/shared-style/SharedStyleField'
+import { AppSelect } from '@/components/ui/AppSelect'
+import { AppSwitch } from '@/components/ui/AppSwitch'
 import IconButton from '@/components/ui/IconButton'
 import PanelGrid from '@/components/ui/panel/PanelGrid'
 import PanelSection from '@/components/ui/panel/PanelSection'
-import { AppSwitch } from '@/components/ui/AppSwitch'
-import { AppSelect } from '@/components/ui/AppSelect'
-import SharedStyleField from '@/components/properties/shared-style/SharedStyleField'
 import Tip from '@/components/ui/Tip'
 
 type TextAlign = SceneNode['textAlignHorizontal']
@@ -35,9 +36,18 @@ type TextCase = SceneNode['textCase']
 type TextDirection = SceneNode['textDirection']
 type TextTruncation = SceneNode['textTruncation']
 
-const inputClass = 'w-full bg-input/50 rounded px-2 py-1 border border-border text-surface text-xs outline-none focus:border-accent'
+const inputClass =
+  'w-full bg-input/50 rounded px-2 py-1 border border-border text-surface text-xs outline-none focus:border-accent'
 
-function PanelFieldGroup({ label, children, className = '' }: { label: string, children: React.ReactNode, className?: string }) {
+function PanelFieldGroup({
+  label,
+  children,
+  className = ''
+}: {
+  label: string
+  children: React.ReactNode
+  className?: string
+}) {
   return (
     <label className={`flex flex-col gap-1.5 ${className}`}>
       <span className="text-muted text-[10px]">{label}</span>
@@ -85,7 +95,10 @@ export default function TypographySection() {
   const textTruncation = node.textTruncation
   const maxLines = node.maxLines ?? 1
 
-  function featureEnabled(features: Array<{ tag: string; enabled: boolean }> | undefined, tag: string) {
+  function featureEnabled(
+    features: Array<{ tag: string; enabled: boolean }> | undefined,
+    tag: string
+  ) {
     return features?.find((feature) => feature.tag === tag)?.enabled ?? true
   }
 
@@ -95,10 +108,17 @@ export default function TypographySection() {
       <div className="mb-2.5">
         <PanelFieldGroup label="Font">
           <div className="flex items-center gap-1.5">
-            <FontPicker value={fontFamily} onSelect={(family) => { void setFamily(family) }} />
+            <FontPicker
+              value={fontFamily}
+              onSelect={(family) => {
+                void setFamily(family)
+              }}
+            />
             <FontSettingsPopover />
             {hasMissingFonts && (
-              <Tip label={`Missing font${missingFonts.length > 1 ? 's' : ''}: ${missingFonts.join(', ')}`}>
+              <Tip
+                label={`Missing font${missingFonts.length > 1 ? 's' : ''}: ${missingFonts.join(', ')}`}
+              >
                 <AlertTriangle
                   role="img"
                   aria-label={`Missing font${missingFonts.length > 1 ? 's' : ''}: ${missingFonts.join(', ')}`}
@@ -116,10 +136,14 @@ export default function TypographySection() {
             className={inputClass + ' h-6'}
             aria-label={panels.fontWeight}
             value={fontWeight}
-            onChange={(e) => { void setWeight(Number(e.target.value)) }}
+            onChange={(e) => {
+              void setWeight(Number(e.target.value))
+            }}
           >
             {weights.map((w: any) => (
-              <option key={w.value} value={w.value}>{w.label}</option>
+              <option key={w.value} value={w.value}>
+                {w.label}
+              </option>
             ))}
           </select>
         </PanelFieldGroup>
@@ -178,9 +202,17 @@ export default function TypographySection() {
         >
           {[
             { value: 'LEFT', label: panels.alignLeft, icon: <AlignLeft className="size-3.5" /> },
-            { value: 'CENTER', label: panels.alignCenterHorizontally, icon: <AlignCenter className="size-3.5" /> },
+            {
+              value: 'CENTER',
+              label: panels.alignCenterHorizontally,
+              icon: <AlignCenter className="size-3.5" />
+            },
             { value: 'RIGHT', label: panels.alignRight, icon: <AlignRight className="size-3.5" /> },
-            { value: 'JUSTIFIED', label: panels.textAlignment, icon: <AlignJustify className="size-3.5" /> }
+            {
+              value: 'JUSTIFIED',
+              label: panels.textAlignment,
+              icon: <AlignJustify className="size-3.5" />
+            }
           ].map((option) => (
             <IconButton
               key={option.value}
@@ -202,9 +234,21 @@ export default function TypographySection() {
           className="inline-flex items-center gap-0.5 rounded bg-panel-field p-0.5"
         >
           {[
-            { value: 'TOP', label: panels.alignTop, icon: <AlignVerticalJustifyStart className="size-3.5" /> },
-            { value: 'CENTER', label: panels.alignCenterVertically, icon: <AlignVerticalJustifyCenter className="size-3.5" /> },
-            { value: 'BOTTOM', label: panels.alignBottom, icon: <AlignVerticalJustifyEnd className="size-3.5" /> }
+            {
+              value: 'TOP',
+              label: panels.alignTop,
+              icon: <AlignVerticalJustifyStart className="size-3.5" />
+            },
+            {
+              value: 'CENTER',
+              label: panels.alignCenterVertically,
+              icon: <AlignVerticalJustifyCenter className="size-3.5" />
+            },
+            {
+              value: 'BOTTOM',
+              label: panels.alignBottom,
+              icon: <AlignVerticalJustifyEnd className="size-3.5" />
+            }
           ].map((option) => (
             <IconButton
               key={option.value}

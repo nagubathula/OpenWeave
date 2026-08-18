@@ -1,8 +1,3 @@
-import React, { useMemo, useState } from 'react'
-
-import type { Fill, Variable } from '@openweave/scene-graph'
-import type { Color } from '@openweave/scene-graph/primitives'
-
 import type { BindingProvider, BindingTarget } from '#react/controls/binding-provider/types'
 import { BindableValueRoot } from '#react/primitives/bindable-value/BindableValueRoot'
 import { ChannelSliderRoot } from '#react/primitives/channel-slider/ChannelSliderRoot'
@@ -10,6 +5,10 @@ import { ChannelSliderThumb } from '#react/primitives/channel-slider/ChannelSlid
 import { ChannelSliderTrack } from '#react/primitives/channel-slider/ChannelSliderTrack'
 import { FillRoot } from '#react/primitives/fill/FillRoot'
 import { FillSwatch } from '#react/primitives/fill/FillSwatch'
+import React, { useMemo, useState } from 'react'
+
+import type { Fill, Variable } from '@openweave/scene-graph'
+import type { Color } from '@openweave/scene-graph/primitives'
 
 const solid: Fill = {
   type: 'SOLID',
@@ -79,7 +78,9 @@ export function ColorFillDemo() {
         <div className="flex flex-wrap gap-4">
           {swatches.map(({ name, fill }) => (
             <FillSwatch key={name} fill={fill} label={`${name} fill`} className={swatchClass}>
-              {(swatch) => <span className="absolute inset-0" style={{ background: swatch.background }} />}
+              {(swatch) => (
+                <span className="absolute inset-0" style={{ background: swatch.background }} />
+              )}
             </FillSwatch>
           ))}
           <BindableValueRoot provider={provider} targets={target} value={solid.color}>
@@ -88,7 +89,9 @@ export function ColorFillDemo() {
               label="Bound token fill"
               className="relative size-10 overflow-hidden rounded-md border border-[var(--vp-c-divider)]"
             >
-              {(swatch) => <span className="absolute inset-0" style={{ background: swatch.background }} />}
+              {(swatch) => (
+                <span className="absolute inset-0" style={{ background: swatch.background }} />
+              )}
             </FillSwatch>
           </BindableValueRoot>
         </div>
@@ -108,7 +111,10 @@ export function ColorFillDemo() {
                   <span className="absolute inset-0" style={{ background: swatch.background }} />
                 )}
               </FillSwatch>
-              <button className="rounded border px-2 py-1 text-xs" onClick={fillModel.actions.toSolid}>
+              <button
+                className="rounded border px-2 py-1 text-xs"
+                onClick={fillModel.actions.toSolid}
+              >
                 Solid
               </button>
               <button
@@ -117,7 +123,10 @@ export function ColorFillDemo() {
               >
                 Gradient
               </button>
-              <button className="rounded border px-2 py-1 text-xs" onClick={fillModel.actions.toImage}>
+              <button
+                className="rounded border px-2 py-1 text-xs"
+                onClick={fillModel.actions.toImage}
+              >
                 Image
               </button>
             </div>

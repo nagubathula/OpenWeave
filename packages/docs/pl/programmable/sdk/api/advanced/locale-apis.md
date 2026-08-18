@@ -5,7 +5,7 @@ description: Niskopoziomowe store'y języka i metadane eksportowane przez @openw
 
 # API języka
 
-Oprócz `useI18n()`, Vue SDK eksportuje niskopoziomowe prymitywy języka dla zaawansowanych integracji:
+Oprócz `useI18n()`, React SDK eksportuje niskopoziomowe prymitywy języka dla zaawansowanych integracji:
 
 - `locale`
 - `localeSetting`

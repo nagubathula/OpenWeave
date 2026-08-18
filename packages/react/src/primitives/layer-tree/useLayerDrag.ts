@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import type { LayerDragInstruction } from '#react/primitives/layer-tree/context'
 import {
   attachInstruction,
   extractInstruction,
@@ -10,10 +10,10 @@ import {
   dropTargetForElements,
   monitorForElements
 } from '@atlaskit/pragmatic-drag-and-drop/element/adapter'
+import { useEffect, useState } from 'react'
+import type { MutableRefObject } from 'react'
 
 import type { Editor } from '@openweave/core/editor'
-import type { LayerDragInstruction } from '#react/primitives/layer-tree/context'
-import type { MutableRefObject } from 'react'
 
 interface DragItem {
   id: string

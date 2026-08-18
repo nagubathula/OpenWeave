@@ -1,4 +1,5 @@
 import React from 'react'
+
 import { useI18n, useLayoutControlsContext } from '@openweave/react'
 
 export default function ClipContentControl() {

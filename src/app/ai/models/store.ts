@@ -382,10 +382,7 @@ export function removeModelProfile(profileId: string): void {
     settings.models = settings.models.filter((profile) => profile.id !== profileId)
     if (removesDesignAssignment && fallback) {
       settings.assignments.design = fallback.id
-      if (
-        settings.assignments.vision === 'design' &&
-        !fallback.capabilities.includes('vision')
-      ) {
+      if (settings.assignments.vision === 'design' && !fallback.capabilities.includes('vision')) {
         settings.assignments.vision = null
       }
     }

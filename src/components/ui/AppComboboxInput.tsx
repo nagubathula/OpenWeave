@@ -1,11 +1,12 @@
-import type { KeyboardEvent } from 'react';
-import React, { forwardRef, useState, useEffect } from 'react'
 import * as PopoverPrimitive from '@radix-ui/react-popover'
-import { AppInput } from '@/components/ui/AppInput'
+import type { KeyboardEvent } from 'react'
+import React, { forwardRef, useState, useEffect } from 'react'
+
 import { AppBadge } from '@/components/ui/AppBadge'
+import { AppInput } from '@/components/ui/AppInput'
 import { AppPlaceholder } from '@/components/ui/AppPlaceholder'
-import { useSelectUI } from '@/components/ui/select'
 import { useInputUI } from '@/components/ui/input'
+import { useSelectUI } from '@/components/ui/select'
 
 export type AppComboboxOption = {
   value: string
@@ -29,15 +30,18 @@ export interface AppComboboxInputProps {
 }
 
 export const AppComboboxInput = forwardRef<HTMLInputElement, AppComboboxInputProps>(
-  ({ options, placeholder, emptyLabel = 'No results', ui, value, onValueChange, ...props }, ref) => {
+  (
+    { options, placeholder, emptyLabel = 'No results', ui, value, onValueChange, ...props },
+    ref
+  ) => {
     const [open, setOpen] = useState(false)
     const [focusedIndex, setFocusedIndex] = useState(-1)
-    
+
     const select = useSelectUI({
       content: ui?.content ?? 'max-h-56 min-w-[var(--radix-popover-trigger-width)]',
       item: ui?.item ?? 'gap-2 rounded px-2 py-1.5 text-[11px]'
     })
-    
+
     const inputClass = useInputUI({ size: 'sm', ui: { base: ui?.input } }).base
     const viewportClass = ui?.viewport ?? 'max-h-56 overflow-y-auto p-0.5'
 
@@ -125,7 +129,9 @@ export const AppComboboxInput = forwardRef<HTMLInputElement, AppComboboxInputPro
                   >
                     <div className="min-w-0 flex-1">
                       <div className="truncate text-surface">{option.label}</div>
-                      <div className="truncate font-mono text-[10px] text-muted">{option.value}</div>
+                      <div className="truncate font-mono text-[10px] text-muted">
+                        {option.value}
+                      </div>
                     </div>
                     {option.meta && <AppBadge>{option.meta}</AppBadge>}
                   </div>

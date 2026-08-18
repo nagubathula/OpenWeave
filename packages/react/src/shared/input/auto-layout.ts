@@ -1,9 +1,9 @@
+import type { DragMove } from '#react/shared/input/types'
+
 import type { Editor } from '@openweave/core/editor'
 import { resolveNodeLayoutDirection } from '@openweave/core/text'
 import type { SceneNode } from '@openweave/scene-graph'
 import type { Vector } from '@openweave/scene-graph/primitives'
-
-import type { DragMove } from '#react/shared/input/types'
 
 function resolveLayoutDirection(parent: SceneNode, editor: Editor): 'LTR' | 'RTL' {
   const ancestor = parent.parentId ? editor.graph.getNode(parent.parentId) : null

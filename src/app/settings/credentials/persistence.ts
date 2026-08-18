@@ -21,8 +21,9 @@ export function appCredentialRefs(): CredentialRef[] {
   const legacyAIRefs = AI_PROVIDERS.filter((provider) => !provider.id.startsWith('acp:')).map(
     (provider) => providerCredentialRef(provider.id)
   )
-  const modelConnectionRefs = aiModelSettings.get().connections
-    .filter((connection) => !connection.providerID.startsWith('acp:'))
+  const modelConnectionRefs = aiModelSettings
+    .get()
+    .connections.filter((connection) => !connection.providerID.startsWith('acp:'))
     .map(modelConnectionCredentialRef)
   const storageCredentials = storageProviderRegistry
     .list()

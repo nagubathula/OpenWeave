@@ -1,6 +1,3 @@
-import type { Editor } from '@openweave/core/editor'
-import type { SceneNode } from '@openweave/scene-graph'
-
 import {
   canvasToLocalPoint,
   getPointerCoords,
@@ -9,10 +6,13 @@ import {
 } from '#react/shared/input/geometry'
 import type { HitTestFns } from '#react/shared/input/select'
 
+import type { Editor } from '@openweave/core/editor'
+import type { SceneNode } from '@openweave/scene-graph'
+
 type CanvasRefLike = { current?: HTMLCanvasElement | null; value?: HTMLCanvasElement | null }
 
 function getCanvas(ref: CanvasRefLike): HTMLCanvasElement | null {
-  return (ref.current ?? ref.value) ?? null
+  return ref.current ?? ref.value ?? null
 }
 
 export function createCanvasPointer(

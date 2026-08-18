@@ -1,6 +1,7 @@
-import React, { useCallback, type ElementType } from 'react'
-import { colorToCSS, colorToHexRaw } from '@openweave/core/color'
 import { Slot } from '@radix-ui/react-slot'
+import React, { useCallback, type ElementType } from 'react'
+
+import { colorToCSS, colorToHexRaw } from '@openweave/core/color'
 
 import type { GradientEditorStopProps, GradientEditorStopActions } from './types'
 
@@ -32,42 +33,48 @@ export function GradientEditorStop({
     remove: () => props.onRemove?.()
   }
 
-  const onKeydown = useCallback((event: React.KeyboardEvent) => {
-    if (!interactive) return
-    const amount = positionStep * (event.shiftKey ? 10 : 1)
-    let nextPosition: number | undefined
-    if (event.code === 'ArrowLeft' || event.code === 'ArrowDown')
-      nextPosition = positionPercent - amount
-    else if (event.code === 'ArrowRight' || event.code === 'ArrowUp')
-      nextPosition = positionPercent + amount
-    else if (event.code === 'Home') nextPosition = 0
-    else if (event.code === 'End') nextPosition = 100
-    else if ((event.code === 'Delete' || event.code === 'Backspace') && removable) {
+  const onKeydown = useCallback(
+    (event: React.KeyboardEvent) => {
+      if (!interactive) return
+      const amount = positionStep * (event.shiftKey ? 10 : 1)
+      let nextPosition: number | undefined
+      if (event.code === 'ArrowLeft' || event.code === 'ArrowDown')
+        nextPosition = positionPercent - amount
+      else if (event.code === 'ArrowRight' || event.code === 'ArrowUp')
+        nextPosition = positionPercent + amount
+      else if (event.code === 'Home') nextPosition = 0
+      else if (event.code === 'End') nextPosition = 100
+      else if ((event.code === 'Delete' || event.code === 'Backspace') && removable) {
+        event.preventDefault()
+        event.stopPropagation()
+        actions.remove()
+        return
+      }
+      if (nextPosition === undefined) return
       event.preventDefault()
       event.stopPropagation()
-      actions.remove()
-      return
-    }
-    if (nextPosition === undefined) return
-    event.preventDefault()
-    event.stopPropagation()
-    actions.updatePosition(Math.max(0, Math.min(100, nextPosition)))
-  }, [interactive, positionStep, positionPercent, removable, actions])
+      actions.updatePosition(Math.max(0, Math.min(100, nextPosition)))
+    },
+    [interactive, positionStep, positionPercent, removable, actions]
+  )
 
   const Comp = asChild ? Slot : Component
 
-  const renderedChildren = typeof children === 'function' ? children({
-    stop,
-    index,
-    active,
-    selected: active,
-    dragging,
-    positionPercent,
-    opacityPercent,
-    hex,
-    css,
-    actions
-  }) : children
+  const renderedChildren =
+    typeof children === 'function'
+      ? children({
+          stop,
+          index,
+          active,
+          selected: active,
+          dragging,
+          positionPercent,
+          opacityPercent,
+          hex,
+          css,
+          actions
+        })
+      : children
 
   return (
     <Comp

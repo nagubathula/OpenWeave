@@ -1,11 +1,4 @@
-import type {
-  Effect,
-  Fill,
-  GridTrack,
-  LayoutMode,
-  SceneNode,
-  Stroke
-} from '@openweave/scene-graph'
+import type { Effect, Fill, GridTrack, LayoutMode, SceneNode, Stroke } from '@openweave/scene-graph'
 import type { Color, JsonObject } from '@openweave/scene-graph/primitives'
 
 import { colorToFill, parseColor } from '#core/color'

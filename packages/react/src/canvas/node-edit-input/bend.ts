@@ -1,8 +1,8 @@
+import type { DragState } from '#react/shared/input/types'
+
 import type { Editor } from '@openweave/core/editor'
 import type { VectorSegment } from '@openweave/scene-graph'
 import type { Vector } from '@openweave/scene-graph/primitives'
-
-import type { DragState } from '#react/shared/input/types'
 
 export type CanvasNodeEditState = {
   segments: VectorSegment[]

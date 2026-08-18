@@ -5,7 +5,7 @@
 | Layer | Technology | Why |
 |-------|-----------|-----|
 | **Rendering** | Skia CanvasKit WASM | Same engine as Figma — proven performance, GPU-accelerated, pixel-perfect |
-| **UI Framework** | Vue 3 + VueUse | Reactive composition API, excellent TypeScript support |
+| **UI Framework** | Vue 3 + React Hooks | Reactive composition API, excellent TypeScript support |
 | **Components** | Reka UI | Headless, accessible UI primitives (tree, slider, etc.) |
 | **Styling** | Tailwind CSS 4 | Utility-first, fast iteration, dark theme |
 | **Layout** | Yoga WASM | CSS flexbox and grid engine from Meta, battle-tested in React Native |
@@ -54,7 +54,7 @@ Tauri v2 uses the system webview (~5MB) instead of bundling Chromium (~100MB). T
 
 ### Why not React (like the original plan)?
 
-The project migrated from React to Vue 3 early in development. Vue's reactivity system and VueUse composables proved more ergonomic for the editor's state management needs.
+The project migrated from React to Vue 3 early in development. Vue's reactivity system and React Hooks composables proved more ergonomic for the editor's state management needs.
 
 ### Why not custom layout engine?
 

@@ -1,20 +1,20 @@
-import React, { useMemo } from 'react'
-import { tv } from 'tailwind-variants'
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import { Check, ChevronDown } from 'lucide-react'
-
-import { menu } from '@/components/ui/menu'
-import toolbarTheme from '@/theme/toolbar'
-import ToolButton from '@/components/toolbar/ToolButton'
+import React, { useMemo } from 'react'
+import { tv } from 'tailwind-variants'
 
 import type { EditorToolDef, Tool } from '@openweave/core/editor'
-import type { ToolbarUI, ToolIconMap, ToolLabels } from '@/components/toolbar/types'
 import {
   isToolbarToolActive,
   toolbarToolTestId,
   toolbarFlyoutTestId,
   toolbarFlyoutItemTestId
 } from '@openweave/react'
+
+import ToolButton from '@/components/toolbar/ToolButton'
+import type { ToolbarUI, ToolIconMap, ToolLabels } from '@/components/toolbar/types'
+import { menu } from '@/components/ui/menu'
+import toolbarTheme from '@/theme/toolbar'
 
 interface ToolFlyoutProps {
   tool: EditorToolDef
@@ -57,7 +57,9 @@ export default function ToolFlyout({
 
   return (
     <div className={styles.flyoutGroup({ className: ui?.flyoutGroup })}>
-      {children ? children({ label: labelString }) : (
+      {children ? (
+        children({ label: labelString })
+      ) : (
         <ToolButton
           data-test-id={toolbarToolTestId(selectedTool)}
           icon={SelectedIcon}
@@ -92,7 +94,7 @@ export default function ToolFlyout({
             className={styles.flyoutContent({ className: ui?.flyoutContent })}
           >
             <DropdownMenu.RadioGroup value={selectedTool}>
-              {tool.flyout?.map(sub => {
+              {tool.flyout?.map((sub) => {
                 const SubIcon = toolIcons[sub]
                 return (
                   <DropdownMenu.RadioItem
@@ -112,16 +114,12 @@ export default function ToolFlyout({
                         <Check className="size-3.5" />
                       </DropdownMenu.ItemIndicator>
                     </span>
-                    <SubIcon
-                      className={styles.flyoutItemIcon({ className: ui?.flyoutItemIcon })}
-                    />
+                    <SubIcon className={styles.flyoutItemIcon({ className: ui?.flyoutItemIcon })} />
                     <span className={styles.flyoutItemLabel({ className: ui?.flyoutItemLabel })}>
                       {toolLabels[sub]}
                     </span>
                     {!mobile && toolShortcuts[sub] && (
-                      <span className="ml-auto text-xs opacity-50">
-                        {toolShortcuts[sub]}
-                      </span>
+                      <span className="ml-auto text-xs opacity-50">{toolShortcuts[sub]}</span>
                     )}
                   </DropdownMenu.RadioItem>
                 )

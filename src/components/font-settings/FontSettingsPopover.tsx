@@ -1,16 +1,16 @@
-import React, { useEffect, useState } from 'react'
 import * as Popover from '@radix-ui/react-popover'
 import { Settings, Type } from 'lucide-react'
+import React, { useEffect, useState } from 'react'
 
 import { WEB_FONT_PROVIDER_IDS, WEB_FONT_PROVIDER_LABELS } from '@openweave/core/text'
 import type { WebFontProviderId } from '@openweave/core/text'
 import { useI18n } from '@openweave/react'
 
 import { isTauri } from '@/app/tauri/env'
-import Tip from '@/components/ui/Tip'
+import { useFontSettings } from '@/components/font-settings/use'
 import { useButtonUI } from '@/components/ui/button'
 import { usePopoverUI } from '@/components/ui/popover'
-import { useFontSettings } from '@/components/font-settings/use'
+import Tip from '@/components/ui/Tip'
 
 const showDownloadedFonts = isTauri()
 
@@ -160,7 +160,9 @@ export default function FontSettingsPopover() {
               <div className="grid gap-2 rounded border border-border p-2">
                 <div className="grid grid-cols-[1fr_auto] gap-2">
                   <div>
-                    <p className="text-[10px] font-medium text-surface">{dialogs.onlineFontProviders}</p>
+                    <p className="text-[10px] font-medium text-surface">
+                      {dialogs.onlineFontProviders}
+                    </p>
                     <p className="mt-0.5 text-[10px] leading-relaxed text-muted">
                       {dialogs.downloadMissingWebFonts}
                     </p>

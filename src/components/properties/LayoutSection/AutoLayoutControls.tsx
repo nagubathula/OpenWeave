@@ -1,8 +1,9 @@
+import { Columns2, LayoutGrid, Move, Rows2, WrapText } from 'lucide-react'
 import React from 'react'
 import { tv } from 'tailwind-variants'
+
 import { useI18n, useLayoutControlsContext } from '@openweave/react'
 import type { LayoutMode } from '@openweave/scene-graph'
-import { Columns2, LayoutGrid, Move, Rows2, WrapText } from 'lucide-react'
 
 import IconButton from '@/components/ui/IconButton'
 import Tip from '@/components/ui/Tip'

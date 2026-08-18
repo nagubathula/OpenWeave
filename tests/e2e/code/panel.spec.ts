@@ -115,9 +115,7 @@ test('shows import errors in the Code panel', async () => {
   await editor.page.getByTestId('code-import').click()
 
   await expect(editor.page.getByTestId('code-import-error')).toBeVisible()
-  await expect(editor.page.getByTestId('code-import-error')).toContainText(
-    'CSS import failed'
-  )
+  await expect(editor.page.getByTestId('code-import-error')).toContainText('CSS import failed')
 
   await editor.page.getByTestId('code-import-html').fill('<div class="card">Recovered</div>')
   await expect(editor.page.getByTestId('code-import-error')).toBeHidden()

@@ -1,4 +1,5 @@
 import { createContext, useContext } from 'react'
+
 import type { PropertyListContext, PropertyListKey } from './types'
 
 // oxlint-disable-next-line typescript-eslint/no-explicit-any
@@ -15,7 +16,9 @@ export function usePropertyList<K extends PropertyListKey>(): PropertyListContex
 export function usePropertyListPart<K extends PropertyListKey>(propKey: K): PropertyListContext<K> {
   const context = usePropertyList<K>()
   if (context.propKey !== propKey) {
-    throw new Error(`[openweave] PropertyList part propKey must match PropertyListRoot (${propKey})`)
+    throw new Error(
+      `[openweave] PropertyList part propKey must match PropertyListRoot (${propKey})`
+    )
   }
   return context
 }

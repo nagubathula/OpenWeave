@@ -1,18 +1,18 @@
-import type { Editor } from '@openweave/core/editor'
-
 import { addListener } from '#react/shared/input/add-listener'
 import { setupSafariGestureZoom } from '#react/shared/input/gesture'
 import type { DragState } from '#react/shared/input/types'
 import { setupWheelPanZoom } from '#react/shared/input/wheel'
 
+import type { Editor } from '@openweave/core/editor'
+
 type CanvasRefLike = { current?: HTMLCanvasElement | null; value?: HTMLCanvasElement | null }
 type DragRefLike = { current?: DragState | null; value?: DragState | null }
 
 function getCanvas(ref: CanvasRefLike): HTMLCanvasElement | null {
-  return (ref.current ?? ref.value) ?? null
+  return ref.current ?? ref.value ?? null
 }
 function getDrag(ref: DragRefLike): DragState | null {
-  return (ref.current ?? ref.value) ?? null
+  return ref.current ?? ref.value ?? null
 }
 function setDragValue(ref: DragRefLike, val: DragState | null) {
   if ('current' in ref) {
@@ -159,10 +159,16 @@ export function setupPanZoom(
   }
 
   setupWheelPanZoom(canvasRef, editor)
-  addListener(canvasRef, 'touchstart', (e: Event) => onTouchStart(e as TouchEvent), { passive: false })
-  addListener(canvasRef, 'touchmove', (e: Event) => onTouchMove(e as TouchEvent), { passive: false })
+  addListener(canvasRef, 'touchstart', (e: Event) => onTouchStart(e as TouchEvent), {
+    passive: false
+  })
+  addListener(canvasRef, 'touchmove', (e: Event) => onTouchMove(e as TouchEvent), {
+    passive: false
+  })
   addListener(canvasRef, 'touchend', (e: Event) => onTouchEnd(e as TouchEvent), { passive: false })
-  addListener(canvasRef, 'touchcancel', (e: Event) => onTouchEnd(e as TouchEvent), { passive: false })
+  addListener(canvasRef, 'touchcancel', (e: Event) => onTouchEnd(e as TouchEvent), {
+    passive: false
+  })
 
   setupSafariGestureZoom(canvasRef, editor)
 }

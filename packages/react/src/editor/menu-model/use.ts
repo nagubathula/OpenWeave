@@ -1,12 +1,11 @@
-import { useMemo } from 'react'
-import { useStore } from '@nanostores/react'
-
 import { useEditorCommands } from '#react/editor/commands/use'
 import { useEditor } from '#react/editor/context'
 import { buildEditMenu, buildObjectMenu, buildViewMenu } from '#react/editor/menu-model/builders'
 import { buildCanvasContextMenu } from '#react/editor/menu-model/canvas'
 import { useSelectionState } from '#react/editor/selection-state/use'
 import { menuMessages } from '#react/i18n'
+import { useStore } from '@nanostores/react'
+import { useMemo } from 'react'
 
 export type { MenuActionNode, MenuEntry, MenuSeparatorNode } from '#react/editor/menu-model/types'
 
@@ -22,28 +21,40 @@ export function useMenuModel() {
   const editMenu = useMemo<MenuEntry[]>(() => buildEditMenu(commandMenuItem), [commandMenuItem])
   const viewMenu = useMemo<MenuEntry[]>(() => buildViewMenu(commandMenuItem), [commandMenuItem])
   const objectMenu = useMemo<MenuEntry[]>(() => buildObjectMenu(commandMenuItem), [commandMenuItem])
-  const arrangeMenu = useMemo<MenuEntry[]>(() => [commandMenuItem('selection.wrapInAutoLayout')], [commandMenuItem])
+  const arrangeMenu = useMemo<MenuEntry[]>(
+    () => [commandMenuItem('selection.wrapInAutoLayout')],
+    [commandMenuItem]
+  )
 
-  const appMenu = useMemo(() => [
-    { label: t.edit, items: editMenu },
-    { label: t.view, items: viewMenu },
-    { label: t.object, items: objectMenu },
-    { label: t.arrange, items: arrangeMenu }
-  ], [t, editMenu, viewMenu, objectMenu, arrangeMenu])
+  const appMenu = useMemo(
+    () => [
+      { label: t.edit, items: editMenu },
+      { label: t.view, items: viewMenu },
+      { label: t.object, items: objectMenu },
+      { label: t.arrange, items: arrangeMenu }
+    ],
+    [t, editMenu, viewMenu, objectMenu, arrangeMenu]
+  )
 
-  const canvasMenu = useMemo<MenuEntry[]>(() =>
-    buildCanvasContextMenu({
-      commandMenuItem,
-      otherPages,
-      moveSelectionToPage,
-      selection,
-      t
-    }), [commandMenuItem, otherPages, moveSelectionToPage, selection, t])
+  const canvasMenu = useMemo<MenuEntry[]>(
+    () =>
+      buildCanvasContextMenu({
+        commandMenuItem,
+        otherPages,
+        moveSelectionToPage,
+        selection,
+        t
+      }),
+    [commandMenuItem, otherPages, moveSelectionToPage, selection, t]
+  )
 
-  const selectionLabelMenu = useMemo(() => ({
-    visibility: (editor.getSelectedNode()?.visible ?? true) ? t.hide : t.show,
-    lock: (editor.getSelectedNode()?.locked ?? false) ? t.unlock : t.lock
-  }), [editor, t])
+  const selectionLabelMenu = useMemo(
+    () => ({
+      visibility: (editor.getSelectedNode()?.visible ?? true) ? t.hide : t.show,
+      lock: (editor.getSelectedNode()?.locked ?? false) ? t.unlock : t.lock
+    }),
+    [editor, t]
+  )
 
   return {
     appMenu,

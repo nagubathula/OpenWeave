@@ -1,10 +1,10 @@
+import { useOpenWeaveBindingProvider } from '#react/controls/binding-provider/openweave'
+import type { BindingTarget } from '#react/controls/binding-provider/types'
+
 import type { Editor } from '@openweave/core/editor'
 import { randomHex } from '@openweave/core/random'
 import type { VariableCollection } from '@openweave/scene-graph'
 import type { Color } from '@openweave/scene-graph/primitives'
-
-import { useOpenWeaveBindingProvider } from '#react/controls/binding-provider/openweave'
-import type { BindingTarget } from '#react/controls/binding-provider/types'
 
 const FALLBACK_COLOR_VARIABLE_NAME = 'New color'
 

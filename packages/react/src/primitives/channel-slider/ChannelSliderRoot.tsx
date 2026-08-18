@@ -1,5 +1,5 @@
-import React, { useMemo, useCallback } from 'react'
 import * as Slider from '@radix-ui/react-slider'
+import React, { useMemo, useCallback } from 'react'
 
 import { ChannelSliderProvider } from './context'
 import type {
@@ -25,44 +25,60 @@ export function ChannelSliderRoot({
   onValueCommit,
   children,
   ...props
-}: ChannelSliderRootProps & Omit<React.HTMLAttributes<HTMLSpanElement>, 'children' | 'defaultValue'>) {
+}: ChannelSliderRootProps &
+  Omit<React.HTMLAttributes<HTMLSpanElement>, 'children' | 'defaultValue'>) {
   const valueText = useMemo(() => formatValueText(modelValue), [formatValueText, modelValue])
 
-  const slotProps = useMemo<ChannelSliderRootSlotProps>(() => ({
-    value: modelValue,
-    min,
-    max,
-    step,
-    disabled,
-    orientation
-  }), [modelValue, min, max, step, disabled, orientation])
+  const slotProps = useMemo<ChannelSliderRootSlotProps>(
+    () => ({
+      value: modelValue,
+      min,
+      max,
+      step,
+      disabled,
+      orientation
+    }),
+    [modelValue, min, max, step, disabled, orientation]
+  )
 
-  const thumbSlotProps = useMemo<ChannelSliderThumbSlotProps>(() => ({
-    value: modelValue,
-    valueText,
-    label
-  }), [modelValue, valueText, label])
+  const thumbSlotProps = useMemo<ChannelSliderThumbSlotProps>(
+    () => ({
+      value: modelValue,
+      valueText,
+      label
+    }),
+    [modelValue, valueText, label]
+  )
 
-  const contextValue = useMemo<ChannelSliderContext>(() => ({
-    value: modelValue,
-    label,
-    valueText,
-    min,
-    max,
-    step,
-    disabled,
-    orientation,
-    slotProps,
-    thumbSlotProps
-  }), [modelValue, label, valueText, min, max, step, disabled, orientation, slotProps, thumbSlotProps])
+  const contextValue = useMemo<ChannelSliderContext>(
+    () => ({
+      value: modelValue,
+      label,
+      valueText,
+      min,
+      max,
+      step,
+      disabled,
+      orientation,
+      slotProps,
+      thumbSlotProps
+    }),
+    [modelValue, label, valueText, min, max, step, disabled, orientation, slotProps, thumbSlotProps]
+  )
 
-  const onValueChange = useCallback((values: number[]) => {
-    onModelValueChange?.(values[0] ?? min)
-  }, [min, onModelValueChange])
+  const onValueChange = useCallback(
+    (values: number[]) => {
+      onModelValueChange?.(values[0] ?? min)
+    },
+    [min, onModelValueChange]
+  )
 
-  const commit = useCallback((values: number[]) => {
-    onValueCommit?.(values[0] ?? min)
-  }, [min, onValueCommit])
+  const commit = useCallback(
+    (values: number[]) => {
+      onValueCommit?.(values[0] ?? min)
+    },
+    [min, onValueCommit]
+  )
 
   const renderedChildren = typeof children === 'function' ? children(slotProps) : children
 

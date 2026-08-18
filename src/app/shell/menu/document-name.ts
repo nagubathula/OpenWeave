@@ -1,4 +1,5 @@
 import { useInlineRename } from '@openweave/react'
+
 import type { EditorStore } from '@/app/editor/active-store'
 
 const DOCUMENT_NAME_ID = 'document-name'

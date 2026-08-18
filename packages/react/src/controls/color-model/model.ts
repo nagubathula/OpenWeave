@@ -1,11 +1,10 @@
-import { convertToHsb, convertToHsl, convertToRgb } from './convert'
-import type { ColorValue as RekaColor, HSBColor, HSLColor, RGBColor } from './convert'
-
 import { colorToCSS, okhclToRGBA, rgba255ToColor, rgbaToOkHCL } from '@openweave/core/color'
 import type { OkHCLColor } from '@openweave/core/color'
 import type { Fill, Stroke } from '@openweave/scene-graph'
 import type { Color } from '@openweave/scene-graph/primitives'
 
+import { convertToHsb, convertToHsl, convertToRgb } from './convert'
+import type { ColorValue as RekaColor, HSBColor, HSLColor, RGBColor } from './convert'
 import type {
   HSBChannel,
   HSLChannel,

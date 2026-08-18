@@ -1,8 +1,8 @@
+import type { MixedValue } from '#react/controls/node-props/use'
+
 import { BLACK } from '@openweave/core/constants'
 import type { Editor } from '@openweave/core/editor'
 import type { SceneNode, Stroke, StrokeCap, StrokeJoin } from '@openweave/scene-graph'
-
-import type { MixedValue } from '#react/controls/node-props/use'
 
 export type StrokeSides = 'ALL' | 'TOP' | 'BOTTOM' | 'LEFT' | 'RIGHT' | 'CUSTOM'
 

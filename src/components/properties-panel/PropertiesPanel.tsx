@@ -1,13 +1,13 @@
-import React from 'react'
+import { useStore } from '@nanostores/react'
 import * as Tabs from '@radix-ui/react-tabs'
 import { Code, Sparkles } from 'lucide-react'
-import { useStore } from '@nanostores/react'
+import React from 'react'
 
 import { useAIChat } from '@/app/ai/chat/use'
-import DesignPanel from '@/components/properties/DesignPanel'
-import CodePanel from '@/components/properties/CodePanel'
 import ChatPanel from '@/components/chat/ChatPanel'
 import ZoomDropdown from '@/components/editor/ZoomDropdown'
+import CodePanel from '@/components/properties/CodePanel'
+import DesignPanel from '@/components/properties/DesignPanel'
 
 export default function PropertiesPanel() {
   // The tab selection is shared app state (a nanostores atom in @/app/ai/chat/use)
@@ -24,7 +24,11 @@ export default function PropertiesPanel() {
       className="flex min-w-0 flex-1 flex-col overflow-hidden border-l border-border bg-panel w-full"
       style={{ contain: 'paint layout style' }}
     >
-      <Tabs.Root value={activeTab} onValueChange={setActiveTab} className="flex min-h-0 flex-1 flex-col">
+      <Tabs.Root
+        value={activeTab}
+        onValueChange={setActiveTab}
+        className="flex min-h-0 flex-1 flex-col"
+      >
         <Tabs.List className="flex h-10 shrink-0 items-center gap-1 border-b border-border px-2">
           <Tabs.Trigger
             value="design"

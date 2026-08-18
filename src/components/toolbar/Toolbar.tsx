@@ -1,12 +1,5 @@
 import React, { useMemo } from 'react'
 
-import DesktopToolbar from '@/components/toolbar/DesktopToolbar'
-import MobileToolbar from '@/components/toolbar/MobileToolbar'
-import { useToolbarActions } from '@/components/toolbar/actions'
-import { useActionToast } from '@/app/shell/toast/action'
-import { useEditorStore } from '@/app/editor/active-store'
-import { toolIcons } from '@/app/editor/icons'
-import { useMenuUI } from '@/components/ui/menu'
 import {
   ToolbarRoot,
   useEditorCommands,
@@ -14,9 +7,16 @@ import {
   useToolbarState,
   useViewportKind
 } from '@openweave/react'
-
 import type { Tool } from '@openweave/react'
+
+import { useEditorStore } from '@/app/editor/active-store'
+import { toolIcons } from '@/app/editor/icons'
+import { useActionToast } from '@/app/shell/toast/action'
+import { useToolbarActions } from '@/components/toolbar/actions'
+import DesktopToolbar from '@/components/toolbar/DesktopToolbar'
+import MobileToolbar from '@/components/toolbar/MobileToolbar'
 import type { ToolbarActionItem } from '@/components/toolbar/types'
+import { useMenuUI } from '@/components/ui/menu'
 
 export default function Toolbar() {
   const store = useEditorStore()
@@ -25,36 +25,45 @@ export default function Toolbar() {
   const { showActionToast } = useActionToast()
   const { menu, tools: toolTexts } = useI18n()
 
-  const toolLabels = useMemo<Record<Tool, string>>(() => ({
-    SELECT: toolTexts.move,
-    FRAME: toolTexts.frame,
-    SECTION: toolTexts.section,
-    RECTANGLE: toolTexts.rectangle,
-    ELLIPSE: toolTexts.ellipse,
-    LINE: toolTexts.line,
-    POLYGON: toolTexts.polygon,
-    STAR: toolTexts.star,
-    PEN: toolTexts.pen,
-    TEXT: toolTexts.text,
-    HAND: toolTexts.hand
-  }), [toolTexts])
+  const toolLabels = useMemo<Record<Tool, string>>(
+    () => ({
+      SELECT: toolTexts.move,
+      FRAME: toolTexts.frame,
+      SECTION: toolTexts.section,
+      RECTANGLE: toolTexts.rectangle,
+      ELLIPSE: toolTexts.ellipse,
+      LINE: toolTexts.line,
+      POLYGON: toolTexts.polygon,
+      STAR: toolTexts.star,
+      PEN: toolTexts.pen,
+      TEXT: toolTexts.text,
+      HAND: toolTexts.hand
+    }),
+    [toolTexts]
+  )
 
-  const toolShortcuts = useMemo<Record<Tool, string>>(() => ({
-    SELECT: 'V',
-    FRAME: 'F',
-    SECTION: 'S',
-    RECTANGLE: 'R',
-    ELLIPSE: 'O',
-    LINE: 'L',
-    POLYGON: '',
-    STAR: '',
-    PEN: 'P',
-    TEXT: 'T',
-    HAND: 'H'
-  }), [])
+  const toolShortcuts = useMemo<Record<Tool, string>>(
+    () => ({
+      SELECT: 'V',
+      FRAME: 'F',
+      SECTION: 'S',
+      RECTANGLE: 'R',
+      ELLIPSE: 'O',
+      LINE: 'L',
+      POLYGON: '',
+      STAR: '',
+      PEN: 'P',
+      TEXT: 'T',
+      HAND: 'H'
+    }),
+    []
+  )
 
   const flyoutMenuCls = useMenuUI({ content: 'min-w-32' })
-  const toolbarUi = useMemo(() => ({ flyoutContent: flyoutMenuCls.content }), [flyoutMenuCls.content])
+  const toolbarUi = useMemo(
+    () => ({ flyoutContent: flyoutMenuCls.content }),
+    [flyoutMenuCls.content]
+  )
   const { editActions, arrangeActions } = useToolbarActions({ store, getCommand, menu })
 
   const { mobileCategory, slideDirection, hasPrev, hasNext, goPrev, goNext } = useToolbarState()

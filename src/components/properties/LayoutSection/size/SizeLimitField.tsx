@@ -1,10 +1,11 @@
 import React from 'react'
+
 import { useLayoutControlsContext } from '@openweave/react'
 
-import Tip from '@/components/ui/Tip'
 import FieldSelectMenu from '@/components/properties/LayoutSection/FieldSelectMenu'
-import VariableNumberField from '@/components/properties/LayoutSection/VariableNumberField'
 import type { SizeLimitFieldProps } from '@/components/properties/LayoutSection/size/types'
+import VariableNumberField from '@/components/properties/LayoutSection/VariableNumberField'
+import Tip from '@/components/ui/Tip'
 
 /** A single size-limit field (min/max W/H): value plus "set to current" / "remove" menu. */
 export default function SizeLimitField({ item }: SizeLimitFieldProps) {

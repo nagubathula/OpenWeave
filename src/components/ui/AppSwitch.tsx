@@ -1,5 +1,5 @@
-import React, { forwardRef } from 'react'
 import * as SwitchPrimitive from '@radix-ui/react-switch'
+import React, { forwardRef } from 'react'
 import { tv } from 'tailwind-variants'
 
 import type { ComponentUI } from '@/components/ui/types'
@@ -8,7 +8,10 @@ import theme from '@/theme/switch'
 
 export type AppSwitchUI = ComponentUI<SwitchTheme>
 
-export interface AppSwitchProps extends Omit<SwitchPrimitive.SwitchProps, 'checked' | 'onCheckedChange' | 'value'> {
+export interface AppSwitchProps extends Omit<
+  SwitchPrimitive.SwitchProps,
+  'checked' | 'onCheckedChange' | 'value'
+> {
   label?: string
   size?: keyof SwitchTheme['variants']['size']
   state?: keyof SwitchTheme['variants']['state']

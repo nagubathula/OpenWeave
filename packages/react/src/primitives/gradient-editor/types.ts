@@ -1,7 +1,11 @@
 import type { ReactNode } from 'react'
+
 import type { GradientStop } from '@openweave/scene-graph'
 
-export interface GradientEditorStopProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 'children'> {
+export interface GradientEditorStopProps extends Omit<
+  React.HTMLAttributes<HTMLDivElement>,
+  'children'
+> {
   stop: GradientStop
   index: number
   active: boolean

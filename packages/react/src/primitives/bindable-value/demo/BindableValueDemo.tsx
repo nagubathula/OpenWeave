@@ -1,7 +1,3 @@
-import React, { useMemo, useRef, useState } from 'react'
-
-import type { Variable } from '@openweave/scene-graph'
-
 import type {
   BindingProvider,
   BindingState,
@@ -13,6 +9,9 @@ import { BindableValueTrigger } from '#react/primitives/bindable-value/BindableV
 import { NumberFieldInput } from '#react/primitives/number-field/NumberFieldInput'
 import { NumberFieldRoot } from '#react/primitives/number-field/NumberFieldRoot'
 import { NumberFieldValue } from '#react/primitives/number-field/NumberFieldValue'
+import React, { useMemo, useRef, useState } from 'react'
+
+import type { Variable } from '@openweave/scene-graph'
 
 const detachTarget: BindingTarget[] = [{ nodeId: 'detach', path: 'width' }]
 const readonlyTarget: BindingTarget[] = [{ nodeId: 'readonly', path: 'width' }]
@@ -90,8 +89,9 @@ export function BindableValueDemo() {
         return ids.has(undefined) ? 'unbound' : 'bound'
       },
       resolve: (variableId) =>
-        variablesRef.current.find((variable) => variable.id === variableId)?.valuesByMode
-          .default as number | undefined,
+        variablesRef.current.find((variable) => variable.id === variableId)?.valuesByMode.default as
+          | number
+          | undefined,
       bind(target, variableId) {
         bindingsRef.current[targetKey(target)] = variableId
         bump()

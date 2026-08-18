@@ -1,13 +1,13 @@
 import { describe, expect, test } from 'bun:test'
 
+import { applyResize, commitResizePreview } from '#react/shared/input/resize'
+import type { DragResize } from '#react/shared/input/types'
+
 import { createEditor } from '@openweave/core/editor'
 import type { Fill, GeometryPath, SceneNode, VectorNetwork } from '@openweave/scene-graph'
 import { cloneVectorNetwork } from '@openweave/scene-graph'
 import { copyGeometryPaths } from '@openweave/scene-graph/copy'
 import { collectResizeDescendants } from '@openweave/scene-graph/resize'
-
-import { applyResize, commitResizePreview } from '#react/shared/input/resize'
-import type { DragResize } from '#react/shared/input/types'
 
 import { getNodeOrThrow } from '#tests/helpers/assert'
 

@@ -1,6 +1,6 @@
 ---
 title: Components
-description: Component reference for headless Vue primitives in @openweave/react.
+description: Component reference for headless React primitives in @openweave/react.
 ---
 
 # Components

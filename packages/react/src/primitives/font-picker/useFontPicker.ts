@@ -16,12 +16,18 @@ export interface UseFontPickerOptions {
   onUpdateModelValue?: (family: string) => void
 }
 
-function normalizeOptions(items: string[] | { family: string; source: 'local' | 'web' | 'system' }[]) {
-  return items.map((item) => (typeof item === 'string' ? { family: item, source: 'local' as const } : item))
+function normalizeOptions(
+  items: string[] | { family: string; source: 'local' | 'web' | 'system' }[]
+) {
+  return items.map((item) =>
+    typeof item === 'string' ? { family: item, source: 'local' as const } : item
+  )
 }
 
 export function useFontPicker(options: UseFontPickerOptions) {
-  const [families, setFamilies] = useState<{ family: string; source: 'local' | 'web' | 'system' }[]>([])
+  const [families, setFamilies] = useState<
+    { family: string; source: 'local' | 'web' | 'system' }[]
+  >([])
   const [searchTerm, setSearchTerm] = useState('')
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -67,7 +73,7 @@ export function useFontPicker(options: UseFontPickerOptions) {
     if (options.localFontAccess) {
       setAccessState(options.localFontAccess.state())
     }
-    
+
     if (accessState === 'prompt') {
       requestAccess()
     } else {
@@ -75,11 +81,14 @@ export function useFontPicker(options: UseFontPickerOptions) {
     }
   }, [open, accessState, requestAccess, loadFamilies, options.localFontAccess])
 
-  const select = useCallback((family: string) => {
-    options.onUpdateModelValue?.(family)
-    options.onSelect?.(family)
-    setOpen(false)
-  }, [options])
+  const select = useCallback(
+    (family: string) => {
+      options.onUpdateModelValue?.(family)
+      options.onSelect?.(family)
+      setOpen(false)
+    },
+    [options]
+  )
 
   return {
     families,

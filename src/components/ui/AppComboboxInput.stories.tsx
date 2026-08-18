@@ -1,20 +1,21 @@
-import type { Meta, StoryObj } from '@storybook/react';
-import { expect, userEvent, within } from 'storybook/test';
-import { AppComboboxInput } from './AppComboboxInput';
-import { useState } from 'react';
+import type { Meta, StoryObj } from '@storybook/react'
+import { useState } from 'react'
+import { expect, userEvent, within } from 'storybook/test'
+
+import { AppComboboxInput } from './AppComboboxInput'
 
 const meta = {
   component: AppComboboxInput,
-  tags: ['ai-generated', 'needs-work'],
-} satisfies Meta<typeof AppComboboxInput>;
+  tags: ['ai-generated', 'needs-work']
+} satisfies Meta<typeof AppComboboxInput>
 
-export default meta;
-type Story = StoryObj<typeof meta>;
+export default meta
+type Story = StoryObj<typeof meta>
 
 const StatefulWrapper = (args: any) => {
-  const [val, setVal] = useState('');
-  return <AppComboboxInput {...args} value={val} onValueChange={setVal} />;
-};
+  const [val, setVal] = useState('')
+  return <AppComboboxInput {...args} value={val} onValueChange={setVal} />
+}
 
 export const Default: Story = {
   render: (args) => <StatefulWrapper {...args} />,
@@ -23,24 +24,24 @@ export const Default: Story = {
     options: [
       { value: 'apple', label: 'Apple' },
       { value: 'banana', label: 'Banana' },
-      { value: 'cherry', label: 'Cherry' },
+      { value: 'cherry', label: 'Cherry' }
     ],
     value: '',
-    onValueChange: () => {},
+    onValueChange: () => {}
   },
   play: async ({ canvas, canvasElement, userEvent }) => {
-    const input = canvas.getByPlaceholderText(/search fruit/i);
-    await expect(input).toBeVisible();
-    await userEvent.click(input);
-    
+    const input = canvas.getByPlaceholderText(/search fruit/i)
+    await expect(input).toBeVisible()
+    await userEvent.click(input)
+
     // Radix Popover renders outside canvasElement
-    const body = canvasElement.ownerDocument.body;
+    const body = canvasElement.ownerDocument.body
     // The options open on ArrowDown
-    await userEvent.keyboard('{ArrowDown}');
-    await userEvent.keyboard('a');
-    
-    const option = await within(body).findByText('Apple');
-    await expect(option).toBeVisible();
-    await userEvent.click(option);
-  },
-};
+    await userEvent.keyboard('{ArrowDown}')
+    await userEvent.keyboard('a')
+
+    const option = await within(body).findByText('Apple')
+    await expect(option).toBeVisible()
+    await userEvent.click(option)
+  }
+}

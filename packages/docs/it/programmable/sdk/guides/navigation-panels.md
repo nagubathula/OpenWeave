@@ -10,7 +10,7 @@ Le sidebar di OpenWeave di solito combinano due aspetti:
 - navigazione tra pagine
 - navigazione tra layer
 
-Il Vue SDK fornisce primitive headless per entrambi.
+Il React SDK fornisce primitive headless per entrambi.
 
 ## Navigazione tra pagine
 

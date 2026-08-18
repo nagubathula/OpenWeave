@@ -1,13 +1,13 @@
 import { describe, expect, test } from 'bun:test'
 
-import type { SceneNode } from '@openweave/scene-graph'
-
 import {
   axisSizingPatchForNode,
   widthSizingForNode,
   heightSizingForNode,
   sizingOptionsForNode
 } from '#react/controls/layout/helpers'
+
+import type { SceneNode } from '@openweave/scene-graph'
 
 function node(overrides: Partial<SceneNode>): SceneNode {
   return {

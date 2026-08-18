@@ -1,5 +1,6 @@
-import React from 'react'
 import { useConstraints } from '#react/controls/constraints/use'
+import React from 'react'
+
 import type { ConstraintsControlActions, ConstraintsControlRootSlotProps } from './types'
 
 export interface ConstraintsControlRootProps {
@@ -16,13 +17,16 @@ export function ConstraintsControlRoot({ children }: ConstraintsControlRootProps
     togglePin: constraints.togglePin
   }
 
-  const renderedChildren = typeof children === 'function' ? children({
-    active: constraints.active,
-    isMulti: constraints.isMulti,
-    horizontal: constraints.horizontal,
-    vertical: constraints.vertical,
-    actions
-  }) : children
+  const renderedChildren =
+    typeof children === 'function'
+      ? children({
+          active: constraints.active,
+          isMulti: constraints.isMulti,
+          horizontal: constraints.horizontal,
+          vertical: constraints.vertical,
+          actions
+        })
+      : children
 
   return <>{renderedChildren}</>
 }

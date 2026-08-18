@@ -1,5 +1,8 @@
 export { constrainToAspectRatio } from '#react/shared/input/resize/rect'
 export { tryStartResize } from '#react/shared/input/resize/start'
+import { calculateResizeRect } from '#react/shared/input/resize/rect'
+import type { DragResize } from '#react/shared/input/types'
+
 import type { Editor } from '@openweave/core/editor'
 import { computeAllLayouts } from '@openweave/core/layout'
 import { cloneVectorNetwork } from '@openweave/scene-graph'
@@ -9,9 +12,6 @@ import {
   computeConstrainedResizeChanges,
   scaleVectorNetworkForResize
 } from '@openweave/scene-graph/resize'
-
-import { calculateResizeRect } from '#react/shared/input/resize/rect'
-import type { DragResize } from '#react/shared/input/types'
 
 function resizeChanges(d: DragResize, cx: number, cy: number, constrain: boolean) {
   const { origRect } = d

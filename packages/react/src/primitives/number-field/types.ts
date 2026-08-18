@@ -1,6 +1,5 @@
-import type { ReactNode, RefObject } from 'react'
-
 import type { NumberExpressionError } from '#react/controls/number-expression'
+import type { ReactNode, RefObject } from 'react'
 
 export type NumberFieldEditPolicy = 'editable' | 'readonly' | 'detach-on-edit'
 export type NumberFieldMutationSource = 'edit' | 'scrub' | 'step'

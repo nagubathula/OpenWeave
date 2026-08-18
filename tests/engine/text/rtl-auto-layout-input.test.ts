@@ -1,11 +1,11 @@
 import { describe, expect, test } from 'bun:test'
 
-import { SceneGraph, computeLayout } from '@openweave/core'
-import { createEditor } from '@openweave/core/editor'
-
 import { computeAutoLayoutIndicatorForFrame } from '#react/shared/input/auto-layout'
 import { handleMoveUp } from '#react/shared/input/move'
 import type { DragMove } from '#react/shared/input/types'
+
+import { SceneGraph, computeLayout } from '@openweave/core'
+import { createEditor } from '@openweave/core/editor'
 
 function pageId(graph: SceneGraph) {
   return graph.getPages()[0].id

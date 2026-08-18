@@ -1,4 +1,5 @@
 import React, { useCallback, useRef } from 'react'
+
 import { colorToCSS } from '@openweave/core/color'
 
 import { useColorPickerPanelContext } from './context'

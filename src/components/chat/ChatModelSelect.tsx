@@ -1,7 +1,7 @@
-import React from 'react'
+import { useStore } from '@nanostores/react'
 import * as Select from '@radix-ui/react-select'
 import { Bot, Check, ChevronDown } from 'lucide-react'
-import { useStore } from '@nanostores/react'
+import React from 'react'
 
 import { useAIChat } from '@/app/ai/chat/use'
 import { AppBadge } from '@/components/ui/AppBadge'

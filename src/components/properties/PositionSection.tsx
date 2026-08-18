@@ -1,6 +1,3 @@
-/* eslint-disable openweave/no-hardcoded-tip-labels */
-import React from 'react'
-import { PositionControlsRoot, useI18n } from '@openweave/react'
 import {
   AlignStartVertical,
   AlignCenterVertical,
@@ -13,6 +10,10 @@ import {
   FlipVertical2,
   RotateCwSquare
 } from 'lucide-react'
+/* eslint-disable openweave/no-hardcoded-tip-labels */
+import React from 'react'
+
+import { PositionControlsRoot, useI18n } from '@openweave/react'
 
 import { useEditorStore } from '@/app/editor/active-store'
 import NumberField from '@/components/inputs/NumberField'
@@ -40,7 +41,7 @@ export default function PositionSection() {
 
   return (
     <PositionControlsRoot>
-      {({ active, xValue, yValue, wValue, hValue, rotationValue, actions }) => (
+      {({ active, xValue, yValue, wValue, hValue, rotationValue, actions }) =>
         active ? (
           <PanelSection label="Position">
             <div role="toolbar" aria-label="Position" className="mb-1.5 flex justify-between">
@@ -157,10 +158,18 @@ export default function PositionSection() {
                 />
               </Tip>
               <div className="flex h-6 items-center justify-end gap-0.5">
-                <IconButton label="Flip horizontal" size="md" onClick={() => actions.flip('horizontal')}>
+                <IconButton
+                  label="Flip horizontal"
+                  size="md"
+                  onClick={() => actions.flip('horizontal')}
+                >
                   <FlipHorizontal2 className="size-3.5" />
                 </IconButton>
-                <IconButton label="Flip vertical" size="md" onClick={() => actions.flip('vertical')}>
+                <IconButton
+                  label="Flip vertical"
+                  size="md"
+                  onClick={() => actions.flip('vertical')}
+                >
                   <FlipVertical2 className="size-3.5" />
                 </IconButton>
                 <IconButton label="Rotate -90°" size="md" onClick={() => actions.rotate(90)}>
@@ -170,7 +179,7 @@ export default function PositionSection() {
             </PanelGrid>
           </PanelSection>
         ) : null
-      )}
+      }
     </PositionControlsRoot>
   )
 }

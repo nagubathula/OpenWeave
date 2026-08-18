@@ -1,11 +1,16 @@
-import React from 'react'
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
-import { Shapes, ChevronDown, Combine, CopyMinus, SquaresIntersect, CopyX, ListCollapse } from 'lucide-react'
 import {
-  useEditorCommands,
-  editorCommandMetadata,
-  formatShortcut
-} from '@openweave/react'
+  Shapes,
+  ChevronDown,
+  Combine,
+  CopyMinus,
+  SquaresIntersect,
+  CopyX,
+  ListCollapse
+} from 'lucide-react'
+import React from 'react'
+
+import { useEditorCommands, editorCommandMetadata, formatShortcut } from '@openweave/react'
 
 import IconButton from '@/components/ui/IconButton'
 import Tip from '@/components/ui/Tip'
@@ -15,11 +20,26 @@ interface Props {
 }
 
 const operations = [
-  { id: 'selection.booleanUnion' as const, icon: <Combine className="size-3.5 shrink-0 text-muted" /> },
-  { id: 'selection.booleanSubtract' as const, icon: <CopyMinus className="size-3.5 shrink-0 text-muted" /> },
-  { id: 'selection.booleanIntersect' as const, icon: <SquaresIntersect className="size-3.5 shrink-0 text-muted" /> },
-  { id: 'selection.booleanExclude' as const, icon: <CopyX className="size-3.5 shrink-0 text-muted" /> },
-  { id: 'selection.flatten' as const, icon: <ListCollapse className="size-3.5 shrink-0 text-muted" /> }
+  {
+    id: 'selection.booleanUnion' as const,
+    icon: <Combine className="size-3.5 shrink-0 text-muted" />
+  },
+  {
+    id: 'selection.booleanSubtract' as const,
+    icon: <CopyMinus className="size-3.5 shrink-0 text-muted" />
+  },
+  {
+    id: 'selection.booleanIntersect' as const,
+    icon: <SquaresIntersect className="size-3.5 shrink-0 text-muted" />
+  },
+  {
+    id: 'selection.booleanExclude' as const,
+    icon: <CopyX className="size-3.5 shrink-0 text-muted" />
+  },
+  {
+    id: 'selection.flatten' as const,
+    icon: <ListCollapse className="size-3.5 shrink-0 text-muted" />
+  }
 ]
 
 export default function SelectionActionsControl({ showBooleanOperations = false }: Props) {
@@ -35,10 +55,10 @@ export default function SelectionActionsControl({ showBooleanOperations = false 
       >
         <Shapes className="size-3.5" />
       </IconButton>
-      
+
       {showBooleanOperations && (
         <DropdownMenu.Root>
-          <Tip label="Boolean groups">
+          {/* oxlint-disable-next-line openweave/no-hardcoded-tip-labels */}`n          <Tip label="Boolean groups">
             <DropdownMenu.Trigger asChild>
               <button
                 type="button"

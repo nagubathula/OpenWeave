@@ -8,7 +8,7 @@ OpenWeave und Penpot sind beides Open-Source-Design-Tools, aber sie unterscheide
 |--------|-------------|--------|
 | Total LOC | **~26.000** | **~299.000** |
 | Quelldateien | ~143 | ~2.900 |
-| Sprachen | TypeScript, Vue | Clojure, ClojureScript, Rust, JS, SQL, SCSS |
+| Sprachen | TypeScript, React | Clojure, ClojureScript, Rust, JS, SQL, SCSS |
 | Rendering-Engine | ~3.200 LOC (TS, 10 Dateien) | 22.000 LOC (Rust/Skia WASM) |
 | UI-Code | ~4.500 LOC | ~175.000 LOC (CLJS + SCSS) |
 | Backend | Keines (local-first) | 32.600 LOC + 151 SQL-Dateien |

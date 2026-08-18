@@ -1,20 +1,19 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react'
-import { ArrowUp, Bot, MessageCircle, Play, Settings, Sparkles, Square, Trash2 } from 'lucide-react'
+import { useStore } from '@nanostores/react'
 import { readUIMessageStream } from 'ai'
 import type { ChatTransport, UIMessage } from 'ai'
-import { useStore } from '@nanostores/react'
-
-import { useI18n } from '@openweave/react'
+import { ArrowUp, Bot, MessageCircle, Play, Settings, Sparkles, Square, Trash2 } from 'lucide-react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 
 import { ACP_AGENTS } from '@openweave/core/constants'
+import { useI18n } from '@openweave/react'
 
-import { getActiveEditorStore } from '@/app/editor/active-store'
 import { resolveLanguageModelID } from '@/app/ai/chat/model'
-import { createToolLoopTransport } from '@/app/ai/chat/transports'
 import { credentialsReady, isConfigured } from '@/app/ai/chat/storage'
-import { aiModelSettings, createAIModelRuntime, designModelProfiles } from '@/app/ai/models'
+import { createToolLoopTransport } from '@/app/ai/chat/transports'
 import { useAIChat } from '@/app/ai/chat/use'
+import { aiModelSettings, createAIModelRuntime, designModelProfiles } from '@/app/ai/models'
 import { clearToolLogEntries, didHitStepLimit } from '@/app/ai/tools'
+import { getActiveEditorStore } from '@/app/editor/active-store'
 import { openSettingsDialog } from '@/app/settings/dialog'
 import { toast } from '@/app/shell/ui'
 import ChatMessage from '@/components/chat/ChatMessage'
@@ -181,7 +180,8 @@ export default function ChatPanel() {
   )
 
   const isBusy = status === 'streaming' || status === 'submitted'
-  const isThinking = isBusy && (messages.length === 0 || messages[messages.length - 1].role === 'user')
+  const isThinking =
+    isBusy && (messages.length === 0 || messages[messages.length - 1].role === 'user')
   const showContinue =
     status === 'ready' &&
     messages.length > 0 &&
@@ -189,7 +189,8 @@ export default function ChatPanel() {
     didHitStepLimit()
 
   const isACPProvider = providerID.startsWith('acp:')
-  const isCustomProvider = providerID === 'openai-compatible' || providerID === 'anthropic-compatible'
+  const isCustomProvider =
+    providerID === 'openai-compatible' || providerID === 'anthropic-compatible'
   const usesCustomModel = Boolean(providerDef.supportsCustomModel) && Boolean(customModelID.trim())
   // Switching between saved profiles only makes sense once more than one can drive the design agent.
   const canSwitchProfile = designModelProfiles().length > 1
@@ -269,9 +270,18 @@ export default function ChatPanel() {
                   AI
                 </div>
                 <div className="flex items-center gap-1 py-2">
-                  <span className="size-1.5 animate-bounce rounded-full bg-muted" style={{ animationDelay: '0ms' }} />
-                  <span className="size-1.5 animate-bounce rounded-full bg-muted" style={{ animationDelay: '150ms' }} />
-                  <span className="size-1.5 animate-bounce rounded-full bg-muted" style={{ animationDelay: '300ms' }} />
+                  <span
+                    className="size-1.5 animate-bounce rounded-full bg-muted"
+                    style={{ animationDelay: '0ms' }}
+                  />
+                  <span
+                    className="size-1.5 animate-bounce rounded-full bg-muted"
+                    style={{ animationDelay: '150ms' }}
+                  />
+                  <span
+                    className="size-1.5 animate-bounce rounded-full bg-muted"
+                    style={{ animationDelay: '300ms' }}
+                  />
                 </div>
               </div>
             ) : null}

@@ -1,6 +1,6 @@
-import React from 'react'
 import * as Collapsible from '@radix-ui/react-collapsible'
 import { Check, ChevronDown, LoaderCircle, TriangleAlert } from 'lucide-react'
+import React from 'react'
 
 export type ToolPartLike = {
   type: string
@@ -43,8 +43,14 @@ export function toolState(part: ToolPartLike): 'pending' | 'done' | 'error' {
 
 /** Mirrors the `<pre>` content from ChatMessage.vue's CollapsibleContent. */
 function toolDetail(part: ToolPartLike): string {
-  if (part.state === 'output-error') return typeof part.errorText === 'string' ? part.errorText : JSON.stringify(part.errorText ?? 'Unknown error')
-  if (hasErrorOutput(part)) return typeof (part.output as { error: unknown }).error === 'string' ? (part.output as { error: unknown }).error as string : JSON.stringify((part.output as { error: unknown }).error)
+  if (part.state === 'output-error')
+    return typeof part.errorText === 'string'
+      ? part.errorText
+      : JSON.stringify(part.errorText ?? 'Unknown error')
+  if (hasErrorOutput(part))
+    return typeof (part.output as { error: unknown }).error === 'string'
+      ? ((part.output as { error: unknown }).error as string)
+      : JSON.stringify((part.output as { error: unknown }).error)
   if (part.output !== undefined) {
     try {
       return JSON.stringify(part.output, null, 2)

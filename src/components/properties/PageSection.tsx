@@ -1,12 +1,13 @@
 import React, { useState } from 'react'
-import { useI18n } from '@openweave/react'
-import { getActiveEditorStore } from '@/app/editor/active-store'
-import type { Color } from '@openweave/scene-graph/primitives'
-import { colorToHexRaw, parseColor } from '@openweave/core/color'
 
-import PanelSection from '@/components/ui/panel/PanelSection'
+import { colorToHexRaw, parseColor } from '@openweave/core/color'
+import { useI18n } from '@openweave/react'
+import type { Color } from '@openweave/scene-graph/primitives'
+
+import { getActiveEditorStore } from '@/app/editor/active-store'
 import ColorSwatchPopover from '@/components/color-picker/ColorSwatchPopover'
 import NumberField from '@/components/inputs/NumberField'
+import PanelSection from '@/components/ui/panel/PanelSection'
 
 export default function PageSection() {
   const editor = getActiveEditorStore()
@@ -33,10 +34,7 @@ export default function PageSection() {
       <div className="flex flex-col gap-2 relative group">
         <div className="flex items-center gap-1.5">
           <div className="flex-1 flex items-center gap-1 bg-input/50 rounded px-1.5 py-1 border border-border focus-within:border-accent transition-colors">
-            <ColorSwatchPopover
-              color={pageColor}
-              onChange={updatePageColor}
-            />
+            <ColorSwatchPopover color={pageColor} onChange={updatePageColor} />
             <input
               type="text"
               aria-label={panels.pageBackground}

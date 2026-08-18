@@ -1,8 +1,8 @@
+import { isMobileViewport } from '#react/editor/viewport-kind/use'
+
 import type { SkiaRenderer } from '@openweave/core/canvas'
 import { IS_BROWSER } from '@openweave/core/constants'
 import type { Editor } from '@openweave/core/editor'
-
-import { isMobileViewport } from '#react/editor/viewport-kind/use'
 
 export type RulerVisibilityOptions = {
   showRulers?: boolean

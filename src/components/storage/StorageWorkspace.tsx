@@ -1,7 +1,7 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react'
+import { useStore } from '@nanostores/react'
 import { Files, X } from 'lucide-react'
 import { atom } from 'nanostores'
-import { useStore } from '@nanostores/react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 
 import {
   activeStorageProviderID,
@@ -242,9 +242,9 @@ export default function StorageWorkspace() {
             <p className="text-xs">
               {loading
                 ? 'Loading documents...'
-                : (configured
+                : configured
                   ? 'No documents yet.'
-                  : 'Configure storage before using this workspace.')}
+                  : 'Configure storage before using this workspace.'}
             </p>
             {!configured && !loading && (
               <button

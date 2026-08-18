@@ -1,6 +1,3 @@
-import type { Editor } from '@openweave/core/editor'
-import type { Variable, VariableType } from '@openweave/scene-graph'
-
 import type {
   BindingProvider,
   BindingState,
@@ -9,6 +6,9 @@ import type {
 import { useEditor } from '#react/editor/context'
 import { useSceneComputed } from '#react/internal/scene-computed/use'
 import { createBaseFilter } from '#react/shared/filter'
+
+import type { Editor } from '@openweave/core/editor'
+import type { Variable, VariableType } from '@openweave/scene-graph'
 
 export interface OpenWeaveBindingProviderOptions<V> {
   type: VariableType

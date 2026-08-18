@@ -19,7 +19,7 @@ description: Подключение рендеринга на базе CanvasKit
 ## Использование
 
 ```ts
-import { ref } from 'vue'
+import { useRef, useState } from 'react'
 
 import { useCanvas, useEditor } from '@openweave/react'
 

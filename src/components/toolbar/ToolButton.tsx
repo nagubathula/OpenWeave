@@ -1,7 +1,8 @@
 import React from 'react'
 import { tv } from 'tailwind-variants'
-import toolbarTheme from '@/theme/toolbar'
+
 import type { ToolbarUI } from '@/components/toolbar/types'
+import toolbarTheme from '@/theme/toolbar'
 
 interface ToolButtonProps {
   icon: React.ElementType
@@ -22,7 +23,7 @@ export default function ToolButton({
   mobile = false,
   ui,
   onClick,
-  'data-test-id': dataTestId,
+  'data-test-id': dataTestId
 }: ToolButtonProps) {
   const styles = toolbar({ active, mobile })
 

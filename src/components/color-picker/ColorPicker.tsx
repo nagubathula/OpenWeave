@@ -1,4 +1,5 @@
 import React from 'react'
+
 import type { Color } from '@openweave/scene-graph/primitives'
 
 import ColorPickerPanel from '@/components/color-picker-panel/ColorPickerPanel'

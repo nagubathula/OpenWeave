@@ -1,8 +1,5 @@
 import { describe, expect, test } from 'bun:test'
 
-
-
-import type { Fill } from '@openweave/scene-graph'
 import {
   fillCategory,
   fillIsTransparent,
@@ -10,6 +7,7 @@ import {
   useFill,
   useGradientStops
 } from '@openweave/react'
+import type { Fill } from '@openweave/scene-graph'
 
 const solid: Fill = {
   type: 'SOLID',

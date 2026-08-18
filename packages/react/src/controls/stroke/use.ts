@@ -1,5 +1,3 @@
-import { useMemo, useRef, useState } from 'react'
-
 import { useNodeProps } from '#react/controls/node-props/use'
 import {
   BORDER_SIDES,
@@ -19,6 +17,7 @@ import {
 } from '#react/controls/stroke/helpers'
 import { useEditor } from '#react/editor/context'
 import { useI18n } from '#react/i18n'
+import { useMemo, useRef, useState } from 'react'
 
 /**
  * Returns stroke-related helpers for property panels.

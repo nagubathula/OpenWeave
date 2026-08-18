@@ -1,12 +1,10 @@
 import { describe, expect, test } from 'bun:test'
 
-
+import { createAppearanceActions, createAppearanceState } from '#react/controls/appearance/helpers'
 
 import { createEditor } from '@openweave/core/editor'
-import type { SceneNode } from '@openweave/scene-graph'
 import { MIXED, type MixedValue } from '@openweave/react'
-
-import { createAppearanceActions, createAppearanceState } from '#react/controls/appearance/helpers'
+import type { SceneNode } from '@openweave/scene-graph'
 
 import { createRect, firstPageId, makeSceneGraph } from '#tests/helpers/scene'
 

@@ -12,7 +12,7 @@ Penpot 2.x include un renderer Rust/Skia WASM (`render-wasm/v1`) attivabile tram
 |---------|-------------|--------|
 | LOC totali | **~26.000** | **~299.000** |
 | File sorgente | ~143 | ~2.900 |
-| Linguaggi | TypeScript, Vue | Clojure, ClojureScript, Rust, JS, SQL, SCSS |
+| Linguaggi | TypeScript, React | Clojure, ClojureScript, Rust, JS, SQL, SCSS |
 | Motore di rendering | ~3.200 LOC (TS, 10 Dateien) | 22.000 LOC (Rust/Skia WASM) |
 | Codice UI | ~4.500 LOC | ~175.000 LOC (CLJS + SCSS) |
 | Backend | Nessuno (local-first) | 32.600 LOC + 151 file SQL |
@@ -28,7 +28,7 @@ Open Pencil è **~11× più piccolo** — e questo è il punto. Non è una sempl
 ┌─────────────────────────────────┐
 │         Tauri (shell nativo)    │
 │  ┌───────────────────────────┐  │
-│  │  Vue 3 + TypeScript       │  │
+│  │  React + TypeScript       │  │
 │  │  ┌─────────┐ ┌──────────┐│  │
 │  │  │  Editor  │ │  Kiwi    ││  │
 │  │  │  Store   │ │  Codec   ││  │
@@ -190,7 +190,7 @@ Gestione stato via Potok. Undo con vettori di cambiamenti inversi (max 50 voci),
 | Hot reload | Vite HMR (~50ms) | shadow-cljs (secondi) |
 | Type checking | TypeScript (strict) | Runtime (schemi Malli) |
 | Tempo build | <5s (Vite) | Minuti (JVM + CLJS + Rust WASM) |
-| Barriera prima contribuzione | Bassa (TS/Vue) | Alta (Clojure + Rust + Docker) |
+| Barriera prima contribuzione | Bassa (TS/React) | Alta (Clojure + Rust + Docker) |
 | Desktop | Tauri v2 (~5MB) | N/A (solo browser) |
 
 ## 9. Caratteristiche di prestazione
@@ -225,7 +225,7 @@ OpenWeave include un [comando `eval`](/programmable/cli/scripting) che fornisce 
 | **Prestazioni di rendering** | Open Pencil | CanvasKit diretto vs SVG DOM (default) o WASM impacchettato |
 | **Manutenibilità codice** | Open Pencil | ~26K LOC in 1 linguaggio vs 299K in 4+ |
 | **Compatibilità Figma** | Open Pencil | Codec Kiwi nativo vs nessun supporto .fig |
-| **Onboarding sviluppatori** | Open Pencil | TS/Vue vs Clojure/Rust/Docker |
+| **Onboarding sviluppatori** | Open Pencil | TS/React vs Clojure/Rust/Docker |
 | **Esperienza desktop** | Open Pencil | Tauri nativo vs solo browser |
 | **Motore di layout** | Open Pencil | Yoga (provato) vs doppia implementazione |
 | **Collaborazione** | Pareggio | Penpot: server con controllo accessi; Open Pencil: P2P via Trystero + Yjs |

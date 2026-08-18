@@ -1,6 +1,3 @@
-import { useStore } from '@nanostores/react'
-import type { Store } from 'nanostores'
-
 import { locale, setLocale, AVAILABLE_LOCALES, LOCALE_LABELS } from '#react/i18n/locale'
 import {
   menuMessages,
@@ -11,6 +8,8 @@ import {
   pageMessages,
   dialogMessages
 } from '#react/i18n/messages'
+import { useStore } from '@nanostores/react'
+import type { Store } from 'nanostores'
 
 // oxlint-disable-next-line openweave/no-useless-pass-through-wrappers
 export function useI18nNamespace<MessagesStore extends Store>(messages: MessagesStore) {

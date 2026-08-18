@@ -11,7 +11,7 @@ packages/
   mcp/               @openweave/mcp — MCP-Server für KI-Werkzeuge
     src/             stdio + HTTP (Hono) Transporte, 87 Werkzeuge
 src/
-  components/        Vue SFCs (Canvas, Panels, Werkzeugleiste, Farbauswahl)
+  components/        React Components (Canvas, Panels, Werkzeugleiste, Farbauswahl)
     properties/      Eigenschaftspanel-Abschnitte
   hooks/       Canvas-Input, Tastenkürzel, Rendering-Hooks
   stores/            Editor-Zustand (Vue-Reaktivität)
@@ -52,7 +52,7 @@ bun run check
 ### Konventionen
 
 - **Dateinamen** — kebab-case (`scene-graph.ts`, `use-canvas-input.ts`)
-- **Komponenten** — PascalCase Vue SFCs (`EditorCanvas.vue`, `NumberField.vue`)
+- **Komponenten** — PascalCase React Components (`EditorCanvas.tsx`, `NumberField.vue`)
 - **Konstanten** — SCREAMING_SNAKE_CASE
 - **Funktionen/Variablen** — camelCase
 - **Typen/Interfaces** — PascalCase
@@ -69,7 +69,7 @@ Entwickler und KI-Agenten sollten `AGENTS.md` im Repo-Root lesen ([auf GitHub an
 
 ## Schlüsseldateien
 
-Der Core-Engine-Quellcode lebt in `packages/core/src/`. App-spezifischer Editor-, Dokument-, KI-, Kollaborations-, Shell-, Demo- und Automatisierungscode liegt unter `src/app/*`; das Vue SDK verwaltet wiederverwendbaren Canvas- und Composable-Code unter `packages/vue/src/`.
+Der Core-Engine-Quellcode lebt in `packages/core/src/`. App-spezifischer Editor-, Dokument-, KI-, Kollaborations-, Shell-, Demo- und Automatisierungscode liegt unter `src/app/*`; das React SDK verwaltet wiederverwendbaren Canvas- und Composable-Code unter `packages/react/src/`.
 
 | Datei | Zweck |
 |-------|-------|
@@ -86,5 +86,5 @@ Der Core-Engine-Quellcode lebt in `packages/core/src/`. App-spezifischer Editor-
 | `packages/mcp/src/server.ts` | MCP-Server-Factory |
 | `packages/cli/src/index.ts` | CLI-Einstiegspunkt |
 | `src/app/editor/session/create.ts` | Editor session assembly |
-| `packages/vue/src/canvas/CanvasRoot.vue` | Canvas-Rendering-Composable |
+| `packages/react/src/canvas/CanvasRoot.vue` | Canvas-Rendering-Composable |
 | `src/app/shell/keyboard/use.ts` | Tastenkürzel-Behandlung |

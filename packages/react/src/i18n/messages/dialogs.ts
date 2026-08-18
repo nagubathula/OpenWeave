@@ -1,6 +1,5 @@
-import { params } from '@nanostores/i18n'
-
 import { i18n } from '#react/i18n/create'
+import { params } from '@nanostores/i18n'
 
 export const dialogMessageDefaults = {
   cancel: 'Cancel',
@@ -168,7 +167,8 @@ export const dialogMessageDefaults = {
   vectorizationDescription:
     'Send image layers to Recraft or fal.ai and return editable vectors. Provider charges may apply.',
   vectorizeProvider: 'Provider',
-  vectorizeProviderDescription: 'Convert raster images to editable vectors using an external provider.',
+  vectorizeProviderDescription:
+    'Convert raster images to editable vectors using an external provider.',
   vectorizeAPIKey: 'API key',
   vectorizeSavedKey: 'Saved',
   vectorizeSavedKeyPlaceholder: 'Saved — enter a new key to replace',

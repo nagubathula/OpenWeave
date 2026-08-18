@@ -1,13 +1,13 @@
-import React, { createContext, useContext, useEffect, useRef, useState } from 'react'
 import { useStore } from '@nanostores/react'
 import * as Popover from '@radix-ui/react-popover'
 import { Check, Copy, Share2, Users } from 'lucide-react'
 import { atom } from 'nanostores'
-import { tv } from 'tailwind-variants'
 import { useRouter } from 'next/navigation'
+import React, { createContext, useContext, useEffect, useRef, useState } from 'react'
+import { tv } from 'tailwind-variants'
 
-import { useI18n } from '@openweave/react'
 import { colorToCSS } from '@openweave/core/color'
+import { useI18n } from '@openweave/react'
 
 import {
   DEFAULT_COLLAB_STATE,
@@ -16,10 +16,10 @@ import {
   type RemotePeer
 } from '@/app/collab/use'
 import { initials, toast } from '@/app/shell/ui'
-import { getShareUrl } from '@/constants'
 import { AppInput } from '@/components/ui/AppInput'
-import Tip from '@/components/ui/Tip'
 import { usePopoverUI } from '@/components/ui/popover'
+import Tip from '@/components/ui/Tip'
+import { getShareUrl } from '@/constants'
 import collaborationTheme from '@/theme/collaboration'
 
 /**
@@ -258,9 +258,7 @@ function JoinRoomPrompt() {
       <div className="mb-1 text-xs font-medium text-surface">
         {collab.dialogs.joinCollaboration}
       </div>
-      <div className="mb-3 text-[11px] text-muted">
-        {collab.dialogs.someoneSharedFileJoin}
-      </div>
+      <div className="mb-3 text-[11px] text-muted">{collab.dialogs.someoneSharedFileJoin}</div>
 
       <div className="mb-3">
         <label className="mb-1 block text-xs text-muted">{collab.dialogs.yourName}</label>
@@ -348,7 +346,7 @@ function ShareOrJoinRoom() {
 function CollabSharePopover() {
   const collab = usePanel()
   const cls = usePopoverUI({ content: 'z-50 w-72 p-3' })
-  const connection = collab.state.connected ? 'connected' : (collab.isJoining ? 'joining' : 'idle')
+  const connection = collab.state.connected ? 'connected' : collab.isJoining ? 'joining' : 'idle'
   const styles = collaboration({ connection })
 
   return (
@@ -363,9 +361,9 @@ function CollabSharePopover() {
           <Share2 className="size-3.5" />
           {collab.state.connected
             ? collab.dialogs.connected
-            : (collab.isJoining
+            : collab.isJoining
               ? collab.dialogs.joinRoom
-              : collab.dialogs.share)}
+              : collab.dialogs.share}
         </button>
       </Popover.Trigger>
 
@@ -379,11 +377,11 @@ function CollabSharePopover() {
         >
           {collab.state.connected ? (
             <ConnectedRoom />
-          ) : (collab.isJoining ? (
+          ) : collab.isJoining ? (
             <JoinRoomPrompt />
           ) : (
             <ShareOrJoinRoom />
-          ))}
+          )}
         </Popover.Content>
       </Popover.Portal>
     </Popover.Root>

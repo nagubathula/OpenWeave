@@ -23,9 +23,9 @@ test('rulers follow the active theme', async () => {
   // Switch to light via the app's theme API (module state, not raw localStorage,
   // so the watcher applies it and pushes the ruler theme to the active editor).
   await page.evaluate(async () => {
-    const themeModulePath = '/src/app/shell/theme.ts'
-    const themeModule = await import(themeModulePath)
-    themeModule.useAppTheme().setTheme('light')
+    
+    
+    (window as any).__setAppTheme('light')
   })
   await page.waitForFunction(() => document.documentElement.dataset.theme === 'light')
 
@@ -37,9 +37,9 @@ test('rulers follow the active theme', async () => {
 
   // Restore dark so later specs are unaffected.
   await page.evaluate(async () => {
-    const themeModulePath = '/src/app/shell/theme.ts'
-    const themeModule = await import(themeModulePath)
-    themeModule.useAppTheme().setTheme('dark')
+    
+    
+    (window as any).__setAppTheme('dark')
   })
   await page.waitForFunction(() => document.documentElement.dataset.theme === 'dark')
 })

@@ -1,5 +1,3 @@
-import { useRef, useState } from 'react'
-
 import type { ColorFieldFormat } from '#react/controls/color-model/types'
 import {
   OKHCL_FIELD_OPTIONS,
@@ -10,6 +8,7 @@ import {
   getStrokeOkHCLColor
 } from '#react/controls/okhcl/helpers'
 import { useEditor } from '#react/editor/context'
+import { useRef, useState } from 'react'
 
 export function useOkHCL() {
   const editor = useEditor()
@@ -23,7 +22,7 @@ export function useOkHCL() {
     fieldFormatsRef,
     ensureFillOkHCL,
     ensureStrokeOkHCL,
-    () => setTick(t => t + 1)
+    () => setTick((t) => t + 1)
   )
 
   return {

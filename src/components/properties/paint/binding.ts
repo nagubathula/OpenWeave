@@ -1,9 +1,8 @@
 import { useEffect, useRef } from 'react'
 
 import { useEditor } from '@openweave/react'
-
-import type { Color } from '@openweave/scene-graph/primitives'
 import type { BindableValueSlotProps, BindingTarget } from '@openweave/react'
+import type { Color } from '@openweave/scene-graph/primitives'
 
 export type PaintBindingKind = 'fills' | 'strokes'
 

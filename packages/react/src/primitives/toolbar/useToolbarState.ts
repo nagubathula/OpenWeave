@@ -37,13 +37,13 @@ export function useToolbarState() {
   function goPrev() {
     if (!hasPrev) return
     setSlideDirection(-1)
-    setMobileCategory(m => m - 1)
+    setMobileCategory((m) => m - 1)
   }
 
   function goNext() {
     if (!hasNext) return
     setSlideDirection(1)
-    setMobileCategory(m => m + 1)
+    setMobileCategory((m) => m + 1)
   }
 
   return {

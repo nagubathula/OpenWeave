@@ -1,5 +1,3 @@
-import type { Editor } from '@openweave/core/editor'
-
 import { handleMarqueeMove as handleMarqueeMoveAction } from '#react/canvas/transform-input/marquee'
 import { handlePanMove as handlePanMoveAction } from '#react/canvas/transform-input/pan'
 import {
@@ -8,6 +6,8 @@ import {
 } from '#react/canvas/transform-input/rotation'
 import { handleTextSelectMove as handleTextSelectMoveAction } from '#react/canvas/transform-input/text-selection'
 import type { DragMarquee, DragPan, DragRotate, DragState } from '#react/shared/input/types'
+
+import type { Editor } from '@openweave/core/editor'
 
 type CanvasToLocal = (cx: number, cy: number, scopeId: string) => { lx: number; ly: number }
 type SetDrag = (drag: DragState) => void

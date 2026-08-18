@@ -30,11 +30,11 @@ Real-time multiplayer editing over peer-to-peer WebRTC. No server, no account. S
 
 [Collaboration →](./collaboration)
 
-## Vue SDK
+## React SDK
 
-Build OpenWeave-powered editors with the same Vue SDK the app uses internally. The SDK exposes editor context, canvas wiring, selection state, command models, property-panel composables, and headless primitives.
+Build OpenWeave-powered editors with the same React SDK the app uses internally. The SDK exposes editor context, canvas wiring, selection state, command models, property-panel composables, and headless primitives.
 
-[Vue SDK →](./sdk/)
+[React SDK →](./sdk/)
 
 ## JSX Renderer
 

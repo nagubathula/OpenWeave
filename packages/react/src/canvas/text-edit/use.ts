@@ -73,7 +73,7 @@ export function useTextEdit(canvasRef: RefObject<HTMLCanvasElement | null>, stor
     const handler = () => focusTextAreaOnCanvasPointerDown(textareaRef, store)
     canvas.addEventListener('mousedown', handler)
     return () => canvas.removeEventListener('mousedown', handler)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   useTextEditingSession({

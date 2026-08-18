@@ -1,6 +1,6 @@
-import React, { useMemo, useCallback } from 'react'
-import * as ToggleGroup from '@radix-ui/react-toggle-group'
 import * as RovingFocus from '@radix-ui/react-roving-focus'
+import * as ToggleGroup from '@radix-ui/react-toggle-group'
+import React, { useMemo, useCallback } from 'react'
 
 import { SegmentedControlProvider } from './context'
 import type { SegmentedControlRootProps, SegmentedControlContext } from './types'
@@ -18,7 +18,8 @@ export function SegmentedControlRoot({
   children,
   dir,
   ...props
-}: SegmentedControlRootProps & Omit<React.HTMLAttributes<HTMLDivElement>, 'children' | 'defaultValue'>) {
+}: SegmentedControlRootProps &
+  Omit<React.HTMLAttributes<HTMLDivElement>, 'children' | 'defaultValue'>) {
   const selected = useCallback(
     (value: string): boolean => {
       if (Array.isArray(modelValue)) return modelValue.includes(value)
@@ -61,7 +62,8 @@ export function SegmentedControlRoot({
     [mode, modelValue, disabled, selected, activate]
   )
 
-  const renderedChildren = typeof children === 'function' ? children({ mode, modelValue }) : children
+  const renderedChildren =
+    typeof children === 'function' ? children({ mode, modelValue }) : children
   const direction = (dir === 'ltr' || dir === 'rtl' ? dir : undefined) as 'ltr' | 'rtl' | undefined
 
   if (mode === 'single') {

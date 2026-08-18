@@ -1,16 +1,14 @@
 import { describe, expect, test } from 'bun:test'
 
-
-
-import { createEditor } from '@openweave/core/editor'
-import type { SceneNode } from '@openweave/scene-graph'
-
 import { MIXED, type MixedValue } from '#react/controls/node-props/use'
 import {
   DEFAULT_STROKE,
   createStrokeGeometryActions,
   createStrokeGeometryState
 } from '#react/controls/stroke/helpers'
+
+import { createEditor } from '@openweave/core/editor'
+import type { SceneNode } from '@openweave/scene-graph'
 
 import { firstPageId, makeSceneGraph } from '#tests/helpers/scene'
 
@@ -57,7 +55,9 @@ describe('stroke geometry controls', () => {
     const first = graph.createNode('RECTANGLE', pageId, { strokes: [{ ...DEFAULT_STROKE }] })
     const second = graph.createNode('RECTANGLE', pageId, { strokes: [{ ...DEFAULT_STROKE }] })
     const editor = createEditor({ graph })
-    const nodes = { value: [graph.getNode(first.id), graph.getNode(second.id)].filter(Boolean) as SceneNode[] }
+    const nodes = {
+      value: [graph.getNode(first.id), graph.getNode(second.id)].filter(Boolean) as SceneNode[]
+    }
     const actions = createStrokeGeometryActions(editor, nodes.value)
 
     actions.setCap('ROUND')
@@ -84,7 +84,9 @@ describe('stroke geometry controls', () => {
       strokeMiterLimit: 8
     })
     const editor = createEditor({ graph })
-    const nodes = { value: [graph.getNode(first.id), graph.getNode(second.id)].filter(Boolean) as SceneNode[] }
+    const nodes = {
+      value: [graph.getNode(first.id), graph.getNode(second.id)].filter(Boolean) as SceneNode[]
+    }
     const actions = createStrokeGeometryActions(editor, nodes.value)
 
     actions.updateMiterLimit(12)

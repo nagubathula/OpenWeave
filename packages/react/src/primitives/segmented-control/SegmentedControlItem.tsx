@@ -1,7 +1,7 @@
-import React, { useMemo } from 'react'
+import * as RovingFocus from '@radix-ui/react-roving-focus'
 import { Slot } from '@radix-ui/react-slot'
 import * as ToggleGroup from '@radix-ui/react-toggle-group'
-import * as RovingFocus from '@radix-ui/react-roving-focus'
+import React, { useMemo } from 'react'
 
 import { useSegmentedControl } from './context'
 import type { SegmentedControlItemProps, SegmentedControlItemSlotProps } from './types'
@@ -44,11 +44,7 @@ export function SegmentedControlItem({
         data-slot="item"
         {...(props as any)}
       >
-        {!asChild && Component !== 'button' ? (
-          <Comp>{renderedChildren}</Comp>
-        ) : (
-          renderedChildren
-        )}
+        {!asChild && Component !== 'button' ? <Comp>{renderedChildren}</Comp> : renderedChildren}
       </ToggleGroup.Item>
     )
   }

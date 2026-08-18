@@ -1,9 +1,8 @@
+import { useSceneComputed } from '#react/internal/scene-computed/use'
 import { useRef, useCallback } from 'react'
 
 import type { Editor } from '@openweave/core/editor'
 import type { Effect, Fill, SceneNode, Stroke } from '@openweave/scene-graph'
-
-import { useSceneComputed } from '#react/internal/scene-computed/use'
 
 export const MIXED = Symbol('mixed')
 export type MixedValue<T> = T | typeof MIXED | symbol
@@ -65,25 +64,34 @@ export function useNodePropSelectionState(store: Editor) {
   const active = node !== null || isMulti
   const activeNode = node ?? (nodes[0] as SceneNode | undefined) ?? null
 
-  const merged = useCallback(<K extends keyof SceneNode>(key: K): MixedValue<SceneNode[K]> => {
-    const all = nodes
-    if (all.length === 0) return MIXED
-    const first = all[0][key]
-    for (let i = 1; i < all.length; i++) {
-      if (all[i][key] !== first) return MIXED
-    }
-    return first
-  }, [nodes])
+  const merged = useCallback(
+    <K extends keyof SceneNode>(key: K): MixedValue<SceneNode[K]> => {
+      const all = nodes
+      if (all.length === 0) return MIXED
+      const first = all[0][key]
+      for (let i = 1; i < all.length; i++) {
+        if (all[i][key] !== first) return MIXED
+      }
+      return first
+    },
+    [nodes]
+  )
 
-  const prop = useCallback(<K extends keyof SceneNode>(key: K) => {
-    return merged(key)
-  }, [merged])
+  const prop = useCallback(
+    <K extends keyof SceneNode>(key: K) => {
+      return merged(key)
+    },
+    [merged]
+  )
 
-  const updateAllWithUndo = useCallback((patch: Partial<SceneNode>, label: string) => {
-    for (const n of nodes) {
-      store.updateNodeWithUndo(n.id, patch, label)
-    }
-  }, [nodes, store])
+  const updateAllWithUndo = useCallback(
+    (patch: Partial<SceneNode>, label: string) => {
+      for (const n of nodes) {
+        store.updateNodeWithUndo(n.id, patch, label)
+      }
+    },
+    [nodes, store]
+  )
 
   return { node, nodes, isMulti, active, activeNode, merged, prop, updateAllWithUndo }
 }
@@ -124,42 +132,51 @@ export function useNodePropArrayActions({
     return activeNode ? [activeNode] : []
   }, [isMulti, nodes, activeNode])
 
-  const updateArrayItem = useCallback((
-    key: ArrayPropKey,
-    index: number,
-    patch: Record<string, unknown> | Fill | Stroke,
-    label: string
-  ) => {
-    for (const n of targetNodes()) {
-      const arr = [...(n[key] as ArrayItem[])]
-      arr[index] = { ...arr[index], ...patch } as (typeof arr)[number]
-      store.updateNodeWithUndo(n.id, { [key]: arr } as Partial<SceneNode>, label)
-    }
-  }, [store, targetNodes])
+  const updateArrayItem = useCallback(
+    (
+      key: ArrayPropKey,
+      index: number,
+      patch: Record<string, unknown> | Fill | Stroke,
+      label: string
+    ) => {
+      for (const n of targetNodes()) {
+        const arr = [...(n[key] as ArrayItem[])]
+        arr[index] = { ...arr[index], ...patch } as (typeof arr)[number]
+        store.updateNodeWithUndo(n.id, { [key]: arr } as Partial<SceneNode>, label)
+      }
+    },
+    [store, targetNodes]
+  )
 
-  const removeArrayItem = useCallback((key: ArrayPropKey, index: number, label: string) => {
-    for (const n of targetNodes()) {
-      store.updateNodeWithUndo(
-        n.id,
-        { [key]: (n[key] as unknown[]).filter((_, i) => i !== index) } as Partial<SceneNode>,
-        label
-      )
-    }
-  }, [store, targetNodes])
+  const removeArrayItem = useCallback(
+    (key: ArrayPropKey, index: number, label: string) => {
+      for (const n of targetNodes()) {
+        store.updateNodeWithUndo(
+          n.id,
+          { [key]: (n[key] as unknown[]).filter((_, i) => i !== index) } as Partial<SceneNode>,
+          label
+        )
+      }
+    },
+    [store, targetNodes]
+  )
 
-  const toggleArrayVisibility = useCallback((key: ArrayPropKey, index: number) => {
-    for (const n of targetNodes()) {
-      const items = n[key] as Array<{ visible: boolean }>
-      if (!items[index]) continue
-      const arr = [...(n[key] as ArrayItem[])]
-      arr[index] = { ...arr[index], visible: !items[index].visible }
-      store.updateNodeWithUndo(
-        n.id,
-        { [key]: arr } as Partial<SceneNode>,
-        `Toggle ${key} visibility`
-      )
-    }
-  }, [store, targetNodes])
+  const toggleArrayVisibility = useCallback(
+    (key: ArrayPropKey, index: number) => {
+      for (const n of targetNodes()) {
+        const items = n[key] as Array<{ visible: boolean }>
+        if (!items[index]) continue
+        const arr = [...(n[key] as ArrayItem[])]
+        arr[index] = { ...arr[index], visible: !items[index].visible }
+        store.updateNodeWithUndo(
+          n.id,
+          { [key]: arr } as Partial<SceneNode>,
+          `Toggle ${key} visibility`
+        )
+      }
+    },
+    [store, targetNodes]
+  )
 
   return { targetNodes, updateArrayItem, removeArrayItem, toggleArrayVisibility }
 }
@@ -167,48 +184,57 @@ export function useNodePropArrayActions({
 export function useNodePropScrubActions(store: Editor) {
   const previousValuesRef = useRef(new Map<string, Record<string, number | string>>())
 
-  const storePreviousValues = useCallback((key: string) => {
-    for (const n of store.getSelectedNodes()) {
-      let rec = previousValuesRef.current.get(n.id)
-      if (!rec) {
-        rec = {}
-        previousValuesRef.current.set(n.id, rec)
-      }
-      if (!(key in rec)) {
-        rec[key] = n[key as keyof SceneNode] as number | string
-      }
-    }
-  }, [store])
-
-  const updateProp = useCallback((key: string, value: number | string) => {
-    // Snapshot pre-scrub values for every target (single included) so commit
-    // can record a correct undo "before" even when callers can't provide it.
-    storePreviousValues(key)
-    if (store.getSelectedNodes().length > 1) {
+  const storePreviousValues = useCallback(
+    (key: string) => {
       for (const n of store.getSelectedNodes()) {
-        store.updateNode(n.id, { [key]: value })
+        let rec = previousValuesRef.current.get(n.id)
+        if (!rec) {
+          rec = {}
+          previousValuesRef.current.set(n.id, rec)
+        }
+        if (!(key in rec)) {
+          rec[key] = n[key as keyof SceneNode] as number | string
+        }
       }
-    } else {
-      const node = store.getSelectedNode()
-      if (node) store.updateNode(node.id, { [key]: value })
-    }
-  }, [store, storePreviousValues])
+    },
+    [store]
+  )
 
-  const commitProp = useCallback((key: string, _value: number | string, previous: number | string) => {
-    if (store.getSelectedNodes().length > 1) {
-      for (const n of store.getSelectedNodes()) {
-        const prev = previousValuesRef.current.get(n.id)?.[key] ?? previous
-        store.commitNodeUpdate(n.id, { [key]: prev } as Partial<SceneNode>, `Change ${key}`)
+  const updateProp = useCallback(
+    (key: string, value: number | string) => {
+      // Snapshot pre-scrub values for every target (single included) so commit
+      // can record a correct undo "before" even when callers can't provide it.
+      storePreviousValues(key)
+      if (store.getSelectedNodes().length > 1) {
+        for (const n of store.getSelectedNodes()) {
+          store.updateNode(n.id, { [key]: value })
+        }
+      } else {
+        const node = store.getSelectedNode()
+        if (node) store.updateNode(node.id, { [key]: value })
       }
-    } else {
-      const node = store.getSelectedNode()
-      if (node) {
-        const prev = previousValuesRef.current.get(node.id)?.[key] ?? previous
-        store.commitNodeUpdate(node.id, { [key]: prev } as Partial<SceneNode>, `Change ${key}`)
+    },
+    [store, storePreviousValues]
+  )
+
+  const commitProp = useCallback(
+    (key: string, _value: number | string, previous: number | string) => {
+      if (store.getSelectedNodes().length > 1) {
+        for (const n of store.getSelectedNodes()) {
+          const prev = previousValuesRef.current.get(n.id)?.[key] ?? previous
+          store.commitNodeUpdate(n.id, { [key]: prev } as Partial<SceneNode>, `Change ${key}`)
+        }
+      } else {
+        const node = store.getSelectedNode()
+        if (node) {
+          const prev = previousValuesRef.current.get(node.id)?.[key] ?? previous
+          store.commitNodeUpdate(node.id, { [key]: prev } as Partial<SceneNode>, `Change ${key}`)
+        }
       }
-    }
-    previousValuesRef.current.clear()
-  }, [store])
+      previousValuesRef.current.clear()
+    },
+    [store]
+  )
 
   return { updateProp, commitProp }
 }

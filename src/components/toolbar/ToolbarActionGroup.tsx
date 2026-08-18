@@ -1,7 +1,8 @@
 import React from 'react'
 import { tv } from 'tailwind-variants'
-import toolbarTheme from '@/theme/toolbar'
+
 import type { ToolbarActionItem, ToolbarUI } from '@/components/toolbar/types'
+import toolbarTheme from '@/theme/toolbar'
 
 interface ToolbarActionGroupProps {
   actions: ToolbarActionItem[]
@@ -20,7 +21,7 @@ export default function ToolbarActionGroup({
 }: ToolbarActionGroupProps) {
   return (
     <>
-      {actions.map(item => {
+      {actions.map((item) => {
         const ActionIcon = item.icon
         return (
           <button

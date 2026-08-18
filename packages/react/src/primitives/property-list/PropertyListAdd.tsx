@@ -1,5 +1,5 @@
-import React, { type ReactNode } from 'react'
 import { Slot } from '@radix-ui/react-slot'
+import React, { type ReactNode } from 'react'
 
 import { usePropertyListPart } from './context'
 import type { PropertyListItemFor, PropertyListKey, PropertyListPartProps } from './types'

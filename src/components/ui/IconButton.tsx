@@ -1,8 +1,8 @@
 import React from 'react'
 import { tv } from 'tailwind-variants'
 
-import theme from '@/theme/icon-button'
 import Tip from '@/components/ui/Tip'
+import theme from '@/theme/icon-button'
 
 interface IconButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   active?: boolean

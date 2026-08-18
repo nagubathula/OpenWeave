@@ -10,7 +10,7 @@ Les barres latérales OpenWeave combinent généralement deux préoccupations :
 - la navigation entre pages
 - la navigation entre calques
 
-Le Vue SDK fournit des primitives headless pour les deux.
+Le React SDK fournit des primitives headless pour les deux.
 
 ## Navigation entre pages
 

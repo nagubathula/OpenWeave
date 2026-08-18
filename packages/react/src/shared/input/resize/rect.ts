@@ -1,6 +1,6 @@
-import type { Rect } from '@openweave/scene-graph/primitives'
-
 import type { HandlePosition } from '#react/shared/input/types'
+
+import type { Rect } from '@openweave/scene-graph/primitives'
 
 export function constrainToAspectRatio(
   handle: HandlePosition,

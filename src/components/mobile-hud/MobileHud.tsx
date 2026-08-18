@@ -1,4 +1,4 @@
-import React, { createContext, useContext } from 'react'
+import { useStore } from '@nanostores/react'
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import * as Popover from '@radix-ui/react-popover'
 import {
@@ -12,18 +12,18 @@ import {
   Undo2,
   ZoomIn
 } from 'lucide-react'
-import { tv } from 'tailwind-variants'
 import { atom } from 'nanostores'
-import { useStore } from '@nanostores/react'
 import { useRouter } from 'next/navigation'
+import React, { createContext, useContext } from 'react'
+import { tv } from 'tailwind-variants'
 
-import { useEditorCommands, useI18n } from '@openweave/react'
 import { colorToCSS } from '@openweave/core/color'
+import { useEditorCommands, useI18n } from '@openweave/react'
 
 import { DEFAULT_COLLAB_STATE, useCollabInjected } from '@/app/collab/use'
-import { useEditorState } from '@/app/editor/session/use-editor-state'
 import { useEditorStore } from '@/app/editor/active-store'
 import { toolIcons } from '@/app/editor/icons'
+import { useEditorState } from '@/app/editor/session/use-editor-state'
 import { openFileDialog } from '@/app/shell/menu/use'
 
 // Never-written fallbacks keep the store hooks unconditional when no collab
@@ -32,9 +32,9 @@ const fallbackCollabState = atom(DEFAULT_COLLAB_STATE)
 const fallbackCollabPeers = atom<never[]>([])
 const fallbackFollowingPeer = atom<number | null>(null)
 import { initials, toast } from '@/app/shell/ui'
-import { getShareUrl } from '@/constants'
-import Tip from '@/components/ui/Tip'
 import type { ToolbarActionItem } from '@/components/toolbar/types'
+import Tip from '@/components/ui/Tip'
+import { getShareUrl } from '@/constants'
 import collaborationTheme from '@/theme/collaboration'
 
 /**
@@ -67,7 +67,11 @@ function useMobileHudState() {
     },
     { icon: FolderOpen, label: menu.open, action: () => void openFileDialog() },
     { icon: Save, label: menu.save, action: () => void store.saveFigFile() },
-    { icon: ImageDown, label: menu.exportSelection, action: () => void store.exportSelection(1, 'png') },
+    {
+      icon: ImageDown,
+      label: menu.exportSelection,
+      action: () => void store.exportSelection(1, 'png')
+    },
     { icon: ZoomIn, label: commands.zoomToFit, action: () => getCommand('view.zoomFit').run() }
   ]
 
@@ -239,7 +243,9 @@ function MobilePresencePopover() {
           align="center"
           className={styles.presenceContent()}
         >
-          <div className="mb-2 text-[11px] tracking-wider text-muted uppercase">{hud.dialogs.inThisRoom}</div>
+          <div className="mb-2 text-[11px] tracking-wider text-muted uppercase">
+            {hud.dialogs.inThisRoom}
+          </div>
           <div className="flex flex-col gap-2">
             <div className="flex items-center gap-2">
               <div
@@ -271,7 +277,9 @@ function MobilePresencePopover() {
                     {initials(peer.name)}
                   </div>
                   <span className="min-w-0 flex-1 truncate text-xs text-surface">{peer.name}</span>
-                  {following && <span className="text-[10px] text-accent">{hud.dialogs.followingBadge}</span>}
+                  {following && (
+                    <span className="text-[10px] text-accent">{hud.dialogs.followingBadge}</span>
+                  )}
                 </div>
               )
             })}

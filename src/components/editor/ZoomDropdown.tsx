@@ -1,11 +1,11 @@
-import React, { useRef, useState } from 'react'
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import { Check } from 'lucide-react'
+import React, { useRef, useState } from 'react'
 
 import { useI18n } from '@openweave/react'
 
-import { useEditorState } from '@/app/editor/session/use-editor-state'
 import { getActiveEditorStore } from '@/app/editor/active-store'
+import { useEditorState } from '@/app/editor/session/use-editor-state'
 
 /**
  * Ported from src/components/editor/ZoomDropdown.vue.

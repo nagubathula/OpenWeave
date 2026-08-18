@@ -1,7 +1,7 @@
-import { canMakeBooleanSourceNode, hasVisibleStrokeSourceNode } from '@openweave/core/canvas'
-
 import { useSelectionState } from '#react/editor/selection-state/use'
 import { useSceneComputed } from '#react/internal/scene-computed/use'
+
+import { canMakeBooleanSourceNode, hasVisibleStrokeSourceNode } from '@openweave/core/canvas'
 
 /**
  * Returns reactive booleans describing which selection-dependent actions are

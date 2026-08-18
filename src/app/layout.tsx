@@ -1,9 +1,10 @@
-import Script from 'next/script'
-import '../app.css'
 import type { Metadata, Viewport } from 'next'
 
+import '../app.css'
+import Script from 'next/script'
+
 export const viewport: Viewport = {
-  themeColor: '#0e0e0e',
+  themeColor: '#0e0e0e'
 }
 
 export const metadata: Metadata = {
@@ -13,11 +14,11 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
-    title: 'OpenWeave',
+    title: 'OpenWeave'
   },
   formatDetection: {
-    telephone: false,
-  },
+    telephone: false
+  }
 }
 
 // Browser extensions (Bitdefender, Grammarly, …) stamp attributes onto the DOM
@@ -52,17 +53,20 @@ const STRIP_EXTENSION_ATTRIBUTES = `(function () {
   })
 })()`
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className="dark" suppressHydrationWarning>
       <head>
-        <Script id="strip-extension-attributes" strategy="beforeInteractive" dangerouslySetInnerHTML={{ __html: STRIP_EXTENSION_ATTRIBUTES }} />
+        <Script
+          id="strip-extension-attributes"
+          strategy="beforeInteractive"
+          dangerouslySetInnerHTML={{ __html: STRIP_EXTENSION_ATTRIBUTES }}
+        />
       </head>
-      <body className="font-sans antialiased bg-background text-foreground h-screen w-screen overflow-hidden" suppressHydrationWarning>
+      <body
+        className="font-sans antialiased bg-background text-foreground h-screen w-screen overflow-hidden"
+        suppressHydrationWarning
+      >
         {children}
       </body>
     </html>

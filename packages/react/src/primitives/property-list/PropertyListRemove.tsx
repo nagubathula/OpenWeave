@@ -1,10 +1,12 @@
-import React, { type ReactNode } from 'react'
 import { Slot } from '@radix-ui/react-slot'
+import React, { type ReactNode } from 'react'
 
 import { usePropertyListPart } from './context'
 import type { PropertyListKey, PropertyListPartProps } from './types'
 
-export interface PropertyListRemoveProps<K extends PropertyListKey> extends PropertyListPartProps<K> {
+export interface PropertyListRemoveProps<
+  K extends PropertyListKey
+> extends PropertyListPartProps<K> {
   index: number
   onRemove?: (index: number) => void
   children?: ReactNode

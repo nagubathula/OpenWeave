@@ -1,12 +1,12 @@
+import { resizeCursorSvg, rotateCursorSvg } from '#react/shared/assets/cursor-svgs'
+import type { CornerPosition, HandlePosition } from '#react/shared/input/types'
+
 import { CORNER_ROTATE_ZONE, HANDLE_HIT_RADIUS } from '@openweave/core/constants'
 import type { Editor } from '@openweave/core/editor'
 import type { SceneGraph, SceneNode } from '@openweave/scene-graph'
 import { getAbsoluteRotation, getWorldHandles } from '@openweave/scene-graph/coordinate'
 import { degToRad } from '@openweave/scene-graph/geometry'
 import type { Vector } from '@openweave/scene-graph/primitives'
-
-import { resizeCursorSvg, rotateCursorSvg } from '#react/shared/assets/cursor-svgs'
-import type { CornerPosition, HandlePosition } from '#react/shared/input/types'
 
 export function getPointerCoords(e: MouseEvent, canvas: HTMLCanvasElement | null, editor: Editor) {
   if (!canvas) return { sx: 0, sy: 0, cx: 0, cy: 0 }

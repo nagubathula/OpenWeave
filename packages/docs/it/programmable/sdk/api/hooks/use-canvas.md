@@ -19,7 +19,7 @@ Gestisce:
 ## Utilizzo
 
 ```ts
-import { ref } from 'vue'
+import { useRef, useState } from 'react'
 
 import { useCanvas, useEditor } from '@openweave/react'
 

@@ -1,6 +1,7 @@
-import React, { type ReactNode } from 'react'
-import { useColorModel } from '#react/controls/color-model/use'
 import type { OkHCLControls } from '#react/controls/color-model/types'
+import { useColorModel } from '#react/controls/color-model/use'
+import React, { type ReactNode } from 'react'
+
 import type { Color } from '@openweave/scene-graph/primitives'
 
 export interface ColorInputRootProps {
@@ -29,13 +30,16 @@ export function ColorInputRoot({
     updateColor: model.updateColor
   }
 
-  const renderedChildren = typeof children === 'function' ? children({
-    color,
-    editable,
-    hex: model.hex,
-    actions,
-    okhcl
-  }) : children
+  const renderedChildren =
+    typeof children === 'function'
+      ? children({
+          color,
+          editable,
+          hex: model.hex,
+          actions,
+          okhcl
+        })
+      : children
 
   return <>{renderedChildren}</>
 }

@@ -1,7 +1,9 @@
 import React from 'react'
+
 import type { Fill } from '@openweave/scene-graph'
-import { useFill } from './useFill'
+
 import type { FillRootSlotProps } from './types'
+import { useFill } from './useFill'
 
 export interface FillRootProps {
   fill: Fill
@@ -12,13 +14,16 @@ export interface FillRootProps {
 export function FillRoot({ fill, onUpdate, children }: FillRootProps) {
   const { category, swatchBackground, transparent, actions } = useFill(fill, onUpdate)
 
-  const renderedChildren = typeof children === 'function' ? children({
-    fill,
-    category,
-    swatchBackground,
-    transparent,
-    actions
-  }) : children
+  const renderedChildren =
+    typeof children === 'function'
+      ? children({
+          fill,
+          category,
+          swatchBackground,
+          transparent,
+          actions
+        })
+      : children
 
   return <>{renderedChildren}</>
 }

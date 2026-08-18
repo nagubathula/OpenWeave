@@ -1,9 +1,4 @@
-import type {
-  SceneNode,
-  VectorNetwork,
-  VectorSegment,
-  VectorVertex
-} from '@openweave/scene-graph'
+import type { SceneNode, VectorNetwork, VectorSegment, VectorVertex } from '@openweave/scene-graph'
 import { polygonVertices } from '@openweave/scene-graph/geometry'
 
 import { nodeHasRadius } from '#core/canvas/shapes'

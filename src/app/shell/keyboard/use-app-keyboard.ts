@@ -71,7 +71,10 @@ export function useAppKeyboard() {
           void openFileDialog()
         },
         closeActiveTab: () => {
-          { const tab = activeTabRef.get(); if (tab) closeTab(tab.id) }
+          {
+            const tab = activeTabRef.get()
+            if (tab) closeTab(tab.id)
+          }
         },
         createTab: () => createTab()
       })

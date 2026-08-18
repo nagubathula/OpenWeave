@@ -1,6 +1,5 @@
-import { params } from '@nanostores/i18n'
-
 import { i18n } from '#react/i18n/create'
+import { params } from '@nanostores/i18n'
 
 export const panelMessageDefaults = {
   untitled: 'Untitled',

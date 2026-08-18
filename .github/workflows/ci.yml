@@ -33,7 +33,7 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        group: [app, dom, editor, fig, render, scene, vue]
+        group: [app, dom, editor, fig, render, scene, react]
     name: Unit tests (${{ matrix.group }})
     steps:
       - uses: actions/checkout@v7

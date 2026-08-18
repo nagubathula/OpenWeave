@@ -1,10 +1,10 @@
+import { MIXED, type MixedValue } from '#react/controls/node-props/helpers'
+
 import type {
   ComponentPropertyDefinition,
   ComponentPropertyType,
   SceneNode
 } from '@openweave/scene-graph'
-
-import { MIXED, type MixedValue } from '#react/controls/node-props/helpers'
 
 export interface ComponentPropertyOption {
   value: string

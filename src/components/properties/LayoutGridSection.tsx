@@ -1,13 +1,22 @@
+import {
+  Plus,
+  Eye,
+  EyeOff,
+  Minus,
+  Columns3,
+  Rows3,
+  LayoutGrid as LayoutGridIcon
+} from 'lucide-react'
 import React from 'react'
+
 import { useEditor, useSelectionState, useI18n } from '@openweave/react'
 import type { LayoutGrid } from '@openweave/scene-graph'
-import { Plus, Eye, EyeOff, Minus, Columns3, Rows3, LayoutGrid as LayoutGridIcon } from 'lucide-react'
 
-import PanelSection from '@/components/ui/panel/PanelSection'
-import IconButton from '@/components/ui/IconButton'
-import SegmentedControl from '@/components/ui/SegmentedControl'
 import NumberField from '@/components/inputs/NumberField'
 import SharedStyleField from '@/components/properties/shared-style/SharedStyleField'
+import IconButton from '@/components/ui/IconButton'
+import PanelSection from '@/components/ui/panel/PanelSection'
+import SegmentedControl from '@/components/ui/SegmentedControl'
 
 export default function LayoutGridSection() {
   const editor = useEditor()
@@ -16,7 +25,7 @@ export default function LayoutGridSection() {
 
   if (!node) return null
 
-  const grids = ('layoutGrids' in node ? (node.layoutGrids) : undefined) ?? []
+  const grids = ('layoutGrids' in node ? node.layoutGrids : undefined) ?? []
 
   const commit = (next: LayoutGrid[], label: string) => {
     editor.updateNodeWithUndo(node.id, { layoutGrids: next }, label)
@@ -38,11 +47,17 @@ export default function LayoutGridSection() {
   }
 
   const remove = (index: number) => {
-    commit(grids.filter((_, i) => i !== index), 'Remove layout guide')
+    commit(
+      grids.filter((_, i) => i !== index),
+      'Remove layout guide'
+    )
   }
 
   const patch = (index: number, changes: Partial<LayoutGrid>, label = 'Edit layout guide') => {
-    commit(grids.map((grid, i) => (i === index ? { ...grid, ...changes } : grid)), label)
+    commit(
+      grids.map((grid, i) => (i === index ? { ...grid, ...changes } : grid)),
+      label
+    )
   }
 
   const gridPattern = (grid: LayoutGrid): 'COLUMNS' | 'ROWS' | 'GRID' => {
@@ -66,15 +81,26 @@ export default function LayoutGridSection() {
       <div className="space-y-3">
         <SharedStyleField kind="grid" label={panels.gridStyle} />
         {grids.map((grid, index) => (
-          <div key={index} className="flex gap-2 relative group items-start border-b border-border/50 pb-3 last:border-0 last:pb-0">
+          <div
+            key={index}
+            className="flex gap-2 relative group items-start border-b border-border/50 pb-3 last:border-0 last:pb-0"
+          >
             <div className="flex-1 space-y-2">
               <SegmentedControl
                 value={gridPattern(grid)}
                 onChange={(val) => patch(index, { pattern: val as any }, 'Change grid pattern')}
                 options={[
-                  { value: 'COLUMNS', label: panels.gridColumns, icon: <Columns3 className="size-3.5" /> },
+                  {
+                    value: 'COLUMNS',
+                    label: panels.gridColumns,
+                    icon: <Columns3 className="size-3.5" />
+                  },
                   { value: 'ROWS', label: panels.gridRows, icon: <Rows3 className="size-3.5" /> },
-                  { value: 'GRID', label: panels.gridGrid, icon: <LayoutGridIcon className="size-3.5" /> }
+                  {
+                    value: 'GRID',
+                    label: panels.gridGrid,
+                    icon: <LayoutGridIcon className="size-3.5" />
+                  }
                 ]}
               />
 
@@ -131,10 +157,16 @@ export default function LayoutGridSection() {
             <div className="flex items-center gap-0.5 pt-1">
               <IconButton
                 label={panels.toggleVisibility}
-                onClick={() => patch(index, { visible: grid.visible === false }, 'Toggle layout guide')}
+                onClick={() =>
+                  patch(index, { visible: grid.visible === false }, 'Toggle layout guide')
+                }
                 className={grid.visible === false ? 'opacity-50' : ''}
               >
-                {grid.visible !== false ? <Eye className="size-3.5" /> : <EyeOff className="size-3.5" />}
+                {grid.visible !== false ? (
+                  <Eye className="size-3.5" />
+                ) : (
+                  <EyeOff className="size-3.5" />
+                )}
               </IconButton>
               <IconButton label={panels.removeLayoutGrid} onClick={() => remove(index)}>
                 <Minus className="size-3.5" />

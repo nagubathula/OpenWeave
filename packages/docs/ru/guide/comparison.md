@@ -12,7 +12,7 @@ Penpot 2.x включает Rust/Skia WASM рендерер (`render-wasm/v1`), 
 |--------|-------------|--------|
 | Всего строк кода | **~26 000** | **~299 000** |
 | Файлов исходного кода | ~143 | ~2 900 |
-| Языки | TypeScript, Vue | Clojure, ClojureScript, Rust, JS, SQL, SCSS |
+| Языки | TypeScript, React | Clojure, ClojureScript, Rust, JS, SQL, SCSS |
 | Движок рендеринга | ~3 200 строк (TS, 10 файлов) | 22 000 строк (Rust/Skia WASM) |
 | UI-код | ~4 500 строк | ~175 000 строк (CLJS + SCSS) |
 | Бэкенд | Нет (локальный подход) | 32 600 строк + 151 SQL-файл |
@@ -28,7 +28,7 @@ OpenWeave **примерно в 11 раз меньше** — и в этом вс
 ┌─────────────────────────────────┐
 │         Tauri (native shell)    │
 │  ┌───────────────────────────┐  │
-│  │  Vue 3 + TypeScript       │  │
+│  │  React + TypeScript       │  │
 │  │  ┌─────────┐ ┌──────────┐│  │
 │  │  │  Editor  │ │  Kiwi    ││  │
 │  │  │  Store   │ │  Codec   ││  │
@@ -245,9 +245,9 @@ class UndoManager {
 | Горячая перезагрузка | Vite HMR (~50мс) | shadow-cljs (секунды) |
 | Проверка типов | TypeScript (строгий) | В рантайме (схемы Malli) |
 | Время сборки | <5с (Vite) | Минуты (запуск JVM + компиляция CLJS + Rust WASM) |
-| Порог первого вклада | Низкий (TS/Vue) | Высокий (Clojure + Rust + Docker) |
+| Порог первого вклада | Низкий (TS/React) | Высокий (Clojure + Rust + Docker) |
 | Десктоп | Tauri v2 (~5 МБ) | Н/Д (только браузер) |
-| Пул разработчиков | Огромный (TS/Vue) | Крошечный (ClojureScript + Rust) |
+| Пул разработчиков | Огромный (TS/React) | Крошечный (ClojureScript + Rust) |
 
 ## 9. Характеристики производительности
 
@@ -282,7 +282,7 @@ OpenWeave поставляется с [командой `eval`](/programmable/cl
 | **Производительность рендеринга** | OpenWeave | Прямой CanvasKit vs SVG DOM (по умолчанию) или бинарно упакованный WASM |
 | **Поддерживаемость кода** | OpenWeave | ~26K строк на 1 языке vs 299K на 4+ языках |
 | **Совместимость с Figma** | OpenWeave | Нативный Kiwi-кодек vs отсутствие поддержки .fig |
-| **Онбординг разработчиков** | OpenWeave | TS/Vue vs Clojure/Rust/Docker |
+| **Онбординг разработчиков** | OpenWeave | TS/React vs Clojure/Rust/Docker |
 | **Десктоп** | OpenWeave | Нативный Tauri vs только браузер |
 | **Движок макетов** | OpenWeave | Yoga (проверенный) vs собственная двойная реализация |
 | **Совместная работа** | Ничья | Penpot: серверная с контролем доступа; OpenWeave: P2P через Trystero + Yjs, без хостинга |

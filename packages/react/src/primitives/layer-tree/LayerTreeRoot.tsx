@@ -1,17 +1,10 @@
+import { useEditor } from '#react/editor/context'
+import { useSceneComputed } from '#react/internal/scene-computed/use'
 import React, { useState, useMemo, useEffect, useRef } from 'react'
 
 import type { SceneNode } from '@openweave/scene-graph'
-import { useEditor } from '#react/editor/context'
-import { LayerTreeProvider } from './context'
-import {
-  buildLayerTreeModel,
-  layerSelectionForTarget,
-  patchLayerNode,
-  visibleLayerRows
-} from './model'
-import { useLayerDrag } from './useLayerDrag'
-import { useSceneComputed } from '#react/internal/scene-computed/use'
 
+import { LayerTreeProvider } from './context'
 import type {
   LayerNode,
   LayerSelectionMode,
@@ -19,6 +12,13 @@ import type {
   LayerRow,
   LayerDragInstruction
 } from './context'
+import {
+  buildLayerTreeModel,
+  layerSelectionForTarget,
+  patchLayerNode,
+  visibleLayerRows
+} from './model'
+import { useLayerDrag } from './useLayerDrag'
 
 export interface LayerTreeRootSlotProps {
   items: LayerNode[]
@@ -70,10 +70,10 @@ export function LayerTreeRoot({
   const [expanded, setExpanded] = useState<string[]>([])
   const [treeVersion, setTreeVersion] = useState(0)
   const [focused, setFocused] = useState(false)
-  
+
   const selectedIds = useSceneComputed(() => editor.state.selectedIds)
   const visibleRows = useMemo(() => visibleLayerRows(items, new Set(expanded)), [items, expanded])
-  
+
   const nodesById = useRef(new Map<string, LayerNode>())
   const virtualizer = useRef<LayerTreeVirtualizer | null>(null)
   const selectionAnchorId = useRef<string | null>(null)
@@ -81,7 +81,7 @@ export function LayerTreeRoot({
   const rowRefs = useRef(new Map<string, HTMLElement>())
 
   const expandNode = (id: string) => {
-    setExpanded(prev => {
+    setExpanded((prev) => {
       if (!prev.includes(id)) return [...prev, id]
       return prev
     })
@@ -97,8 +97,8 @@ export function LayerTreeRoot({
     const model = buildLayerTreeModel(editor.graph, editor.state.currentPageId)
     setItems(model.items)
     nodesById.current = model.byId
-    setExpanded(prev => prev.filter(id => model.byId.has(id)))
-    setTreeVersion(v => v + 1)
+    setExpanded((prev) => prev.filter((id) => model.byId.has(id)))
+    setTreeVersion((v) => v + 1)
   }
 
   // Initial build
@@ -111,14 +111,16 @@ export function LayerTreeRoot({
       rebuildTree()
       return
     }
-    if (!(Object.keys(changes) as (keyof SceneNode)[]).some(key => PATCHABLE_NODE_KEYS.has(key))) {
+    if (
+      !(Object.keys(changes) as (keyof SceneNode)[]).some((key) => PATCHABLE_NODE_KEYS.has(key))
+    ) {
       return
     }
     const target = nodesById.current.get(id)
     const source = editor.graph.getNode(id)
     if (target && source) {
       if (patchLayerNode(target, source)) {
-        setTreeVersion(v => v + 1) // Force update
+        setTreeVersion((v) => v + 1) // Force update
       }
     }
   }
@@ -129,7 +131,7 @@ export function LayerTreeRoot({
   }
 
   const expandSelectionAncestors = (ids: readonly string[]) => {
-    setExpanded(prev => {
+    setExpanded((prev) => {
       const next = new Set(prev)
       for (const id of ids) {
         let node = editor.graph.getNode(id)
@@ -145,7 +147,7 @@ export function LayerTreeRoot({
 
   const scrollToNode = (id: string) => {
     setTimeout(() => {
-      const index = visibleRows.findIndex(row => row.node.id === id)
+      const index = visibleRows.findIndex((row) => row.node.id === id)
       if (index !== -1 && virtualizer.current) {
         virtualizer.current.scrollToIndex(index, { align: 'auto' })
         return
@@ -157,8 +159,8 @@ export function LayerTreeRoot({
   const onSelectionChanged = (ids: string[]) => {
     expandSelectionAncestors(ids)
     if (applyingSelection.current) return
-    const visibleIds = new Set(visibleRows.map(row => row.node.id))
-    selectionAnchorId.current = ids.find(id => visibleIds.has(id)) ?? null
+    const visibleIds = new Set(visibleRows.map((row) => row.node.id))
+    selectionAnchorId.current = ids.find((id) => visibleIds.has(id)) ?? null
     if (selectionAnchorId.current) scrollToNode(selectionAnchorId.current)
   }
 
@@ -197,7 +199,7 @@ export function LayerTreeRoot({
   const select = (id: string, selection: boolean | LayerSelectionMode) => {
     const mode = typeof selection === 'boolean' ? { additive: selection, range: false } : selection
     onSelect?.(id, mode.additive)
-    const visibleIds = visibleRows.map(row => row.node.id)
+    const visibleIds = visibleRows.map((row) => row.node.id)
     const next = layerSelectionForTarget(
       visibleIds,
       editor.state.selectedIds,
@@ -218,77 +220,99 @@ export function LayerTreeRoot({
 
   const toggleExpand = (id: string) => {
     onToggleExpand?.(id)
-    setExpanded(prev => {
+    setExpanded((prev) => {
       const index = prev.indexOf(id)
-      if (index !== -1) return prev.filter(expandedId => expandedId !== id)
+      if (index !== -1) return prev.filter((expandedId) => expandedId !== id)
       return [...prev, id]
     })
   }
 
-  const actions = useMemo(() => ({
-    select,
-    toggleExpand,
-    setFocused: (value: boolean) => setFocused(value),
-    setVirtualizer: (v: LayerTreeVirtualizer) => {
-      virtualizer.current = v
-    }
-  }), [editor, visibleRows])
+  const actions = useMemo(
+    () => ({
+      select,
+      toggleExpand,
+      setFocused: (value: boolean) => setFocused(value),
+      setVirtualizer: (v: LayerTreeVirtualizer) => {
+        virtualizer.current = v
+      }
+    }),
+    [editor, visibleRows]
+  )
 
-  const contextValue = useMemo(() => ({
-    editor,
-    items,
-    expanded,
-    visibleRows,
-    treeVersion,
-    selectedIds,
-    focused,
-    indentPerLevel,
-    draggingId,
-    instruction,
-    instructionTargetId,
-    setupDrag: setupItem,
-    select,
-    toggleExpand,
-    setFocused: actions.setFocused,
-    setVirtualizer: actions.setVirtualizer,
-    toggleVisibility: (id: string) => {
-      onToggleVisibility?.(id)
-      editor.toggleNodeVisibility(id)
-    },
-    toggleLock: (id: string) => {
-      onToggleLock?.(id)
-      editor.toggleNodeLock(id)
-    },
-    rename: (id: string, name: string) => {
-      onRename?.(id, name)
-      editor.renameNode(id, name)
-    },
-    setRowRef
-  }), [
-    editor, items, expanded, visibleRows, treeVersion, selectedIds,
-    focused, indentPerLevel, draggingId, instruction, instructionTargetId,
-    setupItem, select, toggleExpand, actions.setFocused, actions.setVirtualizer,
-    onToggleVisibility, onToggleLock, onRename
-  ])
+  const contextValue = useMemo(
+    () => ({
+      editor,
+      items,
+      expanded,
+      visibleRows,
+      treeVersion,
+      selectedIds,
+      focused,
+      indentPerLevel,
+      draggingId,
+      instruction,
+      instructionTargetId,
+      setupDrag: setupItem,
+      select,
+      toggleExpand,
+      setFocused: actions.setFocused,
+      setVirtualizer: actions.setVirtualizer,
+      toggleVisibility: (id: string) => {
+        onToggleVisibility?.(id)
+        editor.toggleNodeVisibility(id)
+      },
+      toggleLock: (id: string) => {
+        onToggleLock?.(id)
+        editor.toggleNodeLock(id)
+      },
+      rename: (id: string, name: string) => {
+        onRename?.(id, name)
+        editor.renameNode(id, name)
+      },
+      setRowRef
+    }),
+    [
+      editor,
+      items,
+      expanded,
+      visibleRows,
+      treeVersion,
+      selectedIds,
+      focused,
+      indentPerLevel,
+      draggingId,
+      instruction,
+      instructionTargetId,
+      setupItem,
+      select,
+      toggleExpand,
+      actions.setFocused,
+      actions.setVirtualizer,
+      onToggleVisibility,
+      onToggleLock,
+      onRename
+    ]
+  )
 
-  const renderedChildren = typeof children === 'function' ? children({
-    items,
-    visibleRows,
-    expanded,
-    treeVersion,
-    selectedIds,
-    focused,
-    draggingId,
-    instruction,
-    instructionTargetId,
-    actions
-  }) : children
+  const renderedChildren =
+    typeof children === 'function'
+      ? children({
+          items,
+          visibleRows,
+          expanded,
+          treeVersion,
+          selectedIds,
+          focused,
+          draggingId,
+          instruction,
+          instructionTargetId,
+          actions
+        })
+      : children
 
   return (
     <LayerTreeProvider value={contextValue}>
-      <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-        {renderedChildren}
-      </div>
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden">{renderedChildren}</div>
     </LayerTreeProvider>
   )
 }

@@ -5,7 +5,7 @@
 ### Breaking changes
 
 - **Core SDK:** Import scene graph types, geometry, coordinate, matrix, snapping, undo, and path helpers from `@openweave/scene-graph`; import `.pen` parsing from `@openweave/pen`; and import synchronous Kiwi decompression from `@openweave/kiwi` instead of the `@openweave/core` compatibility barrel.
-- **Vue SDK:** Replace the removed color-picker model helpers with `useColorModel()`; replace the deprecated `FillPickerRoot` and `useFillPicker()` APIs with `FillRoot`, `FillSwatch`, `useFill()`, and a consumer-owned popover; rename `FontPickerUi` to `FontPickerUI`; and remove the exported `testId` prop helper types in favor of semantic component anatomy.
+- **React SDK:** Replace the removed color-picker model helpers with `useColorModel()`; replace the deprecated `FillPickerRoot` and `useFillPicker()` APIs with `FillRoot`, `FillSwatch`, `useFill()`, and a consumer-owned popover; rename `FontPickerUi` to `FontPickerUI`; and remove the exported `testId` prop helper types in favor of semantic component anatomy.
 
 ### Added
 
@@ -32,8 +32,8 @@
 - Connect an S3-compatible storage workspace with local-first saves and background synchronization.
 - Add Japanese localization and improve menu translations across the existing supported languages. (#367)
 - Author richer Design JSX with components, instances, variables, gradients, structured fills, shadows, blur effects, masks, and inline SVG vectors.
-- Build custom property panels with new Vue SDK number fields, bindable values, property sections, responsive grids, segmented controls, property lists, color models, fill controls, and gradient primitives.
-- Use `useColorModel()` in the Vue SDK for extensible color formats and shared RGB, HSL, HSB, and OkHCL channel behavior.
+- Build custom property panels with new React SDK number fields, bindable values, property sections, responsive grids, segmented controls, property lists, color models, fill controls, and gradient primitives.
+- Use `useColorModel()` in the React SDK for extensible color formats and shared RGB, HSL, HSB, and OkHCL channel behavior.
 - Add dedicated SceneGraph, Pen, Kiwi, Fig, and DOM/CSS packages with documented public entry points for building on OpenWeave.
 
 ### Changed
@@ -189,7 +189,7 @@
 
 ### Changed
 
-- Smaller domain modules across core, app, Vue SDK, CLI, MCP, docs, and desktop with enforced package boundaries.
+- Smaller domain modules across core, app, React SDK, CLI, MCP, docs, and desktop with enforced package boundaries.
 - Separate scene and overlay canvas layers — rulers, labels, and selections no longer cause scene redraws.
 - Shared menu schema between browser and native Tauri menus.
 - Editor command metadata now drives shortcut display across browser menus, native menus, tooltips, and context menus.
@@ -223,7 +223,7 @@
 - Fix section drawing and color input forwarding in the property panel.
 - Fix asset insertion coordinates inside entered containers.
 - Fix MCP stdio handshake and eval return values.
-- Fix `@openweave/vue` npm imports referencing an unexported core subpath.
+- Fix `@openweave/react` npm imports referencing an unexported core subpath.
 - Fix Figma clipboard text compatibility — pasted OpenWeave text keeps editable fixed bounds, line wrapping, baselines, glyph offsets, and Figma edit-mode layout.
 - Fix local font matching so requested upright and weighted faces do not fall back to italic or regular faces.
 - Fix CanvasKit paragraph rendering to preserve requested text weights and slants.
@@ -348,7 +348,7 @@
 
 - Fix npm publishing pipeline to publish packed tarballs instead of raw package folders
 - Attempt to fix `@openweave/mcp` npm package contents so the published CLI includes its built `dist/` entrypoints
-- Fix `@openweave/vue` npm package metadata and build output so the published package resolves from `dist/` while local workspace development keeps using source aliases
+- Fix `@openweave/react` npm package metadata and build output so the published package resolves from `dist/` while local workspace development keeps using source aliases
 
 ## 0.11.0 — 2026-03-30
 
@@ -359,9 +359,9 @@
 - Nested container navigation — each double-click goes one level deeper
 - Dashed border around entered container for visual feedback
 - Layer panel click syncs canvas scope automatically
-- Vue SDK internationalization primitives — `useI18n()`, locale detection, persisted locale selection, lazy-loaded locale JSON files, and exported locale metadata for custom editor shells
-- Vue SDK docs and public API audit — documented advanced exports (`useOkHCL()`, variables helpers, viewport and locale APIs), aligned docs with the actual `provideEditor()` injection model, and expanded release-ready SDK guidance
-- npm release pipeline now publishes `@openweave/core`, `@openweave/cli`, `@openweave/mcp`, and `@openweave/vue` together on version tags
+- React SDK internationalization primitives — `useI18n()`, locale detection, persisted locale selection, lazy-loaded locale JSON files, and exported locale metadata for custom editor shells
+- React SDK docs and public API audit — documented advanced exports (`useOkHCL()`, variables helpers, viewport and locale APIs), aligned docs with the actual `provideEditor()` injection model, and expanded release-ready SDK guidance
+- npm release pipeline now publishes `@openweave/core`, `@openweave/cli`, `@openweave/mcp`, and `@openweave/react` together on version tags
 - App language picker in the menu bar — switch UI locale without reloading
 - Added a vector curve editor and improved drawing experience with the pen tool
 - Resume pen drawing from existing open path endpoints — click an endpoint to continue the curve
@@ -375,7 +375,7 @@
 - Display‑P3 document color space pipeline — documents now default to Display‑P3, `.fig` import/export preserves document color profiles, the live canvas requests P3 surfaces with sRGB fallback, and raster/SVG export paths accept explicit color-space targets
 - Color picker overhaul — unified `RGB` / `HSL` / `HSB` / `OkHCL` field formats, slider-space-aware track/thumb previews, and better neutral-color editing behavior for fills, strokes, gradient stops, and component fills
 - OkHCL metadata now round-trips through `.fig` plugin data and integrates directly into the main fill/stroke color workflow with preview gamut diagnostics
-- Vue SDK now exposes reusable color-picker model helpers and solid fill/stroke commit helpers for custom editor shells
+- React SDK now exposes reusable color-picker model helpers and solid fill/stroke commit helpers for custom editor shells
 - Update built-in Z.ai and MiniMax model lists — Z.ai now uses the Anthropic-compatible endpoint for GLM coding models, adds GLM-5.1, and MiniMax adds M2.7 / M2.7-highspeed
 - Arabic and RTL support across text rendering, editing, layout, export, and AI tooling — text nodes support `Auto`/`LTR`/`RTL`, auto-layout frames support `Auto`/`LTR`/`RTL` flow, and JSX/AI prompts/tools can now generate and edit both explicitly
 
@@ -524,7 +524,7 @@
 - Chat panel preserves messages when toggling UI visibility
 - SceneGraph event bus (nanoevents) — `node:created`, `node:updated`, `node:deleted`, `node:reparented`, `node:reordered` events replace monkey-patching in collab sync and manual render invalidation
 - Replace esbuild-wasm (14 MB) with sucrase (201 KB) for JSX transform — `buildComponent()` and `renderJSX()` now synchronous and browser-compatible
-- `useMagicKeys` keyboard shortcut system — replaces tinykeys with VueUse built-in, cross-platform Meta/Control handling, modifier exclusion for combo conflicts
+- `useMagicKeys` keyboard shortcut system — replaces tinykeys with React Hooks built-in, cross-platform Meta/Control handling, modifier exclusion for combo conflicts
 - Dev-only debug toolbar for copying chat logs
 - Auto-layout icons in layer tree — vertical (rows), horizontal (columns), and grid icons for auto-layout frames; components keep their purple diamond
 - Frame titles on canvas are now draggable — clicking a selected top-level frame's name label starts a drag
@@ -857,7 +857,7 @@
 - Click peer avatar to follow their viewport, click again to stop
 - Stale cursor cleanup on peer disconnect
 - Local persistence via y-indexeddb — room survives page refresh
-- Share link at `/share/<room-id>` with vue-router
+- Share link at `/share/<room-id>` with next/router
 - Secure room IDs via `crypto.getRandomValues()`
 - Removed Cloudflare Durable Object relay server (`packages/collab/`)
 
@@ -912,7 +912,7 @@ First public alpha. The editor is functional but not production-ready.
 - Direct browser → OpenRouter communication, no backend
 - Model selector: Claude, Gemini, GPT, DeepSeek, Qwen, Kimi, Llama
 - 10 AI tools: create_shape, set_fill, set_stroke, update_node, set_layout, delete_node, select_nodes, get_page_tree, get_selection, rename_node
-- Streaming markdown responses (vue-stream-markdown)
+- Streaming markdown responses (react-markdown)
 - Tool call timeline with collapsible details
 
 ### Code Panel

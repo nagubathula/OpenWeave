@@ -1,9 +1,9 @@
-import { PEN_CLOSE_THRESHOLD } from '@openweave/core/constants'
-import type { Editor } from '@openweave/core/editor'
-
 import { createPenDrag, handlePenDragMove } from '#react/canvas/pen-input/drag'
 import { handlePenNodeEditDown } from '#react/shared/input/node-edit'
 import type { DragState } from '#react/shared/input/types'
+
+import { PEN_CLOSE_THRESHOLD } from '@openweave/core/constants'
+import type { Editor } from '@openweave/core/editor'
 
 type SetDrag = (drag: DragState) => void
 

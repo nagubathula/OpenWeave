@@ -9,7 +9,7 @@ description: Folder structure, public API boundaries, and composition patterns i
 
 It does not own the editor model itself. It adapts the core editor into:
 
-- Vue injection
+- React context
 - reactive composables
 - headless structural primitives
 - canvas and input wiring

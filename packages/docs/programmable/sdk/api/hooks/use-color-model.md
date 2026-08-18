@@ -15,7 +15,7 @@ Pass callbacks to connect it to your own state or persistence layer.
 ## Basic usage
 
 ```ts
-import { ref } from 'vue'
+import { useRef, useState } from 'react'
 import { useColorModel } from '@openweave/react'
 import type { Color } from '@openweave/scene-graph'
 

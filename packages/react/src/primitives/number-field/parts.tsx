@@ -4,7 +4,10 @@ import { useNumberField } from './context'
 
 export type NumberFieldPartName = 'leading' | 'unit' | 'trailing' | 'menu'
 
-export interface NumberFieldPartProps extends Omit<React.HTMLAttributes<HTMLSpanElement>, 'children'> {
+export interface NumberFieldPartProps extends Omit<
+  React.HTMLAttributes<HTMLSpanElement>,
+  'children'
+> {
   children?: ReactNode | ((props: any) => ReactNode)
 }
 
@@ -21,7 +24,7 @@ function createNumberFieldPart(part: NumberFieldPartName) {
       )
     }
   )
-  
+
   Component.displayName = `NumberField${part.charAt(0).toUpperCase()}${part.slice(1)}`
   return Component
 }

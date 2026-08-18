@@ -1,6 +1,5 @@
-import { createContext, useContext } from 'react'
-
 import type { BindingProvider } from '#react/controls/binding-provider/types'
+import { createContext, useContext } from 'react'
 
 const BindingProviderContext = createContext<BindingProvider | undefined>(undefined)
 

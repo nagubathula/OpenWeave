@@ -1,10 +1,11 @@
 import React from 'react'
+
 import { useI18n, useLayoutControlsContext } from '@openweave/react'
 
-import PanelGrid from '@/components/ui/panel/PanelGrid'
 import SizeAxisField from '@/components/properties/LayoutSection/size/SizeAxisField'
 import SizeLimitField from '@/components/properties/LayoutSection/size/SizeLimitField'
 import type { SizeLimitItem } from '@/components/properties/LayoutSection/size/types'
+import PanelGrid from '@/components/ui/panel/PanelGrid'
 
 /**
  * W/H fields plus any active size limits (min/max W/H). Rendered for every

@@ -5,7 +5,7 @@ description: Stores de locale de bas niveau et métadonnées exportés par @open
 
 # API Locale
 
-En plus de `useI18n()`, le Vue SDK exporte des primitives de locale de bas niveau pour les intégrations avancées :
+En plus de `useI18n()`, le React SDK exporte des primitives de locale de bas niveau pour les intégrations avancées :
 
 - `locale`
 - `localeSetting`

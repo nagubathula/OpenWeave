@@ -23,7 +23,12 @@ export interface SegmentedControlRootProps {
   /** Wrap keyboard focus at the first and last item. @default true */
   loop?: boolean
 
-  children?: ReactNode | ((props: { mode: SegmentedControlMode; modelValue: string | string[] | undefined }) => ReactNode)
+  children?:
+    | ReactNode
+    | ((props: {
+        mode: SegmentedControlMode
+        modelValue: string | string[] | undefined
+      }) => ReactNode)
 }
 
 export interface SegmentedControlItemProps {

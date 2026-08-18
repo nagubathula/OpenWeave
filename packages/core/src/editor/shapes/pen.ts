@@ -1,9 +1,4 @@
-import type {
-  SceneNode,
-  VectorNetwork,
-  VectorRegion,
-  VectorSegment
-} from '@openweave/scene-graph'
+import type { SceneNode, VectorNetwork, VectorRegion, VectorSegment } from '@openweave/scene-graph'
 import type { Vector } from '@openweave/scene-graph/primitives'
 
 import { BLACK } from '#core/constants'

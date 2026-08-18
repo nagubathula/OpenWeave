@@ -1,12 +1,12 @@
+import * as SelectPrimitive from '@radix-ui/react-select'
+import { ChevronDown } from 'lucide-react'
 import React, { forwardRef } from 'react'
 import type { ReactNode } from 'react'
 import { tv } from 'tailwind-variants'
-import * as SelectPrimitive from '@radix-ui/react-select'
-import { ChevronDown } from 'lucide-react'
 
+import type { ComponentUI } from '@/components/ui/types'
 import theme from '@/theme/app-grouped-select'
 import type { AppGroupedSelectTheme } from '@/theme/app-grouped-select'
-import type { ComponentUI } from '@/components/ui/types'
 
 export interface SelectOption<TValue extends string | number> {
   value: TValue
@@ -18,7 +18,10 @@ export interface SelectGroupDef<TValue extends string | number> {
   items: SelectOption<TValue>[]
 }
 
-export interface AppGroupedSelectProps<TValue extends string | number> extends Omit<SelectPrimitive.SelectProps, 'value' | 'onValueChange'> {
+export interface AppGroupedSelectProps<TValue extends string | number> extends Omit<
+  SelectPrimitive.SelectProps,
+  'value' | 'onValueChange'
+> {
   groups: SelectGroupDef<TValue>[]
   displayValue: ReactNode
   ui?: ComponentUI<AppGroupedSelectTheme>
@@ -32,7 +35,10 @@ const styles = tv(theme)()
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const AppGroupedSelect = forwardRef<HTMLButtonElement, AppGroupedSelectProps<any>>(
   ({ groups, displayValue, ui, value, onValueChange, id, ...props }, ref) => {
-    const isNumber = groups.length > 0 && groups[0].items.length > 0 && typeof groups[0].items[0].value === 'number'
+    const isNumber =
+      groups.length > 0 &&
+      groups[0].items.length > 0 &&
+      typeof groups[0].items[0].value === 'number'
 
     const handleValueChange = (val: string) => {
       if (onValueChange) {
@@ -81,7 +87,9 @@ export const AppGroupedSelect = forwardRef<HTMLButtonElement, AppGroupedSelectPr
                     ))}
                   </SelectPrimitive.Group>
                   {index < groups.length - 1 && (
-                    <SelectPrimitive.Separator className={styles.separator({ className: ui?.separator })} />
+                    <SelectPrimitive.Separator
+                      className={styles.separator({ className: ui?.separator })}
+                    />
                   )}
                 </React.Fragment>
               ))}

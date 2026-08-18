@@ -1,6 +1,6 @@
-import React from 'react'
-import { File as FileIcon, X, Plus } from 'lucide-react'
 import { useStore } from '@nanostores/react'
+import { File as FileIcon, X, Plus } from 'lucide-react'
+import React from 'react'
 
 import { allTabs, createTab, switchTab, closeTab } from '@/app/tabs'
 

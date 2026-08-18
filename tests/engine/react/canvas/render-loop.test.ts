@@ -1,8 +1,8 @@
 import { describe, expect, test } from 'bun:test'
 
-import type { Editor, EditorEvents } from '@openweave/core/editor'
-
 import { createCanvasRenderLoop } from '#react/canvas/surface/render-loop'
+
+import type { Editor, EditorEvents } from '@openweave/core/editor'
 
 type EditorEventName = keyof EditorEvents
 

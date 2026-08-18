@@ -1,14 +1,15 @@
+import { AlignHorizontalSpaceBetween, AlignVerticalSpaceBetween, Minus, Plus } from 'lucide-react'
 import React from 'react'
 import { tv } from 'tailwind-variants'
+
 import { useI18n, useLayoutControlsContext } from '@openweave/react'
 import type { LayoutAlign, LayoutCounterAlign, LayoutDirection } from '@openweave/scene-graph'
-import { AlignHorizontalSpaceBetween, AlignVerticalSpaceBetween, Minus, Plus } from 'lucide-react'
 
-import { AppSelect } from '@/components/ui/AppSelect'
 import ClipContentControl from '@/components/properties/LayoutSection/ClipContentControl'
 import FieldSelectMenu from '@/components/properties/LayoutSection/FieldSelectMenu'
 import PaddingControls from '@/components/properties/LayoutSection/PaddingControls'
 import VariableNumberField from '@/components/properties/LayoutSection/VariableNumberField'
+import { AppSelect } from '@/components/ui/AppSelect'
 import layoutAlignmentTheme from '@/theme/layout-alignment'
 
 const layoutAlignment = tv(layoutAlignmentTheme)

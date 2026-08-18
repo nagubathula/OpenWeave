@@ -38,7 +38,7 @@ export default defineConfig([
       'openweave/no-non-ui-imports-in-shared-ui': 'error',
       'openweave/no-app-imports-in-shared-ui': 'error',
       'openweave/no-property-panel-internals-outside-panel': 'error',
-      'openweave/no-native-title-attributes-in-vue': 'error',
+
       'openweave/no-ui-imports-in-core': 'error',
       'openweave/scripts-are-entrypoint-shims': 'error',
       'openweave/strict-tools-layout': 'error'

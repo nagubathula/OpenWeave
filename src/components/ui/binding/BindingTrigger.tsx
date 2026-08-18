@@ -1,8 +1,9 @@
-import React, { forwardRef } from 'react'
 import { Slot } from '@radix-ui/react-slot'
 import { Diamond, DiamondPlus } from 'lucide-react'
+import React, { forwardRef } from 'react'
 
 import type { BindingState } from '@openweave/react'
+
 import { useBindingFieldUI } from '@/components/ui/binding/ui'
 import type { BindingFieldUI } from '@/components/ui/binding/ui'
 
@@ -18,7 +19,18 @@ export interface BindingTriggerProps extends React.ButtonHTMLAttributes<HTMLButt
 
 export const BindingTrigger = forwardRef<HTMLButtonElement, BindingTriggerProps>(
   (
-    { asChild = false, label, state = 'unbound', open = false, disabled = false, derived = false, className, ui, children, ...props },
+    {
+      asChild = false,
+      label,
+      state = 'unbound',
+      open = false,
+      disabled = false,
+      derived = false,
+      className,
+      ui,
+      children,
+      ...props
+    },
     ref
   ) => {
     const styles = useBindingFieldUI(
@@ -43,9 +55,8 @@ export const BindingTrigger = forwardRef<HTMLButtonElement, BindingTriggerProps>
         data-slot="trigger"
         {...props}
       >
-        {children || (
-          state === 'bound' ? <Diamond className="size-3" /> : <DiamondPlus className="size-3" />
-        )}
+        {children ||
+          (state === 'bound' ? <Diamond className="size-3" /> : <DiamondPlus className="size-3" />)}
       </Comp>
     )
   }

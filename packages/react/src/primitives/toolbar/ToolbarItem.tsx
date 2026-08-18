@@ -1,5 +1,6 @@
-import React, { useMemo } from 'react'
 import { useToolbar } from '#react/primitives/toolbar/context'
+import React, { useMemo } from 'react'
+
 import type { Tool } from '@openweave/core/editor'
 
 export interface ToolbarItemSlotProps {
@@ -19,16 +20,22 @@ export function ToolbarItem({ tool, children }: ToolbarItemProps) {
   const { activeTool, setTool } = useToolbar()
 
   const isActive = activeTool === tool
-  
-  const actions = useMemo(() => ({
-    select: () => setTool(tool)
-  }), [setTool, tool])
 
-  const renderedChildren = typeof children === 'function' ? children({
-    active: isActive,
-    tool,
-    actions
-  }) : children
+  const actions = useMemo(
+    () => ({
+      select: () => setTool(tool)
+    }),
+    [setTool, tool]
+  )
+
+  const renderedChildren =
+    typeof children === 'function'
+      ? children({
+          active: isActive,
+          tool,
+          actions
+        })
+      : children
 
   return <>{renderedChildren}</>
 }

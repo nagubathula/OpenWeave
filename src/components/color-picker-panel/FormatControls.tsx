@@ -1,11 +1,12 @@
 import React from 'react'
+
 import type { ColorFieldFormat } from '@openweave/react'
 
 import { useColorPickerPanelContext } from './context'
-import RgbFields from './RgbFields'
-import HslFields from './HslFields'
 import HsbFields from './HsbFields'
+import HslFields from './HslFields'
 import OkhclFields from './OkhclFields'
+import RgbFields from './RgbFields'
 
 export function FormatControls() {
   const ctx = useColorPickerPanelContext()

@@ -5,7 +5,7 @@ description: Provide an OpenWeave editor instance to a Vue subtree using injecti
 
 # provideEditor
 
-`provideEditor(editor)` makes an OpenWeave editor available to descendant composables and headless primitives through Vue injection.
+`provideEditor(editor)` makes an OpenWeave editor available to descendant composables and headless primitives through React context.
 
 This is the foundation for `useEditor()`.
 

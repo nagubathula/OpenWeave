@@ -1,8 +1,9 @@
 import React, { createContext, useContext, useMemo } from 'react'
-import { useColorModel, usePanelMessages } from '@openweave/react'
-import type { ColorFieldFormat, ColorFieldOption } from '@openweave/react'
+
 import { colorToCSS, resolveOkHCLForPreview } from '@openweave/core/color'
 import type { OkHCLColor, RenderColorSpace } from '@openweave/core/color'
+import { useColorModel, usePanelMessages } from '@openweave/react'
+import type { ColorFieldFormat, ColorFieldOption } from '@openweave/react'
 import type { Color } from '@openweave/scene-graph/primitives'
 
 import { alphaGradient, backgroundFromDeclaration, HUE_RAINBOW_GRADIENT } from './helpers'

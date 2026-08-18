@@ -27,7 +27,7 @@ features:
     details: Headless CLI to inspect, export, and analyze .fig files. Figma Plugin API via eval. Tailwind CSS export. JSON output for CI and automation.
   - icon: 🧩
     title: Toolkit, not just app
-    details: Build custom editing surfaces with the Vue SDK, embed OpenWeave into other products, or assemble workflow-specific editors around the same core.
+    details: Build custom editing surfaces with the React SDK, embed OpenWeave into other products, or assemble workflow-specific editors around the same core.
   - icon: 🤖
     title: AI-Native
     details: Built-in chat with 90 tools — create shapes, set styles, manage layout, analyze tokens. MCP server for Claude Code, Cursor, Windsurf.

@@ -1,6 +1,7 @@
 import React, { forwardRef } from 'react'
 import type { HTMLAttributes, ReactNode } from 'react'
 import { tv, type VariantProps } from 'tailwind-variants'
+
 import placeholderTheme from '@/theme/placeholder'
 
 const placeholder = tv(placeholderTheme)
@@ -26,7 +27,10 @@ export interface AppPlaceholderProps extends Omit<HTMLAttributes<HTMLDivElement>
 }
 
 export const AppPlaceholder = forwardRef<HTMLDivElement, AppPlaceholderProps>(
-  ({ label, description, fill = true, size = 'panel', ui, icon, action, className, ...props }, ref) => {
+  (
+    { label, description, fill = true, size = 'panel', ui, icon, action, className, ...props },
+    ref
+  ) => {
     const theme = placeholder({ fill, size })
     const styles = {
       root: theme.root({ className: ui?.root }),

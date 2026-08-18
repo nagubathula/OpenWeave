@@ -1,4 +1,3 @@
-import { useState, useRef, useEffect, useCallback } from 'react'
 import {
   attachInstruction,
   extractInstruction,
@@ -11,6 +10,7 @@ import {
   dropTargetForElements,
   monitorForElements
 } from '@atlaskit/pragmatic-drag-and-drop/element/adapter'
+import { useState, useRef, useEffect, useCallback } from 'react'
 
 export type FlatReorderAxis = 'vertical' | 'horizontal'
 export type FlatReorderInstruction = Extract<

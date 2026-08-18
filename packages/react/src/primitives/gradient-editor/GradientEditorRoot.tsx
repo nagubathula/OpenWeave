@@ -1,5 +1,7 @@
 import React, { type ReactNode } from 'react'
+
 import type { Fill } from '@openweave/scene-graph'
+
 import { useGradientStops } from './useGradientStops'
 
 export interface GradientEditorRootProps {
@@ -8,11 +10,7 @@ export interface GradientEditorRootProps {
   children?: ReactNode | ((props: any) => ReactNode)
 }
 
-export function GradientEditorRoot({
-  fill,
-  onUpdate,
-  children
-}: GradientEditorRootProps) {
+export function GradientEditorRoot({ fill, onUpdate, children }: GradientEditorRootProps) {
   const {
     activeStopIndex,
     stops,
@@ -29,10 +27,7 @@ export function GradientEditorRoot({
     updateStopOpacity,
     updateActiveColor,
     dragStop
-  } = useGradientStops(
-    fill,
-    (updated) => onUpdate?.(updated)
-  )
+  } = useGradientStops(fill, (updated) => onUpdate?.(updated))
 
   const actions = {
     setSubtype,
@@ -46,15 +41,18 @@ export function GradientEditorRoot({
     dragStop
   }
 
-  const renderedChildren = typeof children === 'function' ? children({
-    stops,
-    subtype,
-    subtypes,
-    activeStopIndex,
-    activeColor,
-    barBackground,
-    actions
-  }) : children
+  const renderedChildren =
+    typeof children === 'function'
+      ? children({
+          stops,
+          subtype,
+          subtypes,
+          activeStopIndex,
+          activeColor,
+          barBackground,
+          actions
+        })
+      : children
 
   return <>{renderedChildren}</>
 }

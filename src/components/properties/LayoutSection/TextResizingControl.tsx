@@ -1,7 +1,8 @@
+import { Lock, MoveHorizontal, WrapText } from 'lucide-react'
 import React from 'react'
+
 import { useI18n, useLayoutControlsContext } from '@openweave/react'
 import type { SceneNode } from '@openweave/scene-graph'
-import { Lock, MoveHorizontal, WrapText } from 'lucide-react'
 
 import { PanelFieldGroup } from '@/components/ui/panel/PanelFieldGroup'
 import SegmentedControl from '@/components/ui/SegmentedControl'
@@ -29,8 +30,16 @@ export default function TextResizingControl() {
   const mode = modeFor(node)
 
   const options: SegmentedControlOption[] = [
-    { value: 'AUTO_WIDTH', label: panels.resizeAutoWidth, icon: <MoveHorizontal className="size-3.5" /> },
-    { value: 'AUTO_HEIGHT', label: panels.resizeAutoHeight, icon: <WrapText className="size-3.5" /> },
+    {
+      value: 'AUTO_WIDTH',
+      label: panels.resizeAutoWidth,
+      icon: <MoveHorizontal className="size-3.5" />
+    },
+    {
+      value: 'AUTO_HEIGHT',
+      label: panels.resizeAutoHeight,
+      icon: <WrapText className="size-3.5" />
+    },
     { value: 'FIXED', label: panels.resizeFixed, icon: <Lock className="size-3.5" /> }
   ]
 

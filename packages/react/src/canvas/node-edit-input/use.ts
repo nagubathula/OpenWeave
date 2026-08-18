@@ -1,7 +1,3 @@
-import type { RefObject } from 'react'
-
-import type { Editor } from '@openweave/core/editor'
-
 import {
   getCanvasNodeEditState,
   handleBendHandleMove,
@@ -10,6 +6,9 @@ import {
 } from '#react/canvas/node-edit-input/bend'
 import { hitTestEditHandle, isEndpoint, NODE_HIT_THRESHOLD } from '#react/shared/input/node-edit'
 import type { DragState } from '#react/shared/input/types'
+import type { RefObject } from 'react'
+
+import type { Editor } from '@openweave/core/editor'
 
 export function updateNodeEditHover(editor: Editor, cx: number, cy: number): boolean {
   const nodeEditState = getCanvasNodeEditState(editor)

@@ -5,7 +5,7 @@ description: Lower-level locale stores and metadata exported by @openweave/react
 
 # Locale APIs
 
-In addition to `useI18n()`, the Vue SDK exports lower-level locale primitives for advanced integrations:
+In addition to `useI18n()`, the React SDK exports lower-level locale primitives for advanced integrations:
 
 - `locale`
 - `localeSetting`

@@ -1,5 +1,5 @@
-import React from 'react'
 import { Eye, EyeOff, SquareRoundCorner, Squircle, Blend } from 'lucide-react'
+import React from 'react'
 
 import { useAppearance, MIXED, useI18n } from '@openweave/react'
 import type { BlendMode } from '@openweave/scene-graph'
@@ -106,14 +106,15 @@ export function AppearanceSection() {
 
   if (!active) return null
 
-  const corners = !isMulti && node
-    ? ([
-        ['TL', 'topLeftRadius', node.topLeftRadius],
-        ['TR', 'topRightRadius', node.topRightRadius],
-        ['BL', 'bottomLeftRadius', node.bottomLeftRadius],
-        ['BR', 'bottomRightRadius', node.bottomRightRadius]
-      ] as const)
-    : []
+  const corners =
+    !isMulti && node
+      ? ([
+          ['TL', 'topLeftRadius', node.topLeftRadius],
+          ['TR', 'topRightRadius', node.topRightRadius],
+          ['BL', 'bottomLeftRadius', node.bottomLeftRadius],
+          ['BR', 'bottomRightRadius', node.bottomRightRadius]
+        ] as const)
+      : []
 
   return (
     <section
@@ -134,11 +135,11 @@ export function AppearanceSection() {
         >
           {visibilityState === 'visible' ? (
             <Eye className="size-3.5" />
-          ) : (visibilityState === 'hidden' ? (
+          ) : visibilityState === 'hidden' ? (
             <EyeOff className="size-3.5" />
           ) : (
             <Eye className="size-3.5 opacity-50" />
-          ))}
+          )}
         </button>
       </div>
 

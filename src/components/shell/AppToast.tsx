@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from 'react'
 import * as ToastPrimitive from '@radix-ui/react-toast'
 import { Check, TriangleAlert, Copy, X } from 'lucide-react'
+import React, { useEffect, useState } from 'react'
 
-import Tip from '@/components/ui/Tip'
 import { toast as toastManager } from '@/app/shell/ui'
+import Tip from '@/components/ui/Tip'
 import { useToastUI } from '@/components/ui/toast'
 import type { ToastVariant } from '@/components/ui/toast'
 
@@ -45,7 +45,9 @@ export default function AppToast() {
       {toasts.map((t) => (
         <ToastPrimitive.Root
           key={t.id}
-          duration={t.variant === 'error' ? toastManager.ERROR_TOAST_DURATION : toastManager.TOAST_DURATION}
+          duration={
+            t.variant === 'error' ? toastManager.ERROR_TOAST_DURATION : toastManager.TOAST_DURATION
+          }
           className={toastClass(t.variant)}
           onOpenChange={(open) => {
             if (!open) toastManager.remove(t.id)

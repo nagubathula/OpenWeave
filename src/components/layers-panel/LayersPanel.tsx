@@ -1,11 +1,13 @@
 import React, { useState } from 'react'
 import { Panel, Group, Separator } from 'react-resizable-panels'
-import AppMenu from '@/components/shell/AppMenu'
-import PagesPanel from '@/components/PagesPanel'
-import LayerTree from '@/components/layer-tree/LayerTree'
-import AssetsPanel from '@/components/assets/AssetsPanel'
-import VariablesButton from '@/components/variables/VariablesButton'
+
 import { useI18n } from '@openweave/react'
+
+import AssetsPanel from '@/components/assets/AssetsPanel'
+import LayerTree from '@/components/layer-tree/LayerTree'
+import PagesPanel from '@/components/pages-panel/PagesPanel'
+import AppMenu from '@/components/shell/AppMenu'
+import VariablesButton from '@/components/variables/VariablesButton'
 
 export default function LayersPanel() {
   const { menu, panels } = useI18n()
@@ -49,7 +51,12 @@ export default function LayersPanel() {
         <AssetsPanel />
       ) : (
         <Group orientation="vertical" className="flex-1 overflow-hidden">
-          <Panel defaultSize={30} minSize={10} maxSize={60} className="flex flex-col overflow-hidden">
+          <Panel
+            defaultSize={30}
+            minSize={10}
+            maxSize={60}
+            className="flex flex-col overflow-hidden"
+          >
             <PagesPanel />
           </Panel>
 

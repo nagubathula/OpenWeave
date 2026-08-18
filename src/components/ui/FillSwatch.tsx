@@ -1,11 +1,12 @@
 import React, { forwardRef } from 'react'
 import type { HTMLAttributes, ReactNode } from 'react'
 import { tv } from 'tailwind-variants'
+
 import { FillSwatch as FillSwatchPrimitive } from '@openweave/react'
 import type { Fill } from '@openweave/scene-graph'
 
-import fillSwatchTheme from '@/theme/fill-swatch'
 import type { ComponentUI } from '@/components/ui/types'
+import fillSwatchTheme from '@/theme/fill-swatch'
 
 const styles = tv(fillSwatchTheme)()
 

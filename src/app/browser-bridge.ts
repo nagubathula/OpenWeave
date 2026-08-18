@@ -1,8 +1,9 @@
 import type { ChatTransport, UIMessage } from 'ai'
+
 import { fontManager, type FontManager } from '@openweave/core/text'
 
-import type { EditorStore } from '@/app/editor/session/create'
 import { ensureGraphFonts, loadFont } from '@/app/editor/fonts'
+import type { EditorStore } from '@/app/editor/session/create'
 
 export interface OpenWeaveTestHooks {
   writeCount?: () => number

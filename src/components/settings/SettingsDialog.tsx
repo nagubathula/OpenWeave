@@ -1,17 +1,12 @@
-import React, { useEffect, useState, useCallback } from 'react'
 import { useStore } from '@nanostores/react'
-import { createPortal } from 'react-dom'
 import { Sparkles, Palette, Cloud, X, Wand2 } from 'lucide-react'
-import { useI18n } from '@openweave/react'
+import React, { useEffect, useState, useCallback } from 'react'
+import { createPortal } from 'react-dom'
 import { useEventListener } from 'usehooks-ts'
 
+import { useI18n } from '@openweave/react'
+
 import { browserCredentialsRemembered, setRememberCredentials } from '@/app/ai/chat/storage'
-import { settingsDialogSection } from '@/app/settings/dialog'
-import { appCredentialServices } from '@/app/settings/credentials/app'
-import ModelsPanel from '@/components/settings/models/ModelsPanel'
-import StorageSettingsPanel from '@/components/settings/StorageSettingsPanel'
-import { AppSwitch } from '@/components/ui/AppSwitch'
-import { IS_TAURI } from '@/constants'
 import {
   setVectorizeCredential,
   vectorizeCredentialStatus,
@@ -19,6 +14,12 @@ import {
   VECTORIZE_PROVIDER_DEFINITIONS
 } from '@/app/editor/vectorize'
 import type { VectorizeProviderID } from '@/app/editor/vectorize'
+import { appCredentialServices } from '@/app/settings/credentials/app'
+import { settingsDialogSection } from '@/app/settings/dialog'
+import ModelsPanel from '@/components/settings/models/ModelsPanel'
+import StorageSettingsPanel from '@/components/settings/StorageSettingsPanel'
+import { AppSwitch } from '@/components/ui/AppSwitch'
+import { IS_TAURI } from '@/constants'
 
 type SettingsSection = 'ai' | 'models' | 'vectorize' | 'appearance' | 'storage'
 type ThemeSetting = 'light' | 'dark' | 'auto'
@@ -28,10 +29,7 @@ const THEME_STORAGE_KEY = 'openweave:theme'
 // --- Theme -----------------------------------------------------------------
 
 function prefersDark(): boolean {
-  return (
-    'matchMedia' in globalThis &&
-    window.matchMedia('(prefers-color-scheme: dark)').matches
-  )
+  return 'matchMedia' in globalThis && window.matchMedia('(prefers-color-scheme: dark)').matches
 }
 
 function readThemeSetting(): ThemeSetting {
@@ -142,12 +140,14 @@ function VectorizePanel() {
   }
 
   return (
-    <div className="flex flex-col gap-3" data-test-id="settings-vectorize-panel" data-vectorize-settings>
+    <div
+      className="flex flex-col gap-3"
+      data-test-id="settings-vectorize-panel"
+      data-vectorize-settings
+    >
       <div>
         <h3 className="text-xs font-semibold text-surface">{dialogs.vectorization}</h3>
-        <p className="mt-0.5 text-[10px] text-muted">
-          {dialogs.vectorizeProviderDescription}
-        </p>
+        <p className="mt-0.5 text-[10px] text-muted">{dialogs.vectorizeProviderDescription}</p>
       </div>
 
       <label className="flex flex-col gap-1 text-[11px] text-muted">
@@ -170,14 +170,18 @@ function VectorizePanel() {
         <label className="flex flex-col gap-1 text-[11px] text-muted">
           <span className="flex items-center justify-between">
             {dialogs.vectorizeAPIKey}
-            {configured && <span className="text-[10px] text-green-500">{dialogs.vectorizeSavedKey}</span>}
+            {configured && (
+              <span className="text-[10px] text-green-500">{dialogs.vectorizeSavedKey}</span>
+            )}
           </span>
           <input
             type="password"
             className={inputClass}
             value={keyDraft}
             data-test-id="provider-settings-api-key"
-            placeholder={configured ? dialogs.vectorizeSavedKeyPlaceholder : provider.keyPlaceholder}
+            placeholder={
+              configured ? dialogs.vectorizeSavedKeyPlaceholder : provider.keyPlaceholder
+            }
             onChange={(e) => setKeyDraft(e.target.value)}
           />
           <div className="mt-1 flex items-center gap-2">
@@ -214,8 +218,6 @@ function VectorizePanel() {
     </div>
   )
 }
-
-
 
 // --- Dialog ----------------------------------------------------------------
 
@@ -339,7 +341,9 @@ export function SettingsDialog({ open, onClose }: SettingsDialogProps) {
               />
             )}
             <div>
-              {!IS_TAURI && <p className="text-[10px] text-surface">{dialogs.rememberCredentials}</p>}
+              {!IS_TAURI && (
+                <p className="text-[10px] text-surface">{dialogs.rememberCredentials}</p>
+              )}
               <p className="text-[10px] text-muted" data-test-id="settings-credential-backend">
                 {dialogs.credentialStorage({ backend: credentialBackendLabel })}
               </p>

@@ -1,5 +1,3 @@
-
-
 import { AUTOMATION_HTTP_PORT } from '@openweave/core/constants'
 import { randomHex } from '@openweave/core/random'
 import type { DiscoveryInfo } from '@openweave/mcp/discovery'
@@ -170,7 +168,9 @@ function assertCompatibleMcpVersion(health: AutomationHealth): void {
 
 async function pollHealth(retries: number, delayMs: number): Promise<AutomationHealth | null> {
   for (let i = 0; i < retries; i++) {
-    await new Promise((resolve) => { setTimeout(resolve, delayMs) })
+    await new Promise((resolve) => {
+      setTimeout(resolve, delayMs)
+    })
     const health = await readHealth()
     if (health) return health
   }

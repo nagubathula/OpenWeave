@@ -1,3 +1,5 @@
+import type { ColorFieldFormat } from '#react/controls/color-model/types'
+
 import {
   getFillOkHCL,
   getStrokeOkHCL,
@@ -10,8 +12,6 @@ import type { OkHCLColor } from '@openweave/core/color'
 import { BLACK } from '@openweave/core/constants'
 import type { Editor } from '@openweave/core/editor'
 import type { SceneNode } from '@openweave/scene-graph'
-
-import type { ColorFieldFormat } from '#react/controls/color-model/types'
 
 type ColorKind = 'fill' | 'stroke'
 

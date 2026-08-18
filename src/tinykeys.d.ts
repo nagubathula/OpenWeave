@@ -21,10 +21,7 @@ declare module 'tinykeys' {
   }
 
   export function parseKeybinding(str: string): KeyBindingPress[]
-  export function matchKeyBindingPress(
-    event: KeyboardEvent,
-    press: KeyBindingPress
-  ): boolean
+  export function matchKeyBindingPress(event: KeyboardEvent, press: KeyBindingPress): boolean
   export function createKeybindingsHandler(
     keyBindingMap: KeyBindingMap,
     options?: KeyBindingHandlerOptions

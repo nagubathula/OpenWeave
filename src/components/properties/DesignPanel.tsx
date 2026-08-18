@@ -1,31 +1,27 @@
+import { Layers3 } from 'lucide-react'
 import React from 'react'
-import {
-  useSelectionState,
-  useSceneComputed,
-  useI18n,
-  useEditorCommands
-} from '@openweave/react'
+
+import { useSelectionState, useSceneComputed, useI18n, useEditorCommands } from '@openweave/react'
+
 import { getActiveEditorStore } from '@/app/editor/active-store'
 import { COMPONENT_TYPES, nodeIcon } from '@/app/editor/icons'
-import { Layers3 } from 'lucide-react'
-
-import LayoutSection from '@/components/properties/LayoutSection'
-import ConstraintsSection from '@/components/properties/ConstraintsSection'
-import PositionSection from '@/components/properties/PositionSection'
-import TypographySection from '@/components/properties/TypographySection'
-import FramePresetsSection from '@/components/properties/FramePresetsSection'
+import AppearanceSection from '@/components/properties/AppearanceSection'
 import ComponentPropertiesSection from '@/components/properties/ComponentPropertiesSection'
-import FillSection from '@/components/properties/FillSection'
-import StrokeSection from '@/components/properties/StrokeSection'
+import ConstraintsSection from '@/components/properties/ConstraintsSection'
 import EffectsSection from '@/components/properties/EffectsSection'
 import ExportSection from '@/components/properties/ExportSection'
-import AppearanceSection from '@/components/properties/AppearanceSection'
-import PageSection from '@/components/properties/PageSection'
-import VariablesSection from '@/components/properties/VariablesSection'
-import MaskSection from '@/components/properties/MaskSection'
-import LayoutGridSection from '@/components/properties/LayoutGridSection'
-import SelectionActionsControl from '@/components/properties/SelectionActionsControl'
+import FillSection from '@/components/properties/FillSection'
 import FramePresetSelect from '@/components/properties/frame-presets/FramePresetSelect'
+import FramePresetsSection from '@/components/properties/FramePresetsSection'
+import LayoutGridSection from '@/components/properties/LayoutGridSection'
+import LayoutSection from '@/components/properties/LayoutSection'
+import MaskSection from '@/components/properties/MaskSection'
+import PageSection from '@/components/properties/PageSection'
+import PositionSection from '@/components/properties/PositionSection'
+import SelectionActionsControl from '@/components/properties/SelectionActionsControl'
+import StrokeSection from '@/components/properties/StrokeSection'
+import TypographySection from '@/components/properties/TypographySection'
+import VariablesSection from '@/components/properties/VariablesSection'
 import Tip from '@/components/ui/Tip'
 
 export function DesignPanel() {
@@ -39,7 +35,11 @@ export function DesignPanel() {
 
   const isComponentType = node?.type ? COMPONENT_TYPES.has(node.type) : false
   const SelectedIcon = node ? nodeIcon(node) : undefined
-  const supportsLayoutGuides = node?.type === 'FRAME' || node?.type === 'COMPONENT' || node?.type === 'COMPONENT_SET' || node?.type === 'INSTANCE'
+  const supportsLayoutGuides =
+    node?.type === 'FRAME' ||
+    node?.type === 'COMPONENT' ||
+    node?.type === 'COMPONENT_SET' ||
+    node?.type === 'INSTANCE'
   const { panels } = useI18n()
 
   if (activeTool === 'FRAME') {
@@ -52,7 +52,10 @@ export function DesignPanel() {
 
   if (multiCount > 1) {
     return (
-      <div data-test-id="design-panel-multi" className="scrollbar-thin flex-1 overflow-x-hidden overflow-y-auto space-y-0 pb-4">
+      <div
+        data-test-id="design-panel-multi"
+        className="scrollbar-thin flex-1 overflow-x-hidden overflow-y-auto space-y-0 pb-4"
+      >
         <div className="flex items-center gap-2 border-b border-border p-3">
           <Layers3 className="size-4 text-muted" />
           <span className="text-xs font-semibold text-surface flex-1">
@@ -74,7 +77,10 @@ export function DesignPanel() {
 
   if (node) {
     return (
-      <div data-test-id="design-panel-single" className="scrollbar-thin flex-1 overflow-x-hidden overflow-y-auto pb-4 space-y-0">
+      <div
+        data-test-id="design-panel-single"
+        className="scrollbar-thin flex-1 overflow-x-hidden overflow-y-auto pb-4 space-y-0"
+      >
         <div className="flex items-center justify-between border-b border-border p-3 group">
           <div className="flex items-center gap-2 min-w-0">
             {SelectedIcon && (
@@ -136,7 +142,10 @@ export function DesignPanel() {
   }
 
   return (
-    <div data-test-id="design-panel-empty" className="scrollbar-thin flex-1 overflow-x-hidden overflow-y-auto pb-4 space-y-0">
+    <div
+      data-test-id="design-panel-empty"
+      className="scrollbar-thin flex-1 overflow-x-hidden overflow-y-auto pb-4 space-y-0"
+    >
       <PageSection />
       <VariablesSection />
       <ExportSection />

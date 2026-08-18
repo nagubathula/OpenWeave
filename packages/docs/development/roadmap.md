@@ -64,7 +64,7 @@ OpenWeave is moving toward production-grade Figma compatibility while keeping de
 
 ### SDK and embedded editor
 
-- Document the Vue SDK and core subpath exports as a platform for custom editor shells, embedded design surfaces, and automation-specific UIs.
+- Document the React SDK and core subpath exports as a platform for custom editor shells, embedded design surfaces, and automation-specific UIs.
 - Provide examples for embedding OpenWeave in product tools: read-only previews, editable canvases, design review surfaces, and agent-controlled editors.
 - Keep the renderer, editor core, and tool registry framework-agnostic enough for headless and embedded use.
 
@@ -235,6 +235,6 @@ These are parsed or visible in Figma docs and most likely to cause visible diffe
 | Effects / shadows            | `packages/core/src/canvas/shadows.ts`                                                                          |
 | Text rendering               | `packages/core/src/canvas/text.ts`, `packages/core/src/canvas/text-derived.ts`                                 |
 | Layout engine                | `packages/core/src/layout/**`                                                   |
-| Property panels              | `src/components/properties/**`, `packages/vue/src/controls/**`                                                 |
+| Property panels              | `src/components/properties/**`, `packages/react/src/controls/**`                                                 |
 | CLI                          | `packages/cli/src/index.ts`, `packages/cli/src/commands/**`                                                    |
 | MCP/tools                    | `packages/core/src/tools/**`, `packages/mcp/src/tool/registration.ts`                                          |

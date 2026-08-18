@@ -1,4 +1,5 @@
 import { createContext, useContext } from 'react'
+
 import type { SegmentedControlContext } from './types'
 
 const SegmentedControlReactContext = createContext<SegmentedControlContext | null>(null)

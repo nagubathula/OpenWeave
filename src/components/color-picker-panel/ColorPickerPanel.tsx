@@ -1,11 +1,11 @@
 import React from 'react'
 
+import ColorAreaControl from './ColorAreaControl'
 import { ColorPickerPanelProvider } from './context'
 import type { ColorPickerPanelProps } from './context'
-import ColorAreaControl from './ColorAreaControl'
-import HueAlphaSliders from './HueAlphaSliders'
-import HexField from './HexField'
 import FormatControls from './FormatControls'
+import HexField from './HexField'
+import HueAlphaSliders from './HueAlphaSliders'
 
 export type { ColorPickerPanelProps, OkHCLFieldControls } from './context'
 

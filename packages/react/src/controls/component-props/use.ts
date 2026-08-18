@@ -1,7 +1,3 @@
-import { useMemo } from 'react'
-
-import type { SceneNode } from '@openweave/scene-graph'
-
 import {
   compatibleComponentPropertyDefinitions,
   instanceSwapOptions,
@@ -11,6 +7,9 @@ import {
 } from '#react/controls/component-props/model'
 import { useEditor } from '#react/editor/context'
 import { useSceneComputed } from '#react/internal/scene-computed/use'
+import { useMemo } from 'react'
+
+import type { SceneNode } from '@openweave/scene-graph'
 
 function variantOptions(editor: ReturnType<typeof useEditor>, instance: SceneNode, name: string) {
   const component = instance.componentId ? editor.graph.getNode(instance.componentId) : null
@@ -29,9 +28,7 @@ export function useComponentProperties() {
   const selectedCount = useSceneComputed(() => editor.state.selectedIds.size)
   const definitionSets = useSceneComputed(() => {
     void editor.state.sceneVersion
-    return instances.map((instance) =>
-      editor.getInstanceComponentPropertyDefinitions(instance.id)
-    )
+    return instances.map((instance) => editor.getInstanceComponentPropertyDefinitions(instance.id))
   })
   const definitions = useMemo(
     () => compatibleComponentPropertyDefinitions(definitionSets),

@@ -1,9 +1,9 @@
+import { useSceneComputed } from '#react/internal/scene-computed/use'
+
 import type { Editor } from '@openweave/core/editor'
 import { BUILTIN_IO_FORMATS, IORegistry } from '@openweave/core/io'
 import { MAX_EXPORT_SCALE, MIN_EXPORT_SCALE, clampExportScale } from '@openweave/scene-graph'
 import type { ExportFormatId, ExportSetting, PluginDataEntry } from '@openweave/scene-graph'
-
-import { useSceneComputed } from '#react/internal/scene-computed/use'
 
 export const EXPORT_SCALES = [0.5, 0.75, 1, 1.5, 2, 3, 4] as const
 export const EXPORT_FORMATS: ExportFormatId[] = ['png', 'jpg', 'webp', 'svg', 'pdf']
@@ -49,8 +49,7 @@ export function createExportTargetState(editor: Editor, selectedIds: string[]) {
     return page?.name ?? 'Page'
   })
 
-  const activeName =
-    activeTarget === 'selection' ? (selectedNodeName ?? 'Export') : currentPageName
+  const activeName = activeTarget === 'selection' ? (selectedNodeName ?? 'Export') : currentPageName
   const activeSettings = useSceneComputed(() => {
     const firstId = targetIds[0]
     return firstId ? [...(editor.graph.getNode(firstId)?.exportSettings ?? [])] : []

@@ -5,7 +5,7 @@ description: Locale-Stores und Metadaten auf niedrigerem Level, exportiert von @
 
 # Locale APIs
 
-Zusätzlich zu `useI18n()` exportiert das Vue SDK Locale-Primitive auf niedrigerem Level für erweiterte Integrationen:
+Zusätzlich zu `useI18n()` exportiert das React SDK Locale-Primitive auf niedrigerem Level für erweiterte Integrationen:
 
 - `locale`
 - `localeSetting`

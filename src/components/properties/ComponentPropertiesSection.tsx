@@ -1,10 +1,12 @@
 import React from 'react'
+
 import { useEditor, useSceneComputed, useSelectionState, useI18n } from '@openweave/react'
 import { instanceSwapOptions } from '@openweave/react'
 import type { SceneNode, ComponentPropertyDefinition } from '@openweave/scene-graph'
-import Tip from '@/components/ui/Tip'
-import { AppSwitch } from '@/components/ui/AppSwitch'
+
 import { AppSelect } from '@/components/ui/AppSelect'
+import { AppSwitch } from '@/components/ui/AppSwitch'
+import Tip from '@/components/ui/Tip'
 
 interface PropertyControl {
   id: string
@@ -16,7 +18,8 @@ interface PropertyControl {
 }
 
 const inputCls = 'w-full bg-transparent outline-none text-surface'
-const boxCls = 'flex items-center gap-1.5 bg-input/50 rounded px-2 py-1 border border-border text-xs'
+const boxCls =
+  'flex items-center gap-1.5 bg-input/50 rounded px-2 py-1 border border-border text-xs'
 
 /**
  * Variant and property controls for the selected component instance(s). Shown
@@ -65,7 +68,14 @@ export default function ComponentPropertiesSection() {
           label: o.label
         }))
       }
-      return { id: definition.id, name: definition.name, type: definition.type, value, mixed, options }
+      return {
+        id: definition.id,
+        name: definition.name,
+        type: definition.type,
+        value,
+        mixed,
+        options
+      }
     })
   })
 
@@ -74,7 +84,8 @@ export default function ComponentPropertiesSection() {
   const setValue = (control: PropertyControl, value: string) => {
     const label = `Change ${control.name}`
     const apply = () => {
-      for (const instance of instances) editor.setInstanceComponentProperty(instance.id, control.id, value)
+      for (const instance of instances)
+        editor.setInstanceComponentProperty(instance.id, control.id, value)
     }
     if (instances.length > 1) editor.undo.runBatch(label, apply)
     else apply()
@@ -90,13 +101,13 @@ export default function ComponentPropertiesSection() {
       className="space-y-2 border-b border-border pb-3"
       data-test-id="component-properties-section"
     >
-      <div className="text-[11px] font-semibold text-muted uppercase tracking-wider">Properties</div>
+      <div className="text-[11px] font-semibold text-muted uppercase tracking-wider">
+        Properties
+      </div>
       {controls.map((control) => (
         <div key={control.id} className="flex items-center gap-2 text-xs">
           <Tip label={control.name}>
-            <span className="w-16 shrink-0 truncate text-muted text-[11px]">
-              {control.name}
-            </span>
+            <span className="w-16 shrink-0 truncate text-muted text-[11px]">{control.name}</span>
           </Tip>
           {control.type === 'BOOLEAN' ? (
             <AppSwitch
@@ -105,7 +116,7 @@ export default function ComponentPropertiesSection() {
               value={control.value === 'true'}
               onValueChange={(checked) => setValue(control, checked ? 'true' : 'false')}
             />
-          ) : (control.type === 'TEXT' ? (
+          ) : control.type === 'TEXT' ? (
             <div className={boxCls + ' flex-1'}>
               <input
                 type="text"
@@ -119,12 +130,16 @@ export default function ComponentPropertiesSection() {
             <div className="flex-1">
               <AppSelect
                 label={control.name}
-                options={control.options.length > 0 ? control.options : [{ value: control.value, label: control.value }]}
+                options={
+                  control.options.length > 0
+                    ? control.options
+                    : [{ value: control.value, label: control.value }]
+                }
                 value={control.value}
                 onValueChange={(value) => setValue(control, value)}
               />
             </div>
-          ))}
+          )}
         </div>
       ))}
     </section>

@@ -1,10 +1,11 @@
-import type { ReactNode } from 'react';
-import React, { forwardRef } from 'react'
 import * as DialogPrimitive from '@radix-ui/react-dialog'
+import type { DialogProps } from '@radix-ui/react-dialog'
+import type { ReactNode } from 'react'
+import React, { forwardRef } from 'react'
 
 import { useDialogUI, type DialogUI, type DialogVariants } from '@/components/ui/dialog/ui'
 
-export interface AppDialogRootProps extends DialogPrimitive.DialogProps {
+export interface AppDialogRootProps extends DialogProps {
   size?: DialogVariants['size']
   height?: DialogVariants['height']
   ui?: DialogUI
@@ -16,12 +17,26 @@ export interface AppDialogRootProps extends DialogPrimitive.DialogProps {
 }
 
 export const AppDialogRoot = forwardRef<HTMLDivElement, AppDialogRootProps>(
-  // oxlint-disable-next-line typescript/unbound-method
-  ({ size = 'md', height = 'auto', ui, children, className, onEscapeKeyDown, onPointerDownOutside, onInteractOutside, open, onOpenChange, ...props }, ref) => {
+  (
+    {
+      size = 'md',
+      height = 'auto',
+      ui,
+      children,
+      className,
+      onEscapeKeyDown,
+      onPointerDownOutside,
+      onInteractOutside,
+      open,
+      onOpenChange,
+      ...props
+    },
+    ref
+  ) => {
     const cls = useDialogUI(ui, { size, height })
 
     return (
-      <DialogPrimitive.Root open={open} onOpenChange={(v) => onOpenChange?.(v)}>
+      <DialogPrimitive.Root open={open} onOpenChange={onOpenChange}>
         <DialogPrimitive.Portal>
           <DialogPrimitive.Overlay data-slot="dialog-overlay" className={cls.overlay} />
           <DialogPrimitive.Content

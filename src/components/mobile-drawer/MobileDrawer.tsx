@@ -1,15 +1,17 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react'
 import * as Tabs from '@radix-ui/react-tabs'
-import { Code, Layers, Sliders, Sparkles } from 'lucide-react'
 import { motion } from 'framer-motion'
 import type { PanInfo } from 'framer-motion'
+import { Code, Layers, Sliders, Sparkles } from 'lucide-react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { useEventListener } from 'usehooks-ts'
 
+import { useEditorStore } from '@/app/editor/active-store'
+import { useEditorState } from '@/app/editor/session/use-editor-state'
 import ChatPanel from '@/components/chat/ChatPanel'
+import LayerTree from '@/components/layer-tree/LayerTree'
+import PagesPanel from '@/components/pages-panel/PagesPanel'
 import CodePanel from '@/components/properties/CodePanel'
 import DesignPanel from '@/components/properties/DesignPanel'
-import LayerTree from '@/components/layer-tree/LayerTree'
-import PagesPanel from '@/components/PagesPanel'
 import {
   DRAWER_SPRING_DAMPING,
   DRAWER_SPRING_STIFFNESS,
@@ -18,8 +20,6 @@ import {
   SWIPE_THRESHOLD,
   SWIPE_VELOCITY_THRESHOLD
 } from '@/constants'
-import { useEditorState } from '@/app/editor/session/use-editor-state'
-import { useEditorStore } from '@/app/editor/active-store'
 
 type Snap = 'closed' | 'half' | 'full'
 type DrawerTab = 'layers' | 'design' | 'code' | 'ai'
@@ -149,7 +149,11 @@ export default function MobileDrawer() {
       onPanEnd={onPanEnd}
     >
       <Tabs.Root value={getDrawerTab()} className="flex min-h-0 flex-1 flex-col">
-        <nav ref={headerRef} aria-label="Mobile panel navigation" className="flex shrink-0 flex-col">
+        <nav
+          ref={headerRef}
+          aria-label="Mobile panel navigation"
+          className="flex shrink-0 flex-col"
+        >
           <div className="flex w-full justify-center pt-2">
             <div className="h-1 w-8 rounded-full bg-muted/40" />
           </div>

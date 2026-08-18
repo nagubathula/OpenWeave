@@ -1,17 +1,21 @@
-import React from 'react'
-import { useEditorPropertyList, useI18n } from '@openweave/react'
-import { colorToHexRaw } from '@openweave/core/color'
-import type { Effect } from '@openweave/scene-graph'
+import * as Popover from '@radix-ui/react-popover'
 import { Plus, Eye, EyeOff, Minus, Settings2 } from 'lucide-react'
+import React from 'react'
 
-import PanelSection from '@/components/ui/panel/PanelSection'
-import IconButton from '@/components/ui/IconButton'
+import { colorToHexRaw } from '@openweave/core/color'
+import { useEditorPropertyList, useI18n } from '@openweave/react'
+import type { Effect } from '@openweave/scene-graph'
+
 import ColorSwatchPopover from '@/components/color-picker/ColorSwatchPopover'
 import NumberField from '@/components/inputs/NumberField'
-import { AppSelect } from '@/components/ui/AppSelect'
-import { commitDiscretePropertyListChange, useBlendModeOptions } from '@/components/properties/blend-mode/use'
+import {
+  commitDiscretePropertyListChange,
+  useBlendModeOptions
+} from '@/components/properties/blend-mode/use'
 import SharedStyleField from '@/components/properties/shared-style/SharedStyleField'
-import * as Popover from '@radix-ui/react-popover'
+import { AppSelect } from '@/components/ui/AppSelect'
+import IconButton from '@/components/ui/IconButton'
+import PanelSection from '@/components/ui/panel/PanelSection'
 
 export default function EffectsSection() {
   const { items: effects, isMixed, active, flush, actions } = useEditorPropertyList('effects')
@@ -57,7 +61,12 @@ export default function EffectsSection() {
         {isMixed && <p className="text-[11px] text-muted">{panels.mixedEffectsHelp}</p>}
 
         {effects.map((effect, i) => (
-          <div key={i} className="flex flex-col gap-2 relative group" data-property="effects" data-index={i}>
+          <div
+            key={i}
+            className="flex flex-col gap-2 relative group"
+            data-property="effects"
+            data-index={i}
+          >
             <div className="flex items-center gap-1.5">
               <div className="flex-1 flex items-center gap-1 bg-input/50 rounded px-1.5 py-1 border border-border focus-within:border-accent transition-colors">
                 <select
@@ -89,7 +98,13 @@ export default function EffectsSection() {
                   </button>
                 </Popover.Trigger>
                 <Popover.Portal>
-                  <Popover.Content data-slot="effect-settings" side="left" align="start" sideOffset={10} className="w-56 rounded border border-border bg-panel p-3 shadow-lg z-50">
+                  <Popover.Content
+                    data-slot="effect-settings"
+                    side="left"
+                    align="start"
+                    sideOffset={10}
+                    className="w-56 rounded border border-border bg-panel p-3 shadow-lg z-50"
+                  >
                     <div className="space-y-3">
                       <div className="text-xs font-semibold">{effect.type.replace('_', ' ')}</div>
 
@@ -100,16 +115,32 @@ export default function EffectsSection() {
                               <div className="text-[10px] text-muted mb-1">X</div>
                               <NumberField
                                 value={effect.offset?.x ?? 0}
-                                onChange={(v) => updateEffect(i, { offset: { ...(effect.offset ?? { y: 0 }), x: v } })}
-                                onCommit={(v) => commitEffect(i, { offset: { ...(effect.offset ?? { y: 0 }), x: v } })}
+                                onChange={(v) =>
+                                  updateEffect(i, {
+                                    offset: { ...(effect.offset ?? { y: 0 }), x: v }
+                                  })
+                                }
+                                onCommit={(v) =>
+                                  commitEffect(i, {
+                                    offset: { ...(effect.offset ?? { y: 0 }), x: v }
+                                  })
+                                }
                               />
                             </div>
                             <div className="flex-1">
                               <div className="text-[10px] text-muted mb-1">Y</div>
                               <NumberField
                                 value={effect.offset?.y ?? 0}
-                                onChange={(v) => updateEffect(i, { offset: { ...(effect.offset ?? { x: 0 }), y: v } })}
-                                onCommit={(v) => commitEffect(i, { offset: { ...(effect.offset ?? { x: 0 }), y: v } })}
+                                onChange={(v) =>
+                                  updateEffect(i, {
+                                    offset: { ...(effect.offset ?? { x: 0 }), y: v }
+                                  })
+                                }
+                                onCommit={(v) =>
+                                  commitEffect(i, {
+                                    offset: { ...(effect.offset ?? { x: 0 }), y: v }
+                                  })
+                                }
                               />
                             </div>
                           </div>
@@ -151,8 +182,16 @@ export default function EffectsSection() {
                                 min={0}
                                 max={100}
                                 suffix="%"
-                                onChange={(v) => updateEffect(i, { color: { ...(effect.color ?? { r: 0, g: 0, b: 0 }), a: v / 100 } })}
-                                onCommit={(v) => commitEffect(i, { color: { ...(effect.color ?? { r: 0, g: 0, b: 0 }), a: v / 100 } })}
+                                onChange={(v) =>
+                                  updateEffect(i, {
+                                    color: { ...(effect.color ?? { r: 0, g: 0, b: 0 }), a: v / 100 }
+                                  })
+                                }
+                                onCommit={(v) =>
+                                  commitEffect(i, {
+                                    color: { ...(effect.color ?? { r: 0, g: 0, b: 0 }), a: v / 100 }
+                                  })
+                                }
                               />
                             </div>
                           </div>
@@ -193,7 +232,11 @@ export default function EffectsSection() {
                 onClick={() => actions.toggleVisibility(i)}
                 className={effect.visible === false ? 'opacity-50' : ''}
               >
-                {effect.visible !== false ? <Eye className="size-3.5" /> : <EyeOff className="size-3.5" />}
+                {effect.visible !== false ? (
+                  <Eye className="size-3.5" />
+                ) : (
+                  <EyeOff className="size-3.5" />
+                )}
               </IconButton>
               <IconButton label="Remove effect" onClick={() => actions.remove(i)}>
                 <Minus className="size-3.5" />

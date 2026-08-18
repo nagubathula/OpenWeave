@@ -10,7 +10,7 @@ Paski boczne OpenWeave zazwyczaj łączą dwa obszary:
 - nawigację po stronach
 - nawigację po warstwach
 
-Vue SDK udostępnia bezstanowe prymitywy dla obu.
+React SDK udostępnia bezstanowe prymitywy dla obu.
 
 ## Nawigacja po stronach
 

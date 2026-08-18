@@ -10,7 +10,7 @@ OpenWeave-Seitenleisten kombinieren gewöhnlich zwei Belange:
 - Seitennavigation
 - Ebenennavigation
 
-Das Vue SDK stellt headless Primitive für beide bereit.
+Das React SDK stellt headless Primitive für beide bereit.
 
 ## Seitennavigation
 

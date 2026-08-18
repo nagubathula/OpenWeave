@@ -1,10 +1,10 @@
-import type { ConstraintType } from '@openweave/scene-graph'
-
 import type {
   ConstraintAxis,
   ConstraintEdge,
   ConstraintValue
 } from '#react/controls/constraints/model'
+
+import type { ConstraintType } from '@openweave/scene-graph'
 
 export interface ConstraintsControlActions {
   setHorizontal(value: ConstraintType): void

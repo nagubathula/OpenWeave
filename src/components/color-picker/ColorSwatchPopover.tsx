@@ -1,10 +1,12 @@
-import React, { useCallback } from 'react'
 import * as Popover from '@radix-ui/react-popover'
+import React, { useCallback } from 'react'
+
 import { colorToCSS, colorToHex, colorToHexRaw, parseColor } from '@openweave/core/color'
 import type { Color } from '@openweave/scene-graph/primitives'
 
-import { ColorPicker } from './ColorPicker'
 import type { OkHCLFieldControls } from '@/components/color-picker-panel/context'
+
+import { ColorPicker } from './ColorPicker'
 
 export interface ColorSwatchPopoverProps {
   color: Color
@@ -98,10 +100,7 @@ export function ColorSwatchPopover({
           aria-label="Edit color"
           className="flex flex-1 items-center gap-2 text-left outline-none"
         >
-          <span
-            className="size-4 rounded border border-border shrink-0"
-            style={swatchStyle}
-          />
+          <span className="size-4 rounded border border-border shrink-0" style={swatchStyle} />
           <span className="flex-1 text-[11px] truncate uppercase text-surface">
             {label ?? colorToHex(color).slice(1)}
           </span>

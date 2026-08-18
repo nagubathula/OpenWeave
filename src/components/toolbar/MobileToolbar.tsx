@@ -1,21 +1,21 @@
-import React from 'react'
-import { tv } from 'tailwind-variants'
 import { AnimatePresence, motion } from 'framer-motion'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
-
-import ToolButton from '@/components/toolbar/ToolButton'
-import ToolFlyout from '@/components/toolbar/ToolFlyout'
-import ToolbarActionGroup from '@/components/toolbar/ToolbarActionGroup'
-import toolbarTheme from '@/theme/toolbar'
-import { getToolbarToolSelection, toolbarToolTestId, ToolbarItem } from '@openweave/react'
+import React from 'react'
+import { tv } from 'tailwind-variants'
 
 import type { Tool, EditorToolDef } from '@openweave/core/editor'
+import { getToolbarToolSelection, toolbarToolTestId, ToolbarItem } from '@openweave/react'
+
+import ToolbarActionGroup from '@/components/toolbar/ToolbarActionGroup'
+import ToolButton from '@/components/toolbar/ToolButton'
+import ToolFlyout from '@/components/toolbar/ToolFlyout'
 import type {
   ToolbarActionItem,
   ToolbarUI,
   ToolIconMap,
   ToolLabels
 } from '@/components/toolbar/types'
+import toolbarTheme from '@/theme/toolbar'
 
 interface MobileToolbarProps {
   tools: EditorToolDef[]
@@ -109,7 +109,7 @@ export default function MobileToolbar({
               transition={{ duration: 0.15 }}
               custom={slideDirection}
             >
-              {tools.map(tool => {
+              {tools.map((tool) => {
                 if (tool.flyout && tool.flyout.length > 1) {
                   return (
                     <ToolFlyout

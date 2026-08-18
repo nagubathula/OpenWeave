@@ -1,13 +1,13 @@
-import { useStore } from '@nanostores/react'
-import { useMemo, useRef } from 'react'
-
-import { createEditorCommandActions } from './actions'
-import { createEditorCommandMap } from './definitions'
 import { useEditor } from '#react/editor/context'
 import { useSelectionCapabilities } from '#react/editor/selection-capabilities/use'
 import { useSelectionState } from '#react/editor/selection-state/use'
 import { commandMessages } from '#react/i18n'
 import { usePageList } from '#react/primitives/page-list/usePageList'
+import { useStore } from '@nanostores/react'
+import { useMemo, useRef } from 'react'
+
+import { createEditorCommandActions } from './actions'
+import { createEditorCommandMap } from './definitions'
 
 export type {
   EditorCommand,
@@ -35,8 +35,8 @@ export function useEditorCommands() {
   // shape { value: Record<string,string> }. Wrap the nanostores value to match.
   const t = useMemo(() => ({ value: tRaw }), [tRaw])
 
-  const otherPages = useMemo(() =>
-    pages.filter((page) => page.id !== editor.state.currentPageId),
+  const otherPages = useMemo(
+    () => pages.filter((page) => page.id !== editor.state.currentPageId),
     [pages, editor.state.currentPageId]
   )
 
@@ -50,15 +50,19 @@ export function useEditorCommands() {
     opacityTarget.current = coalesceKey ? { value, coalesceKey } : { value }
   }
 
-  const commands = useMemo(() => createEditorCommandMap({
-    editor,
-    selection,
-    capabilities,
-    messages: t,
-    otherPages,
-    moveSelectionToPage,
-    getOpacityTarget: () => opacityTarget.current
-  }), [editor, selection, capabilities, t, otherPages, opacityTarget])
+  const commands = useMemo(
+    () =>
+      createEditorCommandMap({
+        editor,
+        selection,
+        capabilities,
+        messages: t,
+        otherPages,
+        moveSelectionToPage,
+        getOpacityTarget: () => opacityTarget.current
+      }),
+    [editor, selection, capabilities, t, otherPages, opacityTarget]
+  )
 
   const actions = useMemo(() => createEditorCommandActions(commands), [commands])
 
