@@ -28,6 +28,7 @@ export const AppDialogRoot = forwardRef<HTMLDivElement, AppDialogRootProps>(
       onPointerDownOutside,
       onInteractOutside,
       open,
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       onOpenChange,
       ...props
     },

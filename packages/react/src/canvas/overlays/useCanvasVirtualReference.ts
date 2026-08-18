@@ -1,4 +1,4 @@
-import { useMemo, type RefObject } from 'react'
+import { useMemo, type RefObject, useState, useEffect } from 'react'
 
 import type { Editor } from '@openweave/core/editor'
 import type { Vector } from '@openweave/scene-graph/primitives'
@@ -12,6 +12,8 @@ export function useCanvasVirtualReference(
   editor: Editor,
   anchor: Vector | null
 ): CanvasVirtualReference | null {
+  const [panTick, setPanTick] = useState(0)
+  useEffect(() => editor.onEditorEvent('viewport:changed', () => setPanTick(t => t + 1)), [editor])
   return useMemo<CanvasVirtualReference | null>(() => {
     if (!anchor) return null
 
@@ -25,5 +27,5 @@ export function useCanvasVirtualReference(
         return new DOMRect(x, y, 0, 0)
       }
     }
-  }, [anchor, canvasRef, editor])
+  }, [anchor, canvasRef, editor, panTick])
 }

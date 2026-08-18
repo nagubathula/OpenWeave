@@ -12,7 +12,7 @@ export interface AppAlertDialogRootProps extends AlertDialogProps {
   children?: ReactNode
   className?: string
   onEscapeKeyDown?: (event: KeyboardEvent) => void
-  onPointerDownOutside?: (event: any) => void
+  
 }
 
 export const AppAlertDialogRoot = forwardRef<HTMLDivElement, AppAlertDialogRootProps>(
@@ -24,7 +24,7 @@ export const AppAlertDialogRoot = forwardRef<HTMLDivElement, AppAlertDialogRootP
       children,
       className,
       onEscapeKeyDown,
-      onPointerDownOutside,
+      
       open,
       onOpenChange,
       ...props
@@ -42,7 +42,7 @@ export const AppAlertDialogRoot = forwardRef<HTMLDivElement, AppAlertDialogRootP
             data-slot="dialog-content"
             className={`${cls.content} ${className || ''}`}
             onEscapeKeyDown={onEscapeKeyDown as any}
-            onPointerDownOutside={onPointerDownOutside as any}
+            
             {...props}
           >
             {children}

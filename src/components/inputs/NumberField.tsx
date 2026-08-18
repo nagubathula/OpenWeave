@@ -25,7 +25,7 @@ export interface NumberFieldProps {
   onChange: (value: number) => void
   onCommit?: (value: number, previous: number) => void
   onEditingChange?: (editing: boolean) => void
-  className?: string
+  className?: string; dataTestId?: string
   ariaLabel?: string
   dataProperty?: string
 }
@@ -46,6 +46,7 @@ export default function NumberField({
   onCommit,
   onEditingChange,
   className,
+  dataTestId,
   ariaLabel,
   dataProperty
 }: NumberFieldProps) {
@@ -76,6 +77,7 @@ export default function NumberField({
         placeholder={placeholder}
         className={className}
         dataProperty={dataProperty}
+        dataTestId={dataTestId}
       />
     </NumberFieldRoot>
   )
@@ -88,6 +90,7 @@ function NumberFieldInner({
   suffix,
   placeholder,
   className,
+  dataTestId,
   dataProperty
 }: any) {
   const { editing, actions, rootAttrs, stateAttrs } = useNumberField()
@@ -97,7 +100,7 @@ function NumberFieldInner({
       {...rootAttrs}
       {...stateAttrs}
       data-slot="root"
-      data-property={dataProperty}
+      data-property={dataProperty} data-test-id={dataTestId}
       className={styles.root({ class: className })}
       onPointerDown={(e) => {
         if (!editing && !(e.target as HTMLElement).closest('button')) {

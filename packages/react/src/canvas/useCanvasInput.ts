@@ -47,8 +47,8 @@ export function useCanvasInput(
 ) {
   const drag = useRef<DragState | null>(null)
   const [cursorOverride, setCursorOverride] = useState<string | null>(null)
-  const [autoLayoutPaddingEdit, setAutoLayoutPaddingEdit] =
-    useState<AutoLayoutPaddingEditState | null>(null)
+  const [autoLayoutPaddingEdit, setAutoLayoutPaddingEdit] = useState<AutoLayoutPaddingEditState | null>(null)
+  
   const selectedIdsBeforeClickSequence = useRef<ReadonlySet<string>>(new Set())
   const spaceHeld = useSpaceHeld()
   const { recordClick, getClickCount } = createClickCounter()

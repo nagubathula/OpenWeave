@@ -21,6 +21,7 @@ import { alphaGradient, backgroundFromDeclaration, HUE_RAINBOW_GRADIENT } from '
  * the fly and checked against the display-p3 gamut.
  */
 export interface OkHCLFieldControls {
+  _isFieldControls?: true
   fieldFormat: ColorFieldFormat
   fieldOptions: ColorFieldOption[]
   okhcl: OkHCLColor | null

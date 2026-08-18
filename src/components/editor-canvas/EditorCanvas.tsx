@@ -1,7 +1,7 @@
 import * as ContextMenu from '@radix-ui/react-context-menu'
 import * as Popover from '@radix-ui/react-popover'
 import { Pencil as IconLucidePencilLine } from 'lucide-react'
-import React, { useMemo, useRef } from 'react'
+import React, { useEffect, useMemo, useRef } from 'react'
 
 import {
   AUTO_LAYOUT_PADDING_EDITOR_OFFSET_X,
@@ -21,10 +21,18 @@ import { useEditorStore } from '@/app/editor/active-store'
 import { useCanvasCollaborationAwareness } from '@/app/editor/canvas/collaboration-awareness'
 import { createCanvasContextSelection } from '@/app/editor/canvas/context-selection'
 
+import NumberField from '@/components/inputs/NumberField'
+
 import CanvasMenu from '../canvas/CanvasMenu'
 
 export default function EditorCanvas() {
   const store = useEditorStore()
+
+  useEffect(() => {
+    return store.onEditorEvent('viewport:changed', () => {
+      window.dispatchEvent(new Event('resize'))
+    })
+  }, [store])
   const collab = useCollabInjected()
   const sceneCanvasRef = useRef<HTMLCanvasElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -77,8 +85,8 @@ export default function EditorCanvas() {
     return { x: abs.x + node.width - node.paddingRight / 2, y: abs.y + node.height / 2 }
   }, [autoLayoutPaddingEdit, store.graph])
 
-  const paddingEditorVirtualRef = useRef<{ getBoundingClientRect(): DOMRect } | null>(null)
-  paddingEditorVirtualRef.current = useCanvasVirtualReference(canvasRef, store, paddingEditorAnchor)
+  const paddingEditorVirtualRefCurrent = useCanvasVirtualReference(canvasRef, store, paddingEditorAnchor)
+  const paddingEditorVirtualRef = useMemo(() => ({ current: paddingEditorVirtualRefCurrent }), [paddingEditorVirtualRefCurrent])
 
   const cursor = toolCursor(store.state.activeTool, cursorOverride)
 
@@ -128,25 +136,7 @@ export default function EditorCanvas() {
                   className="z-50 w-20 rounded-md bg-panel p-1 shadow-lg"
                   data-test-id="auto-layout-padding-editor"
                 >
-                  <input
-                    type="number"
-                    value={autoLayoutPaddingEdit.value}
-                    min={0}
-                    step={1}
-                    data-test-id="auto-layout-padding-input"
-                    onChange={(e) => updateAutoLayoutPaddingEdit(Number(e.target.value))}
-                    onBlur={() => {
-                      if (autoLayoutPaddingEdit) {
-                        commitAutoLayoutPaddingEdit(autoLayoutPaddingEdit.value)
-                      }
-                    }}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        commitAutoLayoutPaddingEdit(Number(e.currentTarget.value))
-                      }
-                    }}
-                    className="w-full bg-transparent px-1 text-xs outline-none"
-                  />
+                  <NumberField value={autoLayoutPaddingEdit.value} min={0} step={1} dataTestId="auto-layout-padding-input" onChange={updateAutoLayoutPaddingEdit} onCommit={(v) => commitAutoLayoutPaddingEdit(v)} onEditingChange={(editing) => !editing && commitAutoLayoutPaddingEdit(autoLayoutPaddingEdit?.value ?? 0)} className="w-full bg-transparent px-1 text-xs outline-none" />
                 </Popover.Content>
               )}
             </Popover.Portal>

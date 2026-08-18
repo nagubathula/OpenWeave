@@ -5,12 +5,9 @@ import { setupWheelPanZoom } from '#react/shared/input/wheel'
 
 import type { Editor } from '@openweave/core/editor'
 
-type CanvasRefLike = { current?: HTMLCanvasElement | null; value?: HTMLCanvasElement | null }
+import { type CanvasRefLike, getCanvas } from './canvas-ref'
 type DragRefLike = { current?: DragState | null; value?: DragState | null }
 
-function getCanvas(ref: CanvasRefLike): HTMLCanvasElement | null {
-  return ref.current ?? ref.value ?? null
-}
 function getDrag(ref: DragRefLike): DragState | null {
   return ref.current ?? ref.value ?? null
 }

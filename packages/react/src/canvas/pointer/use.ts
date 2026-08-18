@@ -9,11 +9,7 @@ import type { HitTestFns } from '#react/shared/input/select'
 import type { Editor } from '@openweave/core/editor'
 import type { SceneNode } from '@openweave/scene-graph'
 
-type CanvasRefLike = { current?: HTMLCanvasElement | null; value?: HTMLCanvasElement | null }
-
-function getCanvas(ref: CanvasRefLike): HTMLCanvasElement | null {
-  return ref.current ?? ref.value ?? null
-}
+import { type CanvasRefLike, getCanvas } from '#react/shared/input/canvas-ref'
 
 export function createCanvasPointer(
   canvasRef: CanvasRefLike,

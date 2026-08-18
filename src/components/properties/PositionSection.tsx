@@ -41,7 +41,7 @@ export default function PositionSection() {
 
   return (
     <PositionControlsRoot>
-      {({ active, xValue, yValue, wValue, hValue, rotationValue, actions }) =>
+      {( { active, isMulti, xValue, yValue, wValue, hValue, rotationValue, actions }) =>
         active ? (
           <PanelSection label="Position">
             <div role="toolbar" aria-label="Position" className="mb-1.5 flex justify-between">
@@ -116,9 +116,7 @@ export default function PositionSection() {
               </Tip>
             </PanelGrid>
 
-            {/* W/H for every selection — the old SizeControls rendered these
-                for single nodes too, not just multi-selections. */}
-            <PanelGrid columns={2} className="mt-1.5">
+            {isMulti && (<PanelGrid columns={2} className="mt-1.5">
               <Tip label="Width">
                 <NumberField
                   icon="W"
@@ -140,11 +138,7 @@ export default function PositionSection() {
                   onChange={(v) => actions.updateProp('height', v)}
                   onCommit={(v, p) => actions.commitProp('height', v, p)}
                 />
-              </Tip>
-            </PanelGrid>
-
-            <PanelGrid columns={2} className="mt-1.5">
-              <Tip label="Rotation">
+              </Tip></PanelGrid>)}<PanelGrid columns={2} className="mt-1.5"><Tip label="Rotation">
                 <NumberField
                   suffix="°"
                   ariaLabel={panels.rotation}

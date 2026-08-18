@@ -4,80 +4,13 @@ import React from 'react'
 import { useAppearance, MIXED, useI18n } from '@openweave/react'
 import type { BlendMode } from '@openweave/scene-graph'
 
+import NumberField from '@/components/inputs/NumberField'
 import { useBlendModeOptions } from '@/components/properties/blend-mode/use'
+import VariableNumberField from '@/components/properties/LayoutSection/VariableNumberField'
 
-/**
- * Appearance section of the Design panel, ported from
- * src/components/properties/AppearanceSection.vue: blend mode, opacity,
- * corner radius (uniform or per-corner), corner smoothing, and a visibility
- * toggle in the header. All state/actions come from the SDK's `useAppearance`.
- */
-const fieldClass =
-  'flex h-6 min-w-0 flex-1 items-center gap-1.5 rounded border border-border bg-input/50 px-1.5 text-xs text-surface focus-within:border-accent'
-const numberInputClass = 'h-6 w-full min-w-0 bg-transparent outline-none text-surface text-[11px]'
 const labelClass = 'text-[10px] text-muted'
 const iconButtonClass =
   'flex size-6 shrink-0 cursor-pointer items-center justify-center rounded text-muted transition-colors hover:bg-hover hover:text-surface data-[active=true]:bg-hover data-[active=true]:text-surface'
-
-interface NumberInputProps {
-  /** `MixedValue<number>` from the SDK — a symbol marks a mixed selection. */
-  value: number | symbol
-  min?: number
-  max?: number
-  suffix?: string
-  icon?: React.ReactNode
-  ariaLabel: string
-  dataProperty?: string
-  onChange: (value: number) => void
-  onCommit?: (value: number) => void
-}
-
-function NumberInput({
-  value,
-  min,
-  max,
-  suffix,
-  icon,
-  ariaLabel,
-  dataProperty,
-  onChange,
-  onCommit
-}: NumberInputProps) {
-  const isMixed = typeof value !== 'number'
-  const display = isMixed ? '' : String(value)
-  const clamp = (v: number) => {
-    let next = v
-    if (min !== undefined) next = Math.max(min, next)
-    if (max !== undefined) next = Math.min(max, next)
-    return next
-  }
-  return (
-    <div className={fieldClass} data-property={dataProperty}>
-      {icon}
-      <input
-        type="number"
-        aria-label={ariaLabel}
-        className={numberInputClass}
-        value={display}
-        placeholder={isMixed ? 'Mixed' : undefined}
-        min={min}
-        max={max}
-        onChange={(e) => {
-          const parsed = Number(e.target.value)
-          if (!Number.isNaN(parsed)) onChange(clamp(parsed))
-        }}
-        onBlur={(e) => {
-          const parsed = Number(e.target.value)
-          if (!Number.isNaN(parsed)) onCommit?.(clamp(parsed))
-        }}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter' || e.key === 'Escape') e.currentTarget.blur()
-        }}
-      />
-      {suffix && <span className="shrink-0 text-[10px] text-muted">{suffix}</span>}
-    </div>
-  )
-}
 
 export function AppearanceSection() {
   const { panels } = useI18n()
@@ -143,7 +76,6 @@ export function AppearanceSection() {
         </button>
       </div>
 
-      {/* Blend mode + opacity */}
       <div className="grid grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] gap-1.5">
         <label className="flex min-w-0 flex-col gap-1">
           <span className={labelClass}>{panels.blendMode}</span>
@@ -165,32 +97,59 @@ export function AppearanceSection() {
         </label>
         <label className="flex min-w-0 flex-col gap-1">
           <span className={labelClass}>{panels.opacity}</span>
-          <NumberInput
-            ariaLabel={panels.opacity}
-            value={opacityPercent}
-            min={0}
-            max={100}
-            suffix="%"
-            icon={<Blend className="size-3 shrink-0 text-muted" />}
-            onChange={(v) => updateProp('opacity', v / 100)}
-            onCommit={(v) => commitProp('opacity', v / 100, v / 100)}
-          />
+          {typeof opacityPercent === 'number' && !isMulti && node ? (
+            <VariableNumberField
+              ariaLabel={panels.opacity}
+              nodeId={node.id}
+              bindingPath="opacity"
+              value={opacityPercent}
+              min={0}
+              max={100}
+              suffix="%"
+              icon={<Blend className="size-3 shrink-0 text-muted" />}
+              onChange={(v) => updateProp('opacity', v / 100)}
+              onCommit={(v) => commitProp('opacity', v / 100, v / 100)}
+            />
+          ) : (
+            <NumberField
+              ariaLabel={panels.opacity}
+              value={opacityPercent}
+              min={0}
+              max={100}
+              suffix="%"
+              icon={<Blend className="size-3 shrink-0 text-muted" />}
+              onChange={(v) => updateProp('opacity', v / 100)}
+              onCommit={(v) => commitProp('opacity', v / 100, v / 100)}
+            />
+          )}
         </label>
       </div>
 
-      {/* Corner radius */}
       {hasCornerRadius && !showIndependentCorners && (
         <div className="grid grid-cols-[minmax(0,1fr)_auto] items-end gap-1.5">
           <label className="flex min-w-0 flex-col gap-1">
             <span className={labelClass}>{panels.radius}</span>
-            <NumberInput
-              ariaLabel={panels.radius}
-              value={cornerRadiusValue}
-              min={0}
-              icon={<SquareRoundCorner className="size-3 shrink-0 text-muted" />}
-              onChange={(v) => updateProp('cornerRadius', v)}
-              onCommit={(v) => commitProp('cornerRadius', v, v)}
-            />
+            {typeof cornerRadiusValue === 'number' && !isMulti && node ? (
+              <VariableNumberField
+                ariaLabel={panels.radius}
+                nodeId={node.id}
+                bindingPath="cornerRadius"
+                value={cornerRadiusValue}
+                min={0}
+                icon={<SquareRoundCorner className="size-3 shrink-0 text-muted" />}
+                onChange={(v) => updateProp('cornerRadius', v)}
+                onCommit={(v) => commitProp('cornerRadius', v, v)}
+              />
+            ) : (
+              <NumberField
+                ariaLabel={panels.radius}
+                value={cornerRadiusValue}
+                min={0}
+                icon={<SquareRoundCorner className="size-3 shrink-0 text-muted" />}
+                onChange={(v) => updateProp('cornerRadius', v)}
+                onCommit={(v) => commitProp('cornerRadius', v, v)}
+              />
+            )}
           </label>
           <button
             type="button"
@@ -210,13 +169,25 @@ export function AppearanceSection() {
             {corners.map(([label, key, value]) => (
               <label key={key} className="flex min-w-0 flex-col gap-1">
                 <span className={labelClass}>{label}</span>
-                <NumberInput
-                  ariaLabel={`${panels.radius} ${label}`}
-                  value={value}
-                  min={0}
-                  onChange={(v) => updateCornerProp(key, v)}
-                  onCommit={(v) => commitCornerProp(key, v, v)}
-                />
+                {typeof value === 'number' ? (
+                  <VariableNumberField
+                    ariaLabel={`${panels.radius} ${label}`}
+                    nodeId={node.id}
+                    bindingPath={key as any}
+                    value={value}
+                    min={0}
+                    onChange={(v) => updateCornerProp(key, v)}
+                    onCommit={(v) => commitCornerProp(key, v, v)}
+                  />
+                ) : (
+                  <NumberField
+                    ariaLabel={`${panels.radius} ${label}`}
+                    value={value}
+                    min={0}
+                    onChange={(v) => updateCornerProp(key, v)}
+                    onCommit={(v) => commitCornerProp(key, v, v)}
+                  />
+                )}
               </label>
             ))}
           </div>
@@ -232,11 +203,10 @@ export function AppearanceSection() {
         </div>
       )}
 
-      {/* Corner smoothing */}
       {hasCornerRadius && (
         <label className="flex w-1/2 min-w-0 flex-col gap-1 pr-1">
           <span className={labelClass}>{panels.cornerSmoothing}</span>
-          <NumberInput
+          <NumberField
             ariaLabel={panels.cornerSmoothing}
             dataProperty="corner-smoothing"
             value={cornerSmoothingPercent}

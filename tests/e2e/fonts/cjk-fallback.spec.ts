@@ -1,3 +1,4 @@
+import * as fs from 'node:fs'
 import { test, expect } from '@playwright/test'
 
 import { CanvasHelper } from '#tests/helpers/canvas'
@@ -61,6 +62,14 @@ test('tool-created CJK text requests fallback through app font loading', async (
 })
 
 test('CJK text waits for fallback fonts and repaints after they load', async ({ page }) => {
+  await page.route('/tests/fixtures/fonts/NotoSansCJK-Test.otf', async route => {
+    const buffer = fs.readFileSync('./tests/fixtures/fonts/NotoSansCJK-Test.otf')
+    await route.fulfill({
+      status: 200,
+      contentType: 'font/otf',
+      body: buffer
+    })
+  })
   const canvas = new CanvasHelper(page)
   await page.goto('http://localhost:1420/?test&no-chrome&no-rulers')
   await canvas.waitForInit()
@@ -70,6 +79,7 @@ test('CJK text waits for fallback fonts and repaints after they load', async ({ 
     if (!store?.renderer) throw new Error('OpenWeave renderer not initialized')
     const renderer = store.renderer
     const response = await fetch('/tests/fixtures/fonts/NotoSansCJK-Test.otf')
+    if (!response.ok) throw new Error('Fetch failed: ' + response.status)
     const fallbackData = await response.arrayBuffer()
     const getFontManager = window.openWeave?.getFontManager
     if (!getFontManager) throw new Error('OpenWeave font test hooks not initialized')

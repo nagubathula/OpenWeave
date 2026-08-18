@@ -297,7 +297,7 @@ export default function LayerTree() {
                           {hasChildren ? (
                             <button
                               type="button"
-                              className={`${rowStyles.disclosure()} ${isExpanded ? 'rotate-90' : ''}`}
+                              data-slot="disclosure" className={`${rowStyles.disclosure()} ${isExpanded ? 'rotate-90' : ''}`}
                               onClick={(e) => {
                                 e.stopPropagation()
                                 itemActions.toggleExpand()

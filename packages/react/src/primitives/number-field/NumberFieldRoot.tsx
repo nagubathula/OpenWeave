@@ -493,9 +493,15 @@ export function NumberFieldRoot({
     ]
   )
 
+  const onEditingChangeRef = useRef(onEditingChange)
+  onEditingChangeRef.current = onEditingChange
+  const prevEditing = useRef(editing)
   useEffect(() => {
-    onEditingChange?.(editing)
-  }, [editing, onEditingChange])
+    if (prevEditing.current !== editing) {
+      onEditingChangeRef.current?.(editing)
+      prevEditing.current = editing
+    }
+  }, [editing])
 
   useEffect(() => {
     if (!editing && !scrubbing && typeof modelValue === 'number') {

@@ -114,12 +114,12 @@ export function registerKeyboardShortcuts(options: KeyboardShortcutOptions) {
     ),
     {
       id: 'export-selection-png',
-      keys: appMenuTinykeysShortcut('export-selection') ?? '$mod+Shift+KeyE',
+      keys: appMenuTinykeysShortcut('export-selection') ?? '$mod+Shift+E',
       run: ({ actions }) => actions.exportSelectionPng()
     },
     {
       id: 'save-as',
-      keys: appMenuTinykeysShortcut('save-as') ?? '$mod+Shift+KeyS',
+      keys: appMenuTinykeysShortcut('save-as') ?? '$mod+Shift+S',
       run: ({ store }) => void store.saveFigFileAs()
     },
     ...commandShortcuts('selection.ungroup', 'edit.redo'),
@@ -128,16 +128,16 @@ export function registerKeyboardShortcuts(options: KeyboardShortcutOptions) {
       keys: appMenuTinykeysShortcut('toggle-ui') ?? '$mod+Backslash',
       run: ({ actions }) => actions.toggleUI()
     },
-    { id: 'toggle-ai', keys: '$mod+KeyJ', run: ({ actions }) => actions.toggleAI() },
+    { id: 'toggle-ai', keys: '$mod+J', run: ({ actions }) => actions.toggleAI() },
     {
       id: 'close-tab',
-      keys: appMenuTinykeysShortcut('close') ?? '$mod+KeyW',
+      keys: appMenuTinykeysShortcut('close') ?? '$mod+W',
       run: ({ closeActiveTab }) => closeActiveTab()
     },
-    { id: 'new-tab', keys: ['$mod+KeyN', '$mod+KeyT'], run: ({ createTab }) => createTab() },
+    { id: 'new-tab', keys: ['$mod+N', '$mod+T'], run: ({ createTab }) => createTab() },
     {
       id: 'rename-selection',
-      keys: appMenuTinykeysShortcut('selection.rename') ?? '$mod+KeyR',
+      keys: appMenuTinykeysShortcut('selection.rename') ?? '$mod+R',
       run: ({ store }) => requestRenameSelection(store)
     },
     ...commandShortcuts(
@@ -151,18 +151,18 @@ export function registerKeyboardShortcuts(options: KeyboardShortcutOptions) {
     ),
     {
       id: 'save',
-      keys: appMenuTinykeysShortcut('save') ?? '$mod+KeyS',
+      keys: appMenuTinykeysShortcut('save') ?? '$mod+S',
       run: ({ store }) => void store.saveFigFile()
     },
     {
       id: 'open-file',
-      keys: appMenuTinykeysShortcut('open') ?? '$mod+KeyO',
+      keys: appMenuTinykeysShortcut('open') ?? '$mod+O',
       run: ({ openFileDialog }) => openFileDialog()
     },
     ...commandShortcuts('selection.group'),
     {
       id: 'toggle-auto-layout',
-      keys: 'Shift+KeyA',
+      keys: 'Shift+A',
       run: ({ actions }) => actions.toggleAutoLayout()
     },
     ...commandShortcuts(
