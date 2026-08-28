@@ -1,8 +1,11 @@
 import type { Fill, Stroke } from '@openweave/scene-graph'
 import type { Color } from '@openweave/scene-graph/primitives'
 
-export const IS_BROWSER = typeof window !== 'undefined'
-export const IS_TAURI = IS_BROWSER && '__TAURI_INTERNALS__' in window
+// `'window' in globalThis` (not `typeof window`) so bundlers can't constant-fold
+// the guard — these client chunks also run inside Web Workers, where `window`
+// does not exist and a folded guard crashes module evaluation.
+export const IS_BROWSER = 'window' in globalThis
+export const IS_TAURI = IS_BROWSER && '__TAURI_INTERNALS__' in globalThis.window
 
 export const BLACK: Color = { r: 0, g: 0, b: 0, a: 1 }
 export const TRANSPARENT: Color = { r: 0, g: 0, b: 0, a: 0 }
