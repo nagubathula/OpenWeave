@@ -1,4 +1,4 @@
-import { storybookTest } from '@storybook/experimental-addon-test/vitest-plugin';
+import { storybookTest } from '@storybook/addon-vitest/vitest-plugin';
 
 export default [
   'vitest.config.ts',
