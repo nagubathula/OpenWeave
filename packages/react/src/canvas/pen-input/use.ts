@@ -24,12 +24,19 @@ export function startPenInput(
     return true
   }
 
+  const isCurvature = editor.state.activeTool === 'CURVATURE_PEN'
   const penState = editor.state.penState
   if (penState && penState.vertices.length > 2) {
     const first = penState.vertices[0]
     const dist = Math.hypot(cx - first.x, cy - first.y)
     if (dist < PEN_CLOSE_THRESHOLD) {
       editor.penSetPendingClose(true)
+      if (isCurvature) {
+        // Curvature pen closes on click; the smooth pass shapes the joint.
+        editor.penCommit(true)
+        cursorOverride(null)
+        return true
+      }
       editor.penSetClosingToFirst(true)
       setDrag(createPenDrag(first.x, first.y))
       cursorOverride('crosshair')
@@ -38,6 +45,12 @@ export function startPenInput(
   }
 
   editor.penSetPendingClose(false)
+  if (isCurvature) {
+    // Click places a point and the curve re-flows through it; no tangent drag.
+    editor.penAddSmoothVertex(cx, cy)
+    cursorOverride('crosshair')
+    return true
+  }
   editor.penAddVertex(cx, cy)
   setDrag(createPenDrag(cx, cy))
   cursorOverride('crosshair')
@@ -45,7 +58,8 @@ export function startPenInput(
 }
 
 export function updatePenHover(cx: number, cy: number, editor: Editor): boolean {
-  if (editor.state.activeTool !== 'PEN' || !editor.state.penState) return false
+  const tool = editor.state.activeTool
+  if ((tool !== 'PEN' && tool !== 'CURVATURE_PEN') || !editor.state.penState) return false
   editor.state.penCursorX = cx
   editor.state.penCursorY = cy
 
@@ -53,6 +67,9 @@ export function updatePenHover(cx: number, cy: number, editor: Editor): boolean 
   if (editor.state.penState.vertices.length > 2) {
     const dist = Math.hypot(cx - first.x, cy - first.y)
     editor.penSetClosingToFirst(dist < PEN_CLOSE_THRESHOLD)
+  }
+  if (tool === 'CURVATURE_PEN') {
+    editor.penPreviewSmoothTangent(cx, cy)
   }
   editor.requestRepaint()
   return true

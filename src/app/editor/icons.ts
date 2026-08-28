@@ -12,6 +12,7 @@ import {
   MousePointer2 as IconMousePointer,
   PenTool as IconPenTool,
   Rows3 as IconRows,
+  Spline as IconSpline,
   Square as IconSquare,
   Star as IconStar,
   Triangle as IconTriangle,
@@ -31,6 +32,7 @@ export const toolIcons: Record<Tool, LucideIcon> = {
   POLYGON: IconTriangle,
   STAR: IconStar,
   PEN: IconPenTool,
+  CURVATURE_PEN: IconSpline,
   TEXT: IconType,
   HAND: IconHand
 }

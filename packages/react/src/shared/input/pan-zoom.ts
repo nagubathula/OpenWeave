@@ -155,17 +155,24 @@ export function setupPanZoom(
     }
   }
 
-  setupWheelPanZoom(canvasRef, editor)
-  addListener(canvasRef, 'touchstart', (e: Event) => onTouchStart(e as TouchEvent), {
-    passive: false
-  })
-  addListener(canvasRef, 'touchmove', (e: Event) => onTouchMove(e as TouchEvent), {
-    passive: false
-  })
-  addListener(canvasRef, 'touchend', (e: Event) => onTouchEnd(e as TouchEvent), { passive: false })
-  addListener(canvasRef, 'touchcancel', (e: Event) => onTouchEnd(e as TouchEvent), {
-    passive: false
-  })
+  const cleanups = [
+    setupWheelPanZoom(canvasRef, editor),
+    addListener(canvasRef, 'touchstart', (e: Event) => onTouchStart(e as TouchEvent), {
+      passive: false
+    }),
+    addListener(canvasRef, 'touchmove', (e: Event) => onTouchMove(e as TouchEvent), {
+      passive: false
+    }),
+    addListener(canvasRef, 'touchend', (e: Event) => onTouchEnd(e as TouchEvent), {
+      passive: false
+    }),
+    addListener(canvasRef, 'touchcancel', (e: Event) => onTouchEnd(e as TouchEvent), {
+      passive: false
+    }),
+    setupSafariGestureZoom(canvasRef, editor)
+  ]
 
-  setupSafariGestureZoom(canvasRef, editor)
+  return () => {
+    for (const cleanup of cleanups) cleanup()
+  }
 }

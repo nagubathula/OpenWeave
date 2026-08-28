@@ -36,6 +36,7 @@ export default function Toolbar() {
       POLYGON: toolTexts.polygon,
       STAR: toolTexts.star,
       PEN: toolTexts.pen,
+      CURVATURE_PEN: toolTexts.curvaturePen,
       TEXT: toolTexts.text,
       HAND: toolTexts.hand
     }),
@@ -53,6 +54,7 @@ export default function Toolbar() {
       POLYGON: '',
       STAR: '',
       PEN: 'P',
+      CURVATURE_PEN: '⇧P',
       TEXT: 'T',
       HAND: 'H'
     }),

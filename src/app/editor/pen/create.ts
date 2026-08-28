@@ -16,7 +16,7 @@ import {
 // matrix so nested, rotated, and flipped vectors resume in place.
 export function createPenActions(editor: Editor, state: PenState) {
   function setTool(tool: Tool) {
-    if (state.penState && tool !== 'PEN' && tool !== 'HAND') {
+    if (state.penState && tool !== 'PEN' && tool !== 'CURVATURE_PEN' && tool !== 'HAND') {
       editor.penCommit(false)
     }
     editor.setTool(tool)

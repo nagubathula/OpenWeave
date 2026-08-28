@@ -19,7 +19,7 @@ export function setupSafariGestureZoom(canvasRef: CanvasRefLike, editor: Editor)
 
   const gestureScheduler = createRafScheduler(flushGesture)
 
-  addListener(
+  const removeStart = addListener(
     canvasRef,
     'gesturestart' as keyof HTMLElementEventMap,
     (e: Event) => {
@@ -28,7 +28,7 @@ export function setupSafariGestureZoom(canvasRef: CanvasRefLike, editor: Editor)
     },
     { passive: false }
   )
-  addListener(
+  const removeChange = addListener(
     canvasRef,
     'gesturechange' as keyof HTMLElementEventMap,
     (e: Event) => {
@@ -46,7 +46,7 @@ export function setupSafariGestureZoom(canvasRef: CanvasRefLike, editor: Editor)
     },
     { passive: false }
   )
-  addListener(
+  const removeEnd = addListener(
     canvasRef,
     'gestureend' as keyof HTMLElementEventMap,
     (e: Event) => {
@@ -54,4 +54,11 @@ export function setupSafariGestureZoom(canvasRef: CanvasRefLike, editor: Editor)
     },
     { passive: false }
   )
+
+  return () => {
+    gestureScheduler.cancel()
+    removeStart()
+    removeChange()
+    removeEnd()
+  }
 }

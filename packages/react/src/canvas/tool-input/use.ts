@@ -59,7 +59,7 @@ export function handleToolMouseDown({
     return
   }
 
-  if (tool === 'PEN') {
+  if (tool === 'PEN' || tool === 'CURVATURE_PEN') {
     startPenInput(event, cx, cy, editor, setDrag, cursorOverride)
     return
   }

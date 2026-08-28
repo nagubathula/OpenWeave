@@ -89,7 +89,7 @@ export function setupWheelPanZoom(canvasRef: CanvasRefLike, editor: Editor) {
     wheelScheduler.schedule()
   }
 
-  addListener(
+  const removeWheel = addListener(
     canvasRef,
     'wheel',
     (event: Event) => {
@@ -98,4 +98,9 @@ export function setupWheelPanZoom(canvasRef: CanvasRefLike, editor: Editor) {
     },
     { passive: false }
   )
+
+  return () => {
+    wheelScheduler.cancel()
+    removeWheel()
+  }
 }

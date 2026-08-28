@@ -26,6 +26,7 @@ export type Tool =
   | 'STAR'
   | 'TEXT'
   | 'PEN'
+  | 'CURVATURE_PEN'
   | 'HAND'
 
 export interface EditorState {
@@ -53,6 +54,7 @@ export interface EditorState {
     oppositeDragTangent: Vector | null
     pendingClose?: boolean
     closingToFirst: boolean
+    curvature?: boolean
     resumingNodeId?: string
     resumedFills?: SceneNode['fills']
     resumedStrokes?: SceneNode['strokes']

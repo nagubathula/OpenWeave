@@ -296,6 +296,7 @@ export function useCanvasInput(
       if (drag.current) onMouseUp()
     }
     window.addEventListener('mouseup', onWindowMouseUp)
+    const cleanupPanZoom = setupPanZoom(canvasRef, editor, drag, onMouseDown, onMouseMove, onMouseUp)
     return () => {
       canvas.removeEventListener('dblclick', onDblClick)
       canvas.removeEventListener('mousedown', onMouseDown)
@@ -303,11 +304,11 @@ export function useCanvasInput(
       canvas.removeEventListener('mouseup', onMouseUp)
       canvas.removeEventListener('mouseleave', onMouseLeave)
       window.removeEventListener('mouseup', onWindowMouseUp)
+      cleanupPanZoom()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [autoLayoutPaddingEdit])
 
-  setupPanZoom(canvasRef, editor, drag, onMouseDown, onMouseMove, onMouseUp)
   return {
     drag,
     cursorOverride,
