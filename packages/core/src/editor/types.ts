@@ -84,6 +84,10 @@ export interface EditorState {
   sceneVersion: number
   loading: boolean
   enteredContainerId: string | null
+  /** Show prototype connection arrows on the canvas (Prototype tab active). */
+  prototypeMode: boolean
+  /** Live drag state while pulling a prototype connection from a node's handle. */
+  prototypeDrag: { sourceId: string; cursorX: number; cursorY: number } | null
   nodeEditState?: RenderOverlays['nodeEditState'] | null
   cursorCanvasX?: number | null
   cursorCanvasY?: number | null

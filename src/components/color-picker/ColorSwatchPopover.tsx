@@ -52,7 +52,7 @@ export function ColorSwatchPopover({
         align="start"
         sideOffset={8}
         data-picker-content
-        className="z-50 rounded-lg border border-border bg-surface p-3 shadow-lg"
+        className="z-50 rounded-lg border border-border bg-panel p-3 shadow-lg"
         onOpenAutoFocus={(e) => e.preventDefault()}
       >
         <ColorPicker color={color} onChange={onChange} okhcl={okhcl} />

@@ -280,7 +280,7 @@ function VariablesEditor({ onClose }: { onClose: () => void }) {
             <ChevronDown className="size-3" />
           </button>
           {addOpen && (
-            <div className="absolute right-0 bottom-full mb-2 w-48 rounded border border-border bg-surface py-1 shadow-lg">
+            <div className="absolute right-0 bottom-full mb-2 w-48 rounded border border-border bg-panel py-1 shadow-lg">
               {variableTypeOptions.map((item) => {
                 const Icon = variableTypeIcons[item.type]
                 return (
@@ -332,7 +332,7 @@ export function VariablesDialog({ open, onClose }: VariablesDialogProps) {
       onClick={onClose}
     >
       <div
-        className="flex h-[32rem] w-[50rem] max-w-[90vw] flex-col overflow-hidden rounded-lg border border-border bg-surface shadow-xl"
+        className="flex h-[32rem] w-[50rem] max-w-[90vw] flex-col overflow-hidden rounded-lg border border-border bg-panel shadow-xl"
         role="dialog"
         aria-modal="true"
         aria-label={dialogs.localVariables}

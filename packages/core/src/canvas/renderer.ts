@@ -15,6 +15,7 @@ import {
   COMPONENT_SET_BORDER_WIDTH,
   IS_BROWSER
 } from '#core/constants'
+import type { PrototypeOverlayState } from '#core/canvas/prototype-overlay'
 import type { EditorState } from '#core/editor/types'
 import { RenderProfiler } from '#core/profiler'
 import type { TextEditor } from '#core/text/editor'
@@ -173,6 +174,10 @@ export class SkiaRenderer {
   panY = 0
   zoom = 1
   dpr = 1
+  /** GPU limit for offscreen surfaces; conservative default until read from GL. */
+  maxRenderTargetSize = 4096
+  /** Underlying WebGL context, for lost-context checks; null when headless. */
+  gl: WebGL2RenderingContext | null = null
   viewportWidth = 0
   viewportHeight = 0
   showRulers = true
@@ -254,6 +259,11 @@ export class SkiaRenderer {
     editState?: RenderOverlays['nodeEditState']
   ) => void
   declare drawPenOverlay: (canvas: Canvas, penState: RenderOverlays['penState']) => void
+  declare drawPrototypeOverlay: (
+    canvas: Canvas,
+    graph: SceneGraph,
+    state?: PrototypeOverlayState
+  ) => void
   declare drawRemoteCursors: (
     canvas: Canvas,
     graph: SceneGraph,
@@ -413,6 +423,14 @@ export class SkiaRenderer {
     this.ck = ck
     this.surface = surface
     this.profiler = new RenderProfiler(ck, gl ?? null)
+    this.gl = gl ?? null
+    if (gl && !gl.isContextLost()) {
+      const maxTexture = gl.getParameter(gl.MAX_TEXTURE_SIZE) as number
+      const maxRenderbuffer = gl.getParameter(gl.MAX_RENDERBUFFER_SIZE) as number
+      if (maxTexture > 0 && maxRenderbuffer > 0) {
+        this.maxRenderTargetSize = Math.min(maxTexture, maxRenderbuffer)
+      }
+    }
     initializeRendererPaints(this)
   }
 

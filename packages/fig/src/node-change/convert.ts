@@ -8,6 +8,7 @@ import { parseVariantName } from '@openweave/scene-graph/variant-name'
 /* eslint-disable max-lines -- kiwi↔scene conversion helpers are tightly coupled */
 
 import { convertFigmaDerivedTextGlyphs } from './derived-text-glyphs'
+import { nodeChangeToReactions } from './prototype'
 import { convertFontFeatures } from './font/features'
 import { convertFontVariations } from './font/variations'
 import { convertEffects, convertFills, convertStrokes } from './paint'
@@ -625,6 +626,8 @@ export function nodeChangeToProps(
     maskIsOutline: nc.maskIsOutline ?? false,
     expanded: true,
     autoRename: (nc.autoRename ?? true) as boolean,
+    reactions: nodeChangeToReactions(nc as Parameters<typeof nodeChangeToReactions>[0]),
+    prototypeStartNodeId: nc.prototypeStartNodeID ? guidToString(nc.prototypeStartNodeID) : null,
     boundVariables: extractBoundVariables(nc),
     variableModes: extractVariableModes(nc),
     exportSettings: extractExportSettings(nc),

@@ -3,6 +3,7 @@ import React from 'react'
 import ColorAreaControl from './ColorAreaControl'
 import { ColorPickerPanelProvider } from './context'
 import type { ColorPickerPanelProps } from './context'
+import EyedropperButton from './EyedropperButton'
 import FormatControls from './FormatControls'
 import HexField from './HexField'
 import HueAlphaSliders from './HueAlphaSliders'
@@ -21,7 +22,10 @@ export function ColorPickerPanel(props: ColorPickerPanelProps) {
       <div className="flex flex-col gap-2">
         <ColorAreaControl />
         <HueAlphaSliders />
-        <HexField />
+        <div className="flex items-center gap-1.5">
+          <EyedropperButton />
+          <HexField />
+        </div>
         <FormatControls />
       </div>
     </ColorPickerPanelProvider>

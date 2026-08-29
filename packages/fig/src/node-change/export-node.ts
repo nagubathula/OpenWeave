@@ -1,5 +1,7 @@
 import type { NodeChange, Paint } from '@openweave/kiwi/fig/codec'
 import { stringToGuid } from '@openweave/kiwi/fig/guid'
+
+import { legacyPrototypeFields, reactionsToKiwiInteractions } from './prototype'
 import { DEFAULT_STROKE_MITER_LIMIT } from '@openweave/scene-graph'
 import type {
   ComponentPropertyDefinition,
@@ -779,6 +781,22 @@ export function sceneNodeToKiwiWithContext(
   if (node.sharedStyleType) nc.styleType = node.sharedStyleType
   if (node.type === 'GROUP') {
     nc.resizeToFit = true
+  }
+  if (node.reactions.length > 0) {
+    const resolveGuid = (nodeId: string) => getOrCreateNodeGuid(context, nodeId, localIdCounter)
+    nc.prototypeInteractions = reactionsToKiwiInteractions(node.reactions, resolveGuid, () => ({
+      sessionID: 1,
+      localID: localIdCounter.value++
+    }))
+    const legacy = legacyPrototypeFields(node.reactions, resolveGuid)
+    if (legacy) Object.assign(nc, legacy)
+  } else if ('prototypeInteractions' in effectiveFigmaRawNodeFields(node)) {
+    // All reactions were removed in the editor; block the stale raw copy.
+    nc.prototypeInteractions = []
+  }
+  if (node.prototypeStartNodeId) {
+    const startGuid = getOrCreateNodeGuid(context, node.prototypeStartNodeId, localIdCounter)
+    if (startGuid) nc.prototypeStartNodeID = startGuid
   }
   // Only set strokeWeight/strokeAlign when the node has strokes in the scene
   // model. For imported nodes without strokes but with raw strokeWeight data

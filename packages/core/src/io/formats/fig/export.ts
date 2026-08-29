@@ -499,6 +499,16 @@ export async function exportFigFile(
     }
   }
 
+  // Prototype flow starting points reference frame GUIDs assigned in the
+  // children pass above, so they resolve only after every node has a GUID.
+  for (const { page, canvasNc } of orderedCanvasEntries) {
+    if (!page.id) continue
+    const startId = graph.getNode(page.id)?.prototypeStartNodeId
+    if (!startId) continue
+    const startGuid = nodeIdToGuid.get(startId)
+    if (startGuid) canvasNc.prototypeStartNodeID = startGuid
+  }
+
   appendInternalResources({
     graph,
     nodeChanges,

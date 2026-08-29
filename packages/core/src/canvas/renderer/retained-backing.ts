@@ -10,6 +10,10 @@ import type { RenderLayer } from './pipeline'
 
 const now = typeof performance !== 'undefined' ? () => performance.now() : () => 0
 const SCENE_BACKING_SCALE = 3
+// Upper bound on backing pixels (~128MB RGBA). Oversized offscreen targets can
+// exhaust VRAM or exceed driver limits, resetting the GL device mid-flush
+// (surfacing as "Shader compilation error" spam from Skia).
+const SCENE_BACKING_MAX_PIXELS = 32_000_000
 const FRAME_BUDGET_60HZ_MS = 1000 / 60
 const MIN_SCENE_BACKING_IDLE_FRAMES = 2
 const MAX_SCENE_BACKING_IDLE_FRAMES = 18
@@ -154,8 +158,23 @@ function drawSceneBacking(
 }
 
 function sceneBackingGeometry(r: SkiaRenderer) {
-  const marginX = r.viewportWidth * ((SCENE_BACKING_SCALE - 1) / 2)
-  const marginY = r.viewportHeight * ((SCENE_BACKING_SCALE - 1) / 2)
+  const vw = Math.max(1, r.viewportWidth)
+  const vh = Math.max(1, r.viewportHeight)
+  const maxDim = r.maxRenderTargetSize
+  // Fit within the GPU's render-target limit and the pixel budget: give up pan
+  // coverage first, and drop resolution only when even 1x coverage won't fit.
+  const scale = clamp(
+    Math.min(
+      maxDim / (vw * r.dpr),
+      maxDim / (vh * r.dpr),
+      Math.sqrt(SCENE_BACKING_MAX_PIXELS / (vw * vh * r.dpr * r.dpr))
+    ),
+    1,
+    SCENE_BACKING_SCALE
+  )
+  const dpr = Math.min(r.dpr, maxDim / (vw * scale), maxDim / (vh * scale))
+  const marginX = r.viewportWidth * ((scale - 1) / 2)
+  const marginY = r.viewportHeight * ((scale - 1) / 2)
   const width = Math.max(1, Math.ceil(r.viewportWidth + marginX * 2))
   const height = Math.max(1, Math.ceil(r.viewportHeight + marginY * 2))
   const backingPanX = r.panX + marginX
@@ -170,14 +189,17 @@ function sceneBackingGeometry(r: SkiaRenderer) {
     worldWidth: width / r.zoom,
     worldHeight: height / r.zoom,
     zoom: r.zoom,
-    dpr: r.dpr
+    dpr
   }
 }
 
-function createSceneBackingSurface(r: SkiaRenderer, width: number, height: number): Surface | null {
+function createSceneBackingSurface(
+  r: SkiaRenderer,
+  backing: ReturnType<typeof sceneBackingGeometry>
+): Surface | null {
   return r.surface.makeSurface({
-    width: Math.ceil(width * r.dpr),
-    height: Math.ceil(height * r.dpr),
+    width: Math.ceil(backing.width * backing.dpr),
+    height: Math.ceil(backing.height * backing.dpr),
     colorType: r.ck.ColorType.RGBA_8888,
     alphaType: r.ck.AlphaType.Premul,
     colorSpace: r.ck.ColorSpace.SRGB
@@ -272,7 +294,7 @@ function renderBackingChild(
     h: backing.worldHeight
   }
   canvas.save()
-  canvas.scale(r.dpr, r.dpr)
+  canvas.scale(backing.dpr, backing.dpr)
   canvas.translate(backing.panX, backing.panY)
   canvas.scale(r.zoom, r.zoom)
   const picture = cachedSubtreePicture(r, graph, childId, sceneVersion)
@@ -344,7 +366,7 @@ function startSceneBackingBuild(r: SkiaRenderer, graph: SceneGraph, sceneVersion
   cancelSceneBackingBuild(r)
   const backing = sceneBackingGeometry(r)
   const pageNode = graph.getNode(r.pageId ?? graph.rootId)
-  const surface = createSceneBackingSurface(r, backing.width, backing.height)
+  const surface = createSceneBackingSurface(r, backing)
   if (!surface) return
   surface.getCanvas().clear(r.ck.Color4f(r.pageColor.r, r.pageColor.g, r.pageColor.b, 1))
   r.sceneBackingBuild = {
@@ -410,7 +432,7 @@ function stepSceneBackingBuild(r: SkiaRenderer, sceneVersion: number): boolean {
 function recordSceneBacking(r: SkiaRenderer, graph: SceneGraph, sceneVersion: number): void {
   const startedAt = now()
   const backing = sceneBackingGeometry(r)
-  const surface = createSceneBackingSurface(r, backing.width, backing.height)
+  const surface = createSceneBackingSurface(r, backing)
   if (!surface) return
   const canvas = surface.getCanvas()
   canvas.clear(r.ck.Color4f(r.pageColor.r, r.pageColor.g, r.pageColor.b, 1))
@@ -436,6 +458,11 @@ export function renderSceneBacking(
   graph: SceneGraph,
   sceneVersion: number
 ): boolean {
+  // A lost GL context turns every GPU call into a no-op: recording a backing
+  // would just snapshot garbage while Skia logs a failed compile per program.
+  // Skip it entirely; the context-restore handler rebuilds the renderer.
+  if (r.gl?.isContextLost()) return false
+
   const positionPreviewVersion = graph.positionPreviewVersion
   const allowStaleZoom = now() < r.sceneBackingPreviewUntil
   const hasCoverage = backingCoverageContainsLiveViewport(

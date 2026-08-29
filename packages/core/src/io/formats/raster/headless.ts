@@ -13,8 +13,12 @@ export async function initCanvasKit(): Promise<CanvasKit> {
   if (cachedCk) return cachedCk
   const CanvasKitInit = (await import('canvaskit-wasm/full')).default
   const ckPath = import.meta.resolve('canvaskit-wasm/full')
-  const binDir = new URL('.', ckPath).pathname
-  cachedCk = await CanvasKitInit({ locateFile: (file: string) => binDir + file })
+  // fileURLToPath, not URL.pathname: pathname keeps a leading slash before
+  // Windows drive letters ("/D:/..."), which fs cannot open.
+  const { fileURLToPath } = await import('node:url')
+  cachedCk = await CanvasKitInit({
+    locateFile: (file: string) => fileURLToPath(new URL(file, ckPath))
+  })
   return cachedCk
 }
 

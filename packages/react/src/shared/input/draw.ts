@@ -72,6 +72,8 @@ export function handleDrawUp(d: DragDraw, editor: Editor) {
     editor.adoptNodesIntoSection(node.id)
   }
   editor.commitResize(d.nodeId, { x: d.startX, y: d.startY, width: 0, height: 0 })
+  // Figma-style: a node drawn fully inside a frame becomes its child.
+  editor.adoptNodeIntoFrame(d.nodeId)
   editor.undo.commitBatch()
   editor.setTool('SELECT')
   if (node?.type === 'TEXT') editor.startTextEditing(node.id)

@@ -30,10 +30,11 @@ import { exposeChatTransportOverride } from '@/app/browser-bridge'
 import { getActiveEditorStore } from '@/app/editor/active-store'
 
 /**
- * Shared design/code/ai panel tab. A nanostores atom so React renders it via
- * `useStore` and non-React code (keyboard shortcuts) uses `.get()`/`.set()`.
+ * Shared design/prototype/code/ai panel tab. A nanostores atom so React renders
+ * it via `useStore` and non-React code (keyboard shortcuts) uses `.get()`/`.set()`.
  */
-const activeTab = atom<'design' | 'code' | 'ai'>('design')
+export type PropertiesTab = 'design' | 'prototype' | 'code' | 'ai'
+const activeTab = atom<PropertiesTab>('design')
 
 const chatSession = createChatSessionManager({
   isConfigured,

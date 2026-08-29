@@ -8,6 +8,7 @@ import {
   SECTION_DEFAULT_STROKE
 } from '#core/constants'
 
+import { adoptNodeIntoFrame as adoptNodeIntoFrameImpl } from './shapes/frame-adopt'
 import { createFramePresetActions } from './shapes/frame-presets'
 import { createPenActions } from './shapes/pen'
 import { adoptNodesIntoSection as adoptNodesIntoSectionImpl } from './shapes/section-adopt'
@@ -93,6 +94,7 @@ export function createShapeActions(ctx: EditorContext) {
     ...penActions,
     ...framePresetActions,
     adoptNodesIntoSection: (sectionId: string) => adoptNodesIntoSectionImpl(ctx, sectionId),
+    adoptNodeIntoFrame: (nodeId: string) => adoptNodeIntoFrameImpl(ctx, nodeId),
     setTool
   }
 }

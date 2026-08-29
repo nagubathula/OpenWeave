@@ -1,4 +1,4 @@
-import type { SceneNode } from '@openweave/scene-graph'
+import { duplicateNodeName, type SceneNode } from '@openweave/scene-graph'
 import type { Vector } from '@openweave/scene-graph/primitives'
 
 import { importClipboardNodes, parseFigmaClipboard, parseOpenWeaveClipboard } from '#core/clipboard'
@@ -31,7 +31,7 @@ export function createClipboardActions(ctx: EditorContext) {
     for (const node of topLevel) {
       const parentId = node.parentId ?? ctx.state.currentPageId
       const clone = ctx.graph.cloneTree(node.id, parentId, {
-        name: node.name + ' copy',
+        name: duplicateNodeName(ctx.graph, node.name, parentId),
         x: node.x + 20,
         y: node.y + 20
       })

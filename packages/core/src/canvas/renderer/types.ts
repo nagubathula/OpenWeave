@@ -69,4 +69,8 @@ export interface RenderOverlays {
     y: number
     selection?: string[]
   }>
+  /** Draw prototype connection arrows (Prototype tab active). */
+  prototypeMode?: boolean
+  /** Live prototype-connection drag from a node's connector handle. */
+  prototypeDrag?: { sourceId: string; cursorX: number; cursorY: number } | null
 }

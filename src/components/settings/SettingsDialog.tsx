@@ -283,7 +283,7 @@ export function SettingsDialog({ open, onClose }: SettingsDialogProps) {
       onClick={onClose}
     >
       <div
-        className="flex h-[28rem] w-[40rem] max-w-[90vw] flex-col overflow-hidden rounded-lg border border-border bg-surface shadow-xl"
+        className="flex h-[28rem] w-[40rem] max-w-[90vw] flex-col overflow-hidden rounded-lg border border-border bg-panel shadow-xl"
         role="dialog"
         aria-modal="true"
         aria-label={dialogs.settings}

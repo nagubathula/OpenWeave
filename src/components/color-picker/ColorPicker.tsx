@@ -4,6 +4,7 @@ import type { Color } from '@openweave/scene-graph/primitives'
 
 import ColorPickerPanel from '@/components/color-picker-panel/ColorPickerPanel'
 import type { OkHCLFieldControls } from '@/components/color-picker-panel/context'
+import DocumentColors from '@/components/color-picker/DocumentColors'
 
 export interface ColorPickerProps {
   color: Color
@@ -25,6 +26,7 @@ export function ColorPicker({ color, onChange, okhcl = null }: ColorPickerProps)
   return (
     <div className="w-56 text-xs">
       <ColorPickerPanel color={color} onUpdate={onChange} okhcl={okhcl} />
+      <DocumentColors onPick={onChange} />
     </div>
   )
 }

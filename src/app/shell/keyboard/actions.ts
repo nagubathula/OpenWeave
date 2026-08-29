@@ -5,7 +5,10 @@ import type { EditorStore } from '@/app/editor/active-store'
 
 type KeyboardActionsOptions = {
   store: EditorStore
-  activeTab: { get(): 'design' | 'code' | 'ai'; set(tab: 'design' | 'code' | 'ai'): void }
+  activeTab: {
+    get(): 'design' | 'prototype' | 'code' | 'ai'
+    set(tab: 'design' | 'prototype' | 'code' | 'ai'): void
+  }
   isMobile: { readonly value: boolean }
   runCommand: ReturnType<typeof useEditorCommands>['runCommand']
   setOpacityTarget: ReturnType<typeof useEditorCommands>['setOpacityTarget']

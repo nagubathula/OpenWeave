@@ -35,6 +35,11 @@ function applyImportedCanvasMetadata(
   page.source.fig.rawNodeFields.strokeJoin = canvasNc.strokeJoin
   page.source.fig.rawNodeFields.strokeWeight = canvasNc.strokeWeight
   if (canvasNc.pageType) page.source.fig.rawNodeFields.pageType = canvasNc.pageType
+  if (canvasNc.prototypeStartNodeID) {
+    // Stored as the GUID string for now; remapPrototypeIds resolves it to the
+    // created node id once every node exists.
+    page.prototypeStartNodeId = guidToString(canvasNc.prototypeStartNodeID)
+  }
 }
 
 function applyImportedDocumentMetadata(graph: SceneGraph, docNc: NodeChange | undefined) {
@@ -365,6 +370,32 @@ function remapComponentIds(graph: SceneGraph, guidToNodeId: Map<string, string>)
   }
 }
 
+/** Prototype references are imported as GUID strings; remap them to graph ids. */
+function remapPrototypeIds(graph: SceneGraph, guidToNodeId: Map<string, string>): void {
+  for (const node of graph.getAllNodes()) {
+    if (node.prototypeStartNodeId) {
+      const remapped = guidToNodeId.get(node.prototypeStartNodeId)
+      if (remapped) node.prototypeStartNodeId = remapped
+    }
+    if (node.reactions.length === 0) continue
+    node.reactions = node.reactions.flatMap((reaction) => {
+      if (reaction.action !== 'NAVIGATE') return [reaction]
+      const destinationId = reaction.destinationId
+        ? (guidToNodeId.get(reaction.destinationId) ?? null)
+        : null
+      // A navigate reaction whose destination did not import is dead weight.
+      if (!destinationId) return []
+      return [{ ...reaction, destinationId }]
+    })
+  }
+  for (const page of graph.getPages(true)) {
+    if (page.prototypeStartNodeId) {
+      const remapped = guidToNodeId.get(page.prototypeStartNodeId)
+      if (remapped) page.prototypeStartNodeId = remapped
+    }
+  }
+}
+
 function applyVariantPropSpecs(graph: SceneGraph): void {
   for (const node of graph.getAllNodes()) {
     if (node.type !== 'COMPONENT' || node.variantPropSpecs.length === 0 || !node.parentId) continue
@@ -477,6 +508,7 @@ export function importNodeChanges(
   importVariableEntries(changeMap, parentMap, graph, assetRefs)
   importVariableBindings(changeMap, guidToNodeId, graph)
   remapComponentIds(graph, guidToNodeId)
+  remapPrototypeIds(graph, guidToNodeId)
   applyVariantPropSpecs(graph)
 
   const firstPageId = graph.getPages()[0]?.id

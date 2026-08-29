@@ -351,6 +351,31 @@ export type FigmaLayoutMetadata = Partial<
     Record<'bordersTakeSpace' | 'stackReverseZIndex', boolean>
 >
 
+export type PrototypeTrigger = 'ON_CLICK' | 'ON_HOVER' | 'AFTER_TIMEOUT'
+export type PrototypeActionType = 'NAVIGATE' | 'BACK' | 'OPEN_URL'
+export type PrototypeTransition =
+  | 'INSTANT'
+  | 'DISSOLVE'
+  | 'SLIDE_FROM_LEFT'
+  | 'SLIDE_FROM_RIGHT'
+  | 'SLIDE_FROM_TOP'
+  | 'SLIDE_FROM_BOTTOM'
+
+/** A Figma-style prototype interaction attached to a node. */
+export interface PrototypeReaction {
+  trigger: PrototypeTrigger
+  /** Delay in ms before AFTER_TIMEOUT fires. */
+  timeout: number
+  action: PrototypeActionType
+  /** Destination node id for NAVIGATE (a top-level frame). */
+  destinationId: string | null
+  /** External URL for OPEN_URL. */
+  url: string
+  transition: PrototypeTransition
+  /** Transition duration in ms. */
+  transitionDuration: number
+}
+
 export interface SceneNode {
   id: string
   type: NodeType
@@ -481,6 +506,10 @@ export interface SceneNode {
   expanded: boolean
   textTruncation: 'DISABLED' | 'ENDING'
   autoRename: boolean
+
+  reactions: PrototypeReaction[]
+  /** On PAGE nodes: the frame the prototype flow starts from. */
+  prototypeStartNodeId: string | null
 
   pointCount: number
   starInnerRadius: number

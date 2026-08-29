@@ -136,6 +136,8 @@ export function createDefaultNode(
     expanded: true,
     textTruncation: 'DISABLED',
     autoRename: true,
+    reactions: [],
+    prototypeStartNodeId: null,
     pointCount: 5,
     starInnerRadius: 0.38,
     componentId: null,

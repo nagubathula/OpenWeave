@@ -56,22 +56,34 @@ export function createStructureReorderActions(ctx: EditorContext) {
     const origX = node.x
     const origY = node.y
 
-    ctx.graph.reorderChild(nodeId, newParentId, insertIndex)
-    ctx.runLayoutForNode(newParentId)
-    if (origParentId !== newParentId) ctx.runLayoutForNode(origParentId)
+    // Local coords are parent-relative: converting them into the new parent's
+    // space keeps the node visually in place when it changes parents.
+    const reparenting = origParentId !== newParentId
+    let newX = origX
+    let newY = origY
+    if (reparenting) {
+      const absPos = ctx.graph.getAbsolutePosition(nodeId)
+      const parentAbs = ctx.graph.getAbsolutePosition(newParentId)
+      newX = absPos.x - parentAbs.x
+      newY = absPos.y - parentAbs.y
+    }
+
+    const apply = () => {
+      if (reparenting) ctx.graph.updateNode(nodeId, { x: newX, y: newY })
+      ctx.graph.reorderChild(nodeId, newParentId, insertIndex)
+      ctx.runLayoutForNode(newParentId)
+      if (reparenting) ctx.runLayoutForNode(origParentId)
+    }
+    apply()
 
     ctx.undo.push({
       label: 'Reorder',
-      forward: () => {
-        ctx.graph.reorderChild(nodeId, newParentId, insertIndex)
-        ctx.runLayoutForNode(newParentId)
-        if (origParentId !== newParentId) ctx.runLayoutForNode(origParentId)
-      },
+      forward: apply,
       inverse: () => {
         ctx.graph.reorderChild(nodeId, origParentId, origIndex)
         ctx.graph.updateNode(nodeId, { x: origX, y: origY })
         ctx.runLayoutForNode(origParentId)
-        if (origParentId !== newParentId) ctx.runLayoutForNode(newParentId)
+        if (reparenting) ctx.runLayoutForNode(newParentId)
       }
     })
   }

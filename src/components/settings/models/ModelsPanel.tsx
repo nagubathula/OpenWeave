@@ -487,7 +487,7 @@ function ProfileEditor({ profileId, onDone }: ProfileEditorProps) {
           <AlertDialog.Overlay className="fixed inset-0 z-50 bg-black/50" />
           <AlertDialog.Content
             data-test-id="delete-model-dialog"
-            className="fixed top-1/2 left-1/2 z-50 w-96 max-w-[90vw] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-lg border border-border bg-surface shadow-xl"
+            className="fixed top-1/2 left-1/2 z-50 w-96 max-w-[90vw] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-lg border border-border bg-panel shadow-xl"
           >
             <div className="border-b border-border px-4 py-3">
               <AlertDialog.Title className="text-sm font-semibold text-surface">

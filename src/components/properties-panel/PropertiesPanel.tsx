@@ -1,13 +1,15 @@
 import { useStore } from '@nanostores/react'
 import * as Tabs from '@radix-ui/react-tabs'
 import { Code, Sparkles } from 'lucide-react'
-import React from 'react'
+import React, { useEffect } from 'react'
 
-import { useAIChat } from '@/app/ai/chat/use'
+import { useAIChat, type PropertiesTab } from '@/app/ai/chat/use'
+import { useEditorStore } from '@/app/editor/active-store'
 import ChatPanel from '@/components/chat/ChatPanel'
 import ZoomDropdown from '@/components/editor/ZoomDropdown'
 import CodePanel from '@/components/properties/CodePanel'
 import DesignPanel from '@/components/properties/DesignPanel'
+import PrototypePanel from '@/components/prototype/PrototypePanel'
 
 export default function PropertiesPanel() {
   // The tab selection is shared app state (a nanostores atom in @/app/ai/chat/use)
@@ -15,8 +17,19 @@ export default function PropertiesPanel() {
   const { activeTab: activeTabAtom } = useAIChat()
   const activeTab = useStore(activeTabAtom)
   const setActiveTab = (value: string) => {
-    activeTabAtom.set(value as 'design' | 'code' | 'ai')
+    activeTabAtom.set(value as PropertiesTab)
   }
+
+  // Prototype connection arrows on the canvas follow the tab.
+  const store = useEditorStore()
+  useEffect(() => {
+    store.state.prototypeMode = activeTab === 'prototype'
+    store.requestRepaint()
+    return () => {
+      store.state.prototypeMode = false
+      store.requestRepaint()
+    }
+  }, [store, activeTab])
 
   return (
     <aside
@@ -36,6 +49,13 @@ export default function PropertiesPanel() {
             className="relative rounded px-2.5 py-1 text-[11px] text-muted hover:text-surface data-[state=active]:font-semibold data-[state=active]:text-surface after:absolute after:inset-x-2 after:-bottom-[9px] after:h-0.5 after:rounded-full after:bg-transparent data-[state=active]:after:bg-accent"
           >
             Design
+          </Tabs.Trigger>
+          <Tabs.Trigger
+            value="prototype"
+            data-test-id="properties-tab-prototype"
+            className="relative rounded px-2.5 py-1 text-[11px] text-muted hover:text-surface data-[state=active]:font-semibold data-[state=active]:text-surface after:absolute after:inset-x-2 after:-bottom-[9px] after:h-0.5 after:rounded-full after:bg-transparent data-[state=active]:after:bg-accent"
+          >
+            Prototype
           </Tabs.Trigger>
           <Tabs.Trigger
             value="code"
@@ -63,6 +83,10 @@ export default function PropertiesPanel() {
 
         <Tabs.Content value="design" className="flex min-h-0 flex-1 flex-col">
           <DesignPanel />
+        </Tabs.Content>
+
+        <Tabs.Content value="prototype" className="flex min-h-0 flex-1 flex-col">
+          <PrototypePanel />
         </Tabs.Content>
 
         <Tabs.Content value="code" className="flex min-h-0 flex-1 flex-col">

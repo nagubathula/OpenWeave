@@ -79,6 +79,11 @@ export interface DragPen {
   knotStartY: number
 }
 
+export interface DragProtoConnect {
+  type: 'proto-connect'
+  sourceId: string
+}
+
 export interface DragTextSelect {
   type: 'text-select'
   startX: number
@@ -121,6 +126,7 @@ export type DragState =
   | DragMarquee
   | DragRotate
   | DragPen
+  | DragProtoConnect
   | DragTextSelect
   | DragEditNode
   | DragEditHandle

@@ -81,7 +81,7 @@ export default function RenameSelectionDialog() {
       onClick={close}
     >
       <div
-        className="flex w-[32rem] max-w-[90vw] flex-col overflow-hidden rounded-lg border border-border bg-surface shadow-xl"
+        className="flex w-[32rem] max-w-[90vw] flex-col overflow-hidden rounded-lg border border-border bg-panel shadow-xl"
         role="dialog"
         aria-modal="true"
         aria-label={dialogs.renameLayers({ count: String(selectedNodes.length) })}

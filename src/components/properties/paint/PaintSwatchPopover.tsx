@@ -50,7 +50,7 @@ export function PaintSwatchPopover({
           side="left"
           align="start"
           sideOffset={8}
-          className="z-50 rounded-lg border border-border bg-surface p-3 shadow-lg"
+          className="z-50 rounded-lg border border-border bg-panel p-3 shadow-lg"
           onOpenAutoFocus={(e) => e.preventDefault()}
           onEscapeKeyDown={() => {
             if (onCancel) {

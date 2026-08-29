@@ -72,7 +72,9 @@ export function renderFromEditorState(
         : null,
       nodeEditState: state.nodeEditState ?? null,
       remoteCursors: state.remoteCursors,
-      autoLayoutHover: state.autoLayoutHover
+      autoLayoutHover: state.autoLayoutHover,
+      prototypeMode: state.prototypeMode,
+      prototypeDrag: state.prototypeDrag
     },
     state.sceneVersion,
     layer
@@ -238,6 +240,12 @@ export function render(
     r.drawAutoLayoutHover(canvas, graph, overlays.autoLayoutHover)
     r.drawNodeEditOverlay(canvas, graph, overlays.nodeEditState)
     r.drawPenOverlay(canvas, overlays.penState)
+    r.drawPrototypeOverlay(canvas, graph, {
+      enabled: overlays.prototypeMode,
+      selectedIds,
+      hoveredNodeId: overlays.hoveredNodeId,
+      drag: overlays.prototypeDrag
+    })
     r.drawRemoteCursors(canvas, graph, overlays.remoteCursors)
     p.beginPhase('render:rulers')
     if (r.showRulers) r.drawRulers(canvas, graph, selectedIds)

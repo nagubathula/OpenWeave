@@ -4,6 +4,10 @@ import {
   updateNodeEditHover
 } from '#react/canvas/node-edit-input/use'
 import { handlePenDragMove, updatePenHover } from '#react/canvas/pen-input/use'
+import {
+  finishPrototypeConnect,
+  handlePrototypeConnectMove
+} from '#react/canvas/prototype-input/use'
 import { createCanvasPointer } from '#react/canvas/pointer/use'
 import { createTextEditInput } from '#react/canvas/text-edit/input'
 import { handleToolMouseDown } from '#react/canvas/tool-input/use'
@@ -227,6 +231,11 @@ export function useCanvasInput(
       return
     }
 
+    if (d.type === 'proto-connect') {
+      handlePrototypeConnectMove(d, cx, cy, editor)
+      return
+    }
+
     if (d.type === 'edit-node' || d.type === 'edit-handle') {
       handleNodeEditMove(d, cx, cy, editor, e.altKey, e.metaKey || e.ctrlKey, e.shiftKey)
       return
@@ -252,7 +261,12 @@ export function useCanvasInput(
     if (handleNodeEditMouseUp(drag, editor)) return
 
     if (d.type === 'move') handleMoveUp(d, editor)
-    else if (d.type === 'text-select') {
+    else if (d.type === 'proto-connect') {
+      finishPrototypeConnect(d, editor)
+      drag.current = null
+      setCursorOverride(null)
+      return
+    } else if (d.type === 'text-select') {
       drag.current = null
       return
     } else if (d.type === 'resize') commitResizePreview(d, editor)
