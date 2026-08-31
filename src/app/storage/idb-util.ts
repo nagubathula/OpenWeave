@@ -18,6 +18,45 @@ export function openIdb(
   })
 }
 
+export function openIdbStores(
+  name: string,
+  version: number,
+  stores: ReadonlyArray<{ name: string; keyPath?: string }>
+): Promise<IDBDatabase> {
+  return openIdb(name, version, (db) => {
+    for (const store of stores) {
+      if (!db.objectStoreNames.contains(store.name)) {
+        db.createObjectStore(store.name, store.keyPath ? { keyPath: store.keyPath } : undefined)
+      }
+    }
+  })
+}
+
+/** Stored rows may be ArrayBuffer, typed array, or Blob depending on writer/browser. */
+export async function rowToBytes(row: unknown): Promise<Uint8Array | null> {
+  if (row == null) return null
+  if (row instanceof ArrayBuffer) return new Uint8Array(row)
+  if (row instanceof Uint8Array) return new Uint8Array(row)
+  if (row instanceof Blob) return new Uint8Array(await row.arrayBuffer())
+  return null
+}
+
+export function bytesToBuffer(bytes: Uint8Array) {
+  return bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength)
+}
+
+/** Single-key blob read in its own read transaction. */
+export async function readIdbBlob(
+  database: IDBDatabase,
+  storeName: string,
+  id: string
+): Promise<Uint8Array | null> {
+  const tx = database.transaction(storeName, 'readonly')
+  const row = await reqToPromise(tx.objectStore(storeName).get(id))
+  await txDone(tx)
+  return rowToBytes(row)
+}
+
 export function reqToPromise<T>(req: IDBRequest<T>): Promise<T> {
   return new Promise((resolve, reject) => {
     req.onsuccess = () => resolve(req.result)

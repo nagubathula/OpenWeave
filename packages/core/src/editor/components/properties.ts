@@ -243,11 +243,71 @@ export function createComponentPropertyActions(
     ctx.requestRender()
   }
 
+  /**
+   * Property definitions available to a layer inside a main component: the
+   * merged definitions of its owning component and that component's set.
+   * Empty when the node isn't inside a main component (e.g. inside an
+   * instance or at page level).
+   */
+  function componentPropertyDefsForNode(nodeId: string): {
+    ownerId: string | null
+    defs: ComponentPropertyDefinition[]
+  } {
+    let current = ctx.graph.getNode(nodeId)
+    // The selected layer itself doesn't own definitions; walk ancestors.
+    current = current?.parentId ? ctx.graph.getNode(current.parentId) : undefined
+    while (current) {
+      if (current.type === 'INSTANCE') break
+      if (current.type === 'COMPONENT' || current.type === 'COMPONENT_SET') {
+        const parent = current.parentId ? ctx.graph.getNode(current.parentId) : null
+        const owners =
+          current.type === 'COMPONENT' && parent?.type === 'COMPONENT_SET'
+            ? [parent, current]
+            : [current]
+        const byId = new Map<string, ComponentPropertyDefinition>()
+        for (const owner of owners) {
+          for (const def of owner.componentPropertyDefinitions) {
+            if (!byId.has(def.id)) byId.set(def.id, def)
+          }
+        }
+        return { ownerId: owners[0].id, defs: [...byId.values()] }
+      }
+      current = current.parentId ? ctx.graph.getNode(current.parentId) : undefined
+    }
+    return { ownerId: null, defs: [] }
+  }
+
+  /** Bind (or unbind with null) a layer's text/visibility to a component property. */
+  function setComponentPropertyReference(
+    nodeId: string,
+    field: ComponentPropertyReferenceField,
+    propertyId: string | null
+  ) {
+    const node = ctx.graph.getNode(nodeId)
+    if (!node) return
+    const prev = structuredClone(node.componentPropertyReferences)
+    const next = node.componentPropertyReferences.filter((ref) => ref.field !== field)
+    if (propertyId) next.push({ propertyId, field })
+
+    const apply = (refs: typeof prev) => {
+      ctx.graph.updateNode(nodeId, { componentPropertyReferences: structuredClone(refs) })
+      ctx.requestRender()
+    }
+    apply(next)
+    ctx.undo.push({
+      label: propertyId ? 'Apply property' : 'Detach property',
+      forward: () => apply(next),
+      inverse: () => apply(prev)
+    })
+  }
+
   return {
     getInstanceComponentPropertyDefinitions,
     getInstanceComponentPropertyValue,
     reapplyInstanceComponentProperties: (instanceId: string) =>
       reapplyInstanceComponentProperties(ctx, instanceId),
-    setInstanceComponentProperty
+    setInstanceComponentProperty,
+    componentPropertyDefsForNode,
+    setComponentPropertyReference
   }
 }

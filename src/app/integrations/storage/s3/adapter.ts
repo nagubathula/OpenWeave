@@ -1,5 +1,6 @@
 import { isTauri } from '@/app/tauri/env'
 
+import { authoritativeStoredMetadata, encodeStoredMetadata, parseStoredMetadata } from '../metadata'
 import {
   NAMESPACE_MARKER_BODY,
   STORAGE_DOCUMENTS_PREFIX,
@@ -10,12 +11,7 @@ import {
   documentMetaKey,
   documentThumbnailKey
 } from '../namespace'
-import type {
-  StorageAdapter,
-  StorageDocument,
-  StorageDocumentMetadata,
-  StorageProviderRuntime
-} from '../types'
+import type { StorageAdapter, StorageDocument, StorageProviderRuntime } from '../types'
 import { S3HttpError, deleteObject, getObject, headObject, listObjects, putObject } from './client'
 import { CloudCorsError, formatBrowserCorsHelpMessage, isLikelyCorsOrNetworkError } from './cors'
 import type { S3CompatibleConfig, S3ConnectionResult } from './types'
@@ -46,28 +42,6 @@ async function resolveConfig(runtime: StorageProviderRuntime): Promise<S3Compati
     accessKeyId,
     secretAccessKey,
     ...(region ? { region } : {})
-  }
-}
-
-function parseMetadata(
-  bytes: Uint8Array | null,
-  fallback: StorageDocumentMetadata
-): { metadata: StorageDocumentMetadata; authoritative: boolean } {
-  if (!bytes) return { metadata: fallback, authoritative: false }
-  try {
-    const parsed = JSON.parse(new TextDecoder().decode(bytes)) as Partial<StorageDocumentMetadata>
-    const name = typeof parsed.name === 'string' && parsed.name.trim() ? parsed.name : null
-    const updatedAt =
-      typeof parsed.updatedAt === 'string' && parsed.updatedAt ? parsed.updatedAt : null
-    return {
-      metadata: {
-        name: name ?? fallback.name,
-        updatedAt: updatedAt ?? fallback.updatedAt
-      },
-      authoritative: name !== null && updatedAt !== null
-    }
-  } catch {
-    return { metadata: fallback, authoritative: false }
   }
 }
 
@@ -147,7 +121,7 @@ export function createS3StorageAdapter(runtime: StorageProviderRuntime): S3Stora
                   return null
                 }
               )
-              const { metadata, authoritative } = parseMetadata(metadataBytes, fallback)
+              const { metadata, authoritative } = parseStoredMetadata(metadataBytes, fallback)
               return {
                 id,
                 ...metadata,
@@ -195,23 +169,14 @@ export function createS3StorageAdapter(runtime: StorageProviderRuntime): S3Stora
       await putObject(
         config,
         documentMetaKey(id),
-        JSON.stringify({
-          name: metadata.name,
-          updatedAt: metadata.updatedAt || new Date().toISOString()
-        }),
+        encodeStoredMetadata(metadata),
         'application/json'
       )
     },
 
     async getDocumentMetadata(id) {
       const config = await resolveConfig(runtime)
-      const bytes = await getObject(config, documentMetaKey(id))
-      if (!bytes) return null
-      const parsed = parseMetadata(bytes, {
-        name: id,
-        updatedAt: new Date(0).toISOString()
-      })
-      return parsed.authoritative ? parsed.metadata : null
+      return authoritativeStoredMetadata(await getObject(config, documentMetaKey(id)), id)
     },
 
     async deleteDocument(id) {

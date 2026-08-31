@@ -1,6 +1,6 @@
 import { useStore } from '@nanostores/react'
 import * as Popover from '@radix-ui/react-popover'
-import { Check, Copy, Share2, Users } from 'lucide-react'
+import { Check, Copy, Globe, Share2, Users } from 'lucide-react'
 import { atom } from 'nanostores'
 import { useRouter } from 'next/navigation'
 import React, { createContext, useContext, useEffect, useRef, useState } from 'react'
@@ -9,6 +9,13 @@ import { tv } from 'tailwind-variants'
 import { colorToCSS } from '@openweave/core/color'
 import { useI18n } from '@openweave/react'
 
+import {
+  getTunnelShareUrl,
+  shareTunnelState,
+  startShareTunnel,
+  stopShareTunnel,
+  syncShareTunnelStatus
+} from '@/app/collab/tunnel'
 import {
   DEFAULT_COLLAB_STATE,
   useCollabInjected,
@@ -19,7 +26,7 @@ import { initials, toast } from '@/app/shell/ui'
 import { AppInput } from '@/components/ui/AppInput'
 import { usePopoverUI } from '@/components/ui/popover'
 import Tip from '@/components/ui/Tip'
-import { getShareUrl } from '@/constants'
+import { getShareUrl, IS_TAURI } from '@/constants'
 import collaborationTheme from '@/theme/collaboration'
 
 /**
@@ -59,6 +66,7 @@ function useCollabPanelState() {
   const state = useStore(collab?.state ?? noCollabState)
   const peers = useStore(collab?.remotePeers ?? noCollabPeers)
   const followingPeer = useStore(collab?.followingPeer ?? noCollabFollowing)
+  const tunnel = useStore(shareTunnelState)
 
   const [joinInput, setJoinInput] = useState('')
   const [nameDraft, setNameDraft] = useState(collab?.state.get().localName ?? '')
@@ -80,7 +88,14 @@ function useCollabPanelState() {
     }
   }, [])
 
+  // A tunnel started before a webview reload keeps running in the backend.
+  useEffect(() => {
+    if (IS_TAURI) void syncShareTunnelStatus()
+  }, [])
+
   const shareUrl = state.roomId ? getShareUrl(state.roomId) : ''
+  const tunnelShareUrl =
+    tunnel.status === 'active' && state.roomId ? getTunnelShareUrl(tunnel.url, state.roomId) : ''
   const isJoining = !!pendingRoomId && !state.connected
 
   const copy = (text: string) => {
@@ -94,6 +109,25 @@ function useCollabPanelState() {
     if (!shareUrl) return
     copy(shareUrl)
     toast.info(dialogs.linkCopiedToClipboard)
+  }
+
+  const copyTunnelLink = () => {
+    if (!tunnelShareUrl) return
+    copy(tunnelShareUrl)
+    toast.info(dialogs.linkCopiedToClipboard)
+  }
+
+  const shareViaNgrok = async () => {
+    const roomId = state.roomId
+    const url = await startShareTunnel()
+    if (url && roomId) {
+      copy(getTunnelShareUrl(url, roomId))
+      toast.info(dialogs.linkCopiedToClipboard)
+    }
+  }
+
+  const stopNgrok = () => {
+    void stopShareTunnel()
   }
 
   const share = () => {
@@ -119,6 +153,7 @@ function useCollabPanelState() {
   const disconnect = () => {
     if (!collab) return
     collab.disconnect()
+    void stopShareTunnel()
     setPopoverOpen(false)
     router.push('/')
   }
@@ -140,8 +175,13 @@ function useCollabPanelState() {
     peers,
     followingPeer,
     shareUrl,
+    tunnel,
+    tunnelShareUrl,
     isJoining,
     copyLink,
+    copyTunnelLink,
+    shareViaNgrok,
+    stopNgrok,
     share,
     join,
     disconnect,
@@ -209,6 +249,74 @@ function CollabAvatarStack() {
 
 // --- Popover bodies --------------------------------------------------------
 
+function NgrokShareSection() {
+  const collab = usePanel()
+  if (!IS_TAURI) return null
+
+  if (collab.tunnel.status === 'active' && collab.tunnelShareUrl) {
+    return (
+      <>
+        <div className="mb-1 text-xs font-medium text-surface">
+          {collab.dialogs.ngrokPublicLink}
+        </div>
+        <div className="mb-1 flex items-center gap-1.5">
+          <AppInput
+            value={collab.tunnelShareUrl}
+            readOnly
+            data-test-id="collab-ngrok-link"
+            className="min-w-0 flex-1"
+            onFocus={(event) => event.currentTarget.select()}
+          />
+          <button
+            type="button"
+            data-test-id="collab-ngrok-copy-link"
+            className="flex h-7 cursor-pointer items-center gap-1 rounded border-none bg-accent px-2 text-xs text-white hover:bg-accent/90"
+            onClick={collab.copyTunnelLink}
+          >
+            <Copy className="size-3" />
+            {collab.dialogs.copy}
+          </button>
+        </div>
+        <button
+          type="button"
+          data-test-id="collab-ngrok-stop"
+          className="mb-3 cursor-pointer border-none bg-transparent p-0 text-[11px] text-muted hover:text-surface"
+          onClick={collab.stopNgrok}
+        >
+          {collab.dialogs.ngrokStopTunnel}
+        </button>
+      </>
+    )
+  }
+
+  return (
+    <>
+      <button
+        type="button"
+        data-test-id="collab-ngrok-share"
+        className="mb-1 flex h-7 w-full cursor-pointer items-center justify-center gap-1.5 rounded border border-border bg-transparent text-xs text-surface hover:bg-hover disabled:opacity-50"
+        disabled={collab.tunnel.status === 'starting'}
+        onClick={() => void collab.shareViaNgrok()}
+      >
+        <Globe className="size-3.5" />
+        {collab.tunnel.status === 'starting'
+          ? collab.dialogs.ngrokStarting
+          : collab.dialogs.shareViaNgrok}
+      </button>
+      {collab.tunnel.status === 'error' ? (
+        <div className="mb-3 text-[11px] text-muted" data-test-id="collab-ngrok-error">
+          <div className="text-red-500">
+            {collab.dialogs.ngrokFailed({ error: collab.tunnel.error })}
+          </div>
+          {collab.dialogs.ngrokSetupHint}
+        </div>
+      ) : (
+        <div className="mb-3 text-[11px] text-muted">{collab.dialogs.ngrokHint}</div>
+      )}
+    </>
+  )
+}
+
 function ConnectedRoom() {
   const collab = usePanel()
   return (
@@ -232,6 +340,8 @@ function ConnectedRoom() {
           {collab.copied ? collab.dialogs.copied : collab.dialogs.copy}
         </button>
       </div>
+
+      <NgrokShareSection />
 
       <div className="mb-2 text-xs font-medium text-surface">
         {collab.peers.length === 0

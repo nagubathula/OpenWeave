@@ -314,7 +314,21 @@ export const panelMessageDefaults = {
   prototypeNoFrames: 'Draw frames on the canvas to start prototyping',
 
   colorEyedropper: 'Pick color from screen',
-  colorOnThisPage: 'On this page'
+  colorOnThisPage: 'On this page',
+
+  addVariant: 'Add variant',
+  variantCount: params('{count} variants'),
+  addVariantHint: 'Add a variant to turn this component into a set',
+  addProperty: 'Add property',
+  renameProperty: 'Rename property',
+  deleteProperty: 'Delete property',
+  propertyTypeVariant: 'Variant',
+  propertyTypeText: 'Text',
+  propertyTypeBoolean: 'Boolean',
+  currentVariant: 'Current variant',
+  bindTextProperty: 'Text',
+  bindVisibleProperty: 'Visible',
+  propertyNone: 'None'
 } as const
 
 export const panelMessages = i18n('panels', panelMessageDefaults)

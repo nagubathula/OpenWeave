@@ -4,6 +4,7 @@ mod fonts;
 mod http;
 mod menu;
 mod menu_events;
+mod share_tunnel;
 #[cfg(target_os = "macos")]
 mod window;
 
@@ -16,6 +17,10 @@ use fonts::{list_system_fonts, load_system_font};
 use http::proxy_http_request;
 use menu::install_app_menu;
 use menu_events::handle_menu_event;
+use share_tunnel::{
+    share_tunnel_status, shutdown_share_tunnel, start_share_tunnel, stop_share_tunnel,
+    ShareTunnelState,
+};
 use std::{
     path::{Path, PathBuf},
     sync::Mutex,
@@ -121,6 +126,7 @@ pub fn run() {
 
     builder
         .manage(PendingOpen(Mutex::new(Vec::new())))
+        .manage(ShareTunnelState(Mutex::new(None)))
         .invoke_handler(tauri::generate_handler![
             build_fig_file,
             credential_read,
@@ -131,6 +137,9 @@ pub fn run() {
             list_system_fonts,
             load_system_font,
             proxy_http_request,
+            share_tunnel_status,
+            start_share_tunnel,
+            stop_share_tunnel,
             take_pending_open
         ])
         .plugin(tauri_plugin_opener::init())
@@ -150,6 +159,9 @@ pub fn run() {
         .build(tauri::generate_context!())
         .expect("error while building tauri application")
         .run(|_app, event| match event {
+            tauri::RunEvent::Exit => {
+                shutdown_share_tunnel(_app);
+            }
             #[cfg(target_os = "macos")]
             tauri::RunEvent::Opened { urls } => {
                 let paths = urls

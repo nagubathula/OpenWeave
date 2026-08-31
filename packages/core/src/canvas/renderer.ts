@@ -264,6 +264,11 @@ export class SkiaRenderer {
     graph: SceneGraph,
     state?: PrototypeOverlayState
   ) => void
+  declare drawVariantOverlay: (
+    canvas: Canvas,
+    graph: SceneGraph,
+    selectedIds: ReadonlySet<string>
+  ) => void
   declare drawRemoteCursors: (
     canvas: Canvas,
     graph: SceneGraph,

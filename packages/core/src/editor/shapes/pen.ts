@@ -94,39 +94,12 @@ function recomputeSmoothTangents(ps: PenState, closed: boolean): void {
 }
 
 export function createPenActions(ctx: EditorContext, createShape: CreateShape) {
-  function penAddVertex(x: number, y: number) {
-    if (!ctx.state.penState) {
-      ctx.state.penState = {
-        vertices: [{ x, y }],
-        segments: [],
-        dragTangent: null,
-        oppositeDragTangent: null,
-        pendingClose: false,
-        closingToFirst: false
-      }
-      ctx.requestRender()
-      return
-    }
-
-    const ps = ctx.state.penState
-    const prevIdx = ps.vertices.length - 1
-
-    ps.vertices.push({ x, y })
-    const newIdx = ps.vertices.length - 1
-    ps.segments.push({
-      start: prevIdx,
-      end: newIdx,
-      tangentStart: ps.dragTangent ?? { x: 0, y: 0 },
-      tangentEnd: { x: 0, y: 0 }
-    })
-    ps.dragTangent = null
-    ps.oppositeDragTangent = null
-    ps.pendingClose = false
-    ps.curvature = false
-    ctx.requestRender()
-  }
-
-  function penAddSmoothVertex(x: number, y: number) {
+  /**
+   * Shared vertex commit for both pen modes: starts a path on the first click
+   * (returning null), otherwise appends a vertex + segment and resets drag
+   * state. The curvature flag picks the segment's start tangent source.
+   */
+  function appendPenVertex(x: number, y: number, curvature: boolean): PenState | null {
     if (!ctx.state.penState) {
       ctx.state.penState = {
         vertices: [{ x, y }],
@@ -135,10 +108,9 @@ export function createPenActions(ctx: EditorContext, createShape: CreateShape) {
         oppositeDragTangent: null,
         pendingClose: false,
         closingToFirst: false,
-        curvature: true
+        ...(curvature ? { curvature: true } : {})
       }
-      ctx.requestRender()
-      return
+      return null
     }
 
     const ps = ctx.state.penState
@@ -148,14 +120,24 @@ export function createPenActions(ctx: EditorContext, createShape: CreateShape) {
     ps.segments.push({
       start: prevIdx,
       end: ps.vertices.length - 1,
-      tangentStart: { x: 0, y: 0 },
+      tangentStart: curvature ? { x: 0, y: 0 } : (ps.dragTangent ?? { x: 0, y: 0 }),
       tangentEnd: { x: 0, y: 0 }
     })
     ps.dragTangent = null
     ps.oppositeDragTangent = null
     ps.pendingClose = false
-    ps.curvature = true
-    recomputeSmoothTangents(ps, false)
+    ps.curvature = curvature
+    return ps
+  }
+
+  function penAddVertex(x: number, y: number) {
+    appendPenVertex(x, y, false)
+    ctx.requestRender()
+  }
+
+  function penAddSmoothVertex(x: number, y: number) {
+    const ps = appendPenVertex(x, y, true)
+    if (ps) recomputeSmoothTangents(ps, false)
     ctx.requestRender()
   }
 

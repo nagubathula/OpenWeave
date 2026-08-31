@@ -246,6 +246,7 @@ export function render(
       hoveredNodeId: overlays.hoveredNodeId,
       drag: overlays.prototypeDrag
     })
+    r.drawVariantOverlay(canvas, graph, selectedIds)
     r.drawRemoteCursors(canvas, graph, overlays.remoteCursors)
     p.beginPhase('render:rulers')
     if (r.showRulers) r.drawRulers(canvas, graph, selectedIds)

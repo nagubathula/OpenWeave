@@ -13,6 +13,7 @@ import * as Overlays from '#core/canvas/overlays'
 import * as AiOverlays from '#core/canvas/overlays/ai'
 import * as PenOverlay from '#core/canvas/pen-overlay'
 import * as PrototypeOverlay from '#core/canvas/prototype-overlay'
+import * as VariantOverlay from '#core/canvas/variant-overlay'
 import type { SkiaRenderer } from '#core/canvas/renderer'
 import type { RenderOverlays } from '#core/canvas/renderer/types'
 import * as Rulers from '#core/canvas/rulers'
@@ -132,6 +133,10 @@ const rendererMethods: ThisType<SkiaRenderer> = {
     state?: PrototypeOverlay.PrototypeOverlayState
   ): void {
     PrototypeOverlay.drawPrototypeOverlay(this, canvas, graph, state)
+  },
+
+  drawVariantOverlay(canvas: Canvas, graph: SceneGraph, selectedIds: ReadonlySet<string>): void {
+    VariantOverlay.drawVariantOverlay(this, canvas, graph, selectedIds)
   },
 
   drawRemoteCursors(

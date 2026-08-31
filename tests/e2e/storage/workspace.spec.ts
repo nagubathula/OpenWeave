@@ -61,6 +61,26 @@ test('configured storage lists and opens a remote document', async ({ page }) =>
   await expect(page.getByText('Remote design').first()).toBeVisible()
 })
 
+test('local device storage stores a document without any configuration', async ({ page }) => {
+  await page.goto('/storage?test')
+  await page.getByRole('button', { name: 'Settings' }).last().click()
+  await page.getByTestId('settings-storage-provider').selectOption('local-device')
+
+  await page.getByTestId('settings-storage-open-workspace').click()
+  await expect(page.getByTestId('storage-workspace')).toBeVisible()
+  await expect(page.getByText('No documents yet.')).toBeVisible()
+
+  const create = page.getByTestId('storage-new-document')
+  await expect(create).toBeEnabled()
+  await create.click()
+  const canvas = new CanvasHelper(page)
+  await canvas.waitForInit()
+
+  await page.goto('/storage?test')
+  await expect(page.getByTestId('storage-workspace')).toBeVisible()
+  await expect(page.getByText('Untitled').first()).toBeVisible()
+})
+
 test('storage workspace directs unconfigured users to Settings', async ({ page }) => {
   await page.goto('/storage?test')
 

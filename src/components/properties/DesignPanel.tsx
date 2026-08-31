@@ -7,6 +7,8 @@ import { getActiveEditorStore } from '@/app/editor/active-store'
 import { COMPONENT_TYPES, nodeIcon } from '@/app/editor/icons'
 import AppearanceSection from '@/components/properties/AppearanceSection'
 import ComponentPropertiesSection from '@/components/properties/ComponentPropertiesSection'
+import ComponentSetSection from '@/components/properties/ComponentSetSection'
+import PropertyBindingSection from '@/components/properties/PropertyBindingSection'
 import ConstraintsSection from '@/components/properties/ConstraintsSection'
 import EffectsSection from '@/components/properties/EffectsSection'
 import ExportSection from '@/components/properties/ExportSection'
@@ -123,6 +125,8 @@ export function DesignPanel() {
         )}
 
         {node.type === 'INSTANCE' && <ComponentPropertiesSection />}
+        {(node.type === 'COMPONENT_SET' || node.type === 'COMPONENT') && <ComponentSetSection />}
+        <PropertyBindingSection />
         {node.type === 'FRAME' && <FramePresetSelect />}
 
         <PositionSection />

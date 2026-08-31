@@ -1,4 +1,10 @@
-import { openIdb, reqToPromise, txDone } from '@/app/storage/idb-util'
+import {
+  bytesToBuffer,
+  openIdbStores,
+  readIdbBlob,
+  reqToPromise,
+  txDone
+} from '@/app/storage/idb-util'
 import { buildIndexMeta, buildWriteMeta, sortAndFilterMetas } from '@/app/storage/local-store/meta'
 import type { LocalCanvasStore } from '@/app/storage/local-store/store'
 import type { LocalCanvasMeta, LocalCanvasWriteInput } from '@/app/storage/local-store/types'
@@ -11,30 +17,11 @@ const STORE_FIG = 'fig'
 const STORE_THUMB = 'thumb'
 
 function openDb(): Promise<IDBDatabase> {
-  return openIdb(DB_NAME, DB_VERSION, (db) => {
-    if (!db.objectStoreNames.contains(STORE_META)) {
-      db.createObjectStore(STORE_META, { keyPath: 'id' })
-    }
-    if (!db.objectStoreNames.contains(STORE_FIG)) {
-      db.createObjectStore(STORE_FIG)
-    }
-    if (!db.objectStoreNames.contains(STORE_THUMB)) {
-      db.createObjectStore(STORE_THUMB)
-    }
-  })
-}
-
-/** Stored rows may be ArrayBuffer, typed array, or Blob depending on writer/browser. */
-async function rowToBytes(row: unknown): Promise<Uint8Array | null> {
-  if (row == null) return null
-  if (row instanceof ArrayBuffer) return new Uint8Array(row)
-  if (row instanceof Uint8Array) return new Uint8Array(row)
-  if (row instanceof Blob) return new Uint8Array(await row.arrayBuffer())
-  return null
-}
-
-function bytesToBuffer(bytes: Uint8Array) {
-  return bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength)
+  return openIdbStores(DB_NAME, DB_VERSION, [
+    { name: STORE_META, keyPath: 'id' },
+    { name: STORE_FIG },
+    { name: STORE_THUMB }
+  ])
 }
 
 async function readMetaRow(store: IDBObjectStore, id: string): Promise<LocalCanvasMeta | null> {
@@ -51,11 +38,7 @@ export function createIdbLocalCanvasStore(): LocalCanvasStore {
   }
 
   async function readBlob(storeName: string, id: string): Promise<Uint8Array | null> {
-    const database = await db()
-    const tx = database.transaction(storeName, 'readonly')
-    const row = await reqToPromise(tx.objectStore(storeName).get(id))
-    await txDone(tx)
-    return rowToBytes(row)
+    return readIdbBlob(await db(), storeName, id)
   }
 
   return {

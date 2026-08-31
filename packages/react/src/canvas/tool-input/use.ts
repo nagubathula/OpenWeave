@@ -1,5 +1,6 @@
 import { startPenInput } from '#react/canvas/pen-input/use'
 import { startPrototypeConnect } from '#react/canvas/prototype-input/use'
+import { handleVariantAddClick } from '#react/canvas/variant-input/use'
 import { startShapeDraw, startTextDraw } from '#react/shared/input/draw'
 import { startPanDrag } from '#react/shared/input/pan'
 import { handleSelectDown } from '#react/shared/input/select'
@@ -45,6 +46,7 @@ export function handleToolMouseDown({
   }
 
   if (tool === 'SELECT') {
+    if (handleVariantAddClick(cx, cy, editor)) return
     if (startPrototypeConnect(cx, cy, editor, setDrag)) return
     handleSelectDown(
       event,

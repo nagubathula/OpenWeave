@@ -103,6 +103,33 @@ export function createComponentActions(ctx: EditorContext) {
   const focusActions = createComponentFocusActions(ctx)
   const instanceActions = createComponentInstanceActions(ctx)
   const variantActions = createVariantActions(ctx)
+
+  /**
+   * Figma's "+" on components: adds a variant to the set the node belongs to.
+   * A standalone component is first wrapped into a component set (one undo
+   * step for the whole conversion).
+   */
+  function addVariant(
+    nodeId: string,
+    wrapSelectionInContainer: (
+      type: 'GROUP' | 'FRAME' | 'COMPONENT' | 'COMPONENT_SET',
+      nodes: SceneNode[],
+      extra?: Partial<SceneNode>
+    ) => string | null
+  ): string | null {
+    const node = ctx.graph.getNode(nodeId)
+    if (!node) return null
+    if (node.type === 'COMPONENT_SET') return variantActions.addVariantToSet(node.id)
+    if (node.type !== 'COMPONENT') return null
+
+    const parent = node.parentId ? ctx.graph.getNode(node.parentId) : null
+    if (parent?.type === 'COMPONENT_SET') return variantActions.addVariantToSet(parent.id)
+
+    return ctx.undo.runBatch('Add variant', () => {
+      const setId = wrapSelectionInContainer('COMPONENT_SET', [node])
+      return setId ? variantActions.addVariantToSet(setId) : null
+    })
+  }
   const componentPropertyActions = createComponentPropertyActions(
     ctx,
     variantActions.switchInstanceVariant
@@ -111,6 +138,7 @@ export function createComponentActions(ctx: EditorContext) {
   return {
     createComponentFromSelection,
     createComponentSetFromComponents,
+    addVariant,
     ...instanceActions,
     ...focusActions,
     ...variantActions,

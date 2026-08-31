@@ -5,7 +5,13 @@ export {
   writeStoragePreference
 } from './preferences'
 export type { StoragePreferences } from './preferences'
-export { S3_STORAGE_PROVIDER, storageProviderRegistry } from './providers'
+export {
+  LOCAL_STORAGE_PROVIDER,
+  resolveStorageProvider,
+  S3_STORAGE_PROVIDER,
+  storageProviderRegistry
+} from './providers'
+export { createLocalDeviceStorageAdapter } from './local/adapter'
 export { defineStorageProvider, StorageProviderRegistry } from './registry'
 export { createS3StorageAdapter } from './s3/adapter'
 export type { S3StorageAdapter } from './s3/adapter'

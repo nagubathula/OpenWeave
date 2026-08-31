@@ -6,6 +6,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react'
 import {
   activeStorageProviderID,
   createActiveStorageAdapter,
+  resolveStorageProvider,
   storageCredentialStatuses,
   storagePreferencesComplete,
   storageProviderRegistry,
@@ -166,7 +167,9 @@ export default function StorageWorkspace() {
       <header className="flex h-14 shrink-0 items-center border-b border-border px-6">
         <div>
           <h1 className="text-sm font-semibold">Storage workspace</h1>
-          <p className="text-[10px] text-muted">{activeStorageProviderID.get()}</p>
+          <p className="text-[10px] text-muted">
+            {resolveStorageProvider(activeStorageProviderID.get()).label}
+          </p>
         </div>
         <div className="ml-auto flex items-center gap-2">
           <button

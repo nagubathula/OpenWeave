@@ -1,3 +1,4 @@
+import { useStore } from '@nanostores/react'
 import React, { useCallback, useEffect, useState } from 'react'
 
 import { useI18n } from '@openweave/react'
@@ -6,6 +7,7 @@ import {
   activeStorageProviderID,
   createActiveStorageAdapter,
   readStoragePreferences,
+  resolveStorageProvider,
   storageCredentialStatuses,
   storagePreferencesComplete,
   storageProviderRegistry
@@ -25,13 +27,15 @@ const inputClass =
   'w-full rounded border border-border bg-input px-2 py-1 text-xs text-surface outline-none focus:border-accent'
 
 /**
- * Cloud storage (S3-compatible) configuration. Ported from
+ * Storage configuration — provider choice (this device / S3-compatible) plus
+ * the selected provider's preferences and credentials. Ported from
  * settings/storage/StorageSettingsPanel.vue; the vue-router /storage push is
  * replaced by openStorageWorkspace().
  */
 export default function StorageSettingsPanel({ onClose }: { onClose: () => void }) {
   const { dialogs } = useI18n()
-  const provider = storageProviderRegistry.get(activeStorageProviderID.get())
+  const providerId = useStore(activeStorageProviderID)
+  const provider = resolveStorageProvider(providerId)
 
   const [preferenceDrafts, setPreferenceDrafts] = useState<Record<string, string>>(() => ({
     ...readStoragePreferences(provider.id)
@@ -49,6 +53,14 @@ export default function StorageSettingsPanel({ onClose }: { onClose: () => void 
   useEffect(() => {
     void refreshStatuses()
   }, [refreshStatuses])
+
+  const switchProvider = (id: string) => {
+    activeStorageProviderID.set(id)
+    setPreferenceDrafts({ ...readStoragePreferences(id) })
+    setCredentialDrafts({})
+    setResult(null)
+    void resumeStorageSync()
+  }
 
   const configured =
     storagePreferencesComplete(provider.id) &&
@@ -120,6 +132,22 @@ export default function StorageSettingsPanel({ onClose }: { onClose: () => void 
         <h3 className="text-xs font-semibold text-surface">{dialogs.settingsStorage}</h3>
         <p className="mt-0.5 text-[10px] text-muted">{provider.description}</p>
       </div>
+
+      <label className="flex flex-col gap-1 text-[10px] text-muted">
+        {dialogs.storageProvider}
+        <select
+          className={inputClass}
+          data-test-id="settings-storage-provider"
+          value={provider.id}
+          onChange={(event) => switchProvider(event.target.value)}
+        >
+          {storageProviderRegistry.list().map((registration) => (
+            <option key={registration.id} value={registration.id}>
+              {registration.label}
+            </option>
+          ))}
+        </select>
+      </label>
 
       {provider.preferenceFields.map((field) => (
         <label key={field.id} className="flex flex-col gap-1 text-[10px] text-muted">
