@@ -4,7 +4,7 @@ import type { NodeCloneMode } from './copy'
 
 export type { NodeCloneMode } from './copy'
 
-const INSTANCE_SYNC_PROPS: (keyof SceneNode)[] = [
+export const INSTANCE_SYNC_PROPS: (keyof SceneNode)[] = [
   'width',
   'height',
   'minWidth',
@@ -48,6 +48,20 @@ const INSTANCE_SYNC_PROPS: (keyof SceneNode)[] = [
   'boundVariables',
   'variableModes'
 ]
+
+/**
+ * Extra child-level props synced from main-component children on top of
+ * INSTANCE_SYNC_PROPS (see syncChildren). An override key `${childId}:${prop}`
+ * on the enclosing instance shields any of these from sync.
+ */
+export const INSTANCE_CHILD_TEXT_SYNC_PROPS = [
+  'name',
+  'text',
+  'fontSize',
+  'fontWeight',
+  'fontFamily',
+  'textDirection'
+] as const
 
 function setSceneProp<K extends keyof SceneNode>(
   target: Partial<SceneNode>,
@@ -148,14 +162,7 @@ function syncChildren(
       copyProp(instChild, compChild, key)
     }
 
-    for (const key of [
-      'name',
-      'text',
-      'fontSize',
-      'fontWeight',
-      'fontFamily',
-      'textDirection'
-    ] as const) {
+    for (const key of INSTANCE_CHILD_TEXT_SYNC_PROPS) {
       const overrideKey = `${instChild.id}:${key}`
       if (overrideKey in overrides) continue
       copyProp(instChild, compChild, key)

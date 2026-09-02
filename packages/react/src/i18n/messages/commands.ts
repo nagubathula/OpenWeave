@@ -15,6 +15,7 @@ export const commandMessageDefaults = {
   createComponentSet: 'Create component set',
   createInstance: 'Create instance',
   detachInstance: 'Detach instance',
+  resetOverrides: 'Reset all changes',
   goToMainComponent: 'Go to main component',
   addAutoLayout: 'Add auto layout',
   useAsMask: 'Use as mask',

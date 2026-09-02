@@ -84,7 +84,10 @@ export default function FillSection() {
                 {(binding) => {
                   const displayColor = binding.resolvedValue ?? fill.color
                   return (
-                    <div data-slot="paint-field" className="flex-1 flex items-center gap-1 bg-input/50 rounded px-1.5 h-6 border border-border focus-within:border-accent transition-colors">
+                    <div
+                      data-slot="paint-field"
+                      className="flex-1 flex items-center gap-1 bg-input/50 rounded px-1.5 h-6 border border-border focus-within:border-accent transition-colors"
+                    >
                       {fill.type === 'SOLID' ? (
                         <>
                           <PaintSwatchPopover

@@ -61,6 +61,20 @@ export default function PrototypePanel() {
       .map((n) => ({ value: n.id, label: n.name }))
   ]
 
+  // Interactive components: sibling variants the selected instance can
+  // "Change to" (only offered for instances whose component sits in a set).
+  const variantTargets = useSceneComputed<{ value: string; label: string }[]>(() => {
+    void store.state.sceneVersion
+    if (node?.type !== 'INSTANCE' || !node.componentId) return []
+    const component = store.graph.getNode(node.componentId)
+    const set = component?.parentId ? store.graph.getNode(component.parentId) : null
+    if (set?.type !== 'COMPONENT_SET') return []
+    return set.childIds
+      .map((id) => store.graph.getNode(id))
+      .filter((c): c is SceneNode => c?.type === 'COMPONENT' && c.id !== node.componentId)
+      .map((c) => ({ value: c.id, label: c.name }))
+  })
+
   const triggerOptions: { value: PrototypeTrigger; label: string }[] = [
     { value: 'ON_CLICK', label: panels.prototypeOnClick },
     { value: 'ON_HOVER', label: panels.prototypeOnHover },
@@ -69,7 +83,10 @@ export default function PrototypePanel() {
   const actionOptions: { value: PrototypeActionType; label: string }[] = [
     { value: 'NAVIGATE', label: panels.prototypeNavigateTo },
     { value: 'BACK', label: panels.prototypeBack },
-    { value: 'OPEN_URL', label: panels.prototypeOpenUrl }
+    { value: 'OPEN_URL', label: panels.prototypeOpenUrl },
+    ...(variantTargets.length > 0
+      ? [{ value: 'CHANGE_TO' as const, label: panels.prototypeChangeTo }]
+      : [])
   ]
   const transitionOptions: { value: PrototypeTransition; label: string }[] = [
     { value: 'INSTANT', label: panels.prototypeTransitionInstant },
@@ -215,6 +232,17 @@ export default function PrototypePanel() {
                   <AppSelect
                     label={panels.prototypeDestination}
                     options={destinationOptions}
+                    value={reaction.destinationId ?? ''}
+                    onValueChange={(destinationId) =>
+                      updateReaction(index, { destinationId: destinationId || null })
+                    }
+                  />
+                )}
+
+                {reaction.action === 'CHANGE_TO' && (
+                  <AppSelect
+                    label={panels.prototypeDestination}
+                    options={[{ value: '', label: panels.prototypeNone }, ...variantTargets]}
                     value={reaction.destinationId ?? ''}
                     onValueChange={(destinationId) =>
                       updateReaction(index, { destinationId: destinationId || null })

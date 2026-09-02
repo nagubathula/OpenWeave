@@ -1,6 +1,13 @@
 import * as ContextMenu from '@radix-ui/react-context-menu'
 import { BookOpen, LayoutGrid, List, Loader2, Plus, Component as ComponentIcon } from 'lucide-react'
-import React, { useEffect, useMemo, useRef, useState } from 'react'
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useSyncExternalStore
+} from 'react'
 
 import { useI18n } from '@openweave/react'
 import { useSceneComputed } from '@openweave/react'
@@ -45,10 +52,58 @@ type AssetGroup = {
   assets: LocalAsset[]
 }
 
+/**
+ * Version counter that bumps only when the given component/set's own subtree
+ * changes — so thumbnails re-render for edits to THAT component, not for
+ * every scene edit (which used to trigger a full CanvasKit render of every
+ * listed asset on every keystroke).
+ */
+function useComponentContentVersion(
+  editor: ReturnType<typeof useEditorStore>,
+  nodeId: string
+): number {
+  const versionRef = useRef(0)
+
+  const subscribe = useCallback(
+    (callback: () => void) => {
+      const bump = () => {
+        versionRef.current++
+        callback()
+      }
+      const bumpIfInside = (affectedId: string) => {
+        let current = editor.graph.getNode(affectedId)
+        while (current) {
+          if (current.id === nodeId) {
+            bump()
+            return
+          }
+          current = current.parentId ? editor.graph.getNode(current.parentId) : undefined
+        }
+      }
+      const unsubscribes = [
+        editor.onEditorEvent('node:updated', (id) => bumpIfInside(id)),
+        editor.onEditorEvent('node:created', (node) => bumpIfInside(node.id)),
+        // A deleted node can no longer be walked up to its component, so
+        // deletions bump conservatively.
+        editor.onEditorEvent('node:deleted', () => bump()),
+        editor.onEditorEvent('node:reparented', (id) => bumpIfInside(id)),
+        editor.onEditorEvent('node:reordered', (id) => bumpIfInside(id))
+      ]
+      return () => {
+        for (const unsubscribe of unsubscribes) unsubscribe()
+      }
+    },
+    [editor, nodeId]
+  )
+
+  const getVersion = useCallback(() => versionRef.current, [])
+  return useSyncExternalStore(subscribe, getVersion, getVersion)
+}
+
 function AssetThumbnail({ nodeId, alt, size }: { nodeId: string; alt: string; size: number }) {
   const editor = useEditorStore()
   const [url, setUrl] = useState<string | null>(null)
-  const sceneVersion = useSceneComputed(() => editor.state.sceneVersion)
+  const contentVersion = useComponentContentVersion(editor, nodeId)
   const isGrid = size === ASSET_GRID_THUMBNAIL_SIZE
   // Tracks the blob URL currently rendered in the <img>, so it can be revoked
   // only once a replacement is ready (or on unmount) — never while it's still
@@ -91,7 +146,7 @@ function AssetThumbnail({ nodeId, alt, size }: { nodeId: string; alt: string; si
     return () => {
       active = false
     }
-  }, [editor, nodeId, size, sceneVersion])
+  }, [editor, nodeId, size, contentVersion])
 
   useEffect(
     () => () => {

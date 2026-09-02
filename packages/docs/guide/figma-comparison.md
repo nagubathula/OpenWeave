@@ -107,9 +107,9 @@ Feature-by-feature comparison of Figma Design capabilities with Open Pencil's cu
 | Angular gradient | ✅ | Sweep/conic gradient support |
 | Diamond gradient | ✅ | Four-point diamond gradient |
 | Image fills | ✅ | Decoded from blob data with scale modes (fill, fit, crop, tile) |
-| Pattern fills | 🔲 | Repeating image/pattern fills |
-| Blend modes | 🔲 | Layer and fill blend modes (multiply, screen, overlay, etc.) |
-| Add images & videos | 🟡 | Image fills rendered; no drag-and-drop image import or video support |
+| Pattern fills | 🟡 | Imported Figma pattern fills render as repeated source tiles; noise/custom paints fall back to solid |
+| Blend modes | ✅ | Layer, fill, and effect blend modes with panel controls; Figma isolation edge cases remain partial |
+| Add images & videos | 🟡 | Drag-and-drop/paste image import, image fills with picker and preview; no video support |
 | Image property adjustment | 🔲 | Exposure, contrast, saturation, etc. |
 | Crop an image | 🔲 | Interactive image cropping |
 | Eyedropper tool | 🔲 | Sample colors from canvas |

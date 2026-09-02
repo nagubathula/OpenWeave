@@ -10,6 +10,7 @@
   "createComponentSet": "Создать набор компонентов",
   "createInstance": "Создать экземпляр",
   "detachInstance": "Отвязать экземпляр",
+  "resetOverrides": "Сбросить все изменения",
   "goToMainComponent": "Перейти к компоненту",
   "addAutoLayout": "Добавить авто-раскладку",
   "bringToFront": "На передний план",

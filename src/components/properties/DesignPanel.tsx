@@ -1,14 +1,19 @@
 import { Layers3 } from 'lucide-react'
 import React from 'react'
 
-import { useSelectionState, useSceneComputed, useI18n, useEditorCommands } from '@openweave/react'
+import {
+  useSelectionState,
+  useSceneComputed,
+  useI18n,
+  useEditor,
+  useEditorCommands
+} from '@openweave/react'
 
 import { getActiveEditorStore } from '@/app/editor/active-store'
 import { COMPONENT_TYPES, nodeIcon } from '@/app/editor/icons'
 import AppearanceSection from '@/components/properties/AppearanceSection'
 import ComponentPropertiesSection from '@/components/properties/ComponentPropertiesSection'
 import ComponentSetSection from '@/components/properties/ComponentSetSection'
-import PropertyBindingSection from '@/components/properties/PropertyBindingSection'
 import ConstraintsSection from '@/components/properties/ConstraintsSection'
 import EffectsSection from '@/components/properties/EffectsSection'
 import ExportSection from '@/components/properties/ExportSection'
@@ -20,10 +25,12 @@ import LayoutSection from '@/components/properties/LayoutSection'
 import MaskSection from '@/components/properties/MaskSection'
 import PageSection from '@/components/properties/PageSection'
 import PositionSection from '@/components/properties/PositionSection'
+import PropertyBindingSection from '@/components/properties/PropertyBindingSection'
 import SelectionActionsControl from '@/components/properties/SelectionActionsControl'
 import StrokeSection from '@/components/properties/StrokeSection'
 import TypographySection from '@/components/properties/TypographySection'
 import VariablesSection from '@/components/properties/VariablesSection'
+import { AppSelect } from '@/components/ui/AppSelect'
 import Tip from '@/components/ui/Tip'
 
 export function DesignPanel() {
@@ -34,6 +41,31 @@ export function DesignPanel() {
   const { getCommand } = useEditorCommands()
   const goToMainComponent = getCommand('selection.goToMainComponent')
   const detachInstance = getCommand('selection.detachInstance')
+  const resetOverrides = getCommand('selection.resetOverrides')
+  const editor = useEditor()
+
+  // How many overrides + property assignments the selected instance carries
+  // (shown on the reset button as an override-inspection hint).
+  const overrideCount = useSceneComputed(() => {
+    void editor.state.sceneVersion
+    const selected = editor.getSelectedNodes()[0]
+    if (selected?.type !== 'INSTANCE') return 0
+    return (
+      Object.keys(selected.overrides).length +
+      Object.keys(selected.componentPropertyAssignments).length
+    )
+  })
+
+  // Free-form "swap main component" options for the instance header.
+  const swapOptions = useSceneComputed<{ value: string; label: string }[]>(() => {
+    void editor.state.sceneVersion
+    const selected = editor.getSelectedNodes()[0]
+    if (selected?.type !== 'INSTANCE') return []
+    return [...editor.graph.getAllNodes()]
+      .filter((n) => n.type === 'COMPONENT')
+      .map((n) => ({ value: n.id, label: n.name }))
+      .sort((a, b) => a.label.localeCompare(b.label))
+  })
 
   const isComponentType = node?.type ? COMPONENT_TYPES.has(node.type) : false
   const SelectedIcon = node ? nodeIcon(node) : undefined
@@ -107,6 +139,20 @@ export function DesignPanel() {
 
         {node.type === 'INSTANCE' && (
           <div className="flex flex-col gap-1 border-b border-border px-3 py-2">
+            {swapOptions.length > 1 && (
+              <div data-test-id="instance-swap-select">
+                <AppSelect
+                  label={panels.swapInstance}
+                  options={swapOptions}
+                  value={node.componentId ?? ''}
+                  onValueChange={(componentId) => {
+                    if (componentId && componentId !== node.componentId) {
+                      editor.swapInstance(componentId)
+                    }
+                  }}
+                />
+              </div>
+            )}
             <button
               type="button"
               className="rounded bg-component/10 px-2 py-1 text-left text-[11px] text-component hover:bg-component/20"
@@ -114,6 +160,17 @@ export function DesignPanel() {
             >
               {panels.goToMainComponent}
             </button>
+            {resetOverrides.enabled && (
+              <button
+                type="button"
+                data-test-id="instance-reset-overrides"
+                className="rounded px-2 py-1 text-left text-[11px] text-muted hover:bg-hover"
+                onClick={() => resetOverrides.run()}
+              >
+                {panels.resetOverrides}
+                {overrideCount > 0 ? ` · ${overrideCount}` : ''}
+              </button>
+            )}
             <button
               type="button"
               className="rounded px-2 py-1 text-left text-[11px] text-muted hover:bg-hover"

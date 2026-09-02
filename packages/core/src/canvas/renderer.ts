@@ -3,6 +3,7 @@ import type { Color, Rect, Vector } from '@openweave/scene-graph/primitives'
 import type { SnapGuide } from '@openweave/scene-graph/snap'
 
 import { decodeBase64 } from '#core/bytes'
+import type { PrototypeOverlayState } from '#core/canvas/prototype-overlay'
 import type { ResolvedRenderColor } from '#core/color/management'
 /* eslint-disable max-lines -- SkiaRenderer facade owns CanvasKit state and delegates domain drawing */
 import {
@@ -15,7 +16,6 @@ import {
   COMPONENT_SET_BORDER_WIDTH,
   IS_BROWSER
 } from '#core/constants'
-import type { PrototypeOverlayState } from '#core/canvas/prototype-overlay'
 import type { EditorState } from '#core/editor/types'
 import { RenderProfiler } from '#core/profiler'
 import type { TextEditor } from '#core/text/editor'

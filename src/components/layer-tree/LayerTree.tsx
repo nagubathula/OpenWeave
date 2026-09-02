@@ -8,6 +8,7 @@ import {
   LayerTreeItem,
   useInlineRename,
   useI18n,
+  useSceneComputed,
   type LayerSelectionMode
 } from '@openweave/react'
 
@@ -28,7 +29,24 @@ const NAV_KEYS = new Set(['ArrowDown', 'ArrowUp', 'Home', 'End'])
 
 export default function LayerTree() {
   const store = useEditorStore()
-  const { menu } = useI18n()
+  const { menu, panels } = useI18n()
+
+  // Node ids that carry recorded instance overrides — one pass over the
+  // instances' override maps; keys are `${nodeId}:${prop}` (bare keys mark
+  // the instance root itself).
+  const overriddenIds = useSceneComputed<string[]>(() => {
+    void store.state.sceneVersion
+    const ids = new Set<string>()
+    for (const node of store.graph.nodes.values()) {
+      if (node.type !== 'INSTANCE') continue
+      for (const key of Object.keys(node.overrides)) {
+        const splitAt = key.lastIndexOf(':')
+        ids.add(splitAt === -1 ? node.id : key.slice(0, splitAt))
+      }
+    }
+    return [...ids]
+  })
+  const overriddenIdSet = new Set(overriddenIds)
   const pageInputRef = useRef<HTMLInputElement>(null)
 
   const handleRenameCommit = useCallback(
@@ -297,7 +315,8 @@ export default function LayerTree() {
                           {hasChildren ? (
                             <button
                               type="button"
-                              data-slot="disclosure" className={`${rowStyles.disclosure()} ${isExpanded ? 'rotate-90' : ''}`}
+                              data-slot="disclosure"
+                              className={`${rowStyles.disclosure()} ${isExpanded ? 'rotate-90' : ''}`}
                               onClick={(e) => {
                                 e.stopPropagation()
                                 itemActions.toggleExpand()
@@ -334,6 +353,15 @@ export default function LayerTree() {
                             <span data-slot="label" className={rowStyles.label()}>
                               {node.name}
                             </span>
+                          )}
+
+                          {overriddenIdSet.has(node.id) && (
+                            <Tip label={panels.hasOverrides}>
+                              <span
+                                data-test-id="layer-override-dot"
+                                className="mr-1 size-1.5 shrink-0 rounded-full bg-component"
+                              />
+                            </Tip>
                           )}
 
                           <div className={rowStyles.actions()}>

@@ -14,9 +14,10 @@ interface BindingRow {
 
 /**
  * Layer-side component-property bindings, for layers inside a main component:
- * tie a text layer's content to a TEXT property, or any layer's visibility to
- * a BOOLEAN property. The instance panel then exposes those as editable
- * controls (Figma's "Apply text property" / "Apply boolean property").
+ * tie a text layer's content to a TEXT property, any layer's visibility to a
+ * BOOLEAN property, or a nested instance's main component to an
+ * INSTANCE_SWAP property. The instance panel then exposes those as editable
+ * controls (Figma's "Apply text/boolean/instance-swap property").
  */
 export default function PropertyBindingSection() {
   const editor = useEditor()
@@ -28,7 +29,7 @@ export default function PropertyBindingSection() {
     if (selectedIds.size !== 1) return null
     const node = editor.graph.getNode([...selectedIds][0])
     if (!node) return null
-    if (node.type === 'COMPONENT' || node.type === 'COMPONENT_SET' || node.type === 'INSTANCE') {
+    if (node.type === 'COMPONENT' || node.type === 'COMPONENT_SET') {
       return null
     }
 
@@ -37,7 +38,7 @@ export default function PropertyBindingSection() {
 
     const boundId = (field: ComponentPropertyReferenceField) =>
       node.componentPropertyReferences.find((ref) => ref.field === field)?.propertyId ?? ''
-    const toOptions = (type: 'TEXT' | 'BOOLEAN') => [
+    const toOptions = (type: 'TEXT' | 'BOOLEAN' | 'INSTANCE_SWAP') => [
       { value: '', label: panels.propertyNone },
       ...defs.filter((def) => def.type === type).map((def) => ({ value: def.id, label: def.name }))
     ]
@@ -51,6 +52,17 @@ export default function PropertyBindingSection() {
           label: panels.bindTextProperty,
           options,
           value: boundId('TEXT')
+        })
+      }
+    }
+    if (node.type === 'INSTANCE') {
+      const options = toOptions('INSTANCE_SWAP')
+      if (options.length > 1) {
+        bindings.push({
+          field: 'INSTANCE_SWAP',
+          label: panels.bindSwapProperty,
+          options,
+          value: boundId('INSTANCE_SWAP')
         })
       }
     }

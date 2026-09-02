@@ -1,7 +1,5 @@
 import type { NodeChange, Paint } from '@openweave/kiwi/fig/codec'
 import { stringToGuid } from '@openweave/kiwi/fig/guid'
-
-import { legacyPrototypeFields, reactionsToKiwiInteractions } from './prototype'
 import { DEFAULT_STROKE_MITER_LIMIT } from '@openweave/scene-graph'
 import type {
   ComponentPropertyDefinition,
@@ -21,6 +19,7 @@ import {
   serializePluginRelaunchData,
   upsertPluginData
 } from './plugin-data'
+import { legacyPrototypeFields, reactionsToKiwiInteractions } from './prototype'
 
 export type KiwiNodeChange = NodeChange & Record<string, unknown>
 

@@ -58,7 +58,8 @@ export default function SelectionActionsControl({ showBooleanOperations = false 
 
       {showBooleanOperations && (
         <DropdownMenu.Root>
-          {/* oxlint-disable-next-line openweave/no-hardcoded-tip-labels */}`n          <Tip label="Boolean groups">
+          {/* oxlint-disable-next-line openweave/no-hardcoded-tip-labels */}`n{' '}
+          <Tip label="Boolean groups">
             <DropdownMenu.Trigger asChild>
               <button
                 type="button"

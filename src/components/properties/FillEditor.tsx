@@ -1,7 +1,7 @@
-import React from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 
 import { colorToCSS } from '@openweave/core/color'
-import { useGradientStops } from '@openweave/react'
+import { useEditor, useGradientStops } from '@openweave/react'
 import type { Fill, FillType, ImageScaleMode } from '@openweave/scene-graph'
 import type { Color } from '@openweave/scene-graph/primitives'
 
@@ -93,7 +93,8 @@ export function FillRow({ fill, onChange, onRemove }: FillRowProps) {
             </option>
           ))}
         </select>
-        {/* oxlint-disable-next-line openweave/no-hardcoded-tip-labels */}`n        <Tip label="Remove fill">
+        {/* oxlint-disable-next-line openweave/no-hardcoded-tip-labels */}`n{' '}
+        <Tip label="Remove fill">
           <button type="button" className="text-muted hover:text-surface px-1" onClick={onRemove}>
             −
           </button>
@@ -130,7 +131,8 @@ export function FillRow({ fill, onChange, onRemove }: FillRowProps) {
                   />
                   <span className="text-muted text-[10px]">%</span>
                 </label>
-                {/* oxlint-disable-next-line openweave/no-hardcoded-tip-labels */}`n                <Tip label="Remove stop">
+                {/* oxlint-disable-next-line openweave/no-hardcoded-tip-labels */}`n{' '}
+                <Tip label="Remove stop">
                   <button
                     type="button"
                     className="text-muted hover:text-surface disabled:opacity-30 px-1"
@@ -153,44 +155,88 @@ export function FillRow({ fill, onChange, onRemove }: FillRowProps) {
         </div>
       )}
 
-      {fill.type === 'IMAGE' && (
-        <div className="space-y-1.5">
-          <label className="flex items-center gap-2 bg-input/50 rounded px-2 py-1 border border-border">
-            <span className="text-muted text-[10px]">Scale</span>
-            <select
-              className="w-full bg-transparent outline-none text-surface"
-              value={fill.imageScaleMode ?? 'FILL'}
-              onChange={(e) =>
-                onChange({ ...fill, imageScaleMode: e.target.value as ImageScaleMode })
-              }
-            >
-              {IMAGE_SCALE_MODES.map((o) => (
-                <option key={o.value} value={o.value}>
-                  {o.label}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="flex items-center gap-2 bg-input/50 rounded px-2 py-1 border border-border">
-            <span className="text-muted text-[10px]">Hash</span>
-            <input
-              type="text"
-              placeholder="image hash"
-              className="w-full bg-transparent outline-none text-surface"
-              value={fill.imageHash ?? ''}
-              onChange={(e) => onChange({ ...fill, imageHash: e.target.value || undefined })}
-            />
-          </label>
-          {fill.imageHash ? (
-            <div
-              className="h-16 w-full rounded border border-border bg-cover bg-center"
-              style={{ backgroundColor: colorToCSS(fill.color) }}
-            />
-          ) : (
-            <div className="rounded border border-dashed border-border p-2 text-center text-[10px] text-muted">
-              No image
-            </div>
-          )}
+      {fill.type === 'IMAGE' && <ImageFillControls fill={fill} onChange={onChange} />}
+    </div>
+  )
+}
+
+const IMAGE_ACCEPT = 'image/png,image/jpeg,image/webp,image/gif,image/avif'
+
+/**
+ * Image fill controls: choose/replace the image via a file picker (bytes go
+ * into the document's content-addressed image store) plus scale mode and a
+ * live preview rendered from the stored bytes.
+ */
+function ImageFillControls({ fill, onChange }: { fill: Fill; onChange: (fill: Fill) => void }) {
+  const editor = useEditor()
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+
+  const hash = fill.imageHash ?? null
+  useEffect(() => {
+    const bytes = hash ? editor.graph.images.get(hash) : undefined
+    if (!bytes) {
+      setPreviewUrl(null)
+      return
+    }
+    const url = URL.createObjectURL(new Blob([new Uint8Array(bytes)]))
+    setPreviewUrl(url)
+    return () => URL.revokeObjectURL(url)
+  }, [editor, hash])
+
+  const pickImage = async (file: File | null | undefined) => {
+    if (!file) return
+    const bytes = new Uint8Array(await file.arrayBuffer())
+    const imageHash = editor.storeImage(bytes)
+    onChange({ ...fill, imageHash })
+  }
+
+  return (
+    <div className="space-y-1.5">
+      <label className="flex items-center gap-2 bg-input/50 rounded px-2 py-1 border border-border">
+        <span className="text-muted text-[10px]">Scale</span>
+        <select
+          className="w-full bg-transparent outline-none text-surface"
+          value={fill.imageScaleMode ?? 'FILL'}
+          onChange={(e) => onChange({ ...fill, imageScaleMode: e.target.value as ImageScaleMode })}
+        >
+          {IMAGE_SCALE_MODES.map((o) => (
+            <option key={o.value} value={o.value}>
+              {o.label}
+            </option>
+          ))}
+        </select>
+      </label>
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept={IMAGE_ACCEPT}
+        hidden
+        data-test-id="fill-image-input"
+        onChange={(e) => {
+          void pickImage(e.target.files?.[0])
+          e.target.value = ''
+        }}
+      />
+      <button
+        type="button"
+        data-test-id="fill-image-choose"
+        className="w-full rounded bg-input/50 py-1 text-[11px] text-muted hover:text-surface"
+        onClick={() => fileInputRef.current?.click()}
+      >
+        {fill.imageHash ? 'Replace image…' : 'Choose image…'}
+      </button>
+      {previewUrl ? (
+        <img
+          src={previewUrl}
+          alt=""
+          data-test-id="fill-image-preview"
+          className="h-16 w-full rounded border border-border object-cover"
+          style={{ backgroundColor: colorToCSS(fill.color) }}
+        />
+      ) : (
+        <div className="rounded border border-dashed border-border p-2 text-center text-[10px] text-muted">
+          No image
         </div>
       )}
     </div>

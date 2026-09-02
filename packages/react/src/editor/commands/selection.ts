@@ -95,7 +95,22 @@ export function createSelectionCommands({
         return t.value.createComponent
       },
       enabled: capabilities.canCreateComponent,
-      run: () => editor.createComponentFromSelection()
+      run: () => {
+        // Figma's MOD+ALT+K is contextual: on a component, set, or variant it
+        // adds a variant; on anything else it creates a component.
+        const node = selection.selectedNode
+        const parent = node?.parentId ? editor.graph.getNode(node.parentId) : null
+        if (
+          node &&
+          (node.type === 'COMPONENT' ||
+            node.type === 'COMPONENT_SET' ||
+            parent?.type === 'COMPONENT_SET')
+        ) {
+          editor.addVariant(node.id)
+        } else {
+          editor.createComponentFromSelection()
+        }
+      }
     },
     'selection.createComponentSet': {
       id: 'selection.createComponentSet',
@@ -123,6 +138,14 @@ export function createSelectionCommands({
       },
       enabled: capabilities.canDetachInstance,
       run: () => editor.detachInstance()
+    },
+    'selection.resetOverrides': {
+      id: 'selection.resetOverrides',
+      get label() {
+        return t.value.resetOverrides
+      },
+      enabled: capabilities.canResetOverrides,
+      run: () => editor.resetInstanceOverrides()
     },
     'selection.goToMainComponent': {
       id: 'selection.goToMainComponent',

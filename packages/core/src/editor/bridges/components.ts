@@ -27,6 +27,10 @@ export function createComponentBridge(
       ),
     createInstanceFromComponent: components.createInstanceFromComponent,
     detachInstance: () => components.detachInstance(selection.getSelectedNode()),
+    resetInstanceOverrides: () => components.resetInstanceOverrides(selection.getSelectedNode()),
+    swapInstance: (componentId: string) =>
+      components.swapInstance(selection.getSelectedNode(), componentId),
+    setPropertyDefinitionDefault: components.setPropertyDefinitionDefault,
     focusComponent: (componentId: string) =>
       components.focusComponent(componentId, pages.switchPage),
     goToMainComponent: () =>
@@ -35,6 +39,12 @@ export function createComponentBridge(
     addPropertyDefinition: components.addPropertyDefinition,
     removePropertyDefinition: components.removePropertyDefinition,
     renamePropertyDefinition: components.renamePropertyDefinition,
+    setPropertyDefinitionPreferredValues: components.setPropertyDefinitionPreferredValues,
+    movePropertyDefinition: components.movePropertyDefinition,
+    renameVariantValue: components.renameVariantValue,
+    resolveVariantConflicts: components.resolveVariantConflicts,
+    arrangeComponentSetVariants: components.arrangeComponentSetVariants,
+    updateVariantMembership: components.updateVariantMembership,
     collectVariantOptions: components.collectVariantOptions,
     findVariantByValues: components.findVariantByValues,
     getDefaultVariantForComponentSet: components.getDefaultVariantForComponentSet,

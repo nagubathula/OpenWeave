@@ -46,7 +46,6 @@ export default function AcpPermissionDialog() {
       open
       ui={{ overlay: 'z-50', content: 'w-80 rounded-lg p-4 shadow-xl' }}
       data-test-id="acp-permission-dialog"
-      
       onEscapeKeyDown={() => rejectCurrentPermission()}
     >
       <AlertDialogPrimitive.Title className="text-sm font-semibold text-surface">

@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 
 import { colorToHexRaw, parseColor } from '@openweave/core/color'
-import { useI18n } from '@openweave/react'
+import { useI18n, useSceneComputed } from '@openweave/react'
 import type { Color } from '@openweave/scene-graph/primitives'
 
 import { getActiveEditorStore } from '@/app/editor/active-store'
@@ -13,7 +13,10 @@ export default function PageSection() {
   const editor = getActiveEditorStore()
   const { panels } = useI18n()
 
-  const pageColor = editor.state.pageColor
+  // Bridged read: `state.pageColor` is Vue-reactive store state — a plain
+  // render-body read never re-renders this panel, leaving the swatch/hex
+  // stale after the background changes (the canvas repaints, the panel not).
+  const pageColor = useSceneComputed<Color>(() => ({ ...editor.state.pageColor }))
   const [hexDraft, setHexDraft] = useState<string | null>(null)
 
   const updatePageColor = (color: Color) => {
@@ -21,11 +24,13 @@ export default function PageSection() {
   }
 
   const updatePageAlpha = (alpha: number) => {
-    editor.setPageColor({ ...pageColor, a: alpha })
+    editor.setPageColor({ ...editor.state.pageColor, a: alpha })
   }
 
   const commitHexDraft = () => {
-    if (hexDraft !== null) updatePageColor({ ...parseColor(`#${hexDraft}`), a: pageColor.a })
+    if (hexDraft !== null) {
+      updatePageColor({ ...parseColor(`#${hexDraft}`), a: editor.state.pageColor.a })
+    }
     setHexDraft(null)
   }
 

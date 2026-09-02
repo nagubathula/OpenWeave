@@ -206,6 +206,7 @@ export {
 } from '#react/controls/constraints'
 export type { ConstraintAxis, ConstraintEdge, ConstraintValue } from '#react/controls/constraints'
 export {
+  booleanVariantPair,
   compatibleComponentPropertyDefinitions,
   instanceSwapOptions,
   mergedComponentPropertyValue,

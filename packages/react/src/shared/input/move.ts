@@ -157,7 +157,7 @@ export function handleMoveUp(d: DragMove, editor: Editor) {
 
   const moved = hasMoved(d, editor)
 
-  if (moved) {
+  const applyMove = () => {
     restoreOriginalPositions(d, editor)
     applyFinalPositions(d, editor)
     const dropId = editor.state.dropTargetId
@@ -177,9 +177,18 @@ export function handleMoveUp(d: DragMove, editor: Editor) {
       editor.setDropTarget(null)
       return
     }
-    editor.commitDuplicateMove([...d.originals.keys()], previousSelection)
+    // Batched so a variant-membership change from the drop merges with the
+    // duplicate into one undo step.
+    editor.undo.runBatch('Duplicate', () => {
+      applyMove()
+      editor.commitDuplicateMove([...d.originals.keys()], previousSelection)
+    })
   } else if (moved) {
-    editor.commitMoveWithReparent(d.originals)
+    // Batched for the same reason: move + reparent + variant membership.
+    editor.undo.runBatch('Move', () => {
+      applyMove()
+      editor.commitMoveWithReparent(d.originals)
+    })
   }
   editor.setDropTarget(null)
 }

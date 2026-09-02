@@ -28,7 +28,7 @@ export default function ExportSection() {
     updateScale,
     updateFormat
   } = useExport()
-  
+
   const [exporting, setExporting] = useState(false)
   const [showPreview, setShowPreview] = useState(false)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
@@ -80,11 +80,11 @@ export default function ExportSection() {
         const node = editorStore.graph.getNode(id)
         if (node) maxW = Math.max(maxW, node.width)
       }
-      
+
       const PREVIEW_WIDTH = 480
       const scale = maxW > 0 ? Math.min(PREVIEW_WIDTH / maxW, 2) : 1
       const data = await editorStore.renderExportImage(ids, scale, 'PNG')
-      
+
       if (!active) return
 
       if (data) {
@@ -134,7 +134,14 @@ export default function ExportSection() {
           >
             {formatSupportsScale(setting.format) ? (
               <div className="w-20">
-                <input type="text" data-test-id="export-scale" aria-label="Export scale" className={inputClass + " h-6 px-1"} value={setting.scale + "x"} onChange={(e) => updateScale(i, Number.parseFloat(e.target.value) || 1)} />
+                <input
+                  type="text"
+                  data-test-id="export-scale"
+                  aria-label="Export scale"
+                  className={inputClass + ' h-6 px-1'}
+                  value={setting.scale + 'x'}
+                  onChange={(e) => updateScale(i, Number.parseFloat(e.target.value) || 1)}
+                />
               </div>
             ) : (
               <div className="w-20 text-[10px] text-muted">1x</div>
@@ -174,12 +181,20 @@ export default function ExportSection() {
               className="mt-1 flex w-full cursor-pointer items-center gap-1 rounded border-none bg-transparent px-0 py-1 text-[11px] text-muted hover:text-surface"
               onClick={() => setShowPreview(!showPreview)}
             >
-              {showPreview ? <ChevronDown className="size-3" /> : <ChevronRight className="size-3" />}
+              {showPreview ? (
+                <ChevronDown className="size-3" />
+              ) : (
+                <ChevronRight className="size-3" />
+              )}
               Preview
             </button>
             {showPreview && previewUrl && (
               <div className="mt-1 overflow-hidden rounded border border-border">
-                <img src={previewUrl} className={`block w-full ${CHECKERBOARD_BACKGROUND}`} alt="Preview" />
+                <img
+                  src={previewUrl}
+                  className={`block w-full ${CHECKERBOARD_BACKGROUND}`}
+                  alt="Preview"
+                />
               </div>
             )}
             {showPreview && !previewUrl && (

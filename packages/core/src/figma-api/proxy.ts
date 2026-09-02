@@ -418,6 +418,86 @@ export class FigmaNodeProxy {
     return this[INTERNAL_API].wrapNode(inst.id)
   }
 
+  detachInstance(): FigmaNodeProxy {
+    const n = this._raw()
+    if (n.type !== 'INSTANCE') throw new Error('detachInstance() can only be called on instances')
+    this[INTERNAL_GRAPH].detachInstance(n.id)
+    return this[INTERNAL_API].wrapNode(n.id)
+  }
+
+  swapComponent(componentNode: FigmaNodeProxy): void {
+    const n = this._raw()
+    if (n.type !== 'INSTANCE') throw new Error('swapComponent() can only be called on instances')
+    const component = this[INTERNAL_GRAPH].getNode(componentNode[INTERNAL_ID])
+    if (component?.type !== 'COMPONENT') {
+      throw new Error('swapComponent() requires a component node')
+    }
+    this[INTERNAL_GRAPH].swapInstanceComponent(n.id, component.id)
+  }
+
+  /** Definitions declared by this component or component set. */
+  get componentPropertyDefinitions(): Record<
+    string,
+    {
+      type: string
+      defaultValue: string
+      variantOptions?: string[]
+      preferredValues?: string[]
+    }
+  > {
+    const n = this._raw()
+    if (n.type !== 'COMPONENT' && n.type !== 'COMPONENT_SET') {
+      throw new Error('componentPropertyDefinitions requires a component or component set')
+    }
+    return Object.fromEntries(
+      n.componentPropertyDefinitions.map((def) => [
+        def.name,
+        {
+          type: def.type,
+          defaultValue: def.defaultValue,
+          ...(def.variantOptions ? { variantOptions: [...def.variantOptions] } : {}),
+          ...(def.preferredValues ? { preferredValues: [...def.preferredValues] } : {})
+        }
+      ])
+    )
+  }
+
+  /** An instance's effective property values, keyed by property name. */
+  get componentProperties(): Record<string, { type: string; value: string | boolean }> {
+    const n = this._raw()
+    if (n.type !== 'INSTANCE') throw new Error('componentProperties requires an instance')
+    const component = n.componentId ? this[INTERNAL_GRAPH].getNode(n.componentId) : null
+    const parent = component?.parentId ? this[INTERNAL_GRAPH].getNode(component.parentId) : null
+    const owners = [
+      ...(parent?.type === 'COMPONENT_SET' ? [parent] : []),
+      ...(component ? [component] : [])
+    ]
+    const result: Record<string, { type: string; value: string | boolean }> = {}
+    for (const owner of owners) {
+      for (const def of owner.componentPropertyDefinitions) {
+        if (def.name in result) continue
+        const raw =
+          def.type === 'VARIANT'
+            ? (component?.componentPropertyValues[def.name] ?? def.defaultValue)
+            : (n.componentPropertyAssignments[def.id] ?? def.defaultValue)
+        result[def.name] = {
+          type: def.type,
+          value: def.type === 'BOOLEAN' ? raw === 'true' : raw
+        }
+      }
+    }
+    return result
+  }
+
+  /** An instance's variant values ({ State: 'Hover', ... }), or null. */
+  get variantProperties(): Record<string, string> | null {
+    const n = this._raw()
+    if (n.type !== 'INSTANCE') return null
+    const component = n.componentId ? this[INTERNAL_GRAPH].getNode(n.componentId) : null
+    if (!component || Object.keys(component.componentPropertyValues).length === 0) return null
+    return { ...component.componentPropertyValues }
+  }
+
   // --- Tree ---
 
   get parent(): FigmaNodeProxy | null {

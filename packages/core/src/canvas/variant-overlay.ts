@@ -35,11 +35,7 @@ export function variantAddTarget(
 }
 
 /** World-space center of the add-variant button, below the set's bottom edge. */
-export function variantAddButtonPosition(
-  graph: SceneGraph,
-  set: SceneNode,
-  zoom: number
-): Vector {
+export function variantAddButtonPosition(graph: SceneGraph, set: SceneNode, zoom: number): Vector {
   const abs = getAbsolutePosition(set, graph)
   return {
     x: abs.x + set.width / 2,

@@ -1,6 +1,9 @@
 import { guidToString } from '@openweave/kiwi/fig/guid'
-
-import type { PrototypeReaction, PrototypeTransition, PrototypeTrigger } from '@openweave/scene-graph'
+import type {
+  PrototypeReaction,
+  PrototypeTransition,
+  PrototypeTrigger
+} from '@openweave/scene-graph'
 import type { GUID } from '@openweave/scene-graph/primitives'
 
 /**
@@ -194,7 +197,12 @@ export function kiwiInteractionsToReactions(raw: unknown[] | undefined): Prototy
       reactions.push({ ...base, action: 'BACK', destinationId: null, url: '' })
     } else if (action.connectionType === 'URL') {
       if (!action.connectionURL) continue
-      reactions.push({ ...base, action: 'OPEN_URL', destinationId: null, url: action.connectionURL })
+      reactions.push({
+        ...base,
+        action: 'OPEN_URL',
+        destinationId: null,
+        url: action.connectionURL
+      })
     } else if (action.transitionNodeID) {
       reactions.push({
         ...base,

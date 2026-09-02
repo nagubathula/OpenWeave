@@ -205,6 +205,7 @@ export const panelMessageDefaults = {
   layersCount: params('{count} layers'),
   goToMainComponent: 'Go to Main Component',
   detachInstance: 'Detach Instance',
+  resetOverrides: 'Reset All Changes',
 
   gap: 'Gap',
 
@@ -294,6 +295,7 @@ export const panelMessageDefaults = {
   prototypeOnHover: 'While hovering',
   prototypeAfterDelay: 'After delay',
   prototypeNavigateTo: 'Navigate to',
+  prototypeChangeTo: 'Change to',
   prototypeBack: 'Back',
   prototypeOpenUrl: 'Open link',
   prototypeTransitionInstant: 'Instant',
@@ -325,10 +327,25 @@ export const panelMessageDefaults = {
   propertyTypeVariant: 'Variant',
   propertyTypeText: 'Text',
   propertyTypeBoolean: 'Boolean',
+  propertyTypeInstanceSwap: 'Instance swap',
   currentVariant: 'Current variant',
   bindTextProperty: 'Text',
   bindVisibleProperty: 'Visible',
-  propertyNone: 'None'
+  bindSwapProperty: 'Swap',
+  swapInstance: 'Swap instance',
+  propertyNone: 'None',
+  variantConflictWarning: 'Conflicting variant values',
+  fixConflicts: 'Fix conflicts',
+  arrangeVariants: 'Arrange',
+  arrangeRow: 'Row',
+  arrangeColumn: 'Column',
+  arrangeGrid: 'Grid',
+  preferredValues: 'Preferred values',
+  movePropertyUp: 'Move up',
+  movePropertyDown: 'Move down',
+  hasOverrides: 'Has overrides',
+  defaultVariant: 'Default variant',
+  addVariantValue: 'Add value…'
 } as const
 
 export const panelMessages = i18n('panels', panelMessageDefaults)

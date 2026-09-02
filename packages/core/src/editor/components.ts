@@ -5,7 +5,10 @@ import { randomHex } from '#core/random'
 import { createComponentFocusActions } from './components/focus'
 import { createComponentInstanceActions } from './components/instances'
 import { createComponentPropertyActions } from './components/properties'
-import { createVariantActions } from './components/variants'
+import {
+  createVariantActions,
+  updateVariantMembership as updateVariantMembershipImpl
+} from './components/variants'
 import type { EditorContext } from './types'
 
 export function createComponentActions(ctx: EditorContext) {
@@ -139,6 +142,8 @@ export function createComponentActions(ctx: EditorContext) {
     createComponentFromSelection,
     createComponentSetFromComponents,
     addVariant,
+    updateVariantMembership: (nodeId: string, prevParentId: string | null) =>
+      updateVariantMembershipImpl(ctx, nodeId, prevParentId),
     ...instanceActions,
     ...focusActions,
     ...variantActions,

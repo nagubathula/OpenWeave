@@ -63,6 +63,14 @@ export function useSelectionCapabilities() {
       )
     }),
     canGoToMainComponent: selection.isInstance,
+    canResetOverrides: useSceneComputed(() => {
+      const node = editor.getSelectedNodes()[0]
+      return (
+        node?.type === 'INSTANCE' &&
+        (Object.keys(node.overrides).length > 0 ||
+          Object.keys(node.componentPropertyAssignments).length > 0)
+      )
+    }),
     canCreateInstance: selectedNode?.type === 'COMPONENT',
     canMoveToPage: useSceneComputed(() => hasSelection && editor.graph.getPages().length > 1),
     canSetOpacity: hasSelection,

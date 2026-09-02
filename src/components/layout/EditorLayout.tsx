@@ -45,7 +45,8 @@ function CollapsedChrome() {
       <span data-test-id="editor-document-name" className="text-xs text-surface">
         {name}
       </span>
-      {/* oxlint-disable-next-line openweave/no-hardcoded-tip-labels */}`n      <Tip label="Show UI">
+      {/* oxlint-disable-next-line openweave/no-hardcoded-tip-labels */}`n{' '}
+      <Tip label="Show UI">
         <button
           type="button"
           data-test-id="editor-show-ui"

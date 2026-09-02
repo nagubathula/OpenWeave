@@ -8,7 +8,6 @@ import { parseVariantName } from '@openweave/scene-graph/variant-name'
 /* eslint-disable max-lines -- kiwi↔scene conversion helpers are tightly coupled */
 
 import { convertFigmaDerivedTextGlyphs } from './derived-text-glyphs'
-import { nodeChangeToReactions } from './prototype'
 import { convertFontFeatures } from './font/features'
 import { convertFontVariations } from './font/variations'
 import { convertEffects, convertFills, convertStrokes } from './paint'
@@ -22,6 +21,7 @@ import {
   NODE_TYPE_PLUGIN_KEY,
   TEXT_DIRECTION_PLUGIN_KEY
 } from './plugin-data'
+import { nodeChangeToReactions } from './prototype'
 import { importStyleRuns } from './style-runs'
 import { convertLetterSpacing, convertLineHeight, mapTextDecoration } from './text-values'
 import {

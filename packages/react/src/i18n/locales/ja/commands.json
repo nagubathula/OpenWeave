@@ -10,6 +10,7 @@
   "createComponentSet": "コンポーネントセットを作成",
   "createInstance": "インスタンスを作成",
   "detachInstance": "インスタンスの切り離し",
+  "resetOverrides": "すべての変更をリセット",
   "goToMainComponent": "メインコンポーネントに移動",
   "addAutoLayout": "オートレイアウトを追加",
   "bringToFront": "最前面へ移動",

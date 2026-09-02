@@ -19,6 +19,14 @@ export function findMoveDropTarget(cx: number, cy: number, editor: Editor): Scen
   ) {
     dropTarget = null
   }
+  // Component sets only accept components (Figma rule): anything else drops
+  // through to the page instead.
+  if (dropTarget?.type === 'COMPONENT_SET') {
+    const allComponents = [...editor.state.selectedIds].every(
+      (id) => editor.graph.getNode(id)?.type === 'COMPONENT'
+    )
+    if (!allComponents) dropTarget = null
+  }
   return dropTarget
 }
 
@@ -27,12 +35,19 @@ export function reparentOutsideNodes(editor: Editor) {
     const node = editor.graph.getNode(id)
     if (!node?.parentId || editor.isTopLevel(node.parentId)) continue
     const parent = editor.graph.getNode(node.parentId)
-    if (!parent || (parent.type !== 'FRAME' && parent.type !== 'SECTION')) continue
+    if (
+      !parent ||
+      (parent.type !== 'FRAME' && parent.type !== 'SECTION' && parent.type !== 'COMPONENT_SET')
+    ) {
+      continue
+    }
     const outsideX = node.x + node.width < 0 || node.x > parent.width
     const outsideY = node.y + node.height < 0 || node.y > parent.height
     if (outsideX || outsideY) {
       const grandparentId = parent.parentId ?? editor.state.currentPageId
       editor.graph.reparentNode(id, grandparentId)
+      // A variant dragged out of its set becomes a standalone component.
+      editor.updateVariantMembership(id, parent.id)
     }
   }
 }

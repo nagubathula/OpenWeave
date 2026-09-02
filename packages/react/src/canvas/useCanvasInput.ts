@@ -4,11 +4,11 @@ import {
   updateNodeEditHover
 } from '#react/canvas/node-edit-input/use'
 import { handlePenDragMove, updatePenHover } from '#react/canvas/pen-input/use'
+import { createCanvasPointer } from '#react/canvas/pointer/use'
 import {
   finishPrototypeConnect,
   handlePrototypeConnectMove
 } from '#react/canvas/prototype-input/use'
-import { createCanvasPointer } from '#react/canvas/pointer/use'
 import { createTextEditInput } from '#react/canvas/text-edit/input'
 import { handleToolMouseDown } from '#react/canvas/tool-input/use'
 import { createCanvasTransformInput } from '#react/canvas/transform-input/use'
@@ -51,8 +51,9 @@ export function useCanvasInput(
 ) {
   const drag = useRef<DragState | null>(null)
   const [cursorOverride, setCursorOverride] = useState<string | null>(null)
-  const [autoLayoutPaddingEdit, setAutoLayoutPaddingEdit] = useState<AutoLayoutPaddingEditState | null>(null)
-  
+  const [autoLayoutPaddingEdit, setAutoLayoutPaddingEdit] =
+    useState<AutoLayoutPaddingEditState | null>(null)
+
   const selectedIdsBeforeClickSequence = useRef<ReadonlySet<string>>(new Set())
   const spaceHeld = useSpaceHeld()
   const { recordClick, getClickCount } = createClickCounter()
@@ -310,7 +311,14 @@ export function useCanvasInput(
       if (drag.current) onMouseUp()
     }
     window.addEventListener('mouseup', onWindowMouseUp)
-    const cleanupPanZoom = setupPanZoom(canvasRef, editor, drag, onMouseDown, onMouseMove, onMouseUp)
+    const cleanupPanZoom = setupPanZoom(
+      canvasRef,
+      editor,
+      drag,
+      onMouseDown,
+      onMouseMove,
+      onMouseUp
+    )
     return () => {
       canvas.removeEventListener('dblclick', onDblClick)
       canvas.removeEventListener('mousedown', onMouseDown)

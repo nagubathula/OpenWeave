@@ -2,11 +2,12 @@ import type { StorageProviderID } from '@/app/integrations/storage/types'
 import { evictLocalFigCache } from '@/app/storage/cache-eviction'
 import { getLocalCanvasStore } from '@/app/storage/local-store'
 import type { LocalCanvasStore } from '@/app/storage/local-store/store'
-import { enqueuePutCanvas } from '@/app/storage/sync/engine'
+import { enqueuePutCanvas, enqueuePutThumb } from '@/app/storage/sync/engine'
 
 export type StoragePersistenceDependencies = {
   store: LocalCanvasStore
   enqueueCanvas(canvasId: string, revision: number): Promise<void>
+  enqueueThumb?(canvasId: string, revision: number): Promise<void>
 }
 
 export type PersistStorageCanvasOptions = {
@@ -14,6 +15,7 @@ export type PersistStorageCanvasOptions = {
   canvasId: string
   name: string
   figBytes: Uint8Array
+  thumbnailBytes?: Uint8Array | null
 }
 
 /** Write locally before scheduling remote synchronization. */
@@ -23,16 +25,21 @@ export async function persistStorageCanvasLocally(
 ): Promise<{ revision: number }> {
   const runtime = dependencies ?? {
     store: getLocalCanvasStore(),
-    enqueueCanvas: enqueuePutCanvas
+    enqueueCanvas: enqueuePutCanvas,
+    enqueueThumb: enqueuePutThumb
   }
   const metadata = await runtime.store.writeCanvas({
     id: options.canvasId,
     providerId: options.providerId,
     name: options.name,
     figBytes: options.figBytes,
+    thumbBytes: options.thumbnailBytes,
     syncStatus: 'pending'
   })
   await runtime.enqueueCanvas(options.canvasId, metadata.revision)
+  if (options.thumbnailBytes) {
+    await runtime.enqueueThumb?.(options.canvasId, metadata.revision)
+  }
   return { revision: metadata.revision }
 }
 

@@ -1,4 +1,5 @@
 import * as fs from 'node:fs'
+
 import { test, expect } from '@playwright/test'
 
 import { CanvasHelper } from '#tests/helpers/canvas'
@@ -62,7 +63,7 @@ test('tool-created CJK text requests fallback through app font loading', async (
 })
 
 test('CJK text waits for fallback fonts and repaints after they load', async ({ page }) => {
-  await page.route('/tests/fixtures/fonts/NotoSansCJK-Test.otf', async route => {
+  await page.route('/tests/fixtures/fonts/NotoSansCJK-Test.otf', async (route) => {
     const buffer = fs.readFileSync('./tests/fixtures/fonts/NotoSansCJK-Test.otf')
     await route.fulfill({
       status: 200,

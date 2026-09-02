@@ -50,6 +50,62 @@ export function openStorageWorkspace(): void {
   syncStorageUrl(true)
 }
 
+/**
+ * Document card preview: local thumbnail first (written on every save from
+ * the .fig's embedded render), falling back to the provider's stored
+ * thumbnail — which is then cached locally so the fetch happens once.
+ */
+function DocumentThumbnail({
+  documentId,
+  configured
+}: {
+  documentId: string
+  configured: boolean
+}) {
+  const [url, setUrl] = useState<string | null>(null)
+
+  useEffect(() => {
+    let active = true
+    let objectUrl: string | null = null
+    const load = async () => {
+      const localStore = getLocalCanvasStore()
+      let bytes = await localStore.readThumb(documentId)
+      if (!bytes && configured) {
+        try {
+          const adapter = createActiveStorageAdapter()
+          bytes = (await adapter.getThumbnail?.(documentId)) ?? null
+          if (bytes) await localStore.writeThumb(documentId, bytes)
+        } catch {
+          bytes = null
+        }
+      }
+      if (!active) return
+      if (bytes) {
+        objectUrl = URL.createObjectURL(new Blob([new Uint8Array(bytes)], { type: 'image/png' }))
+        setUrl(objectUrl)
+      } else {
+        setUrl(null)
+      }
+    }
+    void load()
+    return () => {
+      active = false
+      if (objectUrl) URL.revokeObjectURL(objectUrl)
+    }
+  }, [documentId, configured])
+
+  return url ? (
+    <img
+      src={url}
+      alt=""
+      className="aspect-[4/3] w-full bg-panel-field object-cover"
+      draggable={false}
+    />
+  ) : (
+    <div className="aspect-[4/3] bg-panel-field" />
+  )
+}
+
 export default function StorageWorkspace() {
   const open = useStore(storageWorkspaceOpen)
   const refreshTick = useStore(storageWorkspaceRefreshTick)
@@ -229,7 +285,7 @@ export default function StorageWorkspace() {
                 className="group overflow-hidden rounded-lg border border-border bg-panel text-left hover:border-panel-focus hover:bg-hover"
                 onClick={() => void openDocument(document)}
               >
-                <div className="aspect-[4/3] bg-panel-field" />
+                <DocumentThumbnail documentId={document.id} configured={configured} />
                 <div className="border-t border-border p-3">
                   <p className="truncate text-xs font-medium">{document.name}</p>
                   <p className="mt-1 text-[10px] text-muted">

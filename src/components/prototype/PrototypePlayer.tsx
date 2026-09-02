@@ -29,6 +29,12 @@ const TRANSITION_ANIMATION: Record<PrototypeTransition, string | null> = {
   SLIDE_FROM_BOTTOM: 'ow-proto-slide-bottom'
 }
 
+function frameImageKey(frameId: string, overrides: ReadonlyMap<string, string>): string {
+  if (overrides.size === 0) return frameId
+  const parts = [...overrides.entries()].map(([a, b]) => `${a}=${b}`).sort()
+  return `${frameId}|${parts.join(',')}`
+}
+
 const PLAYER_KEYFRAMES = `
 @keyframes ow-proto-dissolve { from { opacity: 0 } to { opacity: 1 } }
 @keyframes ow-proto-slide-left { from { transform: translateX(-100%) } to { transform: translateX(0) } }
@@ -65,6 +71,11 @@ export default function PrototypePlayer({ onClose }: PrototypePlayerProps) {
     transition: PrototypeTransition
     duration: number
   } | null>(null)
+  // Interactive components: player-local variant state (instance id →
+  // variant component id), applied only while rendering the frame image.
+  const [variantOverrides, setVariantOverrides] = useState<ReadonlyMap<string, string>>(
+    () => new Map()
+  )
   const historyRef = useRef<string[]>([])
   const imagesRef = useRef(new Map<string, string>())
   const [, bumpImages] = useState(0)
@@ -83,20 +94,46 @@ export default function PrototypePlayer({ onClose }: PrototypePlayerProps) {
     : 1
 
   const renderFrame = useCallback(
-    async (id: string) => {
-      if (imagesRef.current.has(id)) return
-      const bytes = await store.renderExportImage([id], 2, 'PNG')
+    async (id: string, overrides: ReadonlyMap<string, string>) => {
+      const key = frameImageKey(id, overrides)
+      if (imagesRef.current.has(key)) return
+
+      // Interactive-component states render by swapping the instances'
+      // variants for the duration of the export render, then swapping back —
+      // net-zero document change, no undo entries (graph-level ops).
+      const restores: Array<[string, string]> = []
+      for (const [instanceId, componentId] of overrides) {
+        const instance = store.graph.getNode(instanceId)
+        const component = store.graph.getNode(componentId)
+        if (
+          instance?.type === 'INSTANCE' &&
+          instance.componentId &&
+          instance.componentId !== componentId &&
+          component?.type === 'COMPONENT'
+        ) {
+          restores.push([instanceId, instance.componentId])
+          store.graph.swapInstanceComponent(instanceId, componentId)
+        }
+      }
+      let bytes: Uint8Array | null = null
+      try {
+        bytes = await store.renderExportImage([id], 2, 'PNG')
+      } finally {
+        for (const [instanceId, prevComponentId] of restores.reverse()) {
+          store.graph.swapInstanceComponent(instanceId, prevComponentId)
+        }
+      }
       if (!bytes) return
       const url = URL.createObjectURL(new Blob([bytes as BlobPart], { type: 'image/png' }))
-      imagesRef.current.set(id, url)
+      imagesRef.current.set(key, url)
       bumpImages((n) => n + 1)
     },
     [store]
   )
 
   useEffect(() => {
-    if (frameId) void renderFrame(frameId)
-  }, [frameId, renderFrame])
+    if (frameId) void renderFrame(frameId, variantOverrides)
+  }, [frameId, variantOverrides, renderFrame])
 
   useEffect(() => {
     const images = imagesRef.current
@@ -113,11 +150,21 @@ export default function PrototypePlayer({ onClose }: PrototypePlayerProps) {
         if (transition !== 'INSTANT' && duration > 0) {
           setPrevious({ frameId: current, transition, duration })
         }
+        setVariantOverrides(new Map())
         return destinationId
       })
     },
     []
   )
+
+  const setVariantState = useCallback((instanceId: string, componentId: string | null) => {
+    setVariantOverrides((current) => {
+      const next = new Map(current)
+      if (componentId) next.set(instanceId, componentId)
+      else next.delete(instanceId)
+      return next
+    })
+  }, [])
 
   useEffect(() => {
     if (!previous) return
@@ -126,7 +173,7 @@ export default function PrototypePlayer({ onClose }: PrototypePlayerProps) {
   }, [previous])
 
   const runReaction = useCallback(
-    (reaction: PrototypeReaction) => {
+    (reaction: PrototypeReaction, nodeId?: string) => {
       if (reaction.action === 'NAVIGATE' && reaction.destinationId) {
         if (store.graph.getNode(reaction.destinationId)) {
           navigate(reaction.destinationId, reaction.transition, reaction.transitionDuration)
@@ -135,13 +182,16 @@ export default function PrototypePlayer({ onClose }: PrototypePlayerProps) {
         const back = historyRef.current.pop()
         if (back) {
           setPrevious(null)
+          setVariantOverrides(new Map())
           setFrameId(back)
         }
       } else if (reaction.action === 'OPEN_URL' && reaction.url) {
         void openExternalLink(reaction.url)
+      } else if (reaction.action === 'CHANGE_TO' && reaction.destinationId && nodeId) {
+        setVariantState(nodeId, reaction.destinationId)
       }
     },
-    [navigate, store]
+    [navigate, setVariantState, store]
   )
 
   // Frame-level "after delay" reactions.
@@ -196,13 +246,16 @@ export default function PrototypePlayer({ onClose }: PrototypePlayerProps) {
   function restart() {
     historyRef.current = []
     setPrevious(null)
+    setVariantOverrides(new Map())
     setFrameId(startFrameId)
   }
 
   if (!frame) return null
 
-  const imageUrl = imagesRef.current.get(frame.id)
-  const previousUrl = previous ? imagesRef.current.get(previous.frameId) : undefined
+  const imageUrl = imagesRef.current.get(frameImageKey(frame.id, variantOverrides))
+  const previousUrl = previous
+    ? imagesRef.current.get(frameImageKey(previous.frameId, new Map()))
+    : undefined
   const animation = previous ? TRANSITION_ANIMATION[previous.transition] : null
   const displayW = frame.width * scale
   const displayH = frame.height * scale
@@ -271,6 +324,9 @@ export default function PrototypePlayer({ onClose }: PrototypePlayerProps) {
             {hotspots.map((hotspot) => {
               const click = hotspot.node.reactions.find((r) => r.trigger === 'ON_CLICK')
               const hover = hotspot.node.reactions.find((r) => r.trigger === 'ON_HOVER')
+              // A hover-triggered variant change behaves as while-hovering:
+              // it reverts when the pointer leaves the hotspot.
+              const hoverReverts = hover?.action === 'CHANGE_TO'
               return (
                 <div
                   key={hotspot.node.id}
@@ -284,8 +340,11 @@ export default function PrototypePlayer({ onClose }: PrototypePlayerProps) {
                     width: hotspot.width * scale,
                     height: hotspot.height * scale
                   }}
-                  onClick={click ? () => runReaction(click) : undefined}
-                  onMouseEnter={hover ? () => runReaction(hover) : undefined}
+                  onClick={click ? () => runReaction(click, hotspot.node.id) : undefined}
+                  onMouseEnter={hover ? () => runReaction(hover, hotspot.node.id) : undefined}
+                  onMouseLeave={
+                    hoverReverts ? () => setVariantState(hotspot.node.id, null) : undefined
+                  }
                 />
               )
             })}

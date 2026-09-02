@@ -10,6 +10,7 @@
   "createComponentSet": "Komponentensatz erstellen",
   "createInstance": "Instanz erstellen",
   "detachInstance": "Instanz lösen",
+  "resetOverrides": "Alle Änderungen zurücksetzen",
   "goToMainComponent": "Zur Hauptkomponente",
   "addAutoLayout": "Auto-Layout hinzufügen",
   "bringToFront": "In den Vordergrund",

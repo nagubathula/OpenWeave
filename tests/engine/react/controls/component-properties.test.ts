@@ -2,6 +2,7 @@ import { describe, expect, test } from 'bun:test'
 
 import {
   MIXED,
+  booleanVariantPair,
   compatibleComponentPropertyDefinitions,
   instanceSwapOptions,
   mergedComponentPropertyValue
@@ -53,5 +54,24 @@ describe('component property control model', () => {
       { value: secondary.id, label: 'Secondary' },
       { value: 'missing-id', label: 'missing-id', missing: true }
     ])
+  })
+})
+
+describe('booleanVariantPair', () => {
+  const opts = (...values: string[]) => values.map((value) => ({ value, label: value }))
+
+  test('detects True/False, Yes/No, and On/Off pairs in either order and any casing', () => {
+    expect(booleanVariantPair(opts('True', 'False'))).toEqual({ on: 'True', off: 'False' })
+    expect(booleanVariantPair(opts('false', 'true'))).toEqual({ on: 'true', off: 'false' })
+    expect(booleanVariantPair(opts('YES', 'no'))).toEqual({ on: 'YES', off: 'no' })
+    expect(booleanVariantPair(opts('Off', 'On'))).toEqual({ on: 'On', off: 'Off' })
+  })
+
+  test('rejects non-boolean value sets', () => {
+    expect(booleanVariantPair(opts('Default', 'Hover'))).toBeNull()
+    expect(booleanVariantPair(opts('True', 'False', 'Maybe'))).toBeNull()
+    expect(booleanVariantPair(opts('True'))).toBeNull()
+    expect(booleanVariantPair(opts('True', 'No'))).toBeNull()
+    expect(booleanVariantPair([])).toBeNull()
   })
 })

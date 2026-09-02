@@ -13,7 +13,10 @@ export function useCanvasVirtualReference(
   anchor: Vector | null
 ): CanvasVirtualReference | null {
   const [panTick, setPanTick] = useState(0)
-  useEffect(() => editor.onEditorEvent('viewport:changed', () => setPanTick(t => t + 1)), [editor])
+  useEffect(
+    () => editor.onEditorEvent('viewport:changed', () => setPanTick((t) => t + 1)),
+    [editor]
+  )
   return useMemo<CanvasVirtualReference | null>(() => {
     if (!anchor) return null
 

@@ -20,7 +20,6 @@ import { useCollabInjected } from '@/app/collab/use'
 import { useEditorStore } from '@/app/editor/active-store'
 import { useCanvasCollaborationAwareness } from '@/app/editor/canvas/collaboration-awareness'
 import { createCanvasContextSelection } from '@/app/editor/canvas/context-selection'
-
 import NumberField from '@/components/inputs/NumberField'
 
 import CanvasMenu from '../canvas/CanvasMenu'
@@ -85,8 +84,15 @@ export default function EditorCanvas() {
     return { x: abs.x + node.width - node.paddingRight / 2, y: abs.y + node.height / 2 }
   }, [autoLayoutPaddingEdit, store.graph])
 
-  const paddingEditorVirtualRefCurrent = useCanvasVirtualReference(canvasRef, store, paddingEditorAnchor)
-  const paddingEditorVirtualRef = useMemo(() => ({ current: paddingEditorVirtualRefCurrent }), [paddingEditorVirtualRefCurrent])
+  const paddingEditorVirtualRefCurrent = useCanvasVirtualReference(
+    canvasRef,
+    store,
+    paddingEditorAnchor
+  )
+  const paddingEditorVirtualRef = useMemo(
+    () => ({ current: paddingEditorVirtualRefCurrent }),
+    [paddingEditorVirtualRefCurrent]
+  )
 
   const cursor = toolCursor(store.state.activeTool, cursorOverride)
 
@@ -136,7 +142,18 @@ export default function EditorCanvas() {
                   className="z-50 w-20 rounded-md bg-panel p-1 shadow-lg"
                   data-test-id="auto-layout-padding-editor"
                 >
-                  <NumberField value={autoLayoutPaddingEdit.value} min={0} step={1} dataTestId="auto-layout-padding-input" onChange={updateAutoLayoutPaddingEdit} onCommit={(v) => commitAutoLayoutPaddingEdit(v)} onEditingChange={(editing) => !editing && commitAutoLayoutPaddingEdit(autoLayoutPaddingEdit?.value ?? 0)} className="w-full bg-transparent px-1 text-xs outline-none" />
+                  <NumberField
+                    value={autoLayoutPaddingEdit.value}
+                    min={0}
+                    step={1}
+                    dataTestId="auto-layout-padding-input"
+                    onChange={updateAutoLayoutPaddingEdit}
+                    onCommit={(v) => commitAutoLayoutPaddingEdit(v)}
+                    onEditingChange={(editing) =>
+                      !editing && commitAutoLayoutPaddingEdit(autoLayoutPaddingEdit?.value ?? 0)
+                    }
+                    className="w-full bg-transparent px-1 text-xs outline-none"
+                  />
                 </Popover.Content>
               )}
             </Popover.Portal>

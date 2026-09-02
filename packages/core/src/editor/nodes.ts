@@ -2,6 +2,11 @@ import { pick } from 'es-toolkit/object'
 
 import { styleDetachmentChanges, type SceneNode } from '@openweave/scene-graph'
 
+import {
+  applyOverrideRecordings,
+  recordInstanceOverrides,
+  removeOverrideRecordings
+} from './components/override-recording'
 import { createLayoutModeActions } from './layout-mode'
 import { createNudgeActions } from './nudge'
 import { textAutoResizeChanges } from './text/auto-resize'
@@ -30,6 +35,7 @@ export function createNodeActions(ctx: EditorContext) {
       ...textAutoResizeChanges(node, changes)
     })
     ctx.graph.updateNode(id, nextChanges)
+    recordInstanceOverrides(ctx.graph, id, nextChanges)
     ctx.runLayoutForNode(id)
   }
 
@@ -45,15 +51,20 @@ export function createNodeActions(ctx: EditorContext) {
       Object.keys(nextChanges) as (keyof SceneNode)[]
     ) as Partial<SceneNode>
     ctx.graph.updateNode(id, nextChanges)
+    // Edits inside an instance become overrides so main→instance sync keeps
+    // them; undoing the edit lifts the overrides again.
+    const overrideRecordings = recordInstanceOverrides(ctx.graph, id, nextChanges)
     ctx.runLayoutForNode(id)
     ctx.undo.push({
       label,
       forward: () => {
         ctx.graph.updateNode(id, nextChanges)
+        applyOverrideRecordings(ctx.graph, overrideRecordings)
         ctx.runLayoutForNode(id)
       },
       inverse: () => {
         ctx.graph.updateNode(id, previous)
+        removeOverrideRecordings(ctx.graph, overrideRecordings)
         ctx.runLayoutForNode(id)
       }
     })

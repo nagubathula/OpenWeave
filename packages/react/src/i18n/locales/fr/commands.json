@@ -10,6 +10,7 @@
   "createComponentSet": "Créer un jeu de composants",
   "createInstance": "Créer une instance",
   "detachInstance": "Détacher l'instance",
+  "resetOverrides": "Réinitialiser toutes les modifications",
   "goToMainComponent": "Aller au composant principal",
   "addAutoLayout": "Ajouter un auto-layout",
   "bringToFront": "Mettre au premier plan",

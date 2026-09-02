@@ -13,6 +13,7 @@ import { replaceTargetsWithCreated, selectedReplacementTargets } from './clipboa
 import { resolvePasteTarget } from './clipboard/paste-target'
 import { createClipboardPlacementActions } from './clipboard/placement'
 import { collectSubtrees, restoreSubtree, snapshotSubtree } from './clipboard/subtree-history'
+import { ensureUniqueVariantValues } from './components/variants'
 import type { EditorContext } from './types'
 
 type PasteOptions = {
@@ -36,6 +37,10 @@ export function createClipboardActions(ctx: EditorContext) {
         y: node.y + 20
       })
       if (!clone) continue
+      // A duplicated variant gets a unique value combination instead of
+      // landing in its set as a conflict (before the undo snapshot, so
+      // redo restores the fixed values).
+      ensureUniqueVariantValues(ctx, clone.id)
       newRootIds.push(clone.id)
       const subtree = snapshotSubtree(ctx.graph, clone.id)
       for (const [id, snap] of subtree) allSnapshots.set(id, snap)

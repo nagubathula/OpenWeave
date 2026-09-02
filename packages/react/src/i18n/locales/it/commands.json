@@ -10,6 +10,7 @@
   "createComponentSet": "Crea set di componenti",
   "createInstance": "Crea istanza",
   "detachInstance": "Scollega istanza",
+  "resetOverrides": "Ripristina tutte le modifiche",
   "goToMainComponent": "Vai al componente principale",
   "addAutoLayout": "Aggiungi auto-layout",
   "bringToFront": "Porta in primo piano",

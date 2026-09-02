@@ -14,6 +14,7 @@ export type EditorCommandId =
   | 'selection.createComponentSet'
   | 'selection.createInstance'
   | 'selection.detachInstance'
+  | 'selection.resetOverrides'
   | 'selection.goToMainComponent'
   | 'selection.wrapInAutoLayout'
   | 'selection.toggleMask'

@@ -1,7 +1,7 @@
 import React from 'react'
 
 import { useEditor, useSceneComputed, useSelectionState, useI18n } from '@openweave/react'
-import { instanceSwapOptions } from '@openweave/react'
+import { booleanVariantPair, instanceSwapOptions } from '@openweave/react'
 import type { SceneNode, ComponentPropertyDefinition } from '@openweave/scene-graph'
 
 import { AppSelect } from '@/components/ui/AppSelect'
@@ -15,6 +15,7 @@ interface PropertyControl {
   value: string
   mixed: boolean
   options: { value: string; label: string }[]
+  overridden: boolean
 }
 
 const inputCls = 'w-full bg-transparent outline-none text-surface'
@@ -74,7 +75,12 @@ export default function ComponentPropertiesSection() {
         type: definition.type,
         value,
         mixed,
-        options
+        options,
+        // Overridden = at least one selected instance carries an explicit
+        // assignment for this property (vs. inheriting the default).
+        overridden: instances.some(
+          (instance) => definition.id in instance.componentPropertyAssignments
+        )
       }
     })
   })
@@ -104,44 +110,77 @@ export default function ComponentPropertiesSection() {
       <div className="text-[11px] font-semibold text-muted uppercase tracking-wider">
         Properties
       </div>
-      {controls.map((control) => (
-        <div key={control.id} className="flex items-center gap-2 text-xs">
-          <Tip label={control.name}>
-            <span className="w-16 shrink-0 truncate text-muted text-[11px]">{control.name}</span>
-          </Tip>
-          {control.type === 'BOOLEAN' ? (
-            <AppSwitch
-              label={control.name}
-              state={control.mixed ? 'mixed' : 'idle'}
-              value={control.value === 'true'}
-              onValueChange={(checked) => setValue(control, checked ? 'true' : 'false')}
-            />
-          ) : control.type === 'TEXT' ? (
-            <div className={boxCls + ' flex-1'}>
-              <input
-                type="text"
-                aria-label={control.name}
-                className={inputCls}
-                value={control.value}
-                onChange={(e) => setValue(control, e.target.value)}
-              />
-            </div>
-          ) : (
-            <div className="flex-1">
-              <AppSelect
+      {controls.map((control) => {
+        // Figma parity: a variant property whose two values form a boolean
+        // pair (True/False, Yes/No, On/Off) renders as a toggle, not a
+        // dropdown.
+        const variantToggle =
+          control.type === 'VARIANT' ? booleanVariantPair(control.options) : null
+        return (
+          <div key={control.id} className="flex items-center gap-2 text-xs">
+            <Tip
+              label={control.overridden ? `${control.name} — ${panels.hasOverrides}` : control.name}
+            >
+              <span className="flex w-16 shrink-0 items-center gap-1 truncate text-muted text-[11px]">
+                {control.overridden && (
+                  <span
+                    data-test-id="property-override-dot"
+                    className="size-1.5 shrink-0 rounded-full bg-component"
+                    aria-hidden="true"
+                  />
+                )}
+                {control.name}
+              </span>
+            </Tip>
+            {control.type === 'BOOLEAN' || variantToggle ? (
+              <AppSwitch
                 label={control.name}
-                options={
-                  control.options.length > 0
-                    ? control.options
-                    : [{ value: control.value, label: control.value }]
+                state={control.mixed ? 'mixed' : 'idle'}
+                value={
+                  variantToggle
+                    ? control.value.trim().toLowerCase() === variantToggle.on.trim().toLowerCase()
+                    : control.value === 'true'
                 }
-                value={control.value}
-                onValueChange={(value) => setValue(control, value)}
+                onValueChange={(checked) =>
+                  setValue(
+                    control,
+                    variantToggle
+                      ? checked
+                        ? variantToggle.on
+                        : variantToggle.off
+                      : checked
+                        ? 'true'
+                        : 'false'
+                  )
+                }
               />
-            </div>
-          )}
-        </div>
-      ))}
+            ) : control.type === 'TEXT' ? (
+              <div className={boxCls + ' flex-1'}>
+                <input
+                  type="text"
+                  aria-label={control.name}
+                  className={inputCls}
+                  value={control.value}
+                  onChange={(e) => setValue(control, e.target.value)}
+                />
+              </div>
+            ) : (
+              <div className="flex-1">
+                <AppSelect
+                  label={control.name}
+                  options={
+                    control.options.length > 0
+                      ? control.options
+                      : [{ value: control.value, label: control.value }]
+                  }
+                  value={control.value}
+                  onValueChange={(value) => setValue(control, value)}
+                />
+              </div>
+            )}
+          </div>
+        )
+      })}
     </section>
   )
 }

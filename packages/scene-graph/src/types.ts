@@ -352,7 +352,7 @@ export type FigmaLayoutMetadata = Partial<
 >
 
 export type PrototypeTrigger = 'ON_CLICK' | 'ON_HOVER' | 'AFTER_TIMEOUT'
-export type PrototypeActionType = 'NAVIGATE' | 'BACK' | 'OPEN_URL'
+export type PrototypeActionType = 'NAVIGATE' | 'BACK' | 'OPEN_URL' | 'CHANGE_TO'
 export type PrototypeTransition =
   | 'INSTANT'
   | 'DISSOLVE'
@@ -367,7 +367,10 @@ export interface PrototypeReaction {
   /** Delay in ms before AFTER_TIMEOUT fires. */
   timeout: number
   action: PrototypeActionType
-  /** Destination node id for NAVIGATE (a top-level frame). */
+  /**
+   * Destination node id: a top-level frame for NAVIGATE, a variant COMPONENT
+   * for CHANGE_TO (interactive components).
+   */
   destinationId: string | null
   /** External URL for OPEN_URL. */
   url: string

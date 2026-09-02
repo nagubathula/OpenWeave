@@ -1,6 +1,7 @@
 import type { EditorState } from '@openweave/core/editor'
 
 import type { StorageDocumentBinding } from '@/app/integrations/storage/types'
+import { extractFigThumbnail } from '@/app/storage/fig-thumbnail'
 import { persistStorageCanvasLocally } from '@/app/storage/sync/persist'
 import { isTauri } from '@/app/tauri/env'
 
@@ -31,7 +32,9 @@ export function createDocumentWriter({
         providerId: storage.providerId,
         canvasId: storage.documentId,
         name: state.documentName || 'Untitled',
-        figBytes: data
+        figBytes: data,
+        // The exported .fig already embeds a rendered thumbnail — reuse it.
+        thumbnailBytes: extractFigThumbnail(data)
       })
       setSavedVersion(state.sceneVersion)
       return true

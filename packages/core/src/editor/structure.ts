@@ -2,6 +2,7 @@ import type { SceneNode } from '@openweave/scene-graph'
 
 import { DEFAULT_FRAME_FILL } from '#core/constants'
 
+import { updateVariantMembership } from './components/variants'
 import { wrapInAutoLayout as wrapInAutoLayoutImpl } from './structure/auto-layout-wrap'
 import {
   booleanOperationSelected as booleanOperationSelectedImpl,
@@ -41,7 +42,11 @@ export function createStructureActions(ctx: EditorContext) {
         parent.type !== 'SECTION'
       )
         continue
+      // Component sets contain only components (Figma rule).
+      if (parent?.type === 'COMPONENT_SET' && node?.type !== 'COMPONENT') continue
+      const prevParentId = node?.parentId ?? null
       ctx.graph.reparentNode(id, newParentId)
+      updateVariantMembership(ctx, id, prevParentId)
     }
   }
 

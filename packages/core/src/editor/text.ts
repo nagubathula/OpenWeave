@@ -1,4 +1,9 @@
 import {
+  applyOverrideRecordings,
+  recordInstanceOverrides,
+  removeOverrideRecordings
+} from './components/override-recording'
+import {
   createTextEditSession,
   resizeTextNodeForEdit,
   snapshotTextNode,
@@ -58,11 +63,15 @@ export function createTextActions(ctx: EditorContext) {
       return
     }
 
-    ctx.graph.updateNode(result.nodeId, {
+    const committedChanges = {
       text: after.text,
       styleRuns: after.styleRuns,
       ...sizeChanges
-    })
+    }
+    ctx.graph.updateNode(result.nodeId, committedChanges)
+    // Text edited inside an instance becomes an override so main→instance
+    // sync keeps it.
+    const overrideRecordings = recordInstanceOverrides(ctx.graph, result.nodeId, committedChanges)
     ctx.state.editingTextId = null
     activeSession = null
 
@@ -74,6 +83,7 @@ export function createTextActions(ctx: EditorContext) {
           styleRuns: after.styleRuns,
           ...after.size
         })
+        applyOverrideRecordings(ctx.graph, overrideRecordings)
       },
       inverse: () => {
         ctx.graph.updateNode(result.nodeId, {
@@ -81,6 +91,7 @@ export function createTextActions(ctx: EditorContext) {
           styleRuns: before.styleRuns,
           ...before.size
         })
+        removeOverrideRecordings(ctx.graph, overrideRecordings)
       }
     })
   }
