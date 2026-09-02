@@ -140,6 +140,21 @@ function useCollabPanelState() {
     setPopoverOpen(false)
   }
 
+  // Shares the doc and tunnels it through ngrok in one step. The popover stays
+  // open: it switches to the connected view, which shows tunnel progress, the
+  // public link, or the error with a setup hint.
+  const shareAndTunnel = async () => {
+    if (!collab || !nameDraft.trim()) return
+    collab.setLocalName(nameDraft.trim())
+    const roomId = collab.shareCurrentDoc()
+    router.push(`/share?room=${roomId}`)
+    const url = await startShareTunnel()
+    if (url) {
+      copy(getTunnelShareUrl(url, roomId))
+      toast.info(dialogs.linkCopiedToClipboard)
+    }
+  }
+
   const join = () => {
     if (!collab) return
     const roomId = pendingRoomId || extractRoomId(joinInput)
@@ -183,6 +198,7 @@ function useCollabPanelState() {
     shareViaNgrok,
     stopNgrok,
     share,
+    shareAndTunnel,
     join,
     disconnect,
     toggleFollowPeer
@@ -411,16 +427,46 @@ function ShareOrJoinRoom() {
         />
       </div>
 
-      <button
-        type="button"
-        data-test-id="collab-share-file"
-        className="mb-3 flex h-8 w-full cursor-pointer items-center justify-center gap-1.5 rounded border-none bg-accent text-xs font-medium text-white hover:bg-accent/90 disabled:opacity-50"
-        disabled={!collab.nameDraft.trim()}
-        onClick={collab.share}
-      >
-        <Share2 className="size-3.5" />
-        {collab.dialogs.shareThisFile}
-      </button>
+      {IS_TAURI ? (
+        // Standalone (Tauri) build: the ngrok tunnel is the primary share
+        // path — no hosted web app required. The hosted link stays available
+        // as a secondary option.
+        <>
+          <button
+            type="button"
+            data-test-id="collab-share-ngrok"
+            className="mb-2 flex h-8 w-full cursor-pointer items-center justify-center gap-1.5 rounded border-none bg-accent text-xs font-medium text-white hover:bg-accent/90 disabled:opacity-50"
+            disabled={!collab.nameDraft.trim() || collab.tunnel.status === 'starting'}
+            onClick={() => void collab.shareAndTunnel()}
+          >
+            <Globe className="size-3.5" />
+            {collab.tunnel.status === 'starting'
+              ? collab.dialogs.ngrokStarting
+              : collab.dialogs.shareViaNgrok}
+          </button>
+          <button
+            type="button"
+            data-test-id="collab-share-file"
+            className="mb-3 flex h-8 w-full cursor-pointer items-center justify-center gap-1.5 rounded border border-border bg-transparent text-xs font-medium text-surface hover:bg-hover disabled:opacity-50"
+            disabled={!collab.nameDraft.trim()}
+            onClick={collab.share}
+          >
+            <Share2 className="size-3.5" />
+            {collab.dialogs.shareThisFile}
+          </button>
+        </>
+      ) : (
+        <button
+          type="button"
+          data-test-id="collab-share-file"
+          className="mb-3 flex h-8 w-full cursor-pointer items-center justify-center gap-1.5 rounded border-none bg-accent text-xs font-medium text-white hover:bg-accent/90 disabled:opacity-50"
+          disabled={!collab.nameDraft.trim()}
+          onClick={collab.share}
+        >
+          <Share2 className="size-3.5" />
+          {collab.dialogs.shareThisFile}
+        </button>
+      )}
 
       <div className="mb-2 flex items-center gap-2">
         <div className="h-px flex-1 bg-border" />

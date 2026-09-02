@@ -2,7 +2,11 @@ import type { EditorState } from '@openweave/core/editor'
 
 import { downloadBlob } from '@/app/document/io/browser'
 import { documentNameFromFigPath } from '@/app/document/io/names'
-import { chooseBrowserFigSaveHandle, chooseTauriFigSavePath } from '@/app/document/io/save-targets'
+import {
+  chooseBrowserFigSaveHandle,
+  chooseTauriFigSavePath,
+  defaultTauriFigSavePath
+} from '@/app/document/io/save-targets'
 import type { DocumentSourceAccess } from '@/app/document/io/types'
 import { createDocumentWriter } from '@/app/document/io/write'
 import { IS_TAURI } from '@/constants'
@@ -48,6 +52,17 @@ export function createSaveActions({
     if (storageBinding || filePath || fileHandle) {
       const wrote = await writeFile(await buildFigFile())
       if (wrote && !storageBinding) setSourceIdentity({ handle: fileHandle, path: filePath })
+    } else if (IS_TAURI) {
+      // First save of a new document goes straight to Documents/openweave
+      // without a picker; only Save As asks where.
+      const data = await buildFigFile()
+      const path = await defaultTauriFigSavePath(state.documentName)
+      setStorageBinding(null)
+      setFilePath(path)
+      setFileHandle(null)
+      state.documentName = documentNameFromFigPath(path)
+      if (await writeFile(data)) setSourceIdentity({ handle: null, path })
+      startWatchingFile()
     } else if (downloadName) {
       downloadBlob(new Uint8Array(await buildFigFile()), downloadName, 'application/octet-stream')
     } else {
@@ -59,7 +74,7 @@ export function createSaveActions({
     const data = await buildFigFile()
 
     if (IS_TAURI) {
-      const path = await chooseTauriFigSavePath()
+      const path = await chooseTauriFigSavePath(state.documentName)
       if (!path) return
       setStorageBinding(null)
       setFilePath(path)
