@@ -351,8 +351,28 @@ export type FigmaLayoutMetadata = Partial<
     Record<'bordersTakeSpace' | 'stackReverseZIndex', boolean>
 >
 
-export type PrototypeTrigger = 'ON_CLICK' | 'ON_HOVER' | 'AFTER_TIMEOUT'
-export type PrototypeActionType = 'NAVIGATE' | 'BACK' | 'OPEN_URL' | 'CHANGE_TO'
+export type PrototypeTrigger =
+  | 'ON_CLICK'
+  | 'ON_HOVER'
+  | 'AFTER_TIMEOUT'
+  | 'ON_DRAG'
+  | 'WHILE_PRESSING'
+  | 'MOUSE_ENTER'
+  | 'MOUSE_LEAVE'
+  | 'KEY_DOWN'
+
+export type PrototypeActionType =
+  | 'NAVIGATE'
+  | 'BACK'
+  | 'OPEN_URL'
+  | 'CHANGE_TO'
+  | 'OPEN_OVERLAY'
+  | 'SWAP_OVERLAY'
+  | 'CLOSE_OVERLAY'
+  | 'SCROLL_TO'
+  | 'SET_VARIABLE'
+  | 'CONDITIONAL'
+
 export type PrototypeTransition =
   | 'INSTANT'
   | 'DISSOLVE'
@@ -360,6 +380,45 @@ export type PrototypeTransition =
   | 'SLIDE_FROM_RIGHT'
   | 'SLIDE_FROM_TOP'
   | 'SLIDE_FROM_BOTTOM'
+  | 'PUSH_LEFT'
+  | 'PUSH_RIGHT'
+  | 'PUSH_TOP'
+  | 'PUSH_BOTTOM'
+  | 'MOVE_IN_LEFT'
+  | 'MOVE_IN_RIGHT'
+  | 'MOVE_IN_TOP'
+  | 'MOVE_IN_BOTTOM'
+  | 'MOVE_OUT_LEFT'
+  | 'MOVE_OUT_RIGHT'
+  | 'MOVE_OUT_TOP'
+  | 'MOVE_OUT_BOTTOM'
+  | 'SMART_ANIMATE'
+
+export type PrototypeEasing =
+  | 'LINEAR'
+  | 'EASE_IN'
+  | 'EASE_OUT'
+  | 'EASE_IN_AND_OUT'
+  | 'SPRING'
+  | 'CUSTOM_CUBIC'
+
+export type SpringPreset = 'GENTLE' | 'QUICK' | 'BOUNCY' | 'SLOW' | 'CUSTOM'
+
+export interface SpringConfig {
+  mass: number
+  stiffness: number
+  damping: number
+}
+
+export type OverlayPosition =
+  | 'CENTER'
+  | 'TOP_LEFT'
+  | 'TOP_CENTER'
+  | 'TOP_RIGHT'
+  | 'BOTTOM_LEFT'
+  | 'BOTTOM_CENTER'
+  | 'BOTTOM_RIGHT'
+  | 'MANUAL'
 
 /** A Figma-style prototype interaction attached to a node. */
 export interface PrototypeReaction {
@@ -377,6 +436,31 @@ export interface PrototypeReaction {
   transition: PrototypeTransition
   /** Transition duration in ms. */
   transitionDuration: number
+  /** Easing curve for transition */
+  easing?: PrototypeEasing
+  /** Spring preset when easing is SPRING */
+  springPreset?: SpringPreset
+  /** Custom spring physics configuration */
+  springConfig?: SpringConfig
+  /** Overlay settings */
+  overlayPosition?: OverlayPosition
+  overlayCloseOnClickOutside?: boolean
+  overlayBackgroundScrim?: boolean
+  overlayBackgroundColor?: Color
+  overlayBackgroundOpacity?: number
+
+  // For SET_VARIABLE
+  variableId?: string
+  /**
+   * String expression evaluating to the new value, e.g. "count + 1",
+   * or a raw boolean/string/number representation.
+   */
+  variableExpression?: string
+
+  // For CONDITIONAL
+  conditionExpression?: string
+  conditionalActions?: PrototypeReaction[]
+  fallbackActions?: PrototypeReaction[]
 }
 
 export interface SceneNode {
@@ -523,6 +607,8 @@ export interface SceneNode {
   componentPropertyReferences: ComponentPropertyReference[]
   componentPropertyAssignments: Record<string, string>
   componentPropertyValues: Record<string, string>
+  /** Nested instance inside a main component whose properties surface on outer instances (Figma's "expose properties"). */
+  isExposedInstance: boolean
   componentKey: string | null
   sourceLibraryKey: string | null
   publishId: string | null

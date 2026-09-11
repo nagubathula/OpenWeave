@@ -53,7 +53,7 @@ export default function VariableNumberField({
 
   return (
     <div
-      className={`flex min-w-0 items-center gap-1${className ? ` ${className}` : ''}`}
+      className={`group/var flex min-w-0 items-center gap-1${className ? ` ${className}` : ''}`}
       data-test-id={dataTestId}
       data-property={bindingPath}
     >
@@ -82,34 +82,55 @@ export default function VariableNumberField({
                         : binding.variable.name
                     }
                   />
+                  {trailing}
                 </div>
               ) : (
-                <NumberField
-                  className="w-full"
-                  icon={icon}
-                  ariaLabel={ariaLabel}
-                  value={value}
-                  min={min}
-                  max={max}
-                  suffix={suffix}
-                  onChange={onChange}
-                  onCommit={onCommit}
-                />
+                <div className="relative flex min-w-0 flex-1 items-center">
+                  <NumberField
+                    className={`w-full${trailing ? ' pr-5' : ''}`}
+                    icon={icon}
+                    ariaLabel={ariaLabel}
+                    value={value}
+                    min={min}
+                    max={max}
+                    suffix={suffix}
+                    onChange={onChange}
+                    onCommit={onCommit}
+                  />
+                  {trailing && (
+                    <div className="pointer-events-auto absolute right-0.5 top-1/2 -translate-y-1/2 flex items-center">
+                      {trailing}
+                    </div>
+                  )}
+                </div>
               )}
             </div>
-            <VariableBindingPicker
-              triggerLabel={panels.applyVariable}
-              searchPlaceholder={dialogs.search}
-              emptyLabel={panels.noVariablesFound}
-              detachLabel={panels.detachVariable}
-              createLabel={panels.createNumberVariable({ value: Math.round(value) })}
-              createNamePlaceholder={panels.variableName}
-              createSubmitLabel={panels.create}
-            />
+            {binding.state === 'bound' || binding.open ? (
+              <VariableBindingPicker
+                triggerLabel={panels.applyVariable}
+                searchPlaceholder={dialogs.search}
+                emptyLabel={panels.noVariablesFound}
+                detachLabel={panels.detachVariable}
+                createLabel={panels.createNumberVariable({ value: Math.round(value) })}
+                createNamePlaceholder={panels.variableName}
+                createSubmitLabel={panels.create}
+              />
+            ) : (
+              <span className="hidden shrink-0 group-hover/var:inline-flex">
+                <VariableBindingPicker
+                  triggerLabel={panels.applyVariable}
+                  searchPlaceholder={dialogs.search}
+                  emptyLabel={panels.noVariablesFound}
+                  detachLabel={panels.detachVariable}
+                  createLabel={panels.createNumberVariable({ value: Math.round(value) })}
+                  createNamePlaceholder={panels.variableName}
+                  createSubmitLabel={panels.create}
+                />
+              </span>
+            )}
           </>
         )}
       </BindableValueRoot>
-      {trailing}
     </div>
   )
 }

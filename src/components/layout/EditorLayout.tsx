@@ -1,3 +1,4 @@
+import { useStore } from '@nanostores/react'
 import { Sidebar } from 'lucide-react'
 import React, { useEffect, useState, useRef, useCallback } from 'react'
 import { Panel, Group, Separator } from 'react-resizable-panels'
@@ -5,20 +6,23 @@ import { useEventListener } from 'usehooks-ts'
 
 import { useViewportKind } from '@openweave/react'
 
+import { useAIChat } from '@/app/ai/chat/use'
 import { connectAutomation } from '@/app/automation/bridge/server'
 import { spawnMCPIfNeeded } from '@/app/automation/mcp/spawn'
 import { CollabProvider, useCollab } from '@/app/collab/use'
 import { getActiveEditorStore } from '@/app/editor/active-store'
 import { useEditorState } from '@/app/editor/session/use-editor-state'
+import { isHomeOpen } from '@/app/home/store'
 import { useAppKeyboard } from '@/app/shell/keyboard/use-app-keyboard'
 import { loadEditorLayout, saveEditorLayout } from '@/app/shell/layout-storage'
 import { openFileFromPath } from '@/app/shell/menu/files'
 import { useMenu } from '@/app/shell/menu/use'
-import { getActiveStore } from '@/app/tabs'
+import { activeTabId, getActiveStore } from '@/app/tabs'
 import { isTauri } from '@/app/tauri/env'
 import AcpPermissionDialog from '@/components/chat/AcpPermissionDialog'
 import CollabPanel from '@/components/collab-panel/CollabPanel'
 import EditorCanvas from '@/components/editor-canvas/EditorCanvas'
+import HomeScreen from '@/components/home/HomeScreen'
 import LayersPanel from '@/components/layers-panel/LayersPanel'
 import MobileDrawer from '@/components/mobile-drawer/MobileDrawer'
 import MobileHud from '@/components/mobile-hud/MobileHud'
@@ -28,6 +32,7 @@ import RenameSelectionDialog from '@/components/selection/RenameSelectionDialog'
 import AppToast from '@/components/shell/AppToast'
 import StorageWorkspace from '@/components/storage/StorageWorkspace'
 import TabBar from '@/components/tab-bar/TabBar'
+import { AnimationTimeline } from '@/components/timeline'
 import Toolbar from '@/components/toolbar/Toolbar'
 import Tip from '@/components/ui/Tip'
 
@@ -84,8 +89,12 @@ export function EditorLayout() {
   // (from the URL) drops to a bare canvas. Both mirror src/views/EditorView.vue.
   const showUI = useEditorState((s) => s.showUI, true)
   const [noChrome, setNoChrome] = useState(false)
+  const homeOpen = useStore(isHomeOpen)
+  const currentTabId = useStore(activeTabId)
 
   const { isMobile } = useViewportKind()
+  const { activeTab: activeTabAtom } = useAIChat()
+  const activeTab = useStore(activeTabAtom)
 
   useEffect(() => {
     setNoChrome(new URLSearchParams(window.location.search).has('no-chrome'))
@@ -170,16 +179,20 @@ export function EditorLayout() {
         <AppToast />
         <TabBar />
 
-        {noChrome ? (
+        {homeOpen ? (
+          <div className="flex flex-1 min-h-0 overflow-hidden">
+            <HomeScreen />
+          </div>
+        ) : noChrome ? (
           <div className="flex flex-1 overflow-hidden">
             <div className="relative flex min-w-0 flex-1">
-              <EditorCanvas />
+              <EditorCanvas key={currentTabId} />
             </div>
           </div>
         ) : isMobile && showUI ? (
           <div className="flex flex-1 overflow-hidden">
             <div className="relative flex min-w-0 flex-1">
-              <EditorCanvas />
+              <EditorCanvas key={currentTabId} />
               <MobileHud />
               <Toolbar />
             </div>
@@ -214,9 +227,12 @@ export function EditorLayout() {
             />
 
             <Panel id="canvas" minSize="30%">
-              <div className="relative flex h-full flex-col">
-                <Toolbar />
-                <EditorCanvas />
+              <div className="relative flex h-full flex-col overflow-hidden">
+                <div className="relative flex-1 min-h-0">
+                  <Toolbar />
+                  <EditorCanvas key={currentTabId} />
+                </div>
+                {activeTab === 'motion' && <AnimationTimeline />}
               </div>
             </Panel>
 
@@ -243,7 +259,7 @@ export function EditorLayout() {
         ) : (
           <div className="flex flex-1 overflow-hidden">
             <div className="relative flex min-w-0 flex-1">
-              <EditorCanvas />
+              <EditorCanvas key={currentTabId} />
               <CollapsedChrome />
             </div>
           </div>

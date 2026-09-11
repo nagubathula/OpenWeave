@@ -1,5 +1,6 @@
 import { guidToString } from '@openweave/kiwi/fig/guid'
 import type {
+  PrototypeActionType,
   PrototypeReaction,
   PrototypeTransition,
   PrototypeTrigger
@@ -43,17 +44,25 @@ interface KiwiPrototypeInteraction {
 const TRIGGER_TO_KIWI: Record<PrototypeTrigger, string> = {
   ON_CLICK: 'ON_CLICK',
   ON_HOVER: 'ON_HOVER',
-  AFTER_TIMEOUT: 'AFTER_TIMEOUT'
+  AFTER_TIMEOUT: 'AFTER_TIMEOUT',
+  ON_DRAG: 'ON_DRAG',
+  WHILE_PRESSING: 'ON_PRESS',
+  MOUSE_ENTER: 'MOUSE_ENTER',
+  MOUSE_LEAVE: 'MOUSE_LEAVE',
+  KEY_DOWN: 'ON_KEY_DOWN'
 }
 
 const KIWI_TO_TRIGGER: Record<string, PrototypeTrigger> = {
   ON_CLICK: 'ON_CLICK',
-  ON_PRESS: 'ON_CLICK',
   MOUSE_UP: 'ON_CLICK',
   MOUSE_DOWN: 'ON_CLICK',
   ON_HOVER: 'ON_HOVER',
   MOUSE_IN: 'ON_HOVER',
-  MOUSE_ENTER: 'ON_HOVER',
+  ON_PRESS: 'WHILE_PRESSING',
+  ON_DRAG: 'ON_DRAG',
+  MOUSE_ENTER: 'MOUSE_ENTER',
+  MOUSE_LEAVE: 'MOUSE_LEAVE',
+  ON_KEY_DOWN: 'KEY_DOWN',
   AFTER_TIMEOUT: 'AFTER_TIMEOUT'
 }
 
@@ -63,13 +72,34 @@ const TRANSITION_TO_KIWI: Record<PrototypeTransition, string> = {
   SLIDE_FROM_LEFT: 'SLIDE_FROM_LEFT',
   SLIDE_FROM_RIGHT: 'SLIDE_FROM_RIGHT',
   SLIDE_FROM_TOP: 'SLIDE_FROM_TOP',
-  SLIDE_FROM_BOTTOM: 'SLIDE_FROM_BOTTOM'
+  SLIDE_FROM_BOTTOM: 'SLIDE_FROM_BOTTOM',
+  PUSH_LEFT: 'PUSH_FROM_RIGHT',
+  PUSH_RIGHT: 'PUSH_FROM_LEFT',
+  PUSH_TOP: 'PUSH_FROM_BOTTOM',
+  PUSH_BOTTOM: 'PUSH_FROM_TOP',
+  MOVE_IN_LEFT: 'SLIDE_FROM_LEFT',
+  MOVE_IN_RIGHT: 'SLIDE_FROM_RIGHT',
+  MOVE_IN_TOP: 'SLIDE_FROM_TOP',
+  MOVE_IN_BOTTOM: 'SLIDE_FROM_BOTTOM',
+  MOVE_OUT_LEFT: 'MOVE_OUT_LEFT',
+  MOVE_OUT_RIGHT: 'MOVE_OUT_RIGHT',
+  MOVE_OUT_TOP: 'MOVE_OUT_TOP',
+  MOVE_OUT_BOTTOM: 'MOVE_OUT_BOTTOM',
+  SMART_ANIMATE: 'SMART_ANIMATE'
 }
 
 function kiwiToTransition(value: string | undefined): PrototypeTransition {
   if (!value || value === 'INSTANT_TRANSITION') return 'INSTANT'
   if (value === 'DISSOLVE' || value === 'FADE') return 'DISSOLVE'
-  const slide = /^(?:SLIDE|MOVE|PUSH)_FROM_(LEFT|RIGHT|TOP|BOTTOM)$/.exec(value)
+  if (value === 'SMART_ANIMATE') return 'SMART_ANIMATE'
+  if (value.startsWith('PUSH_FROM_')) {
+    const dir = value.replace('PUSH_FROM_', '')
+    if (dir === 'RIGHT') return 'PUSH_LEFT'
+    if (dir === 'LEFT') return 'PUSH_RIGHT'
+    if (dir === 'BOTTOM') return 'PUSH_TOP'
+    if (dir === 'TOP') return 'PUSH_BOTTOM'
+  }
+  const slide = /^(?:SLIDE|MOVE)_FROM_(LEFT|RIGHT|TOP|BOTTOM)$/.exec(value)
   if (slide) return `SLIDE_FROM_${slide[1]}` as PrototypeTransition
   return 'INSTANT'
 }
@@ -81,11 +111,12 @@ export function reactionsToKiwiInteractions(
 ): KiwiPrototypeInteraction[] {
   const interactions: KiwiPrototypeInteraction[] = []
   for (const reaction of reactions) {
+    const isSmartAnimate = reaction.transition === 'SMART_ANIMATE'
     const action: KiwiPrototypeAction = {
       transitionType: TRANSITION_TO_KIWI[reaction.transition] ?? 'INSTANT_TRANSITION',
       transitionDuration: reaction.transitionDuration / 1000,
-      easingType: 'OUT_CUBIC',
-      transitionShouldSmartAnimate: false,
+      easingType: reaction.easing === 'SPRING' ? 'GENTLE' : 'OUT_CUBIC',
+      transitionShouldSmartAnimate: isSmartAnimate,
       transitionPreserveScroll: false
     }
     if (reaction.action === 'NAVIGATE') {
@@ -98,11 +129,32 @@ export function reactionsToKiwiInteractions(
     } else if (reaction.action === 'BACK') {
       action.connectionType = 'BACK'
       action.navigationType = 'NAVIGATE'
-    } else {
+    } else if (reaction.action === 'OPEN_URL') {
       if (!reaction.url) continue
       action.connectionType = 'URL'
       action.connectionURL = reaction.url
       action.openUrlInNewTab = true
+    } else if (reaction.action === 'OPEN_OVERLAY' || reaction.action === 'SWAP_OVERLAY') {
+      if (!reaction.destinationId) continue
+      const destGuid = resolveGuid(reaction.destinationId)
+      if (!destGuid) continue
+      action.connectionType = 'INTERNAL_NODE'
+      action.navigationType = reaction.action === 'OPEN_OVERLAY' ? 'OVERLAY' : 'SWAP'
+      action.transitionNodeID = destGuid
+    } else if (reaction.action === 'CLOSE_OVERLAY') {
+      action.connectionType = 'CLOSE'
+      action.navigationType = 'NAVIGATE'
+    } else if (reaction.action === 'SCROLL_TO') {
+      if (!reaction.destinationId) continue
+      const destGuid = resolveGuid(reaction.destinationId)
+      if (!destGuid) continue
+      action.connectionType = 'INTERNAL_NODE'
+      action.navigationType = 'SCROLL_TO'
+      action.transitionNodeID = destGuid
+    } else if (reaction.action === 'SET_VARIABLE' || reaction.action === 'CONDITIONAL') {
+      // SET_VARIABLE and CONDITIONAL require their own payload mapping which isn't fully
+      // supported by KiwiPrototypeAction yet, but we stub the navigation type
+      action.navigationType = reaction.action
     }
 
     const event: KiwiPrototypeEvent = {
@@ -195,6 +247,8 @@ export function kiwiInteractionsToReactions(raw: unknown[] | undefined): Prototy
 
     if (action.connectionType === 'BACK') {
       reactions.push({ ...base, action: 'BACK', destinationId: null, url: '' })
+    } else if (action.connectionType === 'CLOSE') {
+      reactions.push({ ...base, action: 'CLOSE_OVERLAY', destinationId: null, url: '' })
     } else if (action.connectionType === 'URL') {
       if (!action.connectionURL) continue
       reactions.push({
@@ -204,9 +258,15 @@ export function kiwiInteractionsToReactions(raw: unknown[] | undefined): Prototy
         url: action.connectionURL
       })
     } else if (action.transitionNodeID) {
+      let mappedAction: PrototypeActionType = 'NAVIGATE'
+      if (action.navigationType === 'OVERLAY') mappedAction = 'OPEN_OVERLAY'
+      if (action.navigationType === 'SWAP') mappedAction = 'SWAP_OVERLAY'
+      if (action.navigationType === 'SCROLL_TO') mappedAction = 'SCROLL_TO'
+      if (action.navigationType === 'SET_VARIABLE') mappedAction = 'SET_VARIABLE'
+
       reactions.push({
         ...base,
-        action: 'NAVIGATE',
+        action: mappedAction,
         destinationId: guidToString(action.transitionNodeID),
         url: ''
       })

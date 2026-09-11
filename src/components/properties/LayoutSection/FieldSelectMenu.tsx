@@ -16,13 +16,14 @@ export interface FieldSelectMenuProps {
   ariaLabel: string
   dataTestId?: string
   triggerContent?: React.ReactNode
+  seamless?: boolean
+  className?: string
 }
 
 /**
- * Small chevron-only dropdown trigger used beside a number field (gap
+ * Small chevron dropdown trigger used beside a number field (gap
  * auto/fixed toggle, size axis sizing + limits menu, size limit actions).
- * Rendered as a sibling of the field rather than fused into it, so it never
- * interferes with the field's own drag-to-scrub handling.
+ * When seamless is true, renders borderless/ghost style to blend inside unified controls.
  */
 export default function FieldSelectMenu({
   value,
@@ -30,21 +31,27 @@ export default function FieldSelectMenu({
   options,
   ariaLabel,
   dataTestId,
-  triggerContent
+  triggerContent,
+  seamless = false,
+  className
 }: FieldSelectMenuProps) {
   const ui = useSelectUI({ item: 'rounded py-1.5 pr-2 pl-6 text-xs' })
+
+  const triggerClass = seamless
+    ? `flex h-5 shrink-0 cursor-pointer items-center gap-0.5 rounded px-1 text-[10px] text-muted outline-none hover:bg-hover/60 hover:text-surface data-[state=open]:bg-hover data-[state=open]:text-surface${className ? ` ${className}` : ''}`
+    : `flex h-6 shrink-0 cursor-pointer items-center gap-0.5 self-stretch rounded border border-border bg-panel-field px-1 text-[10px] font-medium text-muted outline-none hover:bg-panel-field-hover hover:text-surface data-[state=open]:text-surface${className ? ` ${className}` : ''}`
 
   return (
     <SelectPrimitive.Root value={value} onValueChange={onValueChange}>
       <SelectPrimitive.Trigger
         data-test-id={dataTestId}
         aria-label={ariaLabel}
-        className="flex h-6 shrink-0 cursor-pointer items-center gap-0.5 self-stretch rounded border border-border bg-input/50 px-1.5 text-[10px] text-muted outline-none hover:text-surface data-[state=open]:text-surface"
+        className={triggerClass}
         onPointerDown={(event) => event.stopPropagation()}
       >
         {triggerContent}
         <SelectPrimitive.Icon asChild>
-          <ChevronDown className="size-3" />
+          <ChevronDown className="size-2.5 opacity-70" />
         </SelectPrimitive.Icon>
       </SelectPrimitive.Trigger>
       <SelectPrimitive.Portal>

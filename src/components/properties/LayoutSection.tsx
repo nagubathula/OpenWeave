@@ -9,6 +9,7 @@ import type { LayoutMode, NodeType } from '@openweave/scene-graph'
 import AutoLayoutControls from '@/components/properties/LayoutSection/AutoLayoutControls'
 import ClipContentControl from '@/components/properties/LayoutSection/ClipContentControl'
 import FlexControls from '@/components/properties/LayoutSection/FlexControls'
+import GridChildControls from '@/components/properties/LayoutSection/GridChildControls'
 import GridControls from '@/components/properties/LayoutSection/GridControls'
 import PaddingControls from '@/components/properties/LayoutSection/PaddingControls'
 import SizeControls from '@/components/properties/LayoutSection/size/SizeControls'
@@ -68,24 +69,21 @@ function LayoutSectionContent() {
         }
       >
         {isContainer && <AutoLayoutControls />}
-
-        <div className="mt-2 mb-1 text-[11px] text-muted">{panels.dimensions}</div>
         {node.type === 'TEXT' && <TextResizingControl />}
-        <SizeControls />
-        {isContainer && node.layoutMode === 'NONE' && <ClipContentControl />}
 
-        {isContainer && node.layoutMode !== 'NONE' && (
+        {isContainer && hasAutoLayout ? (
           <>
             {isFlex && <FlexControls />}
-            {isGrid && (
-              <>
-                <GridControls />
-                <PaddingControls />
-                <ClipContentControl />
-              </>
-            )}
+            {isGrid && <GridControls />}
+            <PaddingControls />
+            <SizeControls />
           </>
+        ) : (
+          <SizeControls />
         )}
+
+        {isContainer && <ClipContentControl />}
+        <GridChildControls />
       </PanelSection>
     </div>
   )

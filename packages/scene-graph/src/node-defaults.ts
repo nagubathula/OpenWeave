@@ -146,6 +146,7 @@ export function createDefaultNode(
     componentPropertyReferences: [],
     componentPropertyAssignments: {},
     componentPropertyValues: {},
+    isExposedInstance: false,
     componentKey: null,
     sourceLibraryKey: null,
     publishId: null,

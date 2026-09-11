@@ -15,3 +15,16 @@ export type {
   FigmaClipboardImageResolver,
   Tool
 } from './types'
+export {
+  PrototypeEvaluator,
+  extractNodeBounds,
+  interpolateBounds,
+  matchLayers,
+  PROTOTYPE_EASING_CSS,
+  FIGMA_SPRING_PRESETS,
+  solveSpringDisplacement,
+  getSpringSettlingDuration,
+  springToCubicBezier,
+  getSpringCssEasing
+} from './prototype'
+export type { LayerMatch, MatchedNodeBounds, SmartAnimatePlan } from './prototype'

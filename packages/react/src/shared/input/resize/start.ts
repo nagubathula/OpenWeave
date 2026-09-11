@@ -22,7 +22,12 @@ export function tryStartResize(cx: number, cy: number, editor: Editor): DragResi
         origVectorNetwork: node.vectorNetwork ? cloneVectorNetwork(node.vectorNetwork) : null,
         origFillGeometry: copyGeometryPaths(node.fillGeometry),
         origStrokeGeometry: copyGeometryPaths(node.strokeGeometry),
-        origChildren: collectResizeDescendants(editor.graph, id)
+        origChildren: collectResizeDescendants(editor.graph, id),
+        origPrimaryAxisSizing: node.primaryAxisSizing,
+        origCounterAxisSizing: node.counterAxisSizing,
+        origLayoutGrow: node.layoutGrow,
+        origLayoutAlignSelf: node.layoutAlignSelf,
+        origTextAutoResize: node.textAutoResize
       }
     }
   }

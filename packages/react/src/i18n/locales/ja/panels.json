@@ -328,5 +328,13 @@
   "prototypeClearFlowStart": "開始点を削除",
   "prototypeNoDestination": "このレイヤーを接続するには遷移先フレームを追加",
   "prototypeEmptyHint": "キャンバスでレイヤーを選択してインタラクションを追加",
-  "prototypeNoFrames": "キャンバスにフレームを描いてプロトタイプを開始"
+  "prototypeNoFrames": "キャンバスにフレームを描いてプロトタイプを開始",
+  "maskIsOutline": "アウトラインをマスクとして使用",
+  "createStringVariable": "{value} からテキスト変数を作成",
+  "content": "コンテンツ",
+  "deleteVariantValue": "値を削除",
+  "variableModes": "変数モード",
+  "modeAuto": "自動",
+  "lineHeightAuto": "自動",
+  "exposeProperties": "プロパティを公開"
 }

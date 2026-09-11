@@ -13,6 +13,7 @@ import type {
 import { useEditorStore } from '@/app/editor/active-store'
 import NumberField from '@/components/inputs/NumberField'
 import PrototypePlayer from '@/components/prototype/PrototypePlayer'
+import SpringCurveEditor from '@/components/prototype/SpringCurveEditor'
 import { AppSelect } from '@/components/ui/AppSelect'
 import PanelSection from '@/components/ui/panel/PanelSection'
 import Tip from '@/components/ui/Tip'
@@ -76,25 +77,58 @@ export default function PrototypePanel() {
   })
 
   const triggerOptions: { value: PrototypeTrigger; label: string }[] = [
-    { value: 'ON_CLICK', label: panels.prototypeOnClick },
-    { value: 'ON_HOVER', label: panels.prototypeOnHover },
-    { value: 'AFTER_TIMEOUT', label: panels.prototypeAfterDelay }
+    { value: 'ON_CLICK', label: panels.prototypeOnClick ?? 'On click' },
+    { value: 'ON_HOVER', label: panels.prototypeOnHover ?? 'While hovering' },
+    { value: 'WHILE_PRESSING', label: 'While pressing' },
+    { value: 'ON_DRAG', label: 'On drag' },
+    { value: 'MOUSE_ENTER', label: 'Mouse enter' },
+    { value: 'MOUSE_LEAVE', label: 'Mouse leave' },
+    { value: 'KEY_DOWN', label: 'Key / gamepad' },
+    { value: 'AFTER_TIMEOUT', label: panels.prototypeAfterDelay ?? 'After delay' }
   ]
   const actionOptions: { value: PrototypeActionType; label: string }[] = [
-    { value: 'NAVIGATE', label: panels.prototypeNavigateTo },
-    { value: 'BACK', label: panels.prototypeBack },
-    { value: 'OPEN_URL', label: panels.prototypeOpenUrl },
+    { value: 'NAVIGATE', label: panels.prototypeNavigateTo ?? 'Navigate to' },
+    { value: 'BACK', label: panels.prototypeBack ?? 'Back' },
+    { value: 'OPEN_OVERLAY', label: 'Open overlay' },
+    { value: 'SWAP_OVERLAY', label: 'Swap overlay' },
+    { value: 'CLOSE_OVERLAY', label: 'Close overlay' },
+    { value: 'SCROLL_TO', label: 'Scroll to' },
+    { value: 'OPEN_URL', label: panels.prototypeOpenUrl ?? 'Open link' },
+    { value: 'SET_VARIABLE', label: 'Set variable' },
+    { value: 'CONDITIONAL', label: 'Conditional' },
     ...(variantTargets.length > 0
-      ? [{ value: 'CHANGE_TO' as const, label: panels.prototypeChangeTo }]
+      ? [{ value: 'CHANGE_TO' as const, label: panels.prototypeChangeTo ?? 'Change to' }]
       : [])
   ]
   const transitionOptions: { value: PrototypeTransition; label: string }[] = [
-    { value: 'INSTANT', label: panels.prototypeTransitionInstant },
-    { value: 'DISSOLVE', label: panels.prototypeTransitionDissolve },
-    { value: 'SLIDE_FROM_LEFT', label: panels.prototypeTransitionSlideLeft },
-    { value: 'SLIDE_FROM_RIGHT', label: panels.prototypeTransitionSlideRight },
-    { value: 'SLIDE_FROM_TOP', label: panels.prototypeTransitionSlideTop },
-    { value: 'SLIDE_FROM_BOTTOM', label: panels.prototypeTransitionSlideBottom }
+    { value: 'INSTANT', label: panels.prototypeTransitionInstant ?? 'Instant' },
+    { value: 'DISSOLVE', label: panels.prototypeTransitionDissolve ?? 'Dissolve' },
+    { value: 'SMART_ANIMATE', label: 'Smart animate' },
+    {
+      value: 'SLIDE_FROM_LEFT',
+      label: panels.prototypeTransitionSlideLeft ?? 'Slide in from left'
+    },
+    {
+      value: 'SLIDE_FROM_RIGHT',
+      label: panels.prototypeTransitionSlideRight ?? 'Slide in from right'
+    },
+    { value: 'SLIDE_FROM_TOP', label: panels.prototypeTransitionSlideTop ?? 'Slide in from top' },
+    {
+      value: 'SLIDE_FROM_BOTTOM',
+      label: panels.prototypeTransitionSlideBottom ?? 'Slide in from bottom'
+    },
+    { value: 'PUSH_LEFT', label: 'Push left' },
+    { value: 'PUSH_RIGHT', label: 'Push right' },
+    { value: 'PUSH_TOP', label: 'Push top' },
+    { value: 'PUSH_BOTTOM', label: 'Push bottom' },
+    { value: 'MOVE_IN_LEFT', label: 'Move in from left' },
+    { value: 'MOVE_IN_RIGHT', label: 'Move in from right' },
+    { value: 'MOVE_IN_TOP', label: 'Move in from top' },
+    { value: 'MOVE_IN_BOTTOM', label: 'Move in from bottom' },
+    { value: 'MOVE_OUT_LEFT', label: 'Move out to left' },
+    { value: 'MOVE_OUT_RIGHT', label: 'Move out to right' },
+    { value: 'MOVE_OUT_TOP', label: 'Move out to top' },
+    { value: 'MOVE_OUT_BOTTOM', label: 'Move out to bottom' }
   ]
 
   function setReactions(reactions: PrototypeReaction[], label: string) {
@@ -228,7 +262,9 @@ export default function PrototypePanel() {
                   onValueChange={(action) => updateReaction(index, { action })}
                 />
 
-                {reaction.action === 'NAVIGATE' && (
+                {['NAVIGATE', 'OPEN_OVERLAY', 'SWAP_OVERLAY', 'SCROLL_TO'].includes(
+                  reaction.action
+                ) && (
                   <AppSelect
                     label={panels.prototypeDestination}
                     options={destinationOptions}
@@ -261,7 +297,9 @@ export default function PrototypePanel() {
                   />
                 )}
 
-                {reaction.action !== 'OPEN_URL' && (
+                {['NAVIGATE', 'CHANGE_TO', 'OPEN_OVERLAY', 'SWAP_OVERLAY'].includes(
+                  reaction.action
+                ) && (
                   <>
                     <AppSelect
                       label={panels.prototypeTransition}
@@ -270,19 +308,102 @@ export default function PrototypePanel() {
                       onValueChange={(transition) => updateReaction(index, { transition })}
                     />
                     {reaction.transition !== 'INSTANT' && (
-                      <NumberField
-                        label={panels.prototypeDuration}
-                        value={reaction.transitionDuration}
-                        min={0}
-                        max={5000}
-                        step={50}
-                        suffix="ms"
-                        onChange={(transitionDuration) =>
-                          updateReaction(index, { transitionDuration })
-                        }
-                      />
+                      <>
+                        <div className="flex gap-2">
+                          <div className="flex-1">
+                            <AppSelect
+                              label="Easing"
+                              options={[
+                                { value: 'SPRING', label: 'Spring (physics)' },
+                                { value: 'EASE_OUT', label: 'Ease out' },
+                                { value: 'EASE_IN_AND_OUT', label: 'Ease in & out' },
+                                { value: 'EASE_IN', label: 'Ease in' },
+                                { value: 'LINEAR', label: 'Linear' },
+                                { value: 'CUSTOM_CUBIC', label: 'Custom' }
+                              ]}
+                              value={
+                                reaction.easing ??
+                                (reaction.transition === 'SMART_ANIMATE' ? 'SPRING' : 'EASE_OUT')
+                              }
+                              onValueChange={(easing) => updateReaction(index, { easing })}
+                            />
+                          </div>
+                          <NumberField
+                            label={panels.prototypeDuration}
+                            value={reaction.transitionDuration}
+                            min={0}
+                            max={5000}
+                            step={50}
+                            suffix="ms"
+                            onChange={(transitionDuration) =>
+                              updateReaction(index, { transitionDuration })
+                            }
+                          />
+                        </div>
+
+                        {(reaction.easing === 'SPRING' ||
+                          (!reaction.easing && reaction.transition === 'SMART_ANIMATE')) && (
+                          <SpringCurveEditor
+                            preset={reaction.springPreset ?? 'BOUNCY'}
+                            config={reaction.springConfig}
+                            onPresetChange={(springPreset) =>
+                              updateReaction(index, { springPreset, easing: 'SPRING' })
+                            }
+                            onConfigChange={(springConfig) =>
+                              updateReaction(index, { springConfig, easing: 'SPRING' })
+                            }
+                            onDurationSuggest={(transitionDuration) =>
+                              updateReaction(index, { transitionDuration })
+                            }
+                          />
+                        )}
+                      </>
                     )}
                   </>
+                )}
+
+                {['OPEN_OVERLAY', 'SWAP_OVERLAY'].includes(reaction.action) && (
+                  <div className="space-y-2 mt-2 pt-2 border-t border-border">
+                    <AppSelect
+                      label="Position"
+                      options={[
+                        { value: 'CENTER', label: 'Center' },
+                        { value: 'TOP_LEFT', label: 'Top left' },
+                        { value: 'TOP_CENTER', label: 'Top center' },
+                        { value: 'TOP_RIGHT', label: 'Top right' },
+                        { value: 'BOTTOM_LEFT', label: 'Bottom left' },
+                        { value: 'BOTTOM_CENTER', label: 'Bottom center' },
+                        { value: 'BOTTOM_RIGHT', label: 'Bottom right' },
+                        { value: 'MANUAL', label: 'Manual' }
+                      ]}
+                      value={reaction.overlayPosition ?? 'CENTER'}
+                      onValueChange={(overlayPosition) =>
+                        updateReaction(index, { overlayPosition })
+                      }
+                    />
+                    <label className="flex items-center gap-2 text-[11px] text-surface">
+                      <input
+                        type="checkbox"
+                        className="rounded border-border bg-input/50"
+                        checked={reaction.overlayCloseOnClickOutside ?? true}
+                        onChange={(e) =>
+                          updateReaction(index, { overlayCloseOnClickOutside: e.target.checked })
+                        }
+                      />
+                      Close when clicking outside
+                    </label>
+                    <label className="flex items-center gap-2 text-[11px] text-surface">
+                      <input
+                        type="checkbox"
+                        className="rounded border-border bg-input/50"
+                        checked={reaction.overlayBackgroundScrim ?? false}
+                        onChange={(e) =>
+                          updateReaction(index, { overlayBackgroundScrim: e.target.checked })
+                        }
+                      />
+                      Add background behind overlay
+                    </label>
+                  </div>
                 )}
               </div>
             ))}

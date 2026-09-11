@@ -17,10 +17,33 @@ import type { EditorContext } from './types'
 
 type ResizeSnapshot = Pick<
   SceneNode,
-  'x' | 'y' | 'width' | 'height' | 'vectorNetwork' | 'fillGeometry' | 'strokeGeometry'
+  | 'x'
+  | 'y'
+  | 'width'
+  | 'height'
+  | 'vectorNetwork'
+  | 'fillGeometry'
+  | 'strokeGeometry'
+  | 'primaryAxisSizing'
+  | 'counterAxisSizing'
+  | 'layoutGrow'
+  | 'layoutAlignSelf'
+  | 'textAutoResize'
 >
 type ResizeOriginal = Rect &
-  Partial<Pick<SceneNode, 'vectorNetwork' | 'fillGeometry' | 'strokeGeometry'>>
+  Partial<
+    Pick<
+      SceneNode,
+      | 'vectorNetwork'
+      | 'fillGeometry'
+      | 'strokeGeometry'
+      | 'primaryAxisSizing'
+      | 'counterAxisSizing'
+      | 'layoutGrow'
+      | 'layoutAlignSelf'
+      | 'textAutoResize'
+    >
+  >
 
 function createResizeSnapshot(node: SceneNode): ResizeSnapshot {
   return {
@@ -30,7 +53,12 @@ function createResizeSnapshot(node: SceneNode): ResizeSnapshot {
     height: node.height,
     vectorNetwork: node.vectorNetwork ? cloneVectorNetwork(node.vectorNetwork) : null,
     fillGeometry: copyGeometryPaths(node.fillGeometry),
-    strokeGeometry: copyGeometryPaths(node.strokeGeometry)
+    strokeGeometry: copyGeometryPaths(node.strokeGeometry),
+    primaryAxisSizing: node.primaryAxisSizing,
+    counterAxisSizing: node.counterAxisSizing,
+    layoutGrow: node.layoutGrow,
+    layoutAlignSelf: node.layoutAlignSelf,
+    textAutoResize: node.textAutoResize
   }
 }
 
@@ -101,11 +129,7 @@ export function createUndoActions(ctx: EditorContext) {
   function commitResize(nodeId: string, original: ResizeOriginal) {
     const node = ctx.graph.getNode(nodeId)
     if (!node) return
-    const includesGeometry =
-      'vectorNetwork' in original || 'fillGeometry' in original || 'strokeGeometry' in original
-    const final: ResizeOriginal = includesGeometry
-      ? createResizeSnapshot(node)
-      : { x: node.x, y: node.y, width: node.width, height: node.height }
+    const final: ResizeSnapshot = createResizeSnapshot(node)
     ctx.undo.push({
       label: 'Resize',
       forward: () => {
@@ -119,18 +143,35 @@ export function createUndoActions(ctx: EditorContext) {
     })
   }
 
+  type ChildResizeSnapshot = Pick<
+    SceneNode,
+    'x' | 'y' | 'width' | 'height' | 'vectorNetwork' | 'fillGeometry' | 'strokeGeometry'
+  >
+
+  function createChildResizeSnapshot(node: SceneNode): ChildResizeSnapshot {
+    const {
+      primaryAxisSizing,
+      counterAxisSizing,
+      layoutGrow,
+      layoutAlignSelf,
+      textAutoResize,
+      ...rest
+    } = createResizeSnapshot(node)
+    return rest
+  }
+
   function commitGroupResize(
     nodeId: string,
-    origRect: Rect,
-    origChildren: Map<string, ResizeSnapshot>
+    origRect: ResizeOriginal,
+    origChildren: Map<string, ChildResizeSnapshot>
   ) {
     const node = ctx.graph.getNode(nodeId)
     if (!node) return
-    const finalRect = { x: node.x, y: node.y, width: node.width, height: node.height }
-    const finalChildren = new Map<string, ResizeSnapshot>()
+    const finalRect = createResizeSnapshot(node)
+    const finalChildren = new Map<string, ChildResizeSnapshot>()
     for (const [childId] of origChildren) {
       const child = ctx.graph.getNode(childId)
-      if (child) finalChildren.set(childId, createResizeSnapshot(child))
+      if (child) finalChildren.set(childId, createChildResizeSnapshot(child))
     }
     ctx.undo.push({
       label: 'Resize',

@@ -12,13 +12,17 @@ import {
   Strikethrough,
   Baseline,
   ALargeSmall,
-  AlertTriangle
+  AlertTriangle,
+  ChevronDown,
+  ChevronRight
 } from 'lucide-react'
-import React from 'react'
+import React, { useState } from 'react'
 
 import { useTypography, useI18n } from '@openweave/react'
-import type { SceneNode } from '@openweave/scene-graph'
+import { styleToWeight, weightToStyle } from '@openweave/scene-graph'
+import type { SceneNode, TextDecorationStyle } from '@openweave/scene-graph'
 
+import { listFamilyStyles } from '@/app/editor/fonts'
 import FontPicker from '@/components/font-picker/FontPicker'
 import FontSettingsPopover from '@/components/font-settings/FontSettingsPopover'
 import NumberField from '@/components/inputs/NumberField'
@@ -61,13 +65,17 @@ export default function TypographySection() {
   // It provides standard properties and actions to interact with TextNode
   const {
     node,
+    editor,
     fontFamily,
     fontWeight,
     fontSize,
+    rangeFontWeight,
+    rangeFontSize,
     weights,
     activeFormatting,
     setFamily,
     setWeight,
+    setFontStyle,
     setAlign,
     setVerticalAlign,
     setTextCase,
@@ -83,6 +91,32 @@ export default function TypographySection() {
     hasMissingFonts
   } = useTypography()
   const { panels } = useI18n()
+
+  // Real face names for the current family (Tauri system fonts); empty means
+  // unknown and the dropdown falls back to the generic numeric weight list.
+  const [familyStyles, setFamilyStyles] = React.useState<string[]>([])
+  const [openTypeExpanded, setOpenTypeExpanded] = useState(false)
+  React.useEffect(() => {
+    let cancelled = false
+    if (!fontFamily) {
+      setFamilyStyles([])
+      return
+    }
+    void listFamilyStyles(fontFamily).then((styles) => {
+      if (!cancelled) {
+        setFamilyStyles(
+          [...styles].sort(
+            (a, b) =>
+              styleToWeight(a) - styleToWeight(b) ||
+              Number(/italic|oblique/i.test(a)) - Number(/italic|oblique/i.test(b))
+          )
+        )
+      }
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [fontFamily])
 
   if (!node || !('textAlignHorizontal' in node)) return null
 
@@ -132,25 +166,75 @@ export default function TypographySection() {
 
       <PanelGrid columns={2} className="mb-3">
         <PanelFieldGroup label={panels.fontWeight}>
-          <select
-            className={inputClass + ' h-6'}
-            aria-label={panels.fontWeight}
-            value={fontWeight}
-            onChange={(e) => {
-              void setWeight(Number(e.target.value))
-            }}
-          >
-            {weights.map((w: any) => (
-              <option key={w.value} value={w.value}>
-                {w.label}
-              </option>
-            ))}
-          </select>
+          {familyStyles.length > 0 ? (
+            (() => {
+              const effWeight = typeof rangeFontWeight === 'number' ? rangeFontWeight : fontWeight
+              const effItalic = activeFormatting.includes('italic')
+              const matched =
+                rangeFontWeight === 'mixed'
+                  ? undefined
+                  : familyStyles.find(
+                      (style) =>
+                        styleToWeight(style) === effWeight &&
+                        /italic|oblique/i.test(style) === effItalic
+                    )
+              const fallbackLabel = weightToStyle(effWeight, effItalic)
+              const value = rangeFontWeight === 'mixed' ? 'mixed' : (matched ?? `__unavailable__`)
+              return (
+                <select
+                  className={inputClass + ' h-6'}
+                  aria-label={panels.fontWeight}
+                  value={value}
+                  onChange={(e) => {
+                    if (e.target.value === 'mixed' || e.target.value === '__unavailable__') return
+                    void setFontStyle(e.target.value)
+                  }}
+                >
+                  {rangeFontWeight === 'mixed' && (
+                    <option value="mixed" disabled>
+                      {panels.mixed}
+                    </option>
+                  )}
+                  {!matched && rangeFontWeight !== 'mixed' && (
+                    <option value="__unavailable__" disabled>
+                      {fallbackLabel}
+                    </option>
+                  )}
+                  {familyStyles.map((style) => (
+                    <option key={style} value={style}>
+                      {style}
+                    </option>
+                  ))}
+                </select>
+              )
+            })()
+          ) : (
+            <select
+              className={inputClass + ' h-6'}
+              aria-label={panels.fontWeight}
+              value={rangeFontWeight === 'mixed' ? 'mixed' : String(rangeFontWeight ?? fontWeight)}
+              onChange={(e) => {
+                if (e.target.value === 'mixed') return
+                void setWeight(Number(e.target.value))
+              }}
+            >
+              {rangeFontWeight === 'mixed' && (
+                <option value="mixed" disabled>
+                  {panels.mixed}
+                </option>
+              )}
+              {weights.map((w: any) => (
+                <option key={w.value} value={w.value}>
+                  {w.label}
+                </option>
+              ))}
+            </select>
+          )}
         </PanelFieldGroup>
         <PanelFieldGroup label={panels.fontSize}>
           <NumberField
             ariaLabel={panels.fontSize}
-            value={fontSize}
+            value={typeof rangeFontSize === 'number' ? rangeFontSize : fontSize}
             min={1}
             max={1000}
             onChange={(v) => updateProp('fontSize', v)}
@@ -161,14 +245,37 @@ export default function TypographySection() {
 
       <PanelGrid columns={2} className="mb-3">
         <PanelFieldGroup label={panels.lineHeight}>
-          <NumberField
-            ariaLabel={panels.lineHeight}
-            value={typeof lineHeight === 'number' ? lineHeight : Math.round((fontSize || 14) * 1.2)}
-            min={0}
-            onChange={(v) => updateProp('lineHeight', v)}
-            onCommit={(v, p) => commitProp('lineHeight', v, p)}
-            icon={<Baseline className="size-3" />}
-          />
+          <div className="flex items-center gap-1">
+            <NumberField
+              ariaLabel={panels.lineHeight}
+              value={
+                typeof lineHeight === 'number' ? lineHeight : Math.round((fontSize || 14) * 1.2)
+              }
+              min={0}
+              onChange={(v) => updateProp('lineHeight', v)}
+              onCommit={(v, p) => commitProp('lineHeight', v, p)}
+              icon={<Baseline className="size-3" />}
+            />
+            <select
+              aria-label={`${panels.lineHeight} unit`}
+              className="h-6 shrink-0 rounded border border-border bg-input/50 px-1 text-[10px] text-muted outline-none focus:border-accent"
+              value={typeof lineHeight === 'number' ? 'px' : 'auto'}
+              onChange={(e) => {
+                if (e.target.value === 'auto') {
+                  editor.updateNodeWithUndo(node.id, { lineHeight: null }, 'Change lineHeight')
+                } else if (typeof lineHeight !== 'number') {
+                  editor.updateNodeWithUndo(
+                    node.id,
+                    { lineHeight: Math.round((fontSize || 14) * 1.2) },
+                    'Change lineHeight'
+                  )
+                }
+              }}
+            >
+              <option value="auto">{panels.lineHeightAuto}</option>
+              <option value="px">px</option>
+            </select>
+          </div>
         </PanelFieldGroup>
         <PanelFieldGroup label={panels.letterSpacing}>
           <NumberField
@@ -304,6 +411,82 @@ export default function TypographySection() {
         </div>
       </PanelFieldGroup>
 
+      {(activeFormatting.includes('underline') || node.textDecoration === 'UNDERLINE') && (
+        <div className="mb-3 rounded border border-border bg-input/20 p-2 text-xs">
+          <div className="mb-1.5 text-[10px] font-medium uppercase tracking-wider text-muted">
+            Underline details
+          </div>
+          <div className="mb-2 grid grid-cols-2 gap-2">
+            <div>
+              <label className="mb-1 block text-[10px] text-muted">Style</label>
+              <select
+                className={inputClass + ' h-6'}
+                value={node.textDecorationStyle ?? 'SOLID'}
+                onChange={(e) =>
+                  editor.updateNodeWithUndo(
+                    node.id,
+                    { textDecorationStyle: e.target.value as TextDecorationStyle },
+                    'Change underline style'
+                  )
+                }
+              >
+                <option value="SOLID">Solid</option>
+                <option value="DOTTED">Dotted</option>
+                <option value="WAVY">Wavy</option>
+              </select>
+            </div>
+            <div>
+              <label className="mb-1 block text-[10px] text-muted">Offset</label>
+              <NumberField
+                value={node.textUnderlineOffset ?? 0}
+                suffix="px"
+                step={1}
+                onChange={(v) =>
+                  editor.updateNodeWithUndo(
+                    node.id,
+                    { textUnderlineOffset: v },
+                    'Change underline offset'
+                  )
+                }
+              />
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <label className="mb-1 block text-[10px] text-muted">Thickness</label>
+              <NumberField
+                value={node.textDecorationThickness ?? 1}
+                min={1}
+                suffix="px"
+                step={1}
+                onChange={(v) =>
+                  editor.updateNodeWithUndo(
+                    node.id,
+                    { textDecorationThickness: v },
+                    'Change decoration thickness'
+                  )
+                }
+              />
+            </div>
+            <div className="flex flex-col justify-end">
+              <label className="flex h-6 items-center justify-between gap-1 text-[10px] text-muted">
+                <span>Skip ink</span>
+                <AppSwitch
+                  value={node.textDecorationSkipInk ?? true}
+                  onValueChange={(val: boolean) =>
+                    editor.updateNodeWithUndo(
+                      node.id,
+                      { textDecorationSkipInk: val },
+                      'Toggle skip ink'
+                    )
+                  }
+                />
+              </label>
+            </div>
+          </div>
+        </div>
+      )}
+
       <PanelGrid columns={2} className="mb-3">
         <PanelFieldGroup label={panels.textCase}>
           <AppSelect
@@ -344,28 +527,193 @@ export default function TypographySection() {
         </PanelFieldGroup>
       )}
 
-      <div className="mb-3 grid gap-2.5">
-        <label className="flex items-center justify-between gap-1.5 text-[11px] text-muted/70">
-          <span>Standard ligatures</span>
-          <AppSwitch
-            value={featureEnabled(node.fontFeatures, 'LIGA')}
-            onValueChange={(val: boolean) => setFontFeature('LIGA', val)}
-          />
-        </label>
-        <label className="flex items-center justify-between gap-1.5 text-[11px] text-muted/70">
-          <span>Contextual alternates</span>
-          <AppSwitch
-            value={featureEnabled(node.fontFeatures, 'CALT')}
-            onValueChange={(val: boolean) => setFontFeature('CALT', val)}
-          />
-        </label>
-        <label className="flex items-center justify-between gap-1.5 text-[11px] text-muted/70">
-          <span>Kerning</span>
-          <AppSwitch
-            value={featureEnabled(node.fontFeatures, 'KERN')}
-            onValueChange={(val: boolean) => setFontFeature('KERN', val)}
-          />
-        </label>
+      <div className="mb-3">
+        <button
+          type="button"
+          onClick={() => setOpenTypeExpanded((prev) => !prev)}
+          className="flex w-full items-center justify-between py-1 text-[11px] font-medium text-muted hover:text-surface"
+        >
+          <span>OpenType features</span>
+          {openTypeExpanded ? (
+            <ChevronDown className="size-3.5" />
+          ) : (
+            <ChevronRight className="size-3.5" />
+          )}
+        </button>
+
+        {openTypeExpanded && (
+          <div className="mt-2 space-y-3 rounded border border-border bg-input/20 p-2 text-xs">
+            <div>
+              <div className="mb-1.5 text-[10px] font-medium uppercase tracking-wider text-muted">
+                Ligatures & Alternates
+              </div>
+              <div className="grid gap-2">
+                <label className="flex items-center justify-between text-[11px] text-muted/70">
+                  <span>Standard ligatures</span>
+                  <AppSwitch
+                    value={featureEnabled(node.fontFeatures, 'LIGA')}
+                    onValueChange={(val: boolean) => setFontFeature('LIGA', val)}
+                  />
+                </label>
+                <label className="flex items-center justify-between text-[11px] text-muted/70">
+                  <span>Contextual alternates</span>
+                  <AppSwitch
+                    value={featureEnabled(node.fontFeatures, 'CALT')}
+                    onValueChange={(val: boolean) => setFontFeature('CALT', val)}
+                  />
+                </label>
+                <label className="flex items-center justify-between text-[11px] text-muted/70">
+                  <span>Discretionary ligatures</span>
+                  <AppSwitch
+                    value={featureEnabled(node.fontFeatures, 'DLIG')}
+                    onValueChange={(val: boolean) => setFontFeature('DLIG', val)}
+                  />
+                </label>
+                <label className="flex items-center justify-between text-[11px] text-muted/70">
+                  <span>Historical ligatures</span>
+                  <AppSwitch
+                    value={featureEnabled(node.fontFeatures, 'HLIG')}
+                    onValueChange={(val: boolean) => setFontFeature('HLIG', val)}
+                  />
+                </label>
+              </div>
+            </div>
+
+            <div>
+              <div className="mb-1.5 text-[10px] font-medium uppercase tracking-wider text-muted">
+                Numbers
+              </div>
+              <div className="grid gap-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] text-muted/70">Figure style</span>
+                  <select
+                    className={inputClass + ' h-6 w-28'}
+                    value={
+                      featureEnabled(node.fontFeatures, 'ONUM')
+                        ? 'ONUM'
+                        : featureEnabled(node.fontFeatures, 'LNUM')
+                          ? 'LNUM'
+                          : 'DEFAULT'
+                    }
+                    onChange={(e) => {
+                      const v = e.target.value
+                      setFontFeature('LNUM', v === 'LNUM')
+                      setFontFeature('ONUM', v === 'ONUM')
+                    }}
+                  >
+                    <option value="DEFAULT">Default</option>
+                    <option value="LNUM">Lining</option>
+                    <option value="ONUM">Oldstyle</option>
+                  </select>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] text-muted/70">Figure spacing</span>
+                  <select
+                    className={inputClass + ' h-6 w-28'}
+                    value={
+                      featureEnabled(node.fontFeatures, 'TNUM')
+                        ? 'TNUM'
+                        : featureEnabled(node.fontFeatures, 'PNUM')
+                          ? 'PNUM'
+                          : 'DEFAULT'
+                    }
+                    onChange={(e) => {
+                      const v = e.target.value
+                      setFontFeature('PNUM', v === 'PNUM')
+                      setFontFeature('TNUM', v === 'TNUM')
+                    }}
+                  >
+                    <option value="DEFAULT">Default</option>
+                    <option value="PNUM">Proportional</option>
+                    <option value="TNUM">Tabular</option>
+                  </select>
+                </div>
+                <label className="flex items-center justify-between text-[11px] text-muted/70">
+                  <span>Fractions</span>
+                  <AppSwitch
+                    value={featureEnabled(node.fontFeatures, 'FRAC')}
+                    onValueChange={(val: boolean) => setFontFeature('FRAC', val)}
+                  />
+                </label>
+                <label className="flex items-center justify-between text-[11px] text-muted/70">
+                  <span>Slashed zero</span>
+                  <AppSwitch
+                    value={featureEnabled(node.fontFeatures, 'ZERO')}
+                    onValueChange={(val: boolean) => setFontFeature('ZERO', val)}
+                  />
+                </label>
+                <label className="flex items-center justify-between text-[11px] text-muted/70">
+                  <span>Ordinals</span>
+                  <AppSwitch
+                    value={featureEnabled(node.fontFeatures, 'ORDN')}
+                    onValueChange={(val: boolean) => setFontFeature('ORDN', val)}
+                  />
+                </label>
+              </div>
+            </div>
+
+            <div>
+              <div className="mb-1.5 text-[10px] font-medium uppercase tracking-wider text-muted">
+                Letterforms
+              </div>
+              <div className="grid gap-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] text-muted/70">Caps</span>
+                  <select
+                    className={inputClass + ' h-6 w-28'}
+                    value={
+                      featureEnabled(node.fontFeatures, 'SMCP')
+                        ? 'SMCP'
+                        : featureEnabled(node.fontFeatures, 'TITL')
+                          ? 'TITL'
+                          : featureEnabled(node.fontFeatures, 'UNIC')
+                            ? 'UNIC'
+                            : 'DEFAULT'
+                    }
+                    onChange={(e) => {
+                      const v = e.target.value
+                      setFontFeature('SMCP', v === 'SMCP')
+                      setFontFeature('TITL', v === 'TITL')
+                      setFontFeature('UNIC', v === 'UNIC')
+                    }}
+                  >
+                    <option value="DEFAULT">Normal</option>
+                    <option value="SMCP">Small caps</option>
+                    <option value="TITL">Titling</option>
+                    <option value="UNIC">Unicase</option>
+                  </select>
+                </div>
+                <label className="flex items-center justify-between text-[11px] text-muted/70">
+                  <span>Kerning</span>
+                  <AppSwitch
+                    value={featureEnabled(node.fontFeatures, 'KERN')}
+                    onValueChange={(val: boolean) => setFontFeature('KERN', val)}
+                  />
+                </label>
+              </div>
+            </div>
+
+            <div>
+              <div className="mb-1.5 text-[10px] font-medium uppercase tracking-wider text-muted">
+                Stylistic Sets
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                {(['SS01', 'SS02', 'SS03', 'SS04'] as const).map((tag, i) => (
+                  <label
+                    key={tag}
+                    className="flex items-center justify-between text-[11px] text-muted/70"
+                  >
+                    <span>Set {i + 1}</span>
+                    <AppSwitch
+                      value={featureEnabled(node.fontFeatures, tag)}
+                      onValueChange={(val: boolean) => setFontFeature(tag, val)}
+                    />
+                  </label>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </PanelSection>
   )

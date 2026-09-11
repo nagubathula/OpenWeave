@@ -13,11 +13,25 @@ interface PropertyTarget {
 }
 
 function definitionOwners(ctx: EditorContext, instance: SceneNode): SceneNode[] {
-  if (!instance.componentId) return []
-  const component = ctx.graph.getNode(instance.componentId)
-  if (!component) return []
-  const parent = component.parentId ? ctx.graph.getNode(component.parentId) : null
-  return parent?.type === 'COMPONENT_SET' ? [parent, component] : [component]
+  // A nested instance inside another instance's subtree points at the SOURCE
+  // nested instance, not the component — follow the chain to the component.
+  let componentId = instance.componentId
+  const seen = new Set<string>()
+  while (componentId && !seen.has(componentId)) {
+    seen.add(componentId)
+    const component = ctx.graph.getNode(componentId)
+    if (!component) return []
+    if (component.type === 'COMPONENT') {
+      const parent = component.parentId ? ctx.graph.getNode(component.parentId) : null
+      return parent?.type === 'COMPONENT_SET' ? [parent, component] : [component]
+    }
+    if (component.type === 'INSTANCE') {
+      componentId = component.componentId
+      continue
+    }
+    return []
+  }
+  return []
 }
 
 function definitionsForInstance(
@@ -301,6 +315,136 @@ export function createComponentPropertyActions(
     })
   }
 
+  /**
+   * Nested instances inside the main component marked "exposed", mapped to
+   * the corresponding nodes inside this outer instance's subtree (Figma's
+   * expose-properties). Each entry's id is the nested instance ON the outer
+   * instance, so its properties are read and set like any instance's.
+   */
+  function getExposedNestedInstances(instanceId: string): { id: string; name: string }[] {
+    const instance = ctx.graph.getNode(instanceId)
+    if (instance?.type !== 'INSTANCE' || !instance.componentId) return []
+    const component = ctx.graph.getNode(instance.componentId)
+    if (!component) return []
+
+    const results: { id: string; name: string }[] = []
+    const walk = (parent: SceneNode, path: number[]) => {
+      for (const [index, childId] of parent.childIds.entries()) {
+        const child = ctx.graph.getNode(childId)
+        if (!child) continue
+        if (child.type === 'INSTANCE' && child.isExposedInstance) {
+          const mapped = nodeAtPath(ctx, instance, [...path, index])
+          if (mapped?.type === 'INSTANCE') results.push({ id: mapped.id, name: child.name })
+          continue
+        }
+        walk(child, [...path, index])
+      }
+    }
+    walk(component, [])
+    return results
+  }
+
+  /**
+   * Find all nested instances inside a component or component set.
+   * If given a component set, inspects its constituent components
+   * to list all nested instances available for property exposure.
+   */
+  function getNestedInstancesInComponent(componentOrSetId: string): {
+    id: string
+    name: string
+    isExposed: boolean
+    propertyCount: number
+  }[] {
+    const root = ctx.graph.getNode(componentOrSetId)
+    if (!root) return []
+
+    const components: SceneNode[] = []
+    if (root.type === 'COMPONENT') {
+      components.push(root)
+    } else if (root.type === 'COMPONENT_SET') {
+      for (const childId of root.childIds) {
+        const child = ctx.graph.getNode(childId)
+        if (child?.type === 'COMPONENT') components.push(child)
+      }
+    }
+
+    const seenNames = new Set<string>()
+    const results: { id: string; name: string; isExposed: boolean; propertyCount: number }[] = []
+
+    const walk = (node: SceneNode) => {
+      for (const childId of node.childIds) {
+        const child = ctx.graph.getNode(childId)
+        if (!child) continue
+        if (child.type === 'INSTANCE') {
+          if (!seenNames.has(child.name)) {
+            seenNames.add(child.name)
+            const defs = definitionsForInstance(ctx, child)
+            results.push({
+              id: child.id,
+              name: child.name,
+              isExposed: Boolean(child.isExposedInstance),
+              propertyCount: defs.length
+            })
+          }
+        }
+        walk(child)
+      }
+    }
+
+    for (const comp of components) {
+      walk(comp)
+    }
+
+    return results
+  }
+
+  function setNestedInstanceExposed(instanceId: string, exposed: boolean) {
+    const node = ctx.graph.getNode(instanceId)
+    if (!node || node.type !== 'INSTANCE') return
+
+    const affectedIds: string[] = [instanceId]
+    const comp = node.parentId ? ctx.graph.getNode(node.parentId) : null
+    let compRoot = comp
+    while (compRoot && compRoot.type !== 'COMPONENT' && compRoot.parentId) {
+      compRoot = ctx.graph.getNode(compRoot.parentId)
+    }
+    if (compRoot?.type === 'COMPONENT' && compRoot.parentId) {
+      const set = ctx.graph.getNode(compRoot.parentId)
+      if (set?.type === 'COMPONENT_SET') {
+        for (const variantId of set.childIds) {
+          if (variantId === compRoot.id) continue
+          const variant = ctx.graph.getNode(variantId)
+          if (!variant) continue
+          const walkMatch = (curr: SceneNode) => {
+            for (const cId of curr.childIds) {
+              const c = ctx.graph.getNode(cId)
+              if (!c) continue
+              if (c.type === 'INSTANCE' && c.name === node.name) {
+                affectedIds.push(c.id)
+              }
+              walkMatch(c)
+            }
+          }
+          walkMatch(variant)
+        }
+      }
+    }
+
+    const apply = (val: boolean) => {
+      for (const id of affectedIds) {
+        ctx.graph.updateNode(id, { isExposedInstance: val })
+      }
+      ctx.requestRender()
+    }
+
+    apply(exposed)
+    ctx.undo.push({
+      label: exposed ? 'Expose properties' : 'Unexpose properties',
+      forward: () => apply(exposed),
+      inverse: () => apply(!exposed)
+    })
+  }
+
   return {
     getInstanceComponentPropertyDefinitions,
     getInstanceComponentPropertyValue,
@@ -308,6 +452,9 @@ export function createComponentPropertyActions(
       reapplyInstanceComponentProperties(ctx, instanceId),
     setInstanceComponentProperty,
     componentPropertyDefsForNode,
-    setComponentPropertyReference
+    setComponentPropertyReference,
+    getExposedNestedInstances,
+    getNestedInstancesInComponent,
+    setNestedInstanceExposed
   }
 }

@@ -53,6 +53,7 @@ import type {
   VariableValue
 } from './types'
 
+export { SCALAR_BINDING_FIELDS } from './variables'
 export {
   cloneVectorNetwork,
   mergeVectorNetworks,
@@ -204,12 +205,28 @@ export class SceneGraph {
     return Variables.resolveNumberVariable(this, variableId)
   }
 
+  resolveStringVariable(variableId: string): string | undefined {
+    return Variables.resolveStringVariable(this, variableId)
+  }
+
+  resolveBooleanVariable(variableId: string): boolean | undefined {
+    return Variables.resolveBooleanVariable(this, variableId)
+  }
+
   resolveColorVariableForNode(nodeId: string, variableId: string): Color | undefined {
     return Variables.resolveColorVariableForNode(this, nodeId, variableId)
   }
 
   resolveNumberVariableForNode(nodeId: string, variableId: string): number | undefined {
     return Variables.resolveNumberVariableForNode(this, nodeId, variableId)
+  }
+
+  resolveStringVariableForNode(nodeId: string, variableId: string): string | undefined {
+    return Variables.resolveStringVariableForNode(this, nodeId, variableId)
+  }
+
+  resolveBooleanVariableForNode(nodeId: string, variableId: string): boolean | undefined {
+    return Variables.resolveBooleanVariableForNode(this, nodeId, variableId)
   }
 
   getVariablesForCollection(collectionId: string): Variable[] {

@@ -1,6 +1,6 @@
 import { useStore } from '@nanostores/react'
 import * as Tabs from '@radix-ui/react-tabs'
-import { Code, Sparkles } from 'lucide-react'
+import { Code, Film, Sparkles } from 'lucide-react'
 import React, { useEffect } from 'react'
 
 import { useAIChat, type PropertiesTab } from '@/app/ai/chat/use'
@@ -9,6 +9,7 @@ import ChatPanel from '@/components/chat/ChatPanel'
 import ZoomDropdown from '@/components/editor/ZoomDropdown'
 import CodePanel from '@/components/properties/CodePanel'
 import DesignPanel from '@/components/properties/DesignPanel'
+import MotionPanel from '@/components/properties/MotionPanel'
 import PrototypePanel from '@/components/prototype/PrototypePanel'
 
 export default function PropertiesPanel() {
@@ -58,6 +59,14 @@ export default function PropertiesPanel() {
             Prototype
           </Tabs.Trigger>
           <Tabs.Trigger
+            value="motion"
+            data-test-id="properties-tab-motion"
+            className="relative flex items-center gap-1 rounded px-2.5 py-1 text-[11px] text-muted hover:text-surface data-[state=active]:font-semibold data-[state=active]:text-surface after:absolute after:inset-x-2 after:-bottom-[9px] after:h-0.5 after:rounded-full after:bg-transparent data-[state=active]:after:bg-accent"
+          >
+            <Film className="size-3" />
+            Motion
+          </Tabs.Trigger>
+          <Tabs.Trigger
             value="code"
             data-test-id="properties-tab-code"
             className="relative flex items-center gap-1 rounded px-2.5 py-1 text-[11px] text-muted hover:text-surface data-[state=active]:font-semibold data-[state=active]:text-surface after:absolute after:inset-x-2 after:-bottom-[9px] after:h-0.5 after:rounded-full after:bg-transparent data-[state=active]:after:bg-accent"
@@ -87,6 +96,10 @@ export default function PropertiesPanel() {
 
         <Tabs.Content value="prototype" className="flex min-h-0 flex-1 flex-col">
           <PrototypePanel />
+        </Tabs.Content>
+
+        <Tabs.Content value="motion" className="flex min-h-0 flex-1 flex-col">
+          <MotionPanel />
         </Tabs.Content>
 
         <Tabs.Content value="code" className="flex min-h-0 flex-1 flex-col">

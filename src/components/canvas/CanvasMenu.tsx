@@ -24,6 +24,7 @@ import { useEditorStore } from '@/app/editor/active-store'
 import { createCanvasMenuActions } from '@/app/editor/canvas/menu/actions'
 import { useCanvasContextMenu } from '@/app/editor/canvas/menu/context'
 import { canvasMenuItemClass, canvasMenuShortcutClass } from '@/app/editor/canvas/menu/model'
+import { requestRenameSelection } from '@/app/editor/selection/rename-dialog'
 import { appMenuShortcutLabel } from '@/app/shell/menu/shortcut'
 import AppShortcutText from '@/components/ui/AppShortcutText'
 import { menu, useMenuUI } from '@/components/ui/menu'
@@ -124,6 +125,15 @@ export default function CanvasMenu() {
         <AppShortcutText>
           {formatShortcut(editorCommandMetadata('selection.duplicate').shortcut)}
         </AppShortcutText>
+      </ContextMenu.Item>
+      <ContextMenu.Item
+        data-test-id="context-rename"
+        className={cls.item}
+        disabled={!hasSelection}
+        onSelect={() => requestRenameSelection(store)}
+      >
+        <span>{t.renameSelection || 'Rename'}</span>
+        <AppShortcutText>{appMenuShortcutLabel('selection.rename')}</AppShortcutText>
       </ContextMenu.Item>
       <ContextMenu.Item
         data-test-id="context-delete"

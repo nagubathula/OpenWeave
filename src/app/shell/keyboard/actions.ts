@@ -1,13 +1,14 @@
 import { opacityFromBuffer } from '@openweave/core/editor'
 import type { useEditorCommands } from '@openweave/react'
 
+import type { PropertiesTab } from '@/app/ai/chat/use'
 import type { EditorStore } from '@/app/editor/active-store'
 
 type KeyboardActionsOptions = {
   store: EditorStore
   activeTab: {
-    get(): 'design' | 'prototype' | 'code' | 'ai'
-    set(tab: 'design' | 'prototype' | 'code' | 'ai'): void
+    get(): PropertiesTab
+    set(tab: PropertiesTab): void
   }
   isMobile: { readonly value: boolean }
   runCommand: ReturnType<typeof useEditorCommands>['runCommand']

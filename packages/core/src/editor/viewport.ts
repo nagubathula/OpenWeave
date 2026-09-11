@@ -1,3 +1,4 @@
+import type { SceneNode } from '@openweave/scene-graph'
 import { computeBounds, computeAbsoluteBounds } from '@openweave/scene-graph/geometry'
 
 import { ZOOM_DIVISOR, ZOOM_SCALE_MAX, ZOOM_SCALE_MIN } from '#core/constants'
@@ -102,6 +103,33 @@ export function createViewportActions(ctx: EditorContext) {
     zoomToBounds(b.x, b.y, b.x + b.width, b.y + b.height)
   }
 
+  function zoomToNode(nodeId: string) {
+    const node = ctx.graph.getNode(nodeId)
+    if (!node) return
+
+    let current: SceneNode | null | undefined = node
+    let pageId: string | null = null
+    while (current) {
+      if (current.type === 'CANVAS') {
+        pageId = current.id
+        break
+      }
+      current = current.parentId ? ctx.graph.getNode(current.parentId) : null
+    }
+
+    if (pageId && pageId !== ctx.state.currentPageId) {
+      const previousPageId = ctx.state.currentPageId
+      ctx.state.currentPageId = pageId
+      ctx.state.enteredContainerId = null
+      ctx.emitEditorEvent('page:changed', pageId, previousPageId)
+    }
+
+    ctx.setSelectedIds(new Set([nodeId]))
+
+    const b = computeAbsoluteBounds([node], (id) => ctx.graph.getAbsolutePosition(id))
+    zoomToBounds(b.x, b.y, b.x + b.width, b.y + b.height)
+  }
+
   return {
     screenToCanvas,
     setZoomAroundPoint,
@@ -111,6 +139,7 @@ export function createViewportActions(ctx: EditorContext) {
     zoomToFit,
     zoomTo100,
     zoomToLevel,
-    zoomToSelection
+    zoomToSelection,
+    zoomToNode
   }
 }

@@ -328,5 +328,13 @@
   "prototypeClearFlowStart": "Usuń punkt początkowy",
   "prototypeNoDestination": "Dodaj ramkę docelową, aby połączyć tę warstwę",
   "prototypeEmptyHint": "Wybierz warstwę na płótnie, aby dodać interakcję",
-  "prototypeNoFrames": "Narysuj ramki na płótnie, aby rozpocząć prototypowanie"
+  "prototypeNoFrames": "Narysuj ramki na płótnie, aby rozpocząć prototypowanie",
+  "maskIsOutline": "Użyj konturu jako maski",
+  "createStringVariable": "Utwórz zmienną tekstową z {value}",
+  "content": "Zawartość",
+  "deleteVariantValue": "Usuń wartość",
+  "variableModes": "Tryby zmiennych",
+  "modeAuto": "Automatycznie",
+  "lineHeightAuto": "Automatycznie",
+  "exposeProperties": "Udostępnij właściwości"
 }

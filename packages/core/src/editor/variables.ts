@@ -1,3 +1,5 @@
+import { omit } from 'es-toolkit/object'
+
 import type {
   Variable,
   VariableCollection,
@@ -24,6 +26,51 @@ export function createVariableActions(ctx: EditorContext) {
 
   function resolveNumberVariable(id: string) {
     return ctx.graph.resolveNumberVariable(id)
+  }
+
+  function resolveStringVariable(id: string) {
+    return ctx.graph.resolveStringVariable(id)
+  }
+
+  function resolveBooleanVariable(id: string) {
+    return ctx.graph.resolveBooleanVariable(id)
+  }
+
+  // Non-color bindings are stored denormalized on the node (color fills
+  // resolve live at render instead), so variable edits and mode switches must
+  // push resolved values back into every bound node. Pass a variableId to
+  // sync just that variable's bindings, or nothing to re-sync everything.
+  function syncBoundNodeValues(variableId?: string) {
+    for (const node of ctx.graph.nodes.values()) {
+      for (const [field, boundId] of Object.entries(node.boundVariables)) {
+        if (variableId && boundId !== variableId) continue
+        // Indexed paths (fills/N/color, strokes/N/color) resolve at render.
+        if (field.includes('/')) continue
+        if (field === 'characters') {
+          const resolved = ctx.graph.resolveStringVariableForNode(node.id, boundId)
+          if (typeof resolved === 'string' && node.text !== resolved) {
+            ctx.graph.updateNode(node.id, { text: resolved, styleRuns: [] })
+          }
+        } else if (field === 'fontFamily') {
+          const resolved = ctx.graph.resolveStringVariableForNode(node.id, boundId)
+          if (typeof resolved === 'string' && node.fontFamily !== resolved) {
+            ctx.graph.updateNode(node.id, { fontFamily: resolved })
+          }
+        } else if (field === 'visible') {
+          const resolved = ctx.graph.resolveBooleanVariableForNode(node.id, boundId)
+          if (typeof resolved === 'boolean' && node.visible !== resolved) {
+            ctx.graph.updateNode(node.id, { visible: resolved })
+          }
+        } else {
+          const resolved = ctx.graph.resolveNumberVariableForNode(node.id, boundId)
+          const current = node[field as keyof typeof node]
+          if (typeof resolved === 'number' && current !== resolved) {
+            ctx.graph.updateNode(node.id, { [field]: resolved })
+            ctx.runLayoutForNode(node.id)
+          }
+        }
+      }
+    }
   }
 
   function getVariablesForCollection(collectionId: string) {
@@ -287,7 +334,35 @@ export function createVariableActions(ctx: EditorContext) {
 
   function setActiveMode(collectionId: string, modeId: string) {
     ctx.graph.setActiveMode(collectionId, modeId)
+    syncBoundNodeValues()
     ctx.requestRender()
+  }
+
+  /**
+   * Per-node variable mode override (Figma's frame-level "change variable
+   * mode"). Pass null to clear back to Auto (inherit from ancestors / the
+   * collection's active mode). Undoable; re-syncs denormalized bound values.
+   */
+  function setNodeVariableMode(nodeId: string, collectionId: string, modeId: string | null) {
+    const node = ctx.graph.getNode(nodeId)
+    if (!node) return
+    const prev = { ...node.variableModes }
+    const next = modeId
+      ? { ...node.variableModes, [collectionId]: modeId }
+      : omit(node.variableModes, [collectionId])
+
+    const apply = (modes: Record<string, string>) => {
+      if (!ctx.graph.getNode(nodeId)) return
+      ctx.graph.updateNode(nodeId, { variableModes: { ...modes } })
+      syncBoundNodeValues()
+      ctx.requestRender()
+    }
+    apply(next)
+    ctx.undo.push({
+      label: 'Change variable mode',
+      forward: () => apply(next),
+      inverse: () => apply(prev)
+    })
   }
 
   function updateVariableValue(id: string, modeId: string, value: VariableValue) {
@@ -296,16 +371,23 @@ export function createVariableActions(ctx: EditorContext) {
     const prevValue = structuredClone(variable.valuesByMode[modeId])
     const newValue = structuredClone(value)
     variable.valuesByMode[modeId] = newValue
+    syncBoundNodeValues(id)
     ctx.undo.push({
       label: 'Update variable value',
       forward: () => {
         const v = ctx.graph.variables.get(id)
-        if (v) v.valuesByMode[modeId] = structuredClone(newValue)
+        if (v) {
+          v.valuesByMode[modeId] = structuredClone(newValue)
+          syncBoundNodeValues(id)
+        }
         ctx.requestRender()
       },
       inverse: () => {
         const v = ctx.graph.variables.get(id)
-        if (v) v.valuesByMode[modeId] = structuredClone(prevValue)
+        if (v) {
+          v.valuesByMode[modeId] = structuredClone(prevValue)
+          syncBoundNodeValues(id)
+        }
         ctx.requestRender()
       }
     })
@@ -317,6 +399,8 @@ export function createVariableActions(ctx: EditorContext) {
     getVariable,
     resolveColorVariable,
     resolveNumberVariable,
+    resolveStringVariable,
+    resolveBooleanVariable,
     getVariablesForCollection,
     getCollection,
     getCollections,
@@ -334,6 +418,7 @@ export function createVariableActions(ctx: EditorContext) {
     renameMode,
     setDefaultMode,
     duplicateMode,
-    setActiveMode
+    setActiveMode,
+    setNodeVariableMode
   }
 }

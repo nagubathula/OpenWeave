@@ -1,10 +1,17 @@
 import { Eye, EyeOff, SquareRoundCorner, Squircle, Blend } from 'lucide-react'
 import React from 'react'
 
-import { useAppearance, MIXED, useI18n } from '@openweave/react'
+import {
+  useAppearance,
+  MIXED,
+  useI18n,
+  BindableValueRoot,
+  useBooleanBindingProvider
+} from '@openweave/react'
 import type { BlendMode } from '@openweave/scene-graph'
 
 import NumberField from '@/components/inputs/NumberField'
+import VariableBindingPicker from '@/components/properties/binding/VariableBindingPicker'
 import { useBlendModeOptions } from '@/components/properties/blend-mode/use'
 import VariableNumberField from '@/components/properties/LayoutSection/VariableNumberField'
 
@@ -13,7 +20,8 @@ const iconButtonClass =
   'flex size-6 shrink-0 cursor-pointer items-center justify-center rounded text-muted transition-colors hover:bg-hover hover:text-surface data-[active=true]:bg-hover data-[active=true]:text-surface'
 
 export function AppearanceSection() {
-  const { panels } = useI18n()
+  const { panels, dialogs } = useI18n()
+  const booleanProvider = useBooleanBindingProvider()
   const {
     node,
     active,
@@ -52,28 +60,65 @@ export function AppearanceSection() {
   return (
     <section
       aria-label={panels.appearance}
-      className="space-y-1.5 border-b border-border pb-3"
+      className="space-y-1.5 border-b border-border px-3 pb-3"
       data-test-id="appearance-section"
     >
       <div className="flex items-center justify-between">
         <span className="text-[11px] font-semibold text-muted uppercase tracking-wider">
           {panels.appearance}
         </span>
-        <button
-          type="button"
-          aria-label={panels.toggleVisibility}
-          data-active={visibilityState === 'hidden'}
-          className={iconButtonClass}
-          onClick={toggleVisibility}
-        >
-          {visibilityState === 'visible' ? (
-            <Eye className="size-3.5" />
-          ) : visibilityState === 'hidden' ? (
-            <EyeOff className="size-3.5" />
-          ) : (
-            <Eye className="size-3.5 opacity-50" />
-          )}
-        </button>
+
+        {node && !isMulti && visibilityState !== 'mixed' ? (
+          <BindableValueRoot
+            provider={booleanProvider}
+            targets={[{ nodeId: node.id, path: 'visible' }]}
+            value={visibilityState === 'visible'}
+            batchLabel="Change visibility"
+          >
+            {(binding) => (
+              <div className="flex items-center gap-0.5">
+                <button
+                  type="button"
+                  aria-label={panels.toggleVisibility}
+                  data-active={visibilityState === 'hidden'}
+                  className={`${iconButtonClass} ${binding.state === 'bound' ? 'bg-input/50 text-accent' : ''}`}
+                  onClick={toggleVisibility}
+                >
+                  {visibilityState === 'visible' ? (
+                    <Eye className="size-3.5" />
+                  ) : (
+                    <EyeOff className="size-3.5" />
+                  )}
+                </button>
+                <VariableBindingPicker
+                  triggerLabel={panels.applyVariable}
+                  searchPlaceholder={dialogs.search}
+                  emptyLabel={panels.noVariablesFound}
+                  detachLabel={panels.detachVariable}
+                  createLabel="Create boolean variable"
+                  createNamePlaceholder={panels.variableName}
+                  createSubmitLabel={panels.create}
+                />
+              </div>
+            )}
+          </BindableValueRoot>
+        ) : (
+          <button
+            type="button"
+            aria-label={panels.toggleVisibility}
+            data-active={visibilityState === 'hidden'}
+            className={iconButtonClass}
+            onClick={toggleVisibility}
+          >
+            {visibilityState === 'visible' ? (
+              <Eye className="size-3.5" />
+            ) : visibilityState === 'hidden' ? (
+              <EyeOff className="size-3.5" />
+            ) : (
+              <Eye className="size-3.5 opacity-50" />
+            )}
+          </button>
+        )}
       </div>
 
       <div className="grid grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] gap-1.5">

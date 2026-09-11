@@ -32,6 +32,7 @@ export default function SizeLimitField({ item }: SizeLimitFieldProps) {
           <FieldSelectMenu
             ariaLabel={item.label}
             value="VALUE"
+            seamless
             onValueChange={handleSelect}
             options={[
               { value: 'CURRENT', label: item.setLabel },

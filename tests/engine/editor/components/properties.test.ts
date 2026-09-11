@@ -130,4 +130,20 @@ describe('component property actions', () => {
     expect(editor.graph.getNode(instance.id)?.componentId).toBe(variantA.id)
     expect(childByName(editor, instance.id, 'Label')?.text).toBe('Custom')
   })
+
+  test('queries nested instances in component and sets exposed state with undo', () => {
+    const { editor, component } = setupComponentProperties()
+    const nested = editor.getNestedInstancesInComponent(component.id)
+    expect(nested.length).toBe(1)
+    expect(nested[0].name).toBe('Icon')
+    expect(nested[0].isExposed).toBe(false)
+
+    editor.setNestedInstanceExposed(nested[0].id, true)
+    expect(editor.graph.getNode(nested[0].id)?.isExposedInstance).toBe(true)
+    const updated = editor.getNestedInstancesInComponent(component.id)
+    expect(updated[0].isExposed).toBe(true)
+
+    editor.undo.undo()
+    expect(editor.graph.getNode(nested[0].id)?.isExposedInstance).toBe(false)
+  })
 })

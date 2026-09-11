@@ -34,6 +34,7 @@ describe('typography depth actions', () => {
       fontFeatures: [{ tag: 'kern', enabled: true }],
       textStyleId: '1:21'
     })
+    const node = text ?? null
     const actions = createTypographyActions({
       editor,
       node,
@@ -54,6 +55,44 @@ describe('typography depth actions', () => {
     expect(editor.graph.getNode(text.id)).toMatchObject({
       fontFeatures: [{ tag: 'kern', enabled: true }],
       textStyleId: '1:21'
+    })
+  })
+
+  test('updates text decoration style, offset, thickness, and skip-ink with undo', () => {
+    const editor = createEditor()
+    const text = editor.graph.createNode('TEXT', editor.state.currentPageId, {
+      textDecoration: 'UNDERLINE',
+      textDecorationStyle: 'SOLID',
+      textUnderlineOffset: 2,
+      textDecorationThickness: 1,
+      textDecorationSkipInk: true
+    })
+
+    editor.updateNodeWithUndo(
+      text.id,
+      {
+        textDecorationStyle: 'WAVY',
+        textUnderlineOffset: 4,
+        textDecorationThickness: 2,
+        textDecorationSkipInk: false
+      },
+      'Change underline details'
+    )
+
+    expect(editor.graph.getNode(text.id)).toMatchObject({
+      textDecorationStyle: 'WAVY',
+      textUnderlineOffset: 4,
+      textDecorationThickness: 2,
+      textDecorationSkipInk: false
+    })
+
+    editor.undo.undo()
+
+    expect(editor.graph.getNode(text.id)).toMatchObject({
+      textDecorationStyle: 'SOLID',
+      textUnderlineOffset: 2,
+      textDecorationThickness: 1,
+      textDecorationSkipInk: true
     })
   })
 })

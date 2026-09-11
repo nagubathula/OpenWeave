@@ -28,7 +28,9 @@ import PositionSection from '@/components/properties/PositionSection'
 import PropertyBindingSection from '@/components/properties/PropertyBindingSection'
 import SelectionActionsControl from '@/components/properties/SelectionActionsControl'
 import StrokeSection from '@/components/properties/StrokeSection'
+import TextContentSection from '@/components/properties/TextContentSection'
 import TypographySection from '@/components/properties/TypographySection'
+import VariableModesSection from '@/components/properties/VariableModesSection'
 import VariablesSection from '@/components/properties/VariablesSection'
 import { AppSelect } from '@/components/ui/AppSelect'
 import Tip from '@/components/ui/Tip'
@@ -186,6 +188,7 @@ export function DesignPanel() {
         <PropertyBindingSection />
         {node.type === 'FRAME' && <FramePresetSelect />}
 
+        {node.type === 'TEXT' && <TextContentSection />}
         <PositionSection />
         <ConstraintsSection />
         <LayoutSection />
@@ -195,6 +198,7 @@ export function DesignPanel() {
         <FillSection />
         <StrokeSection />
         {supportsLayoutGuides && <LayoutGridSection />}
+        {supportsLayoutGuides && <VariableModesSection />}
         <EffectsSection />
 
         <ExportSection />

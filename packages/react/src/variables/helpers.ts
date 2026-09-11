@@ -9,10 +9,21 @@ import type {
   VariableValue
 } from '@openweave/scene-graph'
 
-/** Live accessor for the active collection id owned by React state. */
-export interface ActiveCollectionIdAccessor {
-  get(): string
-  set(id: string): void
+/** Live accessor for the active collection id owned by React state or test harness. */
+export type ActiveCollectionIdAccessor =
+  | { get(): string; set(id: string): void }
+  | { value: string }
+
+function getActiveId(accessor: ActiveCollectionIdAccessor): string {
+  return 'get' in accessor ? accessor.get() : accessor.value
+}
+
+function setActiveId(accessor: ActiveCollectionIdAccessor, id: string): void {
+  if ('set' in accessor) {
+    accessor.set(id)
+  } else {
+    accessor.value = id
+  }
 }
 
 export function createVariableCollectionActions(
@@ -20,7 +31,7 @@ export function createVariableCollectionActions(
   activeCollectionId: ActiveCollectionIdAccessor
 ) {
   function setActiveCollection(id: string) {
-    activeCollectionId.set(id)
+    setActiveId(activeCollectionId, id)
   }
 
   function addCollection() {
@@ -33,7 +44,7 @@ export function createVariableCollectionActions(
       variableIds: []
     }
     editor.addCollection(collection)
-    activeCollectionId.set(id)
+    setActiveId(activeCollectionId, id)
   }
 
   function renameCollection(id: string, newName: string) {
@@ -43,41 +54,41 @@ export function createVariableCollectionActions(
   function removeCollection(id: string) {
     editor.removeCollection(id)
     const cols = [...editor.getCollections()]
-    activeCollectionId.set(cols[0]?.id ?? '')
+    setActiveId(activeCollectionId, cols[0]?.id ?? '')
   }
 
   function addMode(): string | undefined {
-    const colId = activeCollectionId.get()
+    const colId = getActiveId(activeCollectionId)
     if (!colId) return undefined
     return editor.addMode(colId)
   }
 
   function removeMode(modeId: string) {
-    const colId = activeCollectionId.get()
+    const colId = getActiveId(activeCollectionId)
     if (!colId) return
     editor.removeMode(colId, modeId)
   }
 
   function renameMode(modeId: string, newName: string) {
-    const colId = activeCollectionId.get()
+    const colId = getActiveId(activeCollectionId)
     if (!colId) return
     editor.renameMode(colId, modeId, newName)
   }
 
   function setDefaultMode(modeId: string) {
-    const colId = activeCollectionId.get()
+    const colId = getActiveId(activeCollectionId)
     if (!colId) return
     editor.setDefaultMode(colId, modeId)
   }
 
   function duplicateMode(modeId: string): string | undefined {
-    const colId = activeCollectionId.get()
+    const colId = getActiveId(activeCollectionId)
     if (!colId) return undefined
     return editor.duplicateMode(colId, modeId)
   }
 
   function setActiveMode(modeId: string) {
-    const colId = activeCollectionId.get()
+    const colId = getActiveId(activeCollectionId)
     if (!colId) return
     editor.setActiveMode(colId, modeId)
   }

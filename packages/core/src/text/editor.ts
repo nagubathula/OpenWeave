@@ -118,6 +118,9 @@ export class TextEditor {
     const s = this._state
     if (!s || !this.renderer) return
     s.paragraph?.delete()
+    // Cleared before building so a throw below (e.g. fonts not ready yet)
+    // can't leave a dangling reference to the deleted paragraph.
+    s.paragraph = null
     this.paragraphNode = node
     s.textDirection = resolveNodeTextDirection(node)
     s.paragraph = this.renderer.buildParagraph({ ...node, text: s.text })

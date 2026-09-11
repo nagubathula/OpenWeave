@@ -1,3 +1,5 @@
+import { useStore } from '@nanostores/react'
+import { Code, Film, MousePointer2, Spline } from 'lucide-react'
 import React from 'react'
 
 import type { Tool, EditorToolDef } from '@openweave/core/editor'
@@ -8,6 +10,7 @@ import {
   ToolbarItem
 } from '@openweave/react'
 
+import { useAIChat } from '@/app/ai/chat/use'
 import ToolButton from '@/components/toolbar/ToolButton'
 import ToolFlyout from '@/components/toolbar/ToolFlyout'
 import type { ToolbarUI, ToolIconMap, ToolLabels } from '@/components/toolbar/types'
@@ -34,6 +37,14 @@ export default function DesktopToolbar({
   ui,
   onSetTool
 }: DesktopToolbarProps) {
+  const { activeTab: activeTabAtom } = useAIChat()
+  const activeTab = useStore(activeTabAtom)
+
+  const isDrawActive = activeTool === 'PEN' || activeTool === 'CURVATURE_PEN'
+  const isDesignActive = activeTab === 'design' && !isDrawActive
+  const isMotionActive = activeTab === 'motion'
+  const isCodeActive = activeTab === 'code'
+
   return (
     <div className="absolute bottom-4 left-1/2 z-10 flex -translate-x-1/2 items-center">
       <div
@@ -78,6 +89,61 @@ export default function DesktopToolbar({
             </ToolbarItem>
           )
         })}
+
+        {/* Divider matching Figma */}
+        <div className="mx-1 h-5 w-px bg-border/60" />
+
+        {/* Mode Switcher */}
+        {/* oxlint-disable-next-line openweave/no-hardcoded-tip-labels */}
+        <Tip label="Draw">
+          <ToolButton
+            data-test-id="mode-draw-button"
+            icon={Spline}
+            label="Draw"
+            active={isDrawActive}
+            ui={ui}
+            onClick={() => onSetTool('PEN')}
+          />
+        </Tip>
+
+        {/* oxlint-disable-next-line openweave/no-hardcoded-tip-labels */}
+        <Tip label="Design">
+          <ToolButton
+            data-test-id="mode-design-button"
+            icon={MousePointer2}
+            label="Design"
+            active={isDesignActive}
+            ui={ui}
+            onClick={() => {
+              activeTabAtom.set('design')
+              onSetTool('SELECT')
+            }}
+          />
+        </Tip>
+
+        {/* oxlint-disable-next-line openweave/no-hardcoded-tip-labels */}
+        <Tip label="Motion">
+          <ToolButton
+            data-test-id="mode-motion-button"
+            icon={Film}
+            label="Motion"
+            active={isMotionActive}
+            ui={ui}
+            onClick={() => activeTabAtom.set('motion')}
+          />
+        </Tip>
+
+        {/* oxlint-disable-next-line openweave/no-hardcoded-tip-labels */}
+        <Tip label="Code">
+          <ToolButton
+            data-test-id="mode-code-button"
+            icon={Code}
+            label="Code"
+            active={isCodeActive}
+            ui={ui}
+            onClick={() => activeTabAtom.set('code')}
+          />
+        </Tip>
       </div>
     </div>
   )

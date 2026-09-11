@@ -42,6 +42,7 @@ export function createComponentBridge(
     setPropertyDefinitionPreferredValues: components.setPropertyDefinitionPreferredValues,
     movePropertyDefinition: components.movePropertyDefinition,
     renameVariantValue: components.renameVariantValue,
+    removeVariantValue: components.removeVariantValue,
     resolveVariantConflicts: components.resolveVariantConflicts,
     arrangeComponentSetVariants: components.arrangeComponentSetVariants,
     updateVariantMembership: components.updateVariantMembership,
@@ -59,6 +60,9 @@ export function createComponentBridge(
     setInstanceComponentProperty: components.setInstanceComponentProperty,
     setVariantPropertyValue: components.setVariantPropertyValue,
     componentPropertyDefsForNode: components.componentPropertyDefsForNode,
-    setComponentPropertyReference: components.setComponentPropertyReference
+    setComponentPropertyReference: components.setComponentPropertyReference,
+    getExposedNestedInstances: components.getExposedNestedInstances,
+    getNestedInstancesInComponent: components.getNestedInstancesInComponent,
+    setNestedInstanceExposed: components.setNestedInstanceExposed
   }
 }

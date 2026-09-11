@@ -27,6 +27,7 @@ async function selectedNodeSnapshot(page: Page) {
 }
 
 test('assets panel groups component sets and inserts the default variant', async ({ page }) => {
+  test.setTimeout(30_000)
   const canvas = new CanvasHelper(page)
   await page.goto('/?test')
   await canvas.waitForInit()

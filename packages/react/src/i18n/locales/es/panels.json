@@ -328,5 +328,13 @@
   "prototypeClearFlowStart": "Quitar punto de inicio",
   "prototypeNoDestination": "Añade un frame de destino para conectar esta capa",
   "prototypeEmptyHint": "Selecciona una capa en el lienzo para añadir una interacción",
-  "prototypeNoFrames": "Dibuja frames en el lienzo para empezar a crear prototipos"
+  "prototypeNoFrames": "Dibuja frames en el lienzo para empezar a crear prototipos",
+  "maskIsOutline": "Usar contorno como máscara",
+  "createStringVariable": "Crear variable de texto desde {value}",
+  "content": "Contenido",
+  "deleteVariantValue": "Eliminar valor",
+  "variableModes": "Modos de variable",
+  "modeAuto": "Automático",
+  "lineHeightAuto": "Automático",
+  "exposeProperties": "Exponer propiedades"
 }

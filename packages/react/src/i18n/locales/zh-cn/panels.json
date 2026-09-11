@@ -328,5 +328,13 @@
   "prototypeClearFlowStart": "移除起点",
   "prototypeNoDestination": "添加目标画框以连接此图层",
   "prototypeEmptyHint": "在画布上选择图层以添加交互",
-  "prototypeNoFrames": "在画布上绘制画框以开始制作原型"
+  "prototypeNoFrames": "在画布上绘制画框以开始制作原型",
+  "maskIsOutline": "使用轮廓作为蒙版",
+  "createStringVariable": "从 {value} 创建文本变量",
+  "content": "内容",
+  "deleteVariantValue": "删除值",
+  "variableModes": "变量模式",
+  "modeAuto": "自动",
+  "lineHeightAuto": "自动",
+  "exposeProperties": "公开属性"
 }

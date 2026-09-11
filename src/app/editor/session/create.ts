@@ -41,7 +41,9 @@ export function createEditorStore(initialGraph?: SceneGraph) {
     getViewportSize: () =>
       viewportSize.width > 0 && viewportSize.height > 0
         ? viewportSize
-        : { width: window.innerWidth, height: window.innerHeight }
+        : typeof window !== 'undefined'
+          ? { width: window.innerWidth, height: window.innerHeight }
+          : { width: 800, height: 600 }
   })
   const io = new IORegistry(BUILTIN_IO_FORMATS)
   bindClipboardNotifications(editor)

@@ -8,6 +8,7 @@ import type { MenuEntry } from '@openweave/react'
 
 import { useEditorStore } from '@/app/editor/active-store'
 import { useEditorState } from '@/app/editor/session/use-editor-state'
+import { openHome } from '@/app/home/store'
 import { openSettingsDialog, settingsDialogOpen } from '@/app/settings/dialog'
 import { useAppMenu } from '@/app/shell/menu/app-menu'
 import { isMenuAction, isMenuCheckbox } from '@/app/shell/menu/entry'
@@ -131,7 +132,16 @@ export default function AppMenu() {
   return (
     <div className="shrink-0 border-b border-border">
       <div className="flex items-center gap-2 px-2 py-1.5">
-        <img data-test-id="app-logo" src="/favicon-32.png" className="size-4" alt="OpenWeave" />
+        <Tip label="Back to files (Home)" side="bottom">
+          <button
+            type="button"
+            data-test-id="app-logo-home"
+            className="flex size-5 shrink-0 cursor-pointer items-center justify-center rounded transition-opacity hover:opacity-80 outline-none"
+            onClick={() => openHome()}
+          >
+            <img data-test-id="app-logo" src="/favicon-32.png" className="size-4" alt="OpenWeave" />
+          </button>
+        </Tip>
         {isEditing ? (
           <input
             ref={inputRef}

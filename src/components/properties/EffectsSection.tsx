@@ -2,7 +2,6 @@ import * as Popover from '@radix-ui/react-popover'
 import { Plus, Eye, EyeOff, Minus, Settings2 } from 'lucide-react'
 import React from 'react'
 
-import { colorToHexRaw } from '@openweave/core/color'
 import { useEditorPropertyList, useI18n } from '@openweave/react'
 import type { Effect } from '@openweave/scene-graph'
 
@@ -168,13 +167,7 @@ export default function EffectsSection() {
                               <ColorSwatchPopover
                                 color={effect.color ?? { r: 0, g: 0, b: 0, a: 0.25 }}
                                 onChange={(c) => updateEffect(i, { color: c })}
-                              />
-                              <input
-                                type="text"
-                                className="w-14 bg-transparent outline-none text-xs text-surface font-mono uppercase"
-                                value={colorToHexRaw(effect.color ?? { r: 0, g: 0, b: 0, a: 1 })}
-                                onChange={() => {}}
-                                readOnly
+                                editable={true}
                               />
                               <div className="w-[1px] h-3 bg-border mx-1"></div>
                               <NumberField

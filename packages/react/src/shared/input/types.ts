@@ -1,5 +1,12 @@
 import type { Tool } from '@openweave/core/editor'
-import type { GeometryPath, NodeType, VectorNetwork } from '@openweave/scene-graph'
+import type {
+  GeometryPath,
+  LayoutAlignSelf,
+  LayoutSizing,
+  NodeType,
+  TextAutoResize,
+  VectorNetwork
+} from '@openweave/scene-graph'
 import type { Rect, Vector } from '@openweave/scene-graph/primitives'
 import type { ResizeSnapshot } from '@openweave/scene-graph/resize'
 
@@ -49,6 +56,11 @@ export interface DragResize {
   origFillGeometry: GeometryPath[]
   origStrokeGeometry: GeometryPath[]
   origChildren: Map<string, ResizeSnapshot> | null
+  origPrimaryAxisSizing?: LayoutSizing
+  origCounterAxisSizing?: LayoutSizing
+  origLayoutGrow?: number
+  origLayoutAlignSelf?: LayoutAlignSelf
+  origTextAutoResize?: TextAutoResize
 }
 
 export interface DragMarquee {

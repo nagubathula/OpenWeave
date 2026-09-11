@@ -136,4 +136,107 @@ describe('vector resize geometry', () => {
     editor.undo.redo()
     expectGeometry(getNodeOrThrow(editor.graph, vector.id), 20)
   })
+
+  test('switches auto-layout hug frame to fixed when dragged on canvas and restores on undo', () => {
+    const editor = createEditor()
+    const page = editor.graph.getPages()[0]
+    const frame = editor.graph.createNode('FRAME', page.id, {
+      x: 10,
+      y: 10,
+      width: 50,
+      height: 50,
+      layoutMode: 'HORIZONTAL',
+      primaryAxisSizing: 'HUG',
+      counterAxisSizing: 'HUG'
+    })
+    editor.graph.createNode('RECTANGLE', frame.id, {
+      width: 50,
+      height: 50
+    })
+    const drag: DragResize = {
+      type: 'resize',
+      handle: 'se',
+      startX: 60,
+      startY: 60,
+      origRect: { x: 10, y: 10, width: 50, height: 50 },
+      nodeId: frame.id,
+      origVectorNetwork: null,
+      origFillGeometry: [],
+      origStrokeGeometry: [],
+      origChildren: collectResizeDescendants(editor.graph, frame.id),
+      origPrimaryAxisSizing: 'HUG',
+      origCounterAxisSizing: 'HUG'
+    }
+
+    applyResize(drag, 130, 110, false, editor)
+    expect(editor.graph.getNode(frame.id)?.primaryAxisSizing).toBe('FIXED')
+    expect(editor.graph.getNode(frame.id)?.counterAxisSizing).toBe('FIXED')
+    expect(editor.graph.getNode(frame.id)?.width).toBe(120)
+    expect(editor.graph.getNode(frame.id)?.height).toBe(100)
+
+    commitResizePreview(drag, editor)
+    const committed = getNodeOrThrow(editor.graph, frame.id)
+    expect(committed.primaryAxisSizing).toBe('FIXED')
+    expect(committed.counterAxisSizing).toBe('FIXED')
+    expect(committed.width).toBe(120)
+    expect(committed.height).toBe(100)
+
+    editor.undo.undo()
+    const undone = getNodeOrThrow(editor.graph, frame.id)
+    expect(undone.primaryAxisSizing).toBe('HUG')
+    expect(undone.counterAxisSizing).toBe('HUG')
+    expect(undone.width).toBe(50)
+    expect(undone.height).toBe(50)
+
+    editor.undo.redo()
+    const redone = getNodeOrThrow(editor.graph, frame.id)
+    expect(redone.primaryAxisSizing).toBe('FIXED')
+    expect(redone.counterAxisSizing).toBe('FIXED')
+    expect(redone.width).toBe(120)
+    expect(redone.height).toBe(100)
+  })
+
+  test('switches only dragged axis to fixed when single edge handle is resized', () => {
+    const editor = createEditor()
+    const page = editor.graph.getPages()[0]
+    const frame = editor.graph.createNode('FRAME', page.id, {
+      x: 10,
+      y: 10,
+      width: 50,
+      height: 50,
+      layoutMode: 'HORIZONTAL',
+      primaryAxisSizing: 'HUG',
+      counterAxisSizing: 'HUG'
+    })
+    editor.graph.createNode('RECTANGLE', frame.id, {
+      width: 50,
+      height: 50
+    })
+    const drag: DragResize = {
+      type: 'resize',
+      handle: 'e',
+      startX: 60,
+      startY: 35,
+      origRect: { x: 10, y: 10, width: 50, height: 50 },
+      nodeId: frame.id,
+      origVectorNetwork: null,
+      origFillGeometry: [],
+      origStrokeGeometry: [],
+      origChildren: collectResizeDescendants(editor.graph, frame.id),
+      origPrimaryAxisSizing: 'HUG',
+      origCounterAxisSizing: 'HUG'
+    }
+
+    applyResize(drag, 140, 35, false, editor)
+    expect(editor.graph.getNode(frame.id)?.primaryAxisSizing).toBe('FIXED')
+    expect(editor.graph.getNode(frame.id)?.counterAxisSizing).toBe('HUG')
+    expect(editor.graph.getNode(frame.id)?.width).toBe(130)
+    expect(editor.graph.getNode(frame.id)?.height).toBe(50)
+
+    commitResizePreview(drag, editor)
+    const committed = getNodeOrThrow(editor.graph, frame.id)
+    expect(committed.primaryAxisSizing).toBe('FIXED')
+    expect(committed.counterAxisSizing).toBe('HUG')
+    expect(committed.width).toBe(130)
+  })
 })

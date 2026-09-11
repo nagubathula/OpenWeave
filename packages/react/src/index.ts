@@ -298,6 +298,8 @@ export {
   useBindingProvider,
   useOpenWeaveBindingProvider,
   useNumberBindingProvider,
+  useStringBindingProvider,
+  useBooleanBindingProvider,
   useColorBindingProvider
 } from '#react/controls/binding-provider'
 export type {

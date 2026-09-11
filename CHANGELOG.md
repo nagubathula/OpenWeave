@@ -19,6 +19,14 @@
 - Manage pages by renaming, deleting, and dragging to reorder them in the Pages panel.
 - Create text by dragging a fixed-size text box or clicking for auto-width text.
 - Create and edit layout grids for frames and components, including columns, rows, counts, gutters, margins, visibility, and grid size.
+- Play interactive prototypes with Smart Animate layer matching, spring physics easing curves (`cubic-bezier(0.175, 0.885, 0.32, 1.275)`), cubic bezier transitions, and conditional reaction evaluation.
+- Inspect and configure text underline details (solid, dotted, and wavy styles, offset, thickness, and skip-ink) and OpenType features (ligatures, oldstyle/lining and tabular figures, fractions, small caps, kerning, and stylistic sets `SS01`–`SS04`).
+- Configure advanced auto-layout options including canvas stacking order (`itemReverseZIndex`), stroke inclusion in layout geometry, and wrap align content (`counterAxisAlignContent`).
+- Position child layers in CSS Grid layouts with column/row start and column/row span controls.
+- Create component slots (`INSTANCE_SWAP` properties) with an interactive slot picker supporting preferred components, local components, and shared libraries.
+- Expose nested instance properties directly from main components and component sets with undo/redo synchronization and grouped property inspection.
+- Publish, export, import, and consume shared component libraries across documents via the Shared Libraries dialog and Assets panel.
+- Toggle outline masking (`maskIsOutline`) directly from the Mask section.
 - Inspect and edit constraints, stroke caps and joins, corner smoothing, shared styles, component properties, blend modes, masks, advanced typography, text resizing, and per-node export settings from the Design panel.
 - Edit solid fill colors by entering hex values directly in the Design panel.
 - Use Figma-style number-key opacity shortcuts: `1`–`9` set 10%–90%, `0` sets 100%, and two-digit sequences set exact values.

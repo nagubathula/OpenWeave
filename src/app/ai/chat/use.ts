@@ -33,7 +33,7 @@ import { getActiveEditorStore } from '@/app/editor/active-store'
  * Shared design/prototype/code/ai panel tab. A nanostores atom so React renders
  * it via `useStore` and non-React code (keyboard shortcuts) uses `.get()`/`.set()`.
  */
-export type PropertiesTab = 'design' | 'prototype' | 'code' | 'ai'
+export type PropertiesTab = 'design' | 'prototype' | 'code' | 'ai' | 'motion'
 const activeTab = atom<PropertiesTab>('design')
 
 const chatSession = createChatSessionManager({

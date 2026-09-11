@@ -1,14 +1,18 @@
 import { useStore } from '@nanostores/react'
-import { File as FileIcon, X, Plus } from 'lucide-react'
+import { File as FileIcon, Home, Plus, X } from 'lucide-react'
 import React from 'react'
 
-import { allTabs, createTab, switchTab, closeTab } from '@/app/tabs'
+import { closeHome, isHomeOpen, openHome } from '@/app/home/store'
+import { allTabs, closeTab, createTab, switchTab } from '@/app/tabs'
 
-/** Multi-document tab strip. Ported from src/components/TabBar.vue. */
+/** Multi-document tab strip with Figma-style Home navigation. */
 export default function TabBar() {
   const openTabs = useStore(allTabs)
+  const homeActive = useStore(isHomeOpen)
 
-  // Match the Vue behaviour: the strip is only shown when more than one tab is open.
+  // Match the original behavior: the strip is only shown when more than one tab is open.
+  // When editing a single document or when on the default untitled file, hide the strip to avoid
+  // showing a redundant "Untitled" tab strip.
   if (openTabs.length <= 1) return null
 
   const onMiddleClick = (e: React.MouseEvent, tabId: string) => {
@@ -27,11 +31,29 @@ export default function TabBar() {
     <div
       role="tablist"
       data-test-id="tabbar"
-      className="scrollbar-none flex h-9 shrink-0 items-end overflow-x-auto border-b border-border bg-canvas"
+      className="scrollbar-none flex h-9 shrink-0 items-end overflow-x-auto border-b border-border bg-canvas select-none"
     >
       <div className="flex h-full items-end">
+        {/* Home Tab */}
+        <button
+          type="button"
+          role="tab"
+          aria-selected={homeActive}
+          data-test-id="tabbar-home"
+          onClick={() => openHome()}
+          className={
+            'group/home flex h-full cursor-pointer items-center gap-1.5 border-r border-border px-3 text-[11px] font-medium transition-colors outline-none select-none ' +
+            (homeActive
+              ? 'bg-panel text-surface'
+              : 'text-muted hover:bg-hover/50 hover:text-surface')
+          }
+        >
+          <Home className="size-3.5 shrink-0" />
+          <span>Home</span>
+        </button>
+
         {openTabs.map((tab) => {
-          const active = tab.isActive
+          const active = !homeActive && tab.isActive
           return (
             <div
               key={tab.id}
@@ -39,7 +61,10 @@ export default function TabBar() {
               aria-selected={active}
               data-test-id="tabbar-tab"
               data-active={active || undefined}
-              onClick={() => switchTab(tab.id)}
+              onClick={() => {
+                closeHome()
+                switchTab(tab.id)
+              }}
               onMouseDown={(e) => onMiddleClick(e, tab.id)}
               className={
                 'group/tab flex h-full max-w-48 min-w-0 cursor-pointer items-center gap-1.5 border-r border-border px-3 text-[11px] transition-colors outline-none select-none ' +
@@ -70,7 +95,10 @@ export default function TabBar() {
         type="button"
         data-test-id="tabbar-new"
         aria-label="New tab"
-        onClick={() => createTab()}
+        onClick={() => {
+          closeHome()
+          createTab()
+        }}
         className="flex size-9 shrink-0 cursor-pointer items-center justify-center text-muted transition-colors hover:text-surface"
       >
         <Plus className="size-3.5" />

@@ -57,6 +57,24 @@ export default function LayerTree() {
   )
 
   const rename = useInlineRename(handleRenameCommit)
+  const renameTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => {
+    return () => {
+      if (renameTimerRef.current) clearTimeout(renameTimerRef.current)
+    }
+  }, [])
+
+  const handleZoomToLayer = useCallback(
+    (nodeId: string) => {
+      if (renameTimerRef.current) {
+        clearTimeout(renameTimerRef.current)
+        renameTimerRef.current = null
+      }
+      store.zoomToNode(nodeId)
+    },
+    [store]
+  )
 
   // renameNodeId is set from the keyboard/menu layer (Vue store); a render-time
   // dependency misses mutations that don't re-render this tree, so watch it.
@@ -206,8 +224,13 @@ export default function LayerTree() {
           null
 
         const onViewportKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
-          if (!NAV_KEYS.has(e.key)) return
           if ((e.target as HTMLElement).tagName === 'INPUT') return
+          if (e.key === 'F2' && activeId) {
+            const node = store.graph.getNode(activeId)
+            if (node) rename.start(node.id, node.name)
+            return
+          }
+          if (!NAV_KEYS.has(e.key)) return
           if (rowCount === 0) return
           e.preventDefault()
 
@@ -310,7 +333,10 @@ export default function LayerTree() {
                             itemActions.select(getSelectionMode(e))
                           }}
                           onContextMenu={(e) => onLayerContextMenu(e, node.id)}
-                          onDoubleClick={() => rename.start(node.id, node.name)}
+                          onDoubleClick={(e) => {
+                            if ((e.target as HTMLElement)?.closest('input')) return
+                            handleZoomToLayer(node.id)
+                          }}
                         >
                           {hasChildren ? (
                             <button
@@ -321,6 +347,9 @@ export default function LayerTree() {
                                 e.stopPropagation()
                                 itemActions.toggleExpand()
                               }}
+                              onDoubleClick={(e) => {
+                                e.stopPropagation()
+                              }}
                             >
                               <ChevronRight className="size-3" />
                             </button>
@@ -328,7 +357,16 @@ export default function LayerTree() {
                             <div className={rowStyles.disclosurePlaceholder()} />
                           )}
 
-                          <NodeIconComp className={rowStyles.icon()} />
+                          <span
+                            data-slot="layer-icon"
+                            className="flex items-center justify-center shrink-0 cursor-pointer transition-transform hover:scale-110 hover:text-accent"
+                            onDoubleClick={(e) => {
+                              e.stopPropagation()
+                              handleZoomToLayer(node.id)
+                            }}
+                          >
+                            <NodeIconComp className={rowStyles.icon()} />
+                          </span>
 
                           {isEditing ? (
                             <input
@@ -350,7 +388,22 @@ export default function LayerTree() {
                               }}
                             />
                           ) : (
-                            <span data-slot="label" className={rowStyles.label()}>
+                            <span
+                              data-slot="label"
+                              className={rowStyles.label()}
+                              onClick={() => {
+                                if (isSelected && !rename.editingId) {
+                                  if (renameTimerRef.current) clearTimeout(renameTimerRef.current)
+                                  renameTimerRef.current = setTimeout(() => {
+                                    rename.start(node.id, node.name)
+                                  }, 300)
+                                }
+                              }}
+                              onDoubleClick={(e) => {
+                                e.stopPropagation()
+                                handleZoomToLayer(node.id)
+                              }}
+                            >
                               {node.name}
                             </span>
                           )}
@@ -375,6 +428,7 @@ export default function LayerTree() {
                                   e.stopPropagation()
                                   itemActions.toggleLock()
                                 }}
+                                onDoubleClick={(e) => e.stopPropagation()}
                               >
                                 {node.locked ? (
                                   <Lock className={rowStyles.actionIcon()} />
@@ -396,6 +450,7 @@ export default function LayerTree() {
                                   e.stopPropagation()
                                   itemActions.toggleVisibility()
                                 }}
+                                onDoubleClick={(e) => e.stopPropagation()}
                               >
                                 {node.visible ? (
                                   <Eye

@@ -328,5 +328,13 @@
   "prototypeClearFlowStart": "Убрать начальную точку",
   "prototypeNoDestination": "Добавьте целевой фрейм, чтобы связать этот слой",
   "prototypeEmptyHint": "Выберите слой на холсте, чтобы добавить взаимодействие",
-  "prototypeNoFrames": "Нарисуйте фреймы на холсте, чтобы начать прототипирование"
+  "prototypeNoFrames": "Нарисуйте фреймы на холсте, чтобы начать прототипирование",
+  "maskIsOutline": "Использовать контур как маску",
+  "createStringVariable": "Создать текстовую переменную из {value}",
+  "content": "Содержимое",
+  "deleteVariantValue": "Удалить значение",
+  "variableModes": "Режимы переменных",
+  "modeAuto": "Авто",
+  "lineHeightAuto": "Авто",
+  "exposeProperties": "Предоставить свойства"
 }

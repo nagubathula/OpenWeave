@@ -328,5 +328,13 @@
   "prototypeClearFlowStart": "Startpunkt entfernen",
   "prototypeNoDestination": "Füge einen Ziel-Frame hinzu, um diese Ebene zu verbinden",
   "prototypeEmptyHint": "Wähle eine Ebene auf der Leinwand, um eine Interaktion hinzuzufügen",
-  "prototypeNoFrames": "Zeichne Frames auf die Leinwand, um mit dem Prototyping zu beginnen"
+  "prototypeNoFrames": "Zeichne Frames auf die Leinwand, um mit dem Prototyping zu beginnen",
+  "maskIsOutline": "Umriss als Maske verwenden",
+  "createStringVariable": "Textvariable aus {value} erstellen",
+  "content": "Inhalt",
+  "deleteVariantValue": "Wert löschen",
+  "variableModes": "Variablenmodi",
+  "modeAuto": "Automatisch",
+  "lineHeightAuto": "Automatisch",
+  "exposeProperties": "Eigenschaften freigeben"
 }

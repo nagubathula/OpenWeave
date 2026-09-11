@@ -4,6 +4,7 @@ import { useEditor, useI18n, useSceneComputed, useSelectionState } from '@openwe
 import type { ComponentPropertyReferenceField } from '@openweave/scene-graph'
 
 import { AppSelect } from '@/components/ui/AppSelect'
+import { AppSwitch } from '@/components/ui/AppSwitch'
 
 interface BindingRow {
   field: ComponentPropertyReferenceField
@@ -78,7 +79,19 @@ export default function PropertyBindingSection() {
     return bindings.length > 0 ? { nodeId: node.id, bindings } : null
   })
 
-  if (!rows) return null
+  // Nested instances inside a main component can expose their own properties
+  // on outer instances (Figma's "expose properties").
+  const exposeState = useSceneComputed<{ nodeId: string; exposed: boolean } | null>(() => {
+    void editor.state.sceneVersion
+    if (selectedIds.size !== 1) return null
+    const node = editor.graph.getNode([...selectedIds][0])
+    if (node?.type !== 'INSTANCE') return null
+    const { ownerId } = editor.componentPropertyDefsForNode(node.id)
+    if (!ownerId || ownerId === node.id) return null
+    return { nodeId: node.id, exposed: node.isExposedInstance }
+  })
+
+  if (!rows && !exposeState) return null
 
   return (
     <section
@@ -89,7 +102,7 @@ export default function PropertyBindingSection() {
       <div className="text-[11px] font-semibold text-muted uppercase tracking-wider">
         {panels.componentProperties}
       </div>
-      {rows.bindings.map((binding) => (
+      {rows?.bindings.map((binding) => (
         <div key={binding.field} className="flex items-center gap-2 text-xs">
           <span className="w-16 shrink-0 truncate text-[11px] text-muted">{binding.label}</span>
           <div className="flex-1" data-test-id={`property-binding-${binding.field.toLowerCase()}`}>
@@ -104,6 +117,25 @@ export default function PropertyBindingSection() {
           </div>
         </div>
       ))}
+      {exposeState && (
+        <label
+          className="flex items-center justify-between gap-2 text-[11px] text-muted"
+          data-test-id="expose-instance-toggle"
+        >
+          <span>{panels.exposeProperties}</span>
+          <AppSwitch
+            label={panels.exposeProperties}
+            value={exposeState.exposed}
+            onValueChange={(value) =>
+              editor.updateNodeWithUndo(
+                exposeState.nodeId,
+                { isExposedInstance: value },
+                'Toggle expose properties'
+              )
+            }
+          />
+        </label>
+      )}
     </section>
   )
 }

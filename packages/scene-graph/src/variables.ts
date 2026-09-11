@@ -228,6 +228,16 @@ export function resolveNumberVariable(graph: SceneGraph, variableId: string): nu
   return typeof value === 'number' ? value : undefined
 }
 
+export function resolveStringVariable(graph: SceneGraph, variableId: string): string | undefined {
+  const value = resolveVariable(graph, variableId)
+  return typeof value === 'string' ? value : undefined
+}
+
+export function resolveBooleanVariable(graph: SceneGraph, variableId: string): boolean | undefined {
+  const value = resolveVariable(graph, variableId)
+  return typeof value === 'boolean' ? value : undefined
+}
+
 export function resolveColorVariableForNode(
   graph: SceneGraph,
   nodeId: string,
@@ -253,6 +263,30 @@ export function resolveNumberVariableForNode(
   return typeof value === 'number' ? value : undefined
 }
 
+export function resolveStringVariableForNode(
+  graph: SceneGraph,
+  nodeId: string,
+  variableId: string
+): string | undefined {
+  const variable = graph.variables.get(variableId)
+  if (!variable) return undefined
+  const modeId = getNodeVariableModeId(graph, nodeId, variable.collectionId)
+  const value = resolveVariable(graph, variableId, modeId)
+  return typeof value === 'string' ? value : undefined
+}
+
+export function resolveBooleanVariableForNode(
+  graph: SceneGraph,
+  nodeId: string,
+  variableId: string
+): boolean | undefined {
+  const variable = graph.variables.get(variableId)
+  if (!variable) return undefined
+  const modeId = getNodeVariableModeId(graph, nodeId, variable.collectionId)
+  const value = resolveVariable(graph, variableId, modeId)
+  return typeof value === 'boolean' ? value : undefined
+}
+
 export function getVariablesForCollection(graph: SceneGraph, collectionId: string): Variable[] {
   const collection = graph.variableCollections.get(collectionId)
   if (!collection) return []
@@ -265,7 +299,7 @@ export function getVariablesByType(graph: SceneGraph, type: VariableType): Varia
   return [...graph.variables.values()].filter((v) => v.type === type)
 }
 
-const SCALAR_BINDING_FIELDS: ReadonlySet<string> = new Set([
+export const SCALAR_BINDING_FIELDS: ReadonlySet<string> = new Set([
   'opacity',
   'width',
   'height',
@@ -299,7 +333,7 @@ const SCALAR_BINDING_FIELDS: ReadonlySet<string> = new Set([
   'gridColumnGap'
 ])
 
-const STRING_BINDING_FIELDS: ReadonlySet<string> = new Set(['fontFamily'])
+const STRING_BINDING_FIELDS: ReadonlySet<string> = new Set(['fontFamily', 'characters'])
 
 const BOOLEAN_BINDING_FIELDS: ReadonlySet<string> = new Set(['visible'])
 

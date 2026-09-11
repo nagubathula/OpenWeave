@@ -328,5 +328,13 @@
   "prototypeClearFlowStart": "Rimuovi punto di partenza",
   "prototypeNoDestination": "Aggiungi un frame di destinazione per collegare questo livello",
   "prototypeEmptyHint": "Seleziona un livello sulla tela per aggiungere un'interazione",
-  "prototypeNoFrames": "Disegna frame sulla tela per iniziare il prototipo"
+  "prototypeNoFrames": "Disegna frame sulla tela per iniziare il prototipo",
+  "maskIsOutline": "Usa contorno come maschera",
+  "createStringVariable": "Crea variabile di testo da {value}",
+  "content": "Contenuto",
+  "deleteVariantValue": "Elimina valore",
+  "variableModes": "Modalità variabile",
+  "modeAuto": "Automatico",
+  "lineHeightAuto": "Automatico",
+  "exposeProperties": "Esponi proprietà"
 }

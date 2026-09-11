@@ -161,6 +161,21 @@ export async function listFonts(): Promise<TauriFontFamily[]> {
   return []
 }
 
+/**
+ * Real face names available for a family ("Regular", "Semi Bold Italic", …),
+ * from the system font list under Tauri. Empty when unknown (plain browser,
+ * or a web-only family) — callers fall back to the generic weight list.
+ */
+export async function listFamilyStyles(family: string): Promise<string[]> {
+  configureTauriFontCache()
+  if (!isTauri()) return []
+  const fonts = await getTauriFonts()
+  const match =
+    fonts.find((font) => font.family === family) ??
+    fonts.find((font) => font.family.toLowerCase() === family.toLowerCase())
+  return match ? [...new Set(match.styles)] : []
+}
+
 interface FontRenderInvalidator {
   invalidateAllPictures(): void
 }

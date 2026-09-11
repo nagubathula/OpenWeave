@@ -15,7 +15,14 @@ import type { SceneNode } from '@openweave/scene-graph'
 
 import { useEditorStore } from '@/app/editor/active-store'
 import { nodeIcon } from '@/app/editor/icons'
+import {
+  ensureLibraryComponentInDocument,
+  getSharedLibrariesServerSnapshot,
+  listSharedLibraries,
+  subscribeSharedLibraries
+} from '@/app/libraries/library-store'
 import { openExternalLink } from '@/app/shell/ui'
+import LibrariesDialog from '@/components/assets/LibrariesDialog'
 import { findAssetPage } from '@/components/assets/page'
 import { useButtonUI } from '@/components/ui/button'
 import { AppDialogRoot, AppDialogHeader } from '@/components/ui/dialog'
@@ -182,9 +189,16 @@ export default function AssetsPanel() {
   const [query, setQuery] = useState('')
   const [assetView, setAssetView] = useState<AssetView>('grid')
   const [detailsOpen, setDetailsOpen] = useState(false)
+  const [librariesOpen, setLibrariesOpen] = useState(false)
   const [selectedAssetId, setSelectedAssetId] = useState<string | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [previewLoading, setPreviewLoading] = useState(false)
+
+  const libraries = useSyncExternalStore(
+    subscribeSharedLibraries,
+    listSharedLibraries,
+    getSharedLibrariesServerSnapshot
+  )
 
   const insertButtonCls = useButtonUI({ tone: 'accent', size: 'md' }).base
   const contextMenuCls = useMenuUI({ content: 'min-w-44' })
@@ -202,7 +216,7 @@ export default function AssetsPanel() {
     const nodes = [...editor.graph.nodes.values()].filter(
       (node) => node.type === 'COMPONENT' || node.type === 'COMPONENT_SET'
     )
-    return nodes
+    const local = nodes
       .filter((node) => {
         if (node.type === 'COMPONENT_SET') return true
         const parent = node.parentId ? editor.graph.getNode(node.parentId) : null
@@ -229,7 +243,29 @@ export default function AssetsPanel() {
           pageName: page?.name ?? panels.page
         }
       })
-      .sort((a, b) => a.name.localeCompare(b.name))
+
+    const libAssets: LocalAsset[] = []
+    for (const lib of libraries) {
+      if (!lib.enabled) continue
+      for (const comp of lib.components) {
+        libAssets.push({
+          id: `lib_${lib.id}_${comp.id}`,
+          name: comp.name,
+          node: comp.serialized.node,
+          componentId: comp.id,
+          variants: [],
+          variantCount: 1,
+          hasConflicts: false,
+          sourceLibraryKey: lib.id,
+          description: comp.description ?? '',
+          docsUrl: null,
+          pageId: `lib_${lib.id}`,
+          pageName: `Library: ${lib.name}`
+        })
+      }
+    }
+
+    return [...local, ...libAssets].sort((a, b) => a.name.localeCompare(b.name))
   })
 
   const filteredAssets = useMemo(() => {
@@ -314,19 +350,44 @@ export default function AssetsPanel() {
     }
   }
 
+  function resolveComponentId(asset: LocalAsset): string | null {
+    if (!asset.componentId) return null
+    if (asset.sourceLibraryKey) {
+      const lib = libraries.find((l) => l.id === asset.sourceLibraryKey)
+      const libComp = lib?.components.find((c) => c.id === asset.componentId)
+      if (lib && libComp) {
+        return ensureLibraryComponentInDocument(
+          {
+            getAllNodes: () => [...editor.graph.nodes.values()],
+            getNode: (id) => editor.graph.getNode(id),
+            setNode: (node) => {
+              editor.graph.nodes.set(node.id, node)
+            },
+            currentPageId: editor.state.currentPageId
+          },
+          lib.id,
+          libComp
+        )
+      }
+    }
+    return asset.componentId
+  }
+
   function insertAsset(asset: LocalAsset) {
-    if (!asset.componentId) return
-    const component = editor.graph.getNode(asset.componentId)
+    const targetComponentId = resolveComponentId(asset)
+    if (!targetComponentId) return
+    const component = editor.graph.getNode(targetComponentId)
     if (!component) return
     const parentId = editor.state.enteredContainerId ?? editor.state.currentPageId
     const point = insertionPoint(component, parentId)
-    editor.createInstanceFromComponent(asset.componentId, point.x, point.y, parentId)
+    editor.createInstanceFromComponent(targetComponentId, point.x, point.y, parentId)
     editor.requestRender()
   }
 
   function onDragStart(event: React.DragEvent, asset: LocalAsset) {
-    if (!event.dataTransfer || !asset.componentId) return
-    event.dataTransfer.setData('application/x-openweave-component', asset.componentId)
+    const targetComponentId = resolveComponentId(asset)
+    if (!event.dataTransfer || !targetComponentId) return
+    event.dataTransfer.setData('application/x-openweave-component', targetComponentId)
     event.dataTransfer.effectAllowed = 'copy'
   }
 
@@ -398,6 +459,18 @@ export default function AssetsPanel() {
             </button>
           </Tip>
         </div>
+
+        <Tip label={panels.assetLibraryBadge}>
+          <button
+            type="button"
+            data-test-id="assets-libraries-button"
+            aria-label={panels.assetLibraryBadge}
+            className="flex size-7 shrink-0 items-center justify-center rounded border border-border text-muted transition-colors hover:bg-hover hover:text-surface"
+            onClick={() => setLibrariesOpen(true)}
+          >
+            <BookOpen className="size-3.5" />
+          </button>
+        </Tip>
       </div>
 
       <div className="scrollbar-thin flex min-h-0 flex-1 flex-col overflow-y-auto px-2 pb-2">
@@ -703,6 +776,10 @@ export default function AssetsPanel() {
           </div>
         </AppDialogRoot>
       ) : null}
+
+      {librariesOpen && (
+        <LibrariesDialog open={librariesOpen} onClose={() => setLibrariesOpen(false)} />
+      )}
     </section>
   )
 }

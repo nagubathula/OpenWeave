@@ -29,7 +29,8 @@ declare global {
 
 let activeStore: EditorStore | null = null
 
-function windowApi(): OpenWeaveWindowAPI {
+function windowApi(): OpenWeaveWindowAPI | null {
+  if (typeof window === 'undefined') return null
   window.openWeave ??= {}
   window.openWeave.getStore ??= () => {
     if (!activeStore) throw new Error('OpenWeave store not initialized')
@@ -49,9 +50,11 @@ export function setOpenWeaveStore(store: EditorStore) {
 export function exposeChatTransportOverride(
   setChatTransport: (factory: () => ChatTransport<UIMessage>) => void
 ) {
-  windowApi().setChatTransport = setChatTransport
+  const api = windowApi()
+  if (api) api.setChatTransport = setChatTransport
 }
 
 export function setOpenWeaveOpenFileHandler(openFile: (path: string) => Promise<void>) {
-  windowApi().openFile = openFile
+  const api = windowApi()
+  if (api) api.openFile = openFile
 }

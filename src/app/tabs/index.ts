@@ -10,6 +10,9 @@ import type { DocumentSourceIdentity } from '@/app/document/io/types'
 import { setActiveEditorStore } from '@/app/editor/active-store'
 import { createEditorStore } from '@/app/editor/session'
 import type { EditorStore } from '@/app/editor/session'
+import { addRecentFile } from '@/app/home/recent-files'
+import { closeHome, openHome } from '@/app/home/store'
+import { HOME_TEMPLATES, type HomeTemplate } from '@/app/home/templates'
 import {
   activeStorageProviderID,
   createActiveStorageAdapter,
@@ -116,6 +119,7 @@ export function closeTab(tabId: string) {
   if (remaining.length === 0) {
     createTab()
     closingTab.store.dispose()
+    openHome()
     return
   }
 
@@ -129,7 +133,11 @@ export function closeTab(tabId: string) {
 
 function yieldToUI(): Promise<void> {
   return new Promise((resolve) => {
-    requestAnimationFrame(() => resolve())
+    if (typeof requestAnimationFrame !== 'undefined') {
+      requestAnimationFrame(() => resolve())
+    } else {
+      setTimeout(resolve, 0)
+    }
   })
 }
 
@@ -156,6 +164,7 @@ export async function openStorageDocumentInNewTab(document: StorageDocument): Pr
   const existing = findStorageTab(providerId, document.id)
   if (existing) {
     switchTab(existing.id)
+    closeHome()
     return
   }
 
@@ -198,6 +207,13 @@ export async function openStorageDocumentInNewTab(document: StorageDocument): Pr
     const pageId = store.graph.getPages()[0]?.id ?? store.graph.rootId
     await store.switchPage(pageId)
     await store.fitCurrentPageToViewport()
+    addRecentFile({
+      id: document.id,
+      name: document.name,
+      format: 'fig',
+      updatedAt: document.updatedAt
+    })
+    closeHome()
   } finally {
     store.state.loading = false
   }
@@ -216,13 +232,17 @@ export async function openFileInNewTab(
     const pending = await fileOpenCoordinator.findPending(identity)
     if (pending) {
       const tab = getTabForStore(pending.store)
-      if (tab) switchTab(tab.id)
+      if (tab) {
+        switchTab(tab.id)
+        closeHome()
+      }
       return { kind: 'pending' as const, completion: pending.completion }
     }
 
     const existing = await findTabByFileIdentity(tabsAtom.get(), identity)
     if (existing) {
       switchTab(existing.id)
+      closeHome()
       return { kind: 'existing' as const }
     }
 
@@ -247,6 +267,13 @@ export async function openFileInNewTab(
   try {
     if (isDOMImportFile(file)) {
       await store.openDOMFile(file, { handle, path })
+      addRecentFile({
+        name: file.name.replace(/\.[^.]+$/i, ''),
+        path: path ?? null,
+        format: 'document',
+        updatedAt: new Date().toISOString()
+      })
+      closeHome()
       completion.resolve(undefined)
       return
     }
@@ -270,6 +297,13 @@ export async function openFileInNewTab(
     const pageId = store.graph.getPages()[0]?.id ?? store.graph.rootId
     await store.switchPage(pageId)
     await store.fitCurrentPageToViewport()
+    addRecentFile({
+      name: file.name.replace(/\.[^.]+$/i, ''),
+      path: path ?? null,
+      format: file.name.toLowerCase().endsWith('.pen') ? 'pen' : 'fig',
+      updatedAt: new Date().toISOString()
+    })
+    closeHome()
     completion.resolve(undefined)
   } catch (error) {
     completion.reject(error)
@@ -278,6 +312,52 @@ export async function openFileInNewTab(
     store.state.loading = false
     fileOpenCoordinator.remove(pendingOpen)
   }
+}
+
+export function openTemplateInTab(template: HomeTemplate): Tab {
+  const existing = tabsAtom.get().find((t) => t.store.state.documentName === template.name)
+  if (existing) {
+    switchTab(existing.id)
+    closeHome()
+    return existing
+  }
+
+  const graph = template.createGraph()
+  const firstPageId = graph.getPages()[0]?.id
+  if (firstPageId) computeAllLayouts(graph, firstPageId)
+
+  const current = activeTab.get()
+  const isUntouched =
+    current?.store.state.documentName === 'Untitled' && !current.store.undo.canUndo
+  const tab = isUntouched ? current : createTab(undefined, graph)
+  if (isUntouched) {
+    tab.store.replaceGraph(graph)
+  }
+  tab.store.state.documentName = template.name
+  tab.store.undo.clear()
+  tab.store.clearSelection()
+  const pageId = tab.store.graph.getPages()[0]?.id ?? tab.store.graph.rootId
+  void tab.store.switchPage(pageId)
+  void tab.store.fitCurrentPageToViewport()
+
+  addRecentFile({
+    id: `template-${template.id}`,
+    templateId: template.id,
+    name: template.name,
+    format: 'fig',
+    updatedAt: new Date().toISOString()
+  })
+  closeHome()
+  return tab
+}
+
+export function openTemplateByIdOrName(idOrName: string): Tab | undefined {
+  const normalized = idOrName.toLowerCase().trim()
+  const tpl = HOME_TEMPLATES.find(
+    (t) => t.id.toLowerCase() === normalized || t.name.toLowerCase() === normalized
+  )
+  if (!tpl) return undefined
+  return openTemplateInTab(tpl)
 }
 
 export function tabCount(): number {
@@ -297,6 +377,8 @@ export function useTabsStore() {
     getTabsSnapshot,
     openFileInNewTab,
     openStorageDocumentInNewTab,
+    openTemplateInTab,
+    openTemplateByIdOrName,
     getActiveStore,
     tabCount
   }

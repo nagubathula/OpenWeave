@@ -23,6 +23,7 @@ import { FillRow as ComplexFillEditor } from '@/components/properties/FillEditor
 import { paintBindingTargets, usePaintMutation } from '@/components/properties/paint/binding'
 import { createFillOkhclAdapter } from '@/components/properties/paint/okhcl'
 import PaintSwatchPopover from '@/components/properties/paint/PaintSwatchPopover'
+import { useRangeTextColor } from '@/components/properties/paint/range-text-color'
 import SharedStyleField from '@/components/properties/shared-style/SharedStyleField'
 import { AppSelect } from '@/components/ui/AppSelect'
 import { BindingPill } from '@/components/ui/binding'
@@ -44,6 +45,7 @@ export default function FillSection() {
   const okhcl = useOkHCL()
   const { selectedNode } = useSelectionState()
   const blendOptions = useBlendModeOptions()
+  const rangeColor = useRangeTextColor()
 
   if (!active) return null
 
@@ -95,15 +97,24 @@ export default function FillSection() {
                             dataTestId="fill-picker-swatch"
                             color={displayColor}
                             okhcl={createFillOkhclAdapter(okhcl, selectedNode, i)}
-                            onChange={(c) =>
-                              paint.apply(binding, flush, 'Change fill color', () =>
-                                actions.patch(i, { color: c })
-                              )
-                            }
-                            onOpenChange={(open) => {
-                              if (!open) paint.commit()
+                            onChange={(c) => {
+                              // With a text range selected during inline
+                              // editing, color edits restyle just the range.
+                              if (rangeColor.active) rangeColor.apply(c, fill.opacity ?? 1)
+                              else
+                                paint.apply(binding, flush, 'Change fill color', () =>
+                                  actions.patch(i, { color: c })
+                                )
                             }}
-                            onCancel={() => paint.rollback()}
+                            onOpenChange={(open) => {
+                              if (open) return
+                              if (rangeColor.active) rangeColor.commit()
+                              else paint.commit()
+                            }}
+                            onCancel={() => {
+                              if (rangeColor.active) rangeColor.cancel()
+                              else paint.rollback()
+                            }}
                           />
                           {binding.variable ? (
                             <BindingPill

@@ -328,5 +328,13 @@
   "prototypeClearFlowStart": "Supprimer le point de départ",
   "prototypeNoDestination": "Ajoutez un cadre de destination pour connecter ce calque",
   "prototypeEmptyHint": "Sélectionnez un calque sur le canevas pour ajouter une interaction",
-  "prototypeNoFrames": "Dessinez des cadres sur le canevas pour commencer le prototypage"
+  "prototypeNoFrames": "Dessinez des cadres sur le canevas pour commencer le prototypage",
+  "maskIsOutline": "Utiliser le contour comme masque",
+  "createStringVariable": "Créer une variable de texte depuis {value}",
+  "content": "Contenu",
+  "deleteVariantValue": "Supprimer la valeur",
+  "variableModes": "Modes de variable",
+  "modeAuto": "Automatique",
+  "lineHeightAuto": "Automatique",
+  "exposeProperties": "Exposer les propriétés"
 }

@@ -14,6 +14,10 @@ export {
   createAndBindNumberVariable,
   useNumberBindingProvider
 } from '#react/controls/binding-provider/number'
+export {
+  createAndBindStringVariable,
+  useStringBindingProvider
+} from '#react/controls/binding-provider/string'
 export type {
   BindingMutationSource,
   BindingProvider,
@@ -21,3 +25,4 @@ export type {
   BindingTarget,
   BoundEditPolicy
 } from '#react/controls/binding-provider/types'
+export * from './boolean'

@@ -59,6 +59,37 @@ export default function SizeAxisField({ axis, icon, label }: SizeAxisFieldProps)
     else ctx.removeSizeLimit(prop)
   }
 
+  const selectOptions = [
+    ...sizingOptions.map((option) => ({ value: option.value, label: option.label })),
+    ...limitItems.map((item) => ({
+      value: `${node[item.prop] == null ? 'add' : 'remove'}-${item.prop}`,
+      label: node[item.prop] == null ? item.addLabel : item.removeLabel
+    }))
+  ]
+
+  if (sizing === 'HUG' || sizing === 'FILL') {
+    return (
+      <Tip label={label}>
+        <div
+          data-property={axis}
+          className="flex h-6 min-w-0 flex-1 items-center justify-between rounded border border-transparent bg-panel-field px-1.5 text-[11px] text-surface hover:bg-panel-field-hover"
+        >
+          <div className="flex min-w-0 items-center gap-1.5">
+            <span className="flex shrink-0 items-center text-[11px] text-muted">{icon}</span>
+            <span className="truncate">{sizingLabel}</span>
+          </div>
+          <FieldSelectMenu
+            ariaLabel={label}
+            value={sizing}
+            seamless
+            onValueChange={(value) => handleSelect(value as SizeSelectValue)}
+            options={selectOptions}
+          />
+        </div>
+      </Tip>
+    )
+  }
+
   return (
     <Tip label={label}>
       <VariableNumberField
@@ -73,16 +104,10 @@ export default function SizeAxisField({ axis, icon, label }: SizeAxisFieldProps)
         trailing={
           <FieldSelectMenu
             ariaLabel={label}
-            value={sizing}
-            triggerContent={sizingLabel ? <span>{sizingLabel}</span> : undefined}
+            value="FIXED"
+            seamless
             onValueChange={(value) => handleSelect(value as SizeSelectValue)}
-            options={[
-              ...sizingOptions.map((option) => ({ value: option.value, label: option.label })),
-              ...limitItems.map((item) => ({
-                value: `${node[item.prop] == null ? 'add' : 'remove'}-${item.prop}`,
-                label: node[item.prop] == null ? item.addLabel : item.removeLabel
-              }))
-            ]}
+            options={selectOptions}
           />
         }
       />
