@@ -48,6 +48,27 @@ export function createEditorStore(initialGraph?: SceneGraph) {
   const io = new IORegistry(BUILTIN_IO_FORMATS)
   bindClipboardNotifications(editor)
 
+  // Hydrate timeline state from the graph
+  import('@/app/motion/store')
+    .then((m) => {
+      m.hydrateTimelineFromGraph(editor.graph)
+      editor.onEditorEvent('graph:replaced', (g) => m.hydrateTimelineFromGraph(g))
+      editor.onEditorEvent('node:created', (node) => {
+        if (node.motionTracks) {
+          m.hydrateTimelineFromGraph(editor.graph)
+        }
+      })
+      editor.onEditorEvent('node:updated', (_node, changes) => {
+        if (changes && typeof changes === 'object' && 'motionTracks' in changes) {
+          m.hydrateTimelineFromGraph(editor.graph)
+        }
+      })
+      editor.onEditorEvent('node:deleted', () => {
+        m.hydrateTimelineFromGraph(editor.graph)
+      })
+    })
+    .catch(() => {})
+
   if (initialGraph) {
     editor.subscribeToGraph()
   }

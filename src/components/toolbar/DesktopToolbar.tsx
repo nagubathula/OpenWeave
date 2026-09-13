@@ -46,7 +46,7 @@ export default function DesktopToolbar({
   const isCodeActive = activeTab === 'code'
 
   return (
-    <div className="absolute bottom-4 left-1/2 z-10 flex -translate-x-1/2 items-center">
+    <div className="absolute bottom-3 left-1/2 z-20 flex -translate-x-1/2 items-center transition-all duration-300">
       <div
         data-test-id="toolbar"
         className="flex items-center gap-0.5 rounded-full bg-panel px-1.5 py-1.5 shadow-[0_8px_30px_rgb(0_0_0/0.45)]"

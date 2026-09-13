@@ -594,7 +594,754 @@ export function createPresentationTemplate(): SceneGraph {
   return graph
 }
 
+export function createFigmaMotionTemplate(): SceneGraph {
+  const graph = new SceneGraph()
+  const pages = graph.getPages()
+  const motionPage = pages[0]
+  if (motionPage) {
+    motionPage.name = '5 Easy Figma Motion'
+  }
+  const pageId = motionPage?.id ?? '0:1'
+
+  // -------------------------------------------------------------
+  // Header Frame: Title & Instructions
+  // -------------------------------------------------------------
+  const headerFrame = graph.createNode('FRAME', pageId, {
+    name: 'Header & Instructions',
+    x: 80,
+    y: 50,
+    width: 1760,
+    height: 100,
+    fills: [{ type: 'SOLID', color: { r: 0.1, g: 0.1, b: 0.13, a: 0.6 }, opacity: 1, visible: true }],
+    strokes: [
+      {
+        color: { r: 1, g: 1, b: 1, a: 0.08 },
+        weight: 1,
+        opacity: 1,
+        visible: true,
+        align: 'INSIDE'
+      }
+    ],
+    cornerRadius: 16
+  })
+
+  // Title badge
+  const badgeFrame = graph.createNode('FRAME', headerFrame.id, {
+    name: 'Motion Badge',
+    x: 24,
+    y: 20,
+    width: 100,
+    height: 24,
+    cornerRadius: 12,
+    fills: [{ type: 'SOLID', color: { r: 0.05, g: 0.6, b: 0.38, a: 0.2 }, opacity: 1, visible: true }],
+    strokes: [
+      {
+        color: { r: 0.05, g: 0.6, b: 0.38, a: 0.4 },
+        weight: 1,
+        opacity: 1,
+        visible: true,
+        align: 'INSIDE'
+      }
+    ]
+  })
+  graph.createNode('TEXT', badgeFrame.id, {
+    name: 'Badge Label',
+    text: '✦ PLAYGROUND',
+    fontSize: 10,
+    fontWeight: 700,
+    letterSpacing: 1,
+    textAlignHorizontal: 'CENTER',
+    x: 0,
+    y: 5,
+    width: 100,
+    height: 14,
+    fills: [{ type: 'SOLID', color: { r: 0.24, g: 0.81, b: 0.5, a: 1 }, opacity: 1, visible: true }]
+  })
+
+  // Main title
+  graph.createNode('TEXT', headerFrame.id, {
+    name: 'Title Text',
+    text: '5 Easy Figma Motion Animations',
+    fontSize: 24,
+    fontWeight: 800,
+    x: 136,
+    y: 18,
+    width: 500,
+    height: 30,
+    fills: [{ type: 'SOLID', color: { r: 1, g: 1, b: 1, a: 1 }, opacity: 1, visible: true }]
+  })
+
+  // Subtitle
+  graph.createNode('TEXT', headerFrame.id, {
+    name: 'Subtitle Text',
+    text: 'Press Space or click ▶ Play in the bottom timeline to preview all 5 animations. Select any card to inspect its motion tracks.',
+    fontSize: 13,
+    fontWeight: 400,
+    x: 24,
+    y: 56,
+    width: 800,
+    height: 22,
+    fills: [{ type: 'SOLID', color: { r: 0.6, g: 0.62, b: 0.7, a: 1 }, opacity: 1, visible: true }]
+  })
+
+  // Right pill: "Interactive Timeline Ready"
+  const readyPill = graph.createNode('FRAME', headerFrame.id, {
+    name: 'Ready Pill',
+    x: 1530,
+    y: 32,
+    width: 190,
+    height: 36,
+    cornerRadius: 18,
+    fills: [{ type: 'SOLID', color: { r: 0.15, g: 0.15, b: 0.2, a: 1 }, opacity: 1, visible: true }],
+    strokes: [
+      {
+        color: { r: 1, g: 1, b: 1, a: 0.1 },
+        weight: 1,
+        opacity: 1,
+        visible: true,
+        align: 'INSIDE'
+      }
+    ]
+  })
+  graph.createNode('TEXT', readyPill.id, {
+    name: 'Pill Label',
+    text: '▶  Timeline Ready · 2.0s',
+    fontSize: 12,
+    fontWeight: 600,
+    textAlignHorizontal: 'CENTER',
+    x: 0,
+    y: 10,
+    width: 190,
+    height: 18,
+    fills: [{ type: 'SOLID', color: { r: 1, g: 1, b: 1, a: 1 }, opacity: 1, visible: true }]
+  })
+
+  // -------------------------------------------------------------
+  // Card 1: "01 · Smooth Toggle Switch" (x = 80, y = 190)
+  // -------------------------------------------------------------
+  const card1 = graph.createNode('FRAME', pageId, {
+    name: '01 · Toggle Switch',
+    x: 80,
+    y: 190,
+    width: 320,
+    height: 320,
+    cornerRadius: 20,
+    clipsContent: true,
+    fills: [{ type: 'SOLID', color: { r: 0.11, g: 0.11, b: 0.14, a: 1 }, opacity: 1, visible: true }],
+    strokes: [
+      {
+        color: { r: 0.18, g: 0.18, b: 0.24, a: 1 },
+        weight: 1,
+        opacity: 1,
+        visible: true,
+        align: 'INSIDE'
+      }
+    ]
+  })
+
+  graph.createNode('TEXT', card1.id, {
+    name: 'Card 1 Category',
+    text: '01 · TOGGLE SWITCH',
+    fontSize: 11,
+    fontWeight: 700,
+    letterSpacing: 1,
+    x: 24,
+    y: 24,
+    width: 200,
+    height: 16,
+    fills: [{ type: 'SOLID', color: { r: 0.24, g: 0.81, b: 0.5, a: 1 }, opacity: 1, visible: true }]
+  })
+  graph.createNode('TEXT', card1.id, {
+    name: 'Card 1 Title',
+    text: 'Spring Physics Toggle',
+    fontSize: 18,
+    fontWeight: 700,
+    x: 24,
+    y: 44,
+    width: 260,
+    height: 24,
+    fills: [{ type: 'SOLID', color: { r: 1, g: 1, b: 1, a: 1 }, opacity: 1, visible: true }]
+  })
+  graph.createNode('TEXT', card1.id, {
+    name: 'Card 1 Description',
+    text: 'Position slide with squash-and-stretch mid-flight deformation.',
+    fontSize: 11,
+    fontWeight: 400,
+    x: 24,
+    y: 72,
+    width: 260,
+    height: 32,
+    fills: [{ type: 'SOLID', color: { r: 0.55, g: 0.55, b: 0.65, a: 1 }, opacity: 1, visible: true }]
+  })
+
+  // Toggle Track
+  const toggleTrack = graph.createNode('FRAME', card1.id, {
+    name: 'Toggle Track',
+    x: 95,
+    y: 170,
+    width: 130,
+    height: 68,
+    cornerRadius: 34,
+    fills: [{ type: 'SOLID', color: { r: 0.18, g: 0.18, b: 0.22, a: 1 }, opacity: 1, visible: true }]
+  })
+
+  // Toggle Thumb (Animated x, width)
+  const toggleThumb = graph.createNode('FRAME', toggleTrack.id, {
+    name: 'Toggle Thumb',
+    x: 8,
+    y: 8,
+    width: 52,
+    height: 52,
+    cornerRadius: 26,
+    fills: [{ type: 'SOLID', color: { r: 1, g: 1, b: 1, a: 1 }, opacity: 1, visible: true }]
+  })
+  toggleThumb.motionTracks = {
+    nodeId: toggleThumb.id,
+    nodeName: toggleThumb.name,
+    tracks: {
+      x: {
+        property: 'x',
+        keyframes: [
+          { id: 'kf-t1-x0', timeMs: 0, value: 8, easing: 'spring' },
+          { id: 'kf-t1-x1', timeMs: 500, value: 70, easing: 'spring' },
+          { id: 'kf-t1-x2', timeMs: 1100, value: 70, easing: 'spring' },
+          { id: 'kf-t1-x3', timeMs: 1600, value: 8, easing: 'spring' },
+          { id: 'kf-t1-x4', timeMs: 2000, value: 8, easing: 'spring' }
+        ]
+      },
+      width: {
+        property: 'width',
+        keyframes: [
+          { id: 'kf-t1-w0', timeMs: 0, value: 52, easing: 'spring' },
+          { id: 'kf-t1-w1', timeMs: 250, value: 62, easing: 'spring' },
+          { id: 'kf-t1-w2', timeMs: 500, value: 52, easing: 'spring' },
+          { id: 'kf-t1-w3', timeMs: 1100, value: 52, easing: 'spring' },
+          { id: 'kf-t1-w4', timeMs: 1350, value: 62, easing: 'spring' },
+          { id: 'kf-t1-w5', timeMs: 1600, value: 52, easing: 'spring' },
+          { id: 'kf-t1-w6', timeMs: 2000, value: 52, easing: 'spring' }
+        ]
+      }
+    }
+  }
+
+  // -------------------------------------------------------------
+  // Card 2: "02 · Heart Reaction Pop" (x = 440, y = 190)
+  // -------------------------------------------------------------
+  const card2 = graph.createNode('FRAME', pageId, {
+    name: '02 · Heart Pop',
+    x: 440,
+    y: 190,
+    width: 320,
+    height: 320,
+    cornerRadius: 20,
+    clipsContent: true,
+    fills: [{ type: 'SOLID', color: { r: 0.11, g: 0.11, b: 0.14, a: 1 }, opacity: 1, visible: true }],
+    strokes: [
+      {
+        color: { r: 0.18, g: 0.18, b: 0.24, a: 1 },
+        weight: 1,
+        opacity: 1,
+        visible: true,
+        align: 'INSIDE'
+      }
+    ]
+  })
+
+  graph.createNode('TEXT', card2.id, {
+    name: 'Card 2 Category',
+    text: '02 · MICRO-INTERACTION',
+    fontSize: 11,
+    fontWeight: 700,
+    letterSpacing: 1,
+    x: 24,
+    y: 24,
+    width: 200,
+    height: 16,
+    fills: [{ type: 'SOLID', color: { r: 0.96, g: 0.25, b: 0.37, a: 1 }, opacity: 1, visible: true }]
+  })
+  graph.createNode('TEXT', card2.id, {
+    name: 'Card 2 Title',
+    text: 'Like Reaction Pop',
+    fontSize: 18,
+    fontWeight: 700,
+    x: 24,
+    y: 44,
+    width: 260,
+    height: 24,
+    fills: [{ type: 'SOLID', color: { r: 1, g: 1, b: 1, a: 1 }, opacity: 1, visible: true }]
+  })
+  graph.createNode('TEXT', card2.id, {
+    name: 'Card 2 Description',
+    text: 'Scale bounce & playful rotation with floating burst spark.',
+    fontSize: 11,
+    fontWeight: 400,
+    x: 24,
+    y: 72,
+    width: 260,
+    height: 32,
+    fills: [{ type: 'SOLID', color: { r: 0.55, g: 0.55, b: 0.65, a: 1 }, opacity: 1, visible: true }]
+  })
+
+  // Heart Button Circle
+  const heartCircle = graph.createNode('FRAME', card2.id, {
+    name: 'Button Circle',
+    x: 120,
+    y: 165,
+    width: 80,
+    height: 80,
+    cornerRadius: 40,
+    fills: [{ type: 'SOLID', color: { r: 0.18, g: 0.18, b: 0.22, a: 1 }, opacity: 1, visible: true }]
+  })
+
+  // Animated Heart Badge
+  const heartBadge = graph.createNode('FRAME', heartCircle.id, {
+    name: 'Heart Icon',
+    x: 20,
+    y: 20,
+    width: 40,
+    height: 40,
+    cornerRadius: 12,
+    fills: [{ type: 'SOLID', color: { r: 0.96, g: 0.25, b: 0.37, a: 1 }, opacity: 1, visible: true }]
+  })
+  graph.createNode('TEXT', heartBadge.id, {
+    name: 'Heart Glyph',
+    text: '♥',
+    fontSize: 22,
+    textAlignHorizontal: 'CENTER',
+    x: 0,
+    y: 8,
+    width: 40,
+    height: 24,
+    fills: [{ type: 'SOLID', color: { r: 1, g: 1, b: 1, a: 1 }, opacity: 1, visible: true }]
+  })
+
+  heartBadge.motionTracks = {
+    nodeId: heartBadge.id,
+    nodeName: heartBadge.name,
+    tracks: {
+      width: {
+        property: 'width',
+        keyframes: [
+          { id: 'kf-h-w0', timeMs: 0, value: 40, easing: 'spring' },
+          { id: 'kf-h-w1', timeMs: 400, value: 54, easing: 'spring' },
+          { id: 'kf-h-w2', timeMs: 800, value: 40, easing: 'spring' },
+          { id: 'kf-h-w3', timeMs: 1400, value: 48, easing: 'spring' },
+          { id: 'kf-h-w4', timeMs: 1700, value: 40, easing: 'spring' },
+          { id: 'kf-h-w5', timeMs: 2000, value: 40, easing: 'spring' }
+        ]
+      },
+      height: {
+        property: 'height',
+        keyframes: [
+          { id: 'kf-h-h0', timeMs: 0, value: 40, easing: 'spring' },
+          { id: 'kf-h-h1', timeMs: 400, value: 54, easing: 'spring' },
+          { id: 'kf-h-h2', timeMs: 800, value: 40, easing: 'spring' },
+          { id: 'kf-h-h3', timeMs: 1400, value: 48, easing: 'spring' },
+          { id: 'kf-h-h4', timeMs: 1700, value: 40, easing: 'spring' },
+          { id: 'kf-h-h5', timeMs: 2000, value: 40, easing: 'spring' }
+        ]
+      },
+      rotation: {
+        property: 'rotation',
+        keyframes: [
+          { id: 'kf-h-r0', timeMs: 0, value: 0, easing: 'spring' },
+          { id: 'kf-h-r1', timeMs: 400, value: -16, easing: 'spring' },
+          { id: 'kf-h-r2', timeMs: 800, value: 0, easing: 'spring' },
+          { id: 'kf-h-r3', timeMs: 2000, value: 0, easing: 'spring' }
+        ]
+      }
+    }
+  }
+
+  // Floating Sparkle Particle
+  const sparkle = graph.createNode('FRAME', card2.id, {
+    name: 'Sparkle Particle',
+    x: 152,
+    y: 145,
+    width: 16,
+    height: 16,
+    cornerRadius: 8,
+    opacity: 0,
+    fills: [{ type: 'SOLID', color: { r: 1, g: 0.8, b: 0.2, a: 1 }, opacity: 1, visible: true }]
+  })
+  sparkle.motionTracks = {
+    nodeId: sparkle.id,
+    nodeName: sparkle.name,
+    tracks: {
+      y: {
+        property: 'y',
+        keyframes: [
+          { id: 'kf-sp-y0', timeMs: 0, value: 160, easing: 'ease-out' },
+          { id: 'kf-sp-y1', timeMs: 400, value: 130, easing: 'ease-out' },
+          { id: 'kf-sp-y2', timeMs: 800, value: 160, easing: 'ease-in' },
+          { id: 'kf-sp-y3', timeMs: 2000, value: 160, easing: 'ease-in' }
+        ]
+      },
+      opacity: {
+        property: 'opacity',
+        keyframes: [
+          { id: 'kf-sp-op0', timeMs: 0, value: 0, easing: 'ease-out' },
+          { id: 'kf-sp-op1', timeMs: 350, value: 1, easing: 'ease-out' },
+          { id: 'kf-sp-op2', timeMs: 700, value: 0, easing: 'ease-in' },
+          { id: 'kf-sp-op3', timeMs: 2000, value: 0, easing: 'ease-in' }
+        ]
+      }
+    }
+  }
+
+  // -------------------------------------------------------------
+  // Card 3: "03 · Dynamic Island Expand" (x = 800, y = 190)
+  // -------------------------------------------------------------
+  const card3 = graph.createNode('FRAME', pageId, {
+    name: '03 · Dynamic Island',
+    x: 800,
+    y: 190,
+    width: 320,
+    height: 320,
+    cornerRadius: 20,
+    clipsContent: true,
+    fills: [{ type: 'SOLID', color: { r: 0.11, g: 0.11, b: 0.14, a: 1 }, opacity: 1, visible: true }],
+    strokes: [
+      {
+        color: { r: 0.18, g: 0.18, b: 0.24, a: 1 },
+        weight: 1,
+        opacity: 1,
+        visible: true,
+        align: 'INSIDE'
+      }
+    ]
+  })
+
+  graph.createNode('TEXT', card3.id, {
+    name: 'Card 3 Category',
+    text: '03 · EXPANDABLE PILL',
+    fontSize: 11,
+    fontWeight: 700,
+    letterSpacing: 1,
+    x: 24,
+    y: 24,
+    width: 200,
+    height: 16,
+    fills: [{ type: 'SOLID', color: { r: 0.05, g: 0.65, b: 0.95, a: 1 }, opacity: 1, visible: true }]
+  })
+  graph.createNode('TEXT', card3.id, {
+    name: 'Card 3 Title',
+    text: 'Dynamic Island Morph',
+    fontSize: 18,
+    fontWeight: 700,
+    x: 24,
+    y: 44,
+    width: 260,
+    height: 24,
+    fills: [{ type: 'SOLID', color: { r: 1, g: 1, b: 1, a: 1 }, opacity: 1, visible: true }]
+  })
+  graph.createNode('TEXT', card3.id, {
+    name: 'Card 3 Description',
+    text: 'Width, height and corner radius multi-axis morphing container.',
+    fontSize: 11,
+    fontWeight: 400,
+    x: 24,
+    y: 72,
+    width: 260,
+    height: 32,
+    fills: [{ type: 'SOLID', color: { r: 0.55, g: 0.55, b: 0.65, a: 1 }, opacity: 1, visible: true }]
+  })
+
+  // Dynamic Island Pill (Animated x, width, height, cornerRadius)
+  const islandPill = graph.createNode('FRAME', card3.id, {
+    name: 'Island Pill',
+    x: 95,
+    y: 175,
+    width: 130,
+    height: 44,
+    cornerRadius: 22,
+    clipsContent: true,
+    fills: [{ type: 'SOLID', color: { r: 0.04, g: 0.04, b: 0.06, a: 1 }, opacity: 1, visible: true }],
+    strokes: [
+      {
+        color: { r: 0.25, g: 0.25, b: 0.35, a: 1 },
+        weight: 1,
+        opacity: 1,
+        visible: true,
+        align: 'INSIDE'
+      }
+    ]
+  })
+
+  // Icon inside pill
+  graph.createNode('FRAME', islandPill.id, {
+    name: 'Pill Indicator',
+    x: 14,
+    y: 12,
+    width: 20,
+    height: 20,
+    cornerRadius: 10,
+    fills: [{ type: 'SOLID', color: { r: 0.05, g: 0.65, b: 0.95, a: 1 }, opacity: 1, visible: true }]
+  })
+
+  islandPill.motionTracks = {
+    nodeId: islandPill.id,
+    nodeName: islandPill.name,
+    tracks: {
+      x: {
+        property: 'x',
+        keyframes: [
+          { id: 'kf-isl-x0', timeMs: 0, value: 95, easing: 'spring' },
+          { id: 'kf-isl-x1', timeMs: 550, value: 35, easing: 'spring' },
+          { id: 'kf-isl-x2', timeMs: 1350, value: 35, easing: 'spring' },
+          { id: 'kf-isl-x3', timeMs: 1850, value: 95, easing: 'spring' },
+          { id: 'kf-isl-x4', timeMs: 2000, value: 95, easing: 'spring' }
+        ]
+      },
+      width: {
+        property: 'width',
+        keyframes: [
+          { id: 'kf-isl-w0', timeMs: 0, value: 130, easing: 'spring' },
+          { id: 'kf-isl-w1', timeMs: 550, value: 250, easing: 'spring' },
+          { id: 'kf-isl-w2', timeMs: 1350, value: 250, easing: 'spring' },
+          { id: 'kf-isl-w3', timeMs: 1850, value: 130, easing: 'spring' },
+          { id: 'kf-isl-w4', timeMs: 2000, value: 130, easing: 'spring' }
+        ]
+      },
+      height: {
+        property: 'height',
+        keyframes: [
+          { id: 'kf-isl-h0', timeMs: 0, value: 44, easing: 'spring' },
+          { id: 'kf-isl-h1', timeMs: 550, value: 68, easing: 'spring' },
+          { id: 'kf-isl-h2', timeMs: 1350, value: 68, easing: 'spring' },
+          { id: 'kf-isl-h3', timeMs: 1850, value: 44, easing: 'spring' },
+          { id: 'kf-isl-h4', timeMs: 2000, value: 44, easing: 'spring' }
+        ]
+      }
+    }
+  }
+
+  // -------------------------------------------------------------
+  // Card 4: "04 · Loading Progress Rail" (x = 1160, y = 190)
+  // -------------------------------------------------------------
+  const card4 = graph.createNode('FRAME', pageId, {
+    name: '04 · Progress Rail',
+    x: 1160,
+    y: 190,
+    width: 320,
+    height: 320,
+    cornerRadius: 20,
+    clipsContent: true,
+    fills: [{ type: 'SOLID', color: { r: 0.11, g: 0.11, b: 0.14, a: 1 }, opacity: 1, visible: true }],
+    strokes: [
+      {
+        color: { r: 0.18, g: 0.18, b: 0.24, a: 1 },
+        weight: 1,
+        opacity: 1,
+        visible: true,
+        align: 'INSIDE'
+      }
+    ]
+  })
+
+  graph.createNode('TEXT', card4.id, {
+    name: 'Card 4 Category',
+    text: '04 · PROGRESS & LOADER',
+    fontSize: 11,
+    fontWeight: 700,
+    letterSpacing: 1,
+    x: 24,
+    y: 24,
+    width: 200,
+    height: 16,
+    fills: [{ type: 'SOLID', color: { r: 0.96, g: 0.62, b: 0.05, a: 1 }, opacity: 1, visible: true }]
+  })
+  graph.createNode('TEXT', card4.id, {
+    name: 'Card 4 Title',
+    text: 'Buffered Progress Rail',
+    fontSize: 18,
+    fontWeight: 700,
+    x: 24,
+    y: 44,
+    width: 260,
+    height: 24,
+    fills: [{ type: 'SOLID', color: { r: 1, g: 1, b: 1, a: 1 }, opacity: 1, visible: true }]
+  })
+  graph.createNode('TEXT', card4.id, {
+    name: 'Card 4 Description',
+    text: 'Continuous fill interpolation with easing curve acceleration.',
+    fontSize: 11,
+    fontWeight: 400,
+    x: 24,
+    y: 72,
+    width: 260,
+    height: 32,
+    fills: [{ type: 'SOLID', color: { r: 0.55, g: 0.55, b: 0.65, a: 1 }, opacity: 1, visible: true }]
+  })
+
+  // Progress Rail Background
+  const progressRail = graph.createNode('FRAME', card4.id, {
+    name: 'Rail Track',
+    x: 35,
+    y: 190,
+    width: 250,
+    height: 16,
+    cornerRadius: 8,
+    clipsContent: true,
+    fills: [{ type: 'SOLID', color: { r: 0.18, g: 0.18, b: 0.22, a: 1 }, opacity: 1, visible: true }]
+  })
+
+  // Animated Progress Fill
+  const progressFill = graph.createNode('FRAME', progressRail.id, {
+    name: 'Progress Fill',
+    x: 0,
+    y: 0,
+    width: 20,
+    height: 16,
+    cornerRadius: 8,
+    fills: [{ type: 'SOLID', color: { r: 0.96, g: 0.62, b: 0.05, a: 1 }, opacity: 1, visible: true }]
+  })
+  progressFill.motionTracks = {
+    nodeId: progressFill.id,
+    nodeName: progressFill.name,
+    tracks: {
+      width: {
+        property: 'width',
+        keyframes: [
+          { id: 'kf-pr-w0', timeMs: 0, value: 20, easing: 'ease-in-out' },
+          { id: 'kf-pr-w1', timeMs: 600, value: 125, easing: 'ease-out' },
+          { id: 'kf-pr-w2', timeMs: 1200, value: 210, easing: 'ease-in-out' },
+          { id: 'kf-pr-w3', timeMs: 1650, value: 250, easing: 'ease-out' },
+          { id: 'kf-pr-w4', timeMs: 1950, value: 20, easing: 'linear' },
+          { id: 'kf-pr-w5', timeMs: 2000, value: 20, easing: 'linear' }
+        ]
+      }
+    }
+  }
+
+  // -------------------------------------------------------------
+  // Card 5: "05 · Gliding Tab Selector" (x = 1520, y = 190)
+  // -------------------------------------------------------------
+  const card5 = graph.createNode('FRAME', pageId, {
+    name: '05 · Tab Glider',
+    x: 1520,
+    y: 190,
+    width: 320,
+    height: 320,
+    cornerRadius: 20,
+    clipsContent: true,
+    fills: [{ type: 'SOLID', color: { r: 0.11, g: 0.11, b: 0.14, a: 1 }, opacity: 1, visible: true }],
+    strokes: [
+      {
+        color: { r: 0.18, g: 0.18, b: 0.24, a: 1 },
+        weight: 1,
+        opacity: 1,
+        visible: true,
+        align: 'INSIDE'
+      }
+    ]
+  })
+
+  graph.createNode('TEXT', card5.id, {
+    name: 'Card 5 Category',
+    text: '05 · NAVIGATION PILL',
+    fontSize: 11,
+    fontWeight: 700,
+    letterSpacing: 1,
+    x: 24,
+    y: 24,
+    width: 200,
+    height: 16,
+    fills: [{ type: 'SOLID', color: { r: 0.55, g: 0.36, b: 0.96, a: 1 }, opacity: 1, visible: true }]
+  })
+  graph.createNode('TEXT', card5.id, {
+    name: 'Card 5 Title',
+    text: 'Segmented Pill Glider',
+    fontSize: 18,
+    fontWeight: 700,
+    x: 24,
+    y: 44,
+    width: 260,
+    height: 24,
+    fills: [{ type: 'SOLID', color: { r: 1, g: 1, b: 1, a: 1 }, opacity: 1, visible: true }]
+  })
+  graph.createNode('TEXT', card5.id, {
+    name: 'Card 5 Description',
+    text: 'Smooth spring glide across active navigation states.',
+    fontSize: 11,
+    fontWeight: 400,
+    x: 24,
+    y: 72,
+    width: 260,
+    height: 32,
+    fills: [{ type: 'SOLID', color: { r: 0.55, g: 0.55, b: 0.65, a: 1 }, opacity: 1, visible: true }]
+  })
+
+  // Segmented Container
+  const tabContainer = graph.createNode('FRAME', card5.id, {
+    name: 'Segmented Container',
+    x: 25,
+    y: 175,
+    width: 270,
+    height: 52,
+    cornerRadius: 26,
+    clipsContent: true,
+    fills: [{ type: 'SOLID', color: { r: 0.18, g: 0.18, b: 0.22, a: 1 }, opacity: 1, visible: true }]
+  })
+
+  // Active Glider Pill (Animated x)
+  const gliderPill = graph.createNode('FRAME', tabContainer.id, {
+    name: 'Active Glider',
+    x: 6,
+    y: 6,
+    width: 82,
+    height: 40,
+    cornerRadius: 20,
+    fills: [{ type: 'SOLID', color: { r: 0.55, g: 0.36, b: 0.96, a: 1 }, opacity: 1, visible: true }]
+  })
+  gliderPill.motionTracks = {
+    nodeId: gliderPill.id,
+    nodeName: gliderPill.name,
+    tracks: {
+      x: {
+        property: 'x',
+        keyframes: [
+          { id: 'kf-gl-x0', timeMs: 0, value: 6, easing: 'spring' },
+          { id: 'kf-gl-x1', timeMs: 650, value: 94, easing: 'spring' },
+          { id: 'kf-gl-x2', timeMs: 1300, value: 182, easing: 'spring' },
+          { id: 'kf-gl-x3', timeMs: 1800, value: 6, easing: 'spring' },
+          { id: 'kf-gl-x4', timeMs: 2000, value: 6, easing: 'spring' }
+        ]
+      }
+    }
+  }
+
+  // Tab Labels (Static on top of container)
+  const tabLabels = ['Design', 'Motion', 'Code']
+  tabLabels.forEach((lbl, idx) => {
+    graph.createNode('TEXT', tabContainer.id, {
+      name: `Tab Label - ${lbl}`,
+      text: lbl,
+      fontSize: 12,
+      fontWeight: 600,
+      textAlignHorizontal: 'CENTER',
+      x: 6 + idx * 88,
+      y: 18,
+      width: 82,
+      height: 18,
+      fills: [{ type: 'SOLID', color: { r: 1, g: 1, b: 1, a: 1 }, opacity: 1, visible: true }]
+    })
+  })
+
+  return graph
+}
+
 export const HOME_TEMPLATES: HomeTemplate[] = [
+  {
+    id: 'figma-motion',
+    name: '5 Easy Figma Motion (Community)',
+    category: 'Motion',
+    description:
+      '5 easy micro-interactions & timeline animations with Figma Motion layout and keyframes',
+    tag: 'Figma Motion',
+    accentColor: '#3ece80',
+    createGraph: createFigmaMotionTemplate
+  },
   {
     id: 'mobile-app',
     name: 'Mobile App Starter',

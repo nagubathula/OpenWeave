@@ -1,22 +1,12 @@
-export type AnimatableProperty = 'x' | 'y' | 'width' | 'height' | 'rotation' | 'opacity'
+export type {
+  AnimatableProperty,
+  KeyframeEasing,
+  TimelineKeyframe,
+  PropertyTrack,
+  NodeAnimationTrack
+} from '@openweave/scene-graph'
 
-export interface TimelineKeyframe {
-  id: string
-  timeMs: number
-  value: number
-  easing?: string
-}
-
-export interface PropertyTrack {
-  property: AnimatableProperty
-  keyframes: TimelineKeyframe[]
-}
-
-export interface NodeAnimationTrack {
-  nodeId: string
-  nodeName: string
-  tracks: Partial<Record<AnimatableProperty, PropertyTrack>>
-}
+export type MotionPreset = 'fadeIn' | 'slideUp' | 'scalePop' | 'springBounce' | 'pulse'
 
 export interface TimelineState {
   currentTimeMs: number
@@ -24,6 +14,10 @@ export interface TimelineState {
   isPlaying: boolean
   zoom: number
   loop: boolean
+  playbackSpeed?: number
+  timeFormat?: 'ms' | 'frames'
+  isRecording: boolean
   selectedKeyframeId?: string
+  selectedKeyframeIds?: string[]
   selectedTrackNodeId?: string
 }

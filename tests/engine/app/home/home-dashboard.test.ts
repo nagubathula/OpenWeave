@@ -15,6 +15,7 @@ import { HOME_TEMPLATES } from '@/app/home/templates'
 describe('home templates', () => {
   test('includes predefined starter templates', () => {
     const ids = HOME_TEMPLATES.map((t) => t.id)
+    expect(ids).toContain('figma-motion')
     expect(ids).toContain('mobile-app')
     expect(ids).toContain('landing-page')
     expect(ids).toContain('design-system')
@@ -84,6 +85,79 @@ describe('home templates', () => {
     expect(mainFrame?.name).toBe('Slide 1 - Title Deck (16:9)')
     expect(mainFrame?.width).toBe(1920)
     expect(mainFrame?.height).toBe(1080)
+  })
+
+  test('creates valid SceneGraph trees for figma motion starter', () => {
+    const motionTpl = HOME_TEMPLATES.find((t) => t.id === 'figma-motion')
+    expect(motionTpl).toBeDefined()
+    const graph = motionTpl?.createGraph()
+    expect(graph).toBeDefined()
+    const pages = graph?.getPages() ?? []
+    expect(pages.length).toBe(1)
+    expect(pages[0].name).toBe('5 Easy Figma Motion')
+
+    const pageChildren = graph?.getChildren(pages[0].id) ?? []
+    const cardNames = [
+      '01 · Toggle Switch',
+      '02 · Heart Pop',
+      '03 · Dynamic Island',
+      '04 · Progress Rail',
+      '05 · Tab Glider'
+    ]
+    for (const name of cardNames) {
+      const card = pageChildren.find((c) => c.name === name)
+      expect(card).toBeDefined()
+    }
+
+    // Verify keyframe tracks on Toggle Thumb
+    const toggleCard = pageChildren.find((c) => c.name === '01 · Toggle Switch')
+    const toggleChildren = graph?.getChildren(toggleCard?.id ?? '') ?? []
+    const toggleTrack = toggleChildren.find((c) => c.name === 'Toggle Track')
+    const trackChildren = graph?.getChildren(toggleTrack?.id ?? '') ?? []
+    const thumb = trackChildren.find((c) => c.name === 'Toggle Thumb')
+    expect(thumb).toBeDefined()
+    expect(thumb?.motionTracks?.tracks.x?.keyframes.length).toBe(5)
+    expect(thumb?.motionTracks?.tracks.width?.keyframes.length).toBe(7)
+
+    // Verify keyframe tracks on Heart Icon & Sparkle
+    const heartCard = pageChildren.find((c) => c.name === '02 · Heart Pop')
+    const heartChildren = graph?.getChildren(heartCard?.id ?? '') ?? []
+    const buttonCircle = heartChildren.find((c) => c.name === 'Button Circle')
+    const circleChildren = graph?.getChildren(buttonCircle?.id ?? '') ?? []
+    const heart = circleChildren.find((c) => c.name === 'Heart Icon')
+    expect(heart).toBeDefined()
+    expect(heart?.motionTracks?.tracks.width?.keyframes.length).toBe(6)
+    expect(heart?.motionTracks?.tracks.rotation?.keyframes.length).toBe(4)
+
+    const sparkle = heartChildren.find((c) => c.name === 'Sparkle Particle')
+    expect(sparkle).toBeDefined()
+    expect(sparkle?.motionTracks?.tracks.opacity?.keyframes.length).toBe(4)
+
+    // Verify keyframe tracks on Dynamic Island
+    const islandCard = pageChildren.find((c) => c.name === '03 · Dynamic Island')
+    const islandChildren = graph?.getChildren(islandCard?.id ?? '') ?? []
+    const islandPill = islandChildren.find((c) => c.name === 'Island Pill')
+    expect(islandPill).toBeDefined()
+    expect(islandPill?.motionTracks?.tracks.width?.keyframes.length).toBe(5)
+    expect(islandPill?.motionTracks?.tracks.height?.keyframes.length).toBe(5)
+
+    // Verify keyframe tracks on Progress Rail
+    const progressCard = pageChildren.find((c) => c.name === '04 · Progress Rail')
+    const progressChildren = graph?.getChildren(progressCard?.id ?? '') ?? []
+    const railTrack = progressChildren.find((c) => c.name === 'Rail Track')
+    const railChildren = graph?.getChildren(railTrack?.id ?? '') ?? []
+    const fill = railChildren.find((c) => c.name === 'Progress Fill')
+    expect(fill).toBeDefined()
+    expect(fill?.motionTracks?.tracks.width?.keyframes.length).toBe(6)
+
+    // Verify keyframe tracks on Tab Glider
+    const gliderCard = pageChildren.find((c) => c.name === '05 · Tab Glider')
+    const gliderChildren = graph?.getChildren(gliderCard?.id ?? '') ?? []
+    const segContainer = gliderChildren.find((c) => c.name === 'Segmented Container')
+    const segChildren = graph?.getChildren(segContainer?.id ?? '') ?? []
+    const gliderPill = segChildren.find((c) => c.name === 'Active Glider')
+    expect(gliderPill).toBeDefined()
+    expect(gliderPill?.motionTracks?.tracks.x?.keyframes.length).toBe(5)
   })
 })
 

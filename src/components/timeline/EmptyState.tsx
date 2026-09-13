@@ -1,7 +1,9 @@
-import { Bot, Sparkles, X } from 'lucide-react'
+import { Bot, Play, Sparkles, X } from 'lucide-react'
 import React from 'react'
 
 import { useAIChat } from '@/app/ai/chat/use'
+import { getActiveEditorStoreOrNull } from '@/app/editor/active-store'
+import { addKeyframe, seek } from '@/app/motion/store'
 
 interface EmptyStateProps {
   onDismiss?: () => void
@@ -9,9 +11,37 @@ interface EmptyStateProps {
 
 export default function EmptyState({ onDismiss }: EmptyStateProps) {
   const { activeTab } = useAIChat()
+  const store = getActiveEditorStoreOrNull()
+  const selectedNode = store?.selectedNode
 
   function handleAskAgent() {
     activeTab.set('ai')
+  }
+
+  function handleAnimateSelected() {
+    if (!selectedNode) return
+
+    // Top-level frames are artboards (canvas) — not directly animatable
+    const store = getActiveEditorStoreOrNull()
+    if (selectedNode.type === 'FRAME' && selectedNode.parentId && store) {
+      const parent = store.graph.getNode(selectedNode.parentId)
+      if (parent && parent.type === 'CANVAS') {
+        // Silently ignore — user should select a layer inside the frame
+        return
+      }
+    }
+
+    const nodeName = selectedNode.name || 'Layer'
+    const currentX = selectedNode.x ?? 0
+    const currentY = selectedNode.y ?? 0
+
+    // Seed default motion track (0ms -> 1000ms)
+    addKeyframe(selectedNode.id, nodeName, 'x', Math.round(currentX), 0)
+    addKeyframe(selectedNode.id, nodeName, 'x', Math.round(currentX + 120), 1000)
+    addKeyframe(selectedNode.id, nodeName, 'y', Math.round(currentY), 0)
+
+    seek(0)
+    onDismiss?.()
   }
 
   return (
@@ -35,19 +65,35 @@ export default function EmptyState({ onDismiss }: EmptyStateProps) {
         <h4 className="text-xs font-semibold text-white mb-1.5">No animations in timeline</h4>
 
         <p className="text-[11px] text-muted leading-relaxed mb-4">
-          Select objects on the canvas to create an animation, or ask the AI agent to create an idea
-          from scratch.
+          Select objects on the canvas to animate them, or ask the AI agent to generate motion.
         </p>
 
-        <button
-          type="button"
-          data-test-id="timeline-ask-agent-button"
-          className="flex items-center gap-1.5 rounded-lg bg-accent px-3 py-1.5 text-xs font-medium text-white shadow transition-all hover:bg-accent/90 cursor-pointer"
-          onClick={handleAskAgent}
-        >
-          <Bot className="size-3.5" />
-          Ask agent
-        </button>
+        <div className="flex items-center gap-2">
+          {selectedNode && (
+            <button
+              type="button"
+              className="flex items-center gap-1.5 rounded-lg bg-accent px-3 py-1.5 text-xs font-medium text-white shadow transition-all hover:bg-accent/90 cursor-pointer"
+              onClick={handleAnimateSelected}
+            >
+              <Play className="size-3 fill-current" />
+              <span>Animate {selectedNode.name || 'Layer'}</span>
+            </button>
+          )}
+
+          <button
+            type="button"
+            data-test-id="timeline-ask-agent-button"
+            className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium shadow transition-all cursor-pointer ${
+              selectedNode
+                ? 'border border-border bg-panel text-muted hover:bg-hover hover:text-surface'
+                : 'bg-accent text-white hover:bg-accent/90'
+            }`}
+            onClick={handleAskAgent}
+          >
+            <Bot className="size-3.5" />
+            <span>Ask agent</span>
+          </button>
+        </div>
       </div>
     </div>
   )

@@ -1,7 +1,8 @@
+import { useStore } from '@nanostores/react'
 import * as ContextMenu from '@radix-ui/react-context-menu'
 import * as Popover from '@radix-ui/react-popover'
-import { Pencil as IconLucidePencilLine } from 'lucide-react'
-import React, { useEffect, useMemo, useRef } from 'react'
+import { Pencil as IconLucidePencilLine, Play } from 'lucide-react'
+import React, { useMemo, useRef } from 'react'
 
 import {
   AUTO_LAYOUT_PADDING_EDITOR_OFFSET_X,
@@ -16,23 +17,23 @@ import {
   useTextEdit
 } from '@openweave/react'
 
+import { useAIChat } from '@/app/ai/chat/use'
 import { useCollabInjected } from '@/app/collab/use'
 import { useEditorStore } from '@/app/editor/active-store'
 import { useCanvasCollaborationAwareness } from '@/app/editor/canvas/collaboration-awareness'
 import { createCanvasContextSelection } from '@/app/editor/canvas/context-selection'
 import NumberField from '@/components/inputs/NumberField'
+import MotionTrajectoryOverlay from '@/components/motion/MotionTrajectoryOverlay'
 
 import CanvasMenu from '../canvas/CanvasMenu'
 
 export default function EditorCanvas() {
   const store = useEditorStore()
+  const { activeTab: activeTabAtom } = useAIChat()
+  const activeTab = useStore(activeTabAtom)
 
-  useEffect(() => {
-    return store.onEditorEvent('viewport:changed', () => {
-      window.dispatchEvent(new Event('resize'))
-    })
-  }, [store])
   const collab = useCollabInjected()
+  const containerRef = useRef<HTMLDivElement>(null)
   const sceneCanvasRef = useRef<HTMLCanvasElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
@@ -100,8 +101,9 @@ export default function EditorCanvas() {
     <ContextMenu.Root modal={false}>
       <ContextMenu.Trigger asChild onContextMenu={selectAtContextPoint}>
         <div
+          ref={containerRef}
           data-test-id="canvas-area"
-          className="canvas-area relative min-h-0 min-w-0 flex-1 overflow-hidden"
+          className="canvas-area relative size-full min-h-0 min-w-0 flex-1 overflow-hidden"
         >
           <canvas
             ref={sceneCanvasRef}
@@ -116,6 +118,30 @@ export default function EditorCanvas() {
             style={{ cursor }}
             className="absolute inset-0 block size-full touch-none outline-none"
           />
+
+          {/* On-Canvas Motion Trajectory Overlay */}
+          <MotionTrajectoryOverlay
+            containerRef={containerRef}
+            store={store}
+            activeTab={activeTab}
+          />
+
+          {/* Floating Figma Motion "Open Timeline" Canvas Pill */}
+          {activeTab !== 'motion' && (
+            <div className="pointer-events-none absolute bottom-5 right-5 z-30 flex items-center justify-end">
+              <button
+                type="button"
+                data-test-id="open-motion-timeline-button"
+                className="pointer-events-auto flex items-center gap-2 rounded-full bg-[#2c2c2e]/90 px-3.5 py-1.5 text-xs font-semibold text-white shadow-xl backdrop-blur-md border border-white/15 hover:bg-[#3a3a3d] hover:border-white/25 active:scale-95 transition-all cursor-pointer group"
+                onClick={() => activeTabAtom.set('motion')}
+              >
+                <span className="flex size-4 items-center justify-center rounded-full bg-white/20 text-white group-hover:bg-accent group-hover:text-white transition-colors">
+                  <Play className="size-2.5 fill-current ml-0.5" />
+                </span>
+                <span>Open Timeline</span>
+              </button>
+            </div>
+          )}
 
           {isDraggingOver && (
             <div className="pointer-events-none absolute inset-0 z-40 border-2 border-dashed border-accent/60 bg-accent/5 transition-opacity duration-150" />

@@ -329,7 +329,7 @@ export function useCanvasInput(
       cleanupPanZoom()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [autoLayoutPaddingEdit])
+  }, [autoLayoutPaddingEdit, editor])
 
   return {
     drag,

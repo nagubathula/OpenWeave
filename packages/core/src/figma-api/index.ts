@@ -255,7 +255,8 @@ export class FigmaAPI implements NodeProxyHost {
       paddingBottom: raw.paddingBottom,
       paddingLeft: raw.paddingLeft,
       pluginData: structuredClone(raw.pluginData),
-      pluginRelaunchData: structuredClone(raw.pluginRelaunchData)
+      pluginRelaunchData: structuredClone(raw.pluginRelaunchData),
+      motionTracks: raw.motionTracks ? structuredClone(raw.motionTracks) : undefined
     })
     for (const childId of raw.childIds) {
       this.graph.cloneTree(childId, comp.id)

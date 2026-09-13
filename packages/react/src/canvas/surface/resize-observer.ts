@@ -1,4 +1,5 @@
 import type { CanvasKit } from 'canvaskit-wasm'
+import { useCallback, useEffect, useRef } from 'react'
 
 type ResizeObserverOptions = {
   canvasRef: { value: HTMLCanvasElement | null }
@@ -11,27 +12,38 @@ export function useCanvasResizeObserver({
   getCanvasKitValue,
   resizeCanvas
 }: ResizeObserverOptions) {
-  let resizeRaf = 0
-  let observer: ResizeObserver | null = null
+  const resizeRafRef = useRef(0)
+  const observerRef = useRef<ResizeObserver | null>(null)
 
-  function cancelResize() {
-    cancelAnimationFrame(resizeRaf)
-    observer?.disconnect()
-    observer = null
-  }
+  const cancelResize = useCallback(() => {
+    if (resizeRafRef.current) {
+      cancelAnimationFrame(resizeRafRef.current)
+      resizeRafRef.current = 0
+    }
+    observerRef.current?.disconnect()
+    observerRef.current = null
+  }, [])
 
-  const canvas = canvasRef.value
-  if (canvas) {
-    observer = new ResizeObserver(() => {
+  useEffect(() => {
+    const canvas = canvasRef.value
+    if (!canvas) return
+
+    const observer = new ResizeObserver(() => {
       const el = canvasRef.value
-      if (!el || !getCanvasKitValue() || resizeRaf) return
-      resizeRaf = requestAnimationFrame(() => {
-        resizeRaf = 0
+      if (!el || !getCanvasKitValue() || resizeRafRef.current) return
+      resizeRafRef.current = requestAnimationFrame(() => {
+        resizeRafRef.current = 0
         resizeCanvas(el)
       })
     })
+
+    observerRef.current = observer
     observer.observe(canvas)
-  }
+
+    return () => {
+      cancelResize()
+    }
+  }, [canvasRef, getCanvasKitValue, resizeCanvas, cancelResize])
 
   return { cancelResize }
 }

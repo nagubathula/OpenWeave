@@ -1,10 +1,19 @@
-import { ArrowRight, Sparkles, Smartphone, Monitor, Component, Presentation } from 'lucide-react'
+import {
+  ArrowRight,
+  Sparkles,
+  Smartphone,
+  Monitor,
+  Component,
+  Presentation,
+  Film
+} from 'lucide-react'
 import React from 'react'
 
 import { HOME_TEMPLATES, type HomeTemplate } from '@/app/home/templates'
 import { openTemplateInTab } from '@/app/tabs'
 
 const TEMPLATE_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
+  'figma-motion': Film,
   'mobile-app': Smartphone,
   'landing-page': Monitor,
   'design-system': Component,
@@ -36,7 +45,7 @@ export default function TemplatesCarousel({ onSelectTemplate }: TemplatesCarouse
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
         {HOME_TEMPLATES.map((tpl) => {
           const Icon = TEMPLATE_ICONS[tpl.id] ?? Sparkles
           return (

@@ -5,6 +5,7 @@ import { readFigFile } from '@openweave/core/io/formats/fig'
 import { computeAllLayouts } from '@openweave/core/layout'
 import type { SceneGraph } from '@openweave/scene-graph'
 
+import { propertiesActiveTab } from '@/app/ai/chat/use'
 import { setOpenWeaveStore } from '@/app/browser-bridge'
 import type { DocumentSourceIdentity } from '@/app/document/io/types'
 import { setActiveEditorStore } from '@/app/editor/active-store'
@@ -339,6 +340,10 @@ export function openTemplateInTab(template: HomeTemplate): Tab {
   const pageId = tab.store.graph.getPages()[0]?.id ?? tab.store.graph.rootId
   void tab.store.switchPage(pageId)
   void tab.store.fitCurrentPageToViewport()
+
+  if (template.id === 'figma-motion') {
+    propertiesActiveTab.set('motion')
+  }
 
   addRecentFile({
     id: `template-${template.id}`,

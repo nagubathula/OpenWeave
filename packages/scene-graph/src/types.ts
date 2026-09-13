@@ -402,6 +402,37 @@ export type PrototypeEasing =
   | 'SPRING'
   | 'CUSTOM_CUBIC'
 
+export type AnimatableProperty =
+  | 'x'
+  | 'y'
+  | 'width'
+  | 'height'
+  | 'rotation'
+  | 'opacity'
+  | 'cornerRadius'
+
+export type KeyframeEasing = 'linear' | 'ease-in' | 'ease-out' | 'ease-in-out' | 'spring'
+
+export interface TimelineKeyframe {
+  id: string
+  timeMs: number
+  value: number
+  easing?: KeyframeEasing
+}
+
+export interface PropertyTrack {
+  property: AnimatableProperty
+  keyframes: TimelineKeyframe[]
+}
+
+export interface NodeAnimationTrack {
+  nodeId: string
+  nodeName: string
+  locked?: boolean
+  hidden?: boolean
+  tracks: Partial<Record<AnimatableProperty, PropertyTrack>>
+}
+
 export type SpringPreset = 'GENTLE' | 'QUICK' | 'BOUNCY' | 'SLOW' | 'CUSTOM'
 
 export interface SpringConfig {
@@ -597,6 +628,9 @@ export interface SceneNode {
   reactions: PrototypeReaction[]
   /** On PAGE nodes: the frame the prototype flow starts from. */
   prototypeStartNodeId: string | null
+
+  /** Timeline animation tracks for this node. */
+  motionTracks?: NodeAnimationTrack
 
   pointCount: number
   starInnerRadius: number

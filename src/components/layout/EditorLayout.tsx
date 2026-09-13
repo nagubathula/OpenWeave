@@ -199,63 +199,67 @@ export function EditorLayout() {
             <MobileDrawer />
           </div>
         ) : showUI ? (
-          <Group
-            orientation="horizontal"
-            className="flex-1 min-h-0"
-            defaultLayout={(() => {
-              const [layers, canvas, properties] = loadEditorLayout()
-              return { layers, canvas, properties }
-            })()}
-            onLayoutChanged={(layout) => {
-              const sizes = [layout.layers, layout.canvas, layout.properties]
-              if (sizes.every((size) => typeof size === 'number')) saveEditorLayout(sizes)
-            }}
-          >
-            <Panel
-              id="layers"
-              defaultSize="20%"
-              minSize="15%"
-              maxSize="40%"
-              className="bg-panel/50 border-r border-border/50"
+          <div className="flex flex-1 flex-col min-h-0 min-w-0 overflow-hidden">
+            <Group
+              orientation="horizontal"
+              className="flex-1 min-h-0"
+              defaultLayout={(() => {
+                const [layers, canvas, properties] = loadEditorLayout()
+                return { layers, canvas, properties }
+              })()}
+              onLayoutChanged={(layout) => {
+                const sizes = [layout.layers, layout.canvas, layout.properties]
+                if (sizes.every((size) => typeof size === 'number')) saveEditorLayout(sizes)
+              }}
             >
-              <LayersPanel />
-            </Panel>
+              <Panel
+                id="layers"
+                defaultSize="20%"
+                minSize="15%"
+                maxSize="40%"
+                className="bg-panel/50 border-r border-border/50"
+              >
+                <LayersPanel />
+              </Panel>
 
-            <Separator
-              data-test-id="left-splitter-handle"
-              className="w-1 bg-border/50 hover:bg-accent hover:w-2 transition-all"
-            />
+              <Separator
+                data-test-id="left-splitter-handle"
+                className="w-1 bg-border/50 hover:bg-accent hover:w-2 transition-all"
+              />
 
-            <Panel id="canvas" minSize="30%">
-              <div className="relative flex h-full flex-col overflow-hidden">
-                <div className="relative flex-1 min-h-0">
-                  <Toolbar />
-                  <EditorCanvas key={currentTabId} />
+              <Panel id="canvas" minSize="30%">
+                <div className="relative flex h-full flex-col overflow-hidden">
+                  <div className="relative flex flex-col flex-1 min-h-0 min-w-0 size-full">
+                    <EditorCanvas key={currentTabId} />
+                    <Toolbar />
+                  </div>
                 </div>
-                {activeTab === 'motion' && <AnimationTimeline />}
-              </div>
-            </Panel>
+              </Panel>
 
-            <Separator
-              data-test-id="right-splitter-handle"
-              className="w-1 bg-border/50 hover:bg-accent hover:w-2 transition-all"
-            />
+              <Separator
+                data-test-id="right-splitter-handle"
+                className="w-1 bg-border/50 hover:bg-accent hover:w-2 transition-all"
+              />
 
-            <Panel
-              id="properties"
-              defaultSize="20%"
-              minSize="15%"
-              maxSize="40%"
-              className="bg-panel/50 border-l border-border/50"
-            >
-              <div className="flex h-full flex-col">
-                <div className="flex shrink-0 items-center justify-between border-b border-border px-1.5 py-1.5">
-                  <CollabPanel />
+              <Panel
+                id="properties"
+                defaultSize="20%"
+                minSize="15%"
+                maxSize="40%"
+                className="bg-panel/50 border-l border-border/50"
+              >
+                <div className="flex h-full flex-col">
+                  <div className="flex shrink-0 items-center justify-between border-b border-border px-1.5 py-1.5">
+                    <CollabPanel />
+                  </div>
+                  <PropertiesPanel />
                 </div>
-                <PropertiesPanel />
-              </div>
-            </Panel>
-          </Group>
+              </Panel>
+            </Group>
+
+            {/* Full-width bottom animation timeline */}
+            {activeTab === 'motion' && <AnimationTimeline />}
+          </div>
         ) : (
           <div className="flex flex-1 overflow-hidden">
             <div className="relative flex min-w-0 flex-1">

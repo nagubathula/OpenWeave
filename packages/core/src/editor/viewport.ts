@@ -56,8 +56,13 @@ export function createViewportActions(ctx: EditorContext) {
     const w = maxX - minX + padding * 2
     const h = maxY - minY + padding * 2
 
-    const { width: viewW, height: viewH } = ctx.getViewportSize()
-    const zoom = Math.min(viewW / w, viewH / h, 1)
+    const { width: rawViewW, height: rawViewH } = ctx.getViewportSize()
+    const viewW = rawViewW > 0 ? rawViewW : 800
+    const viewH = rawViewH > 0 ? rawViewH : 600
+    const zoom = Math.max(
+      0.02,
+      Math.min(256, Math.min(viewW / Math.max(1, w), viewH / Math.max(1, h), 1))
+    )
 
     ctx.state.zoom = zoom
     ctx.state.panX = (viewW - w * zoom) / 2 - minX * zoom + padding * zoom

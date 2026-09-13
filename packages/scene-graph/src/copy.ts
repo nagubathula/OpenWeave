@@ -251,6 +251,7 @@ export function cloneNodeProps(
     figmaDerivedTextGlyphs: src.figmaDerivedTextGlyphs
       ? markCopySource(src.figmaDerivedTextGlyphs, copyGlyphs(src.figmaDerivedTextGlyphs) ?? [])
       : null,
-    gridPosition: src.gridPosition ? { ...src.gridPosition } : null
+    gridPosition: src.gridPosition ? { ...src.gridPosition } : null,
+    motionTracks: src.motionTracks ? structuredClone(src.motionTracks) : undefined
   }
 }

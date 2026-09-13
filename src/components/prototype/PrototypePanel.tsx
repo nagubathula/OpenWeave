@@ -1,20 +1,22 @@
-import { Play, Plus, Trash2 } from 'lucide-react'
+import {
+  ArrowRight,
+  Clock,
+  Hand,
+  MousePointer,
+  Play,
+  Plus,
+  Sparkles,
+  Trash2,
+  Zap
+} from 'lucide-react'
 import React, { useState } from 'react'
 
 import { useI18n, useSceneComputed, useSelectionState } from '@openweave/react'
-import type {
-  PrototypeActionType,
-  PrototypeReaction,
-  PrototypeTransition,
-  PrototypeTrigger,
-  SceneNode
-} from '@openweave/scene-graph'
+import type { PrototypeReaction, PrototypeTrigger, SceneNode } from '@openweave/scene-graph'
 
 import { useEditorStore } from '@/app/editor/active-store'
-import NumberField from '@/components/inputs/NumberField'
+import InteractionDetailsPopover from '@/components/prototype/InteractionDetailsPopover'
 import PrototypePlayer from '@/components/prototype/PrototypePlayer'
-import SpringCurveEditor from '@/components/prototype/SpringCurveEditor'
-import { AppSelect } from '@/components/ui/AppSelect'
 import PanelSection from '@/components/ui/panel/PanelSection'
 import Tip from '@/components/ui/Tip'
 
@@ -27,8 +29,86 @@ const NEW_REACTION: Omit<PrototypeReaction, 'destinationId'> = {
   transitionDuration: 300
 }
 
-const inputClass =
-  'w-full bg-input/50 rounded px-2 py-1 border border-border text-surface text-xs outline-none focus:border-accent'
+function getTriggerIcon(trigger: PrototypeTrigger) {
+  switch (trigger) {
+    case 'ON_CLICK':
+      return MousePointer
+    case 'ON_HOVER':
+    case 'WHILE_PRESSING':
+      return Hand
+    case 'AFTER_TIMEOUT':
+      return Clock
+    default:
+      return Zap
+  }
+}
+
+function getTriggerName(trigger: PrototypeTrigger, timeout: number): string {
+  switch (trigger) {
+    case 'ON_CLICK':
+      return 'Click'
+    case 'ON_HOVER':
+      return 'Hover'
+    case 'WHILE_PRESSING':
+      return 'Press'
+    case 'ON_DRAG':
+      return 'Drag'
+    case 'AFTER_TIMEOUT':
+      return `Delay ${timeout}ms`
+    case 'KEY_DOWN':
+      return 'Key'
+    case 'MOUSE_ENTER':
+      return 'Mouse enter'
+    case 'MOUSE_LEAVE':
+      return 'Mouse leave'
+    default:
+      return 'Trigger'
+  }
+}
+
+function getDestinationName(
+  reaction: PrototypeReaction,
+  store: ReturnType<typeof useEditorStore>,
+  variantTargets: { value: string; label: string }[]
+): string {
+  if (reaction.action === 'BACK') return 'Back'
+  if (reaction.action === 'OPEN_URL') {
+    return reaction.url ? reaction.url.replace(/^https?:\/\//, '') : 'Link'
+  }
+  if (reaction.action === 'CLOSE_OVERLAY') return 'Close overlay'
+  if (reaction.action === 'CHANGE_TO') {
+    const found = variantTargets.find((v) => v.value === reaction.destinationId)
+    return found ? found.label : 'Variant'
+  }
+  if (reaction.destinationId) {
+    const target = store.graph.getNode(reaction.destinationId)
+    if (target?.name) return target.name
+  }
+  return 'None'
+}
+
+function getTransitionBadge(reaction: PrototypeReaction): { label: string; isSmart: boolean } {
+  const { transition, transitionDuration } = reaction
+  if (transition === 'INSTANT') return { label: 'Instant', isSmart: false }
+  if (transition === 'DISSOLVE')
+    return { label: `Dissolve • ${transitionDuration}ms`, isSmart: false }
+  if (transition === 'SMART_ANIMATE') {
+    return { label: `Smart animate • ${transitionDuration}ms`, isSmart: true }
+  }
+  if (transition.startsWith('SLIDE_FROM_')) {
+    return { label: `Slide • ${transitionDuration}ms`, isSmart: false }
+  }
+  if (transition.startsWith('PUSH_')) {
+    return { label: `Push • ${transitionDuration}ms`, isSmart: false }
+  }
+  if (transition.startsWith('MOVE_IN_')) {
+    return { label: `Move in • ${transitionDuration}ms`, isSmart: false }
+  }
+  if (transition.startsWith('MOVE_OUT_')) {
+    return { label: `Move out • ${transitionDuration}ms`, isSmart: false }
+  }
+  return { label: `${transitionDuration}ms`, isSmart: false }
+}
 
 /** Top-level ancestor of a node on the current page (the node itself if top-level). */
 function topLevelAncestor(store: ReturnType<typeof useEditorStore>, node: SceneNode): SceneNode {
@@ -46,6 +126,7 @@ export default function PrototypePanel() {
   const { panels } = useI18n()
   const { selectedNode: node } = useSelectionState()
   const [presenting, setPresenting] = useState(false)
+  const [activeReactionIndex, setActiveReactionIndex] = useState<number | null>(null)
 
   const topLevelNodes = useSceneComputed(() =>
     store.graph.getChildren(store.state.currentPageId).filter((n) => n.visible)
@@ -76,61 +157,6 @@ export default function PrototypePanel() {
       .map((c) => ({ value: c.id, label: c.name }))
   })
 
-  const triggerOptions: { value: PrototypeTrigger; label: string }[] = [
-    { value: 'ON_CLICK', label: panels.prototypeOnClick ?? 'On click' },
-    { value: 'ON_HOVER', label: panels.prototypeOnHover ?? 'While hovering' },
-    { value: 'WHILE_PRESSING', label: 'While pressing' },
-    { value: 'ON_DRAG', label: 'On drag' },
-    { value: 'MOUSE_ENTER', label: 'Mouse enter' },
-    { value: 'MOUSE_LEAVE', label: 'Mouse leave' },
-    { value: 'KEY_DOWN', label: 'Key / gamepad' },
-    { value: 'AFTER_TIMEOUT', label: panels.prototypeAfterDelay ?? 'After delay' }
-  ]
-  const actionOptions: { value: PrototypeActionType; label: string }[] = [
-    { value: 'NAVIGATE', label: panels.prototypeNavigateTo ?? 'Navigate to' },
-    { value: 'BACK', label: panels.prototypeBack ?? 'Back' },
-    { value: 'OPEN_OVERLAY', label: 'Open overlay' },
-    { value: 'SWAP_OVERLAY', label: 'Swap overlay' },
-    { value: 'CLOSE_OVERLAY', label: 'Close overlay' },
-    { value: 'SCROLL_TO', label: 'Scroll to' },
-    { value: 'OPEN_URL', label: panels.prototypeOpenUrl ?? 'Open link' },
-    { value: 'SET_VARIABLE', label: 'Set variable' },
-    { value: 'CONDITIONAL', label: 'Conditional' },
-    ...(variantTargets.length > 0
-      ? [{ value: 'CHANGE_TO' as const, label: panels.prototypeChangeTo ?? 'Change to' }]
-      : [])
-  ]
-  const transitionOptions: { value: PrototypeTransition; label: string }[] = [
-    { value: 'INSTANT', label: panels.prototypeTransitionInstant ?? 'Instant' },
-    { value: 'DISSOLVE', label: panels.prototypeTransitionDissolve ?? 'Dissolve' },
-    { value: 'SMART_ANIMATE', label: 'Smart animate' },
-    {
-      value: 'SLIDE_FROM_LEFT',
-      label: panels.prototypeTransitionSlideLeft ?? 'Slide in from left'
-    },
-    {
-      value: 'SLIDE_FROM_RIGHT',
-      label: panels.prototypeTransitionSlideRight ?? 'Slide in from right'
-    },
-    { value: 'SLIDE_FROM_TOP', label: panels.prototypeTransitionSlideTop ?? 'Slide in from top' },
-    {
-      value: 'SLIDE_FROM_BOTTOM',
-      label: panels.prototypeTransitionSlideBottom ?? 'Slide in from bottom'
-    },
-    { value: 'PUSH_LEFT', label: 'Push left' },
-    { value: 'PUSH_RIGHT', label: 'Push right' },
-    { value: 'PUSH_TOP', label: 'Push top' },
-    { value: 'PUSH_BOTTOM', label: 'Push bottom' },
-    { value: 'MOVE_IN_LEFT', label: 'Move in from left' },
-    { value: 'MOVE_IN_RIGHT', label: 'Move in from right' },
-    { value: 'MOVE_IN_TOP', label: 'Move in from top' },
-    { value: 'MOVE_IN_BOTTOM', label: 'Move in from bottom' },
-    { value: 'MOVE_OUT_LEFT', label: 'Move out to left' },
-    { value: 'MOVE_OUT_RIGHT', label: 'Move out to right' },
-    { value: 'MOVE_OUT_TOP', label: 'Move out to top' },
-    { value: 'MOVE_OUT_BOTTOM', label: 'Move out to bottom' }
-  ]
-
   function setReactions(reactions: PrototypeReaction[], label: string) {
     if (!node) return
     store.updateNodeWithUndo(node.id, { reactions }, label)
@@ -139,10 +165,10 @@ export default function PrototypePanel() {
   function addReaction() {
     if (!node) return
     const firstOther = destinationOptions.find((o) => o.value !== '')?.value ?? null
-    setReactions(
-      [...node.reactions, { ...NEW_REACTION, destinationId: firstOther || null }],
-      'Add interaction'
-    )
+    const newReaction = { ...NEW_REACTION, destinationId: firstOther || null }
+    const newReactions = [...node.reactions, newReaction]
+    setReactions(newReactions, 'Add interaction')
+    setActiveReactionIndex(newReactions.length - 1)
   }
 
   function updateReaction(index: number, patch: Partial<PrototypeReaction>) {
@@ -183,7 +209,7 @@ export default function PrototypePanel() {
         <button
           type="button"
           data-test-id="prototype-present"
-          className="flex items-center gap-1.5 rounded bg-accent px-2.5 py-1 text-[11px] font-semibold text-white hover:bg-accent/90 disabled:opacity-40"
+          className="flex items-center gap-1.5 rounded bg-accent px-2.5 py-1 text-[11px] font-semibold text-white hover:bg-accent/90 disabled:opacity-40 cursor-pointer"
           disabled={topLevelNodes.length === 0}
           onClick={() => setPresenting(true)}
         >
@@ -208,7 +234,7 @@ export default function PrototypePanel() {
                 type="button"
                 data-test-id="prototype-add-interaction"
                 aria-label={panels.prototypeAddInteraction}
-                className="rounded p-0.5 text-muted hover:bg-hover hover:text-surface"
+                className="rounded p-0.5 text-muted hover:bg-hover hover:text-surface cursor-pointer"
                 onClick={addReaction}
               >
                 <Plus className="size-3.5" />
@@ -216,198 +242,84 @@ export default function PrototypePanel() {
             </Tip>
           }
         >
-          <div className="space-y-3">
-            {node.reactions.map((reaction, index) => (
-              <div
-                key={index}
-                data-test-id="prototype-interaction"
-                className="space-y-2 rounded border border-border p-2"
-              >
-                <div className="flex items-center gap-2">
-                  <div className="flex-1">
-                    <AppSelect
-                      label={panels.prototypeTrigger}
-                      options={triggerOptions}
-                      value={reaction.trigger}
-                      onValueChange={(trigger) => updateReaction(index, { trigger })}
-                    />
-                  </div>
-                  <Tip label={panels.prototypeRemoveInteraction}>
-                    <button
-                      type="button"
-                      aria-label={panels.prototypeRemoveInteraction}
-                      className="rounded p-1 text-muted hover:bg-hover hover:text-surface"
-                      onClick={() => removeReaction(index)}
+          {node.reactions.length === 0 ? (
+            <button
+              type="button"
+              data-test-id="prototype-add-interaction-empty"
+              className="w-full flex items-center justify-center gap-1.5 rounded-lg border border-dashed border-border/80 p-3 text-xs text-muted hover:border-accent hover:text-accent hover:bg-accent/5 transition-colors cursor-pointer"
+              onClick={addReaction}
+            >
+              <Plus className="size-3.5" />
+              <span>Add interaction</span>
+            </button>
+          ) : (
+            <div className="space-y-1.5">
+              {node.reactions.map((reaction, index) => {
+                const TriggerIcon = getTriggerIcon(reaction.trigger)
+                const triggerName = getTriggerName(reaction.trigger, reaction.timeout)
+                const destName = getDestinationName(reaction, store, variantTargets)
+                const { label: transitionLabel, isSmart } = getTransitionBadge(reaction)
+
+                return (
+                  <div key={index} data-test-id="prototype-interaction">
+                    <InteractionDetailsPopover
+                      open={activeReactionIndex === index}
+                      onOpenChange={(isOpen) => setActiveReactionIndex(isOpen ? index : null)}
+                      reaction={reaction}
+                      destinationOptions={destinationOptions}
+                      variantTargets={variantTargets}
+                      onUpdate={(patch) => updateReaction(index, patch)}
+                      onRemove={() => removeReaction(index)}
                     >
-                      <Trash2 className="size-3.5" />
-                    </button>
-                  </Tip>
-                </div>
-
-                {reaction.trigger === 'AFTER_TIMEOUT' && (
-                  <NumberField
-                    label={panels.prototypeDelay}
-                    value={reaction.timeout}
-                    min={0}
-                    step={100}
-                    suffix="ms"
-                    onChange={(timeout) => updateReaction(index, { timeout })}
-                  />
-                )}
-
-                <AppSelect
-                  label={panels.prototypeAction}
-                  options={actionOptions}
-                  value={reaction.action}
-                  onValueChange={(action) => updateReaction(index, { action })}
-                />
-
-                {['NAVIGATE', 'OPEN_OVERLAY', 'SWAP_OVERLAY', 'SCROLL_TO'].includes(
-                  reaction.action
-                ) && (
-                  <AppSelect
-                    label={panels.prototypeDestination}
-                    options={destinationOptions}
-                    value={reaction.destinationId ?? ''}
-                    onValueChange={(destinationId) =>
-                      updateReaction(index, { destinationId: destinationId || null })
-                    }
-                  />
-                )}
-
-                {reaction.action === 'CHANGE_TO' && (
-                  <AppSelect
-                    label={panels.prototypeDestination}
-                    options={[{ value: '', label: panels.prototypeNone }, ...variantTargets]}
-                    value={reaction.destinationId ?? ''}
-                    onValueChange={(destinationId) =>
-                      updateReaction(index, { destinationId: destinationId || null })
-                    }
-                  />
-                )}
-
-                {reaction.action === 'OPEN_URL' && (
-                  <input
-                    type="text"
-                    aria-label={panels.prototypeUrl}
-                    placeholder="https://"
-                    className={inputClass}
-                    value={reaction.url}
-                    onChange={(e) => updateReaction(index, { url: e.target.value })}
-                  />
-                )}
-
-                {['NAVIGATE', 'CHANGE_TO', 'OPEN_OVERLAY', 'SWAP_OVERLAY'].includes(
-                  reaction.action
-                ) && (
-                  <>
-                    <AppSelect
-                      label={panels.prototypeTransition}
-                      options={transitionOptions}
-                      value={reaction.transition}
-                      onValueChange={(transition) => updateReaction(index, { transition })}
-                    />
-                    {reaction.transition !== 'INSTANT' && (
-                      <>
-                        <div className="flex gap-2">
-                          <div className="flex-1">
-                            <AppSelect
-                              label="Easing"
-                              options={[
-                                { value: 'SPRING', label: 'Spring (physics)' },
-                                { value: 'EASE_OUT', label: 'Ease out' },
-                                { value: 'EASE_IN_AND_OUT', label: 'Ease in & out' },
-                                { value: 'EASE_IN', label: 'Ease in' },
-                                { value: 'LINEAR', label: 'Linear' },
-                                { value: 'CUSTOM_CUBIC', label: 'Custom' }
-                              ]}
-                              value={
-                                reaction.easing ??
-                                (reaction.transition === 'SMART_ANIMATE' ? 'SPRING' : 'EASE_OUT')
-                              }
-                              onValueChange={(easing) => updateReaction(index, { easing })}
-                            />
+                      <button
+                        type="button"
+                        className={`group w-full flex flex-col gap-1 rounded-lg border p-2 text-left transition-all cursor-pointer ${
+                          activeReactionIndex === index
+                            ? 'border-accent bg-accent/10 shadow-xs'
+                            : 'border-border/60 bg-background/40 hover:border-accent/80 hover:bg-accent/5'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-1.5 text-xs font-medium text-surface truncate">
+                            <TriggerIcon className="size-3 text-accent shrink-0" />
+                            <span>{triggerName}</span>
+                            <ArrowRight className="size-2.5 text-muted shrink-0" />
+                            <span className="truncate text-surface/90">{destName}</span>
                           </div>
-                          <NumberField
-                            label={panels.prototypeDuration}
-                            value={reaction.transitionDuration}
-                            min={0}
-                            max={5000}
-                            step={50}
-                            suffix="ms"
-                            onChange={(transitionDuration) =>
-                              updateReaction(index, { transitionDuration })
-                            }
-                          />
+                          {/* oxlint-disable-next-line openweave/no-hardcoded-tip-labels */}
+                          <Tip label="Delete interaction">
+                            <button
+                              type="button"
+                              aria-label="Delete interaction"
+                              className="opacity-0 group-hover:opacity-100 flex size-5 items-center justify-center rounded text-muted hover:text-destructive hover:bg-hover transition-opacity"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                removeReaction(index)
+                              }}
+                            >
+                              <Trash2 className="size-3" />
+                            </button>
+                          </Tip>
                         </div>
-
-                        {(reaction.easing === 'SPRING' ||
-                          (!reaction.easing && reaction.transition === 'SMART_ANIMATE')) && (
-                          <SpringCurveEditor
-                            preset={reaction.springPreset ?? 'BOUNCY'}
-                            config={reaction.springConfig}
-                            onPresetChange={(springPreset) =>
-                              updateReaction(index, { springPreset, easing: 'SPRING' })
-                            }
-                            onConfigChange={(springConfig) =>
-                              updateReaction(index, { springConfig, easing: 'SPRING' })
-                            }
-                            onDurationSuggest={(transitionDuration) =>
-                              updateReaction(index, { transitionDuration })
-                            }
-                          />
-                        )}
-                      </>
-                    )}
-                  </>
-                )}
-
-                {['OPEN_OVERLAY', 'SWAP_OVERLAY'].includes(reaction.action) && (
-                  <div className="space-y-2 mt-2 pt-2 border-t border-border">
-                    <AppSelect
-                      label="Position"
-                      options={[
-                        { value: 'CENTER', label: 'Center' },
-                        { value: 'TOP_LEFT', label: 'Top left' },
-                        { value: 'TOP_CENTER', label: 'Top center' },
-                        { value: 'TOP_RIGHT', label: 'Top right' },
-                        { value: 'BOTTOM_LEFT', label: 'Bottom left' },
-                        { value: 'BOTTOM_CENTER', label: 'Bottom center' },
-                        { value: 'BOTTOM_RIGHT', label: 'Bottom right' },
-                        { value: 'MANUAL', label: 'Manual' }
-                      ]}
-                      value={reaction.overlayPosition ?? 'CENTER'}
-                      onValueChange={(overlayPosition) =>
-                        updateReaction(index, { overlayPosition })
-                      }
-                    />
-                    <label className="flex items-center gap-2 text-[11px] text-surface">
-                      <input
-                        type="checkbox"
-                        className="rounded border-border bg-input/50"
-                        checked={reaction.overlayCloseOnClickOutside ?? true}
-                        onChange={(e) =>
-                          updateReaction(index, { overlayCloseOnClickOutside: e.target.checked })
-                        }
-                      />
-                      Close when clicking outside
-                    </label>
-                    <label className="flex items-center gap-2 text-[11px] text-surface">
-                      <input
-                        type="checkbox"
-                        className="rounded border-border bg-input/50"
-                        checked={reaction.overlayBackgroundScrim ?? false}
-                        onChange={(e) =>
-                          updateReaction(index, { overlayBackgroundScrim: e.target.checked })
-                        }
-                      />
-                      Add background behind overlay
-                    </label>
+                        <div className="flex items-center gap-1.5">
+                          <span
+                            className={`flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-mono ${
+                              isSmart
+                                ? 'bg-accent/20 text-accent font-medium'
+                                : 'bg-panel/80 text-muted'
+                            }`}
+                          >
+                            {isSmart && <Sparkles className="size-2.5 text-accent" />}
+                            {transitionLabel}
+                          </span>
+                        </div>
+                      </button>
+                    </InteractionDetailsPopover>
                   </div>
-                )}
-              </div>
-            ))}
-          </div>
+                )
+              })}
+            </div>
+          )}
         </PanelSection>
       )}
 

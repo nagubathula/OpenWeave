@@ -35,6 +35,7 @@ import { getActiveEditorStore } from '@/app/editor/active-store'
  */
 export type PropertiesTab = 'design' | 'prototype' | 'code' | 'ai' | 'motion'
 const activeTab = atom<PropertiesTab>('design')
+export const propertiesActiveTab = activeTab
 
 const chatSession = createChatSessionManager({
   isConfigured,
