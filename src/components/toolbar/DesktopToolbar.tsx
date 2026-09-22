@@ -1,5 +1,5 @@
 import { useStore } from '@nanostores/react'
-import { Code, Film, MousePointer2, Spline } from 'lucide-react'
+import { Check, Code, Film, MousePointer2, Spline } from 'lucide-react'
 import React from 'react'
 
 import type { Tool, EditorToolDef } from '@openweave/core/editor'
@@ -24,6 +24,8 @@ interface DesktopToolbarProps {
   toolLabels: ToolLabels
   toolShortcuts: Record<Tool, string>
   ui?: ToolbarUI
+  inVectorEdit?: boolean
+  onExitVectorEdit?: () => void
   onSetTool: (tool: Tool) => void
 }
 
@@ -35,15 +37,77 @@ export default function DesktopToolbar({
   toolLabels,
   toolShortcuts,
   ui,
+  inVectorEdit,
+  onExitVectorEdit,
   onSetTool
 }: DesktopToolbarProps) {
   const { activeTab: activeTabAtom } = useAIChat()
   const activeTab = useStore(activeTabAtom)
 
-  const isDrawActive = activeTool === 'PEN' || activeTool === 'CURVATURE_PEN'
+  const isDrawActive =
+    activeTool === 'PEN' || activeTool === 'CURVATURE_PEN' || activeTool === 'BEND'
   const isDesignActive = activeTab === 'design' && !isDrawActive
   const isMotionActive = activeTab === 'motion'
   const isCodeActive = activeTab === 'code'
+
+  if (inVectorEdit) {
+    return (
+      <div className="absolute bottom-3 left-1/2 z-20 flex -translate-x-1/2 items-center transition-all duration-300">
+        <div
+          data-test-id="toolbar"
+          className="flex items-center gap-1 rounded-full bg-panel px-2 py-1.5 shadow-[0_8px_30px_rgb(0_0_0/0.45)] border border-primary/20"
+        >
+          <div className="flex items-center gap-0.5">
+            <Tip label={`${toolLabels.SELECT} (V)`}>
+              <ToolButton
+                data-test-id="vector-tool-select"
+                icon={toolIcons.SELECT}
+                label={toolLabels.SELECT}
+                active={activeTool === 'SELECT'}
+                ui={ui}
+                onClick={() => onSetTool('SELECT')}
+              />
+            </Tip>
+            <Tip label={`${toolLabels.PEN} (P)`}>
+              <ToolButton
+                data-test-id="vector-tool-pen"
+                icon={toolIcons.PEN}
+                label={toolLabels.PEN}
+                active={activeTool === 'PEN'}
+                ui={ui}
+                onClick={() => onSetTool('PEN')}
+              />
+            </Tip>
+            <Tip label={`${toolLabels.BEND} (B)`}>
+              <ToolButton
+                data-test-id="vector-tool-bend"
+                icon={toolIcons.BEND}
+                label={toolLabels.BEND}
+                active={activeTool === 'BEND'}
+                ui={ui}
+                onClick={() => onSetTool('BEND')}
+              />
+            </Tip>
+          </div>
+
+          <div className="mx-1 h-5 w-px bg-border/60" />
+
+          {/* oxlint-disable-next-line openweave/no-hardcoded-tip-labels */}
+          <Tip label="Exit Vector Edit (Esc / Enter)">
+            <button
+              type="button"
+              data-test-id="vector-done-btn"
+              className="flex items-center gap-1.5 rounded-full bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground shadow-sm hover:opacity-90 active:scale-95 transition-all"
+              onClick={onExitVectorEdit}
+            >
+              <Check className="size-3.5" />
+              <span>Done</span>
+            </button>
+          </Tip>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="absolute bottom-3 left-1/2 z-20 flex -translate-x-1/2 items-center transition-all duration-300">

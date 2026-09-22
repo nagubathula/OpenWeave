@@ -63,6 +63,30 @@ export function handleToolMouseDown({
     return
   }
 
+  if (tool === 'BEND') {
+    if (!editor.state.nodeEditState) {
+      const hit = hitFns.hitTestInScope(cx, cy, true)
+      if (hit) {
+        const nodeEditEditor = editor as Editor &
+          Partial<{ enterNodeEditMode: (id: string) => void }>
+        nodeEditEditor.enterNodeEditMode?.(hit.id)
+      }
+    }
+    handleSelectDown(
+      event,
+      cx,
+      cy,
+      sx,
+      sy,
+      editor,
+      hitFns,
+      tryStartRotation,
+      handleTextEditClick,
+      setDrag
+    )
+    return
+  }
+
   if (tool === 'PEN' || tool === 'CURVATURE_PEN') {
     startPenInput(event, cx, cy, editor, setDrag, cursorOverride)
     return

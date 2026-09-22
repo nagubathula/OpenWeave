@@ -1,6 +1,7 @@
 import {
   getCanvasNodeEditState,
   handleBendHandleMove,
+  handleBendSegmentMove,
   resolveBendTargetHandle,
   type CanvasNodeEditMethods
 } from '#react/canvas/node-edit-input/bend'
@@ -30,12 +31,17 @@ export function updateNodeEditHover(editor: Editor, cx: number, cy: number): boo
   return true
 }
 
-export { handleBendHandleMove, resolveBendTargetHandle }
+export { handleBendHandleMove, handleBendSegmentMove, resolveBendTargetHandle }
 
 export function handleNodeEditMouseUp(drag: RefObject<DragState | null>, editor: Editor): boolean {
   const nodeEditEditor = editor as Editor & CanvasNodeEditMethods
   const d = drag.current
   if (!d) return false
+
+  if (d.type === 'bend-segment') {
+    drag.current = null
+    return true
+  }
 
   if (d.type === 'bend-handle') {
     if (d.lockedMode === null) {

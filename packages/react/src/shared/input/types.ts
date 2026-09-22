@@ -130,6 +130,17 @@ export interface DragBendHandle {
   targetTangentField: 'tangentStart' | 'tangentEnd' | null
 }
 
+export interface DragBendSegment {
+  type: 'bend-segment'
+  segmentIndex: number
+  startX: number
+  startY: number
+  t: number
+  initialTangentStart: Vector
+  initialTangentEnd: Vector
+  initialPoint: Vector
+}
+
 export interface DragAutoLayoutPadding {
   type: 'auto-layout-padding'
   nodeId: string
@@ -191,6 +202,7 @@ export type DragState =
   | DragEditNode
   | DragEditHandle
   | DragBendHandle
+  | DragBendSegment
   | DragAutoLayoutPadding
   | DragAutoLayoutGap
   | DragCornerRadius

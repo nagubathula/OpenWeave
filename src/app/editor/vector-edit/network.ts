@@ -1,6 +1,12 @@
 import type { Editor } from '@openweave/core/editor'
-import { nearestPointOnNetwork, removeVertex, splitSegmentAt } from '@openweave/core/vector'
-import type { VectorNetwork } from '@openweave/scene-graph'
+import {
+  bendSegment,
+  nearestPointOnNetwork,
+  removeVertex,
+  splitSegmentAt,
+  toggleVertexSmooth
+} from '@openweave/core/vector'
+import type { Vector, VectorNetwork } from '@openweave/scene-graph'
 
 import { pushNodeEditHistory } from './history'
 import type { NodeEditState, VectorEditState } from './types'
@@ -97,5 +103,45 @@ export function createVectorEditNetworkActions(
     editor.requestRender()
   }
 
-  return { nodeEditConnectEndpoints, nodeEditAddVertex, nodeEditRemoveVertex }
+  function nodeEditBendSegment(
+    segmentIndex: number,
+    t: number,
+    target: Vector,
+    initialTangentStart: Vector,
+    initialTangentEnd: Vector,
+    initialPoint: Vector
+  ) {
+    const es = getNodeEditState()
+    if (!es) return
+    const live = getLiveNetwork(es)
+    const next = bendSegment(
+      live,
+      segmentIndex,
+      t,
+      target,
+      initialTangentStart,
+      initialTangentEnd,
+      initialPoint
+    )
+    setNodeEditNetwork(es, next)
+    editor.requestRepaint()
+  }
+
+  function nodeEditToggleVertexSmooth(vertexIndex: number) {
+    const es = getNodeEditState()
+    if (!es) return
+    const live = getLiveNetwork(es)
+    const next = toggleVertexSmooth(live, vertexIndex)
+    pushNodeEditHistory(es)
+    setNodeEditNetwork(es, next)
+    editor.requestRender()
+  }
+
+  return {
+    nodeEditConnectEndpoints,
+    nodeEditAddVertex,
+    nodeEditRemoveVertex,
+    nodeEditBendSegment,
+    nodeEditToggleVertexSmooth
+  }
 }

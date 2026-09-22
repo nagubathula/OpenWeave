@@ -32,6 +32,7 @@ export type Tool =
   | 'TEXT'
   | 'PEN'
   | 'CURVATURE_PEN'
+  | 'BEND'
   | 'HAND'
 
 export interface EditorState {

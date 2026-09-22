@@ -474,6 +474,160 @@ export function findAllHandles(
   return result
 }
 
+/**
+ * Bend a segment into a cubic Bézier curve by moving its tangent handles towards a target position.
+ * Given initial parameters (t, initial tangents, initial point on curve), calculates the displacement
+ * and adjusts tangentStart and tangentEnd so the curve passes naturally through the target point.
+ */
+export function bendSegment(
+  network: VectorNetwork,
+  segmentIndex: number,
+  t: number,
+  target: Vector,
+  initialTangentStart: Vector,
+  initialTangentEnd: Vector,
+  initialPoint: Vector
+): VectorNetwork {
+  if (segmentIndex < 0 || segmentIndex >= network.segments.length) return network
+
+  const dx = target.x - initialPoint.x
+  const dy = target.y - initialPoint.y
+
+  // Clamp t to prevent runaway tangents near endpoints
+  const clampedT = Math.max(0.1, Math.min(0.9, t))
+  // k is the inverse weight factor derived from De Casteljau subdivision at parameter t
+  const k = Math.min(2.5, 1 / (3 * clampedT * (1 - clampedT)))
+
+  const dtX = dx * k
+  const dtY = dy * k
+
+  const newSegments = network.segments.map((seg, i) => {
+    if (i !== segmentIndex) return seg
+    return {
+      ...seg,
+      tangentStart: {
+        x: initialTangentStart.x + dtX,
+        y: initialTangentStart.y + dtY
+      },
+      tangentEnd: {
+        x: initialTangentEnd.x + dtX,
+        y: initialTangentEnd.y + dtY
+      }
+    }
+  })
+
+  return {
+    vertices: network.vertices,
+    segments: newSegments,
+    regions: network.regions
+  }
+}
+
+/**
+ * Toggle smooth curve vs sharp corner for a vertex.
+ * If the vertex has non-zero tangent handles, zeroes them (creating a sharp corner).
+ * If the vertex has zero handles, computes symmetric/continuous handles aligned with
+ * the adjacent neighbor chord direction.
+ */
+export function toggleVertexSmooth(network: VectorNetwork, vertexIndex: number): VectorNetwork {
+  if (vertexIndex < 0 || vertexIndex >= network.vertices.length) return network
+
+  const handles = findAllHandles(network, vertexIndex)
+  if (handles.length === 0) return network
+
+  const hasHandles = handles.some((h) => {
+    const seg = network.segments[h.segmentIndex]
+    const t = h.tangentField === 'tangentStart' ? seg.tangentStart : seg.tangentEnd
+    return Math.hypot(t.x, t.y) > 1e-4
+  })
+
+  const v = network.vertices[vertexIndex]
+
+  if (hasHandles) {
+    // Zero all handles connected to this vertex
+    const newSegments = network.segments.map((seg) => {
+      const touchesStart = seg.start === vertexIndex
+      const touchesEnd = seg.end === vertexIndex
+      if (!touchesStart && !touchesEnd) return seg
+      return {
+        ...seg,
+        tangentStart: touchesStart ? { x: 0, y: 0 } : { ...seg.tangentStart },
+        tangentEnd: touchesEnd ? { x: 0, y: 0 } : { ...seg.tangentEnd }
+      }
+    })
+
+    const newVertices = network.vertices.map((vx, i) => {
+      if (i !== vertexIndex) return vx
+      return { ...vx, handleMirroring: 'NONE' as const }
+    })
+
+    return { vertices: newVertices, segments: newSegments, regions: network.regions }
+  }
+
+  // Create smooth handles
+  const newSegments = network.segments.map((s) => ({
+    ...s,
+    tangentStart: { ...s.tangentStart },
+    tangentEnd: { ...s.tangentEnd }
+  }))
+
+  if (handles.length === 2) {
+    const h0 = handles[0]
+    const h1 = handles[1]
+    const n0 = network.vertices[h0.neighborIndex]
+    const n1 = network.vertices[h1.neighborIndex]
+
+    // Chord vector from n0 to n1
+    const chordX = n1.x - n0.x
+    const chordY = n1.y - n0.y
+    const chordLen = Math.hypot(chordX, chordY)
+
+    if (chordLen > 1e-5) {
+      const dirX = chordX / chordLen
+      const dirY = chordY / chordLen
+
+      const d0 = Math.hypot(n0.x - v.x, n0.y - v.y)
+      const d1 = Math.hypot(n1.x - v.x, n1.y - v.y)
+      const r0 = Math.min(d0 * 0.35, chordLen * 0.35)
+      const r1 = Math.min(d1 * 0.35, chordLen * 0.35)
+
+      // Apply tangents: h0 points towards n0 (negative dir), h1 points towards n1 (positive dir)
+      const seg0 = newSegments[h0.segmentIndex]
+      if (h0.tangentField === 'tangentStart') {
+        seg0.tangentStart = { x: -dirX * r0, y: -dirY * r0 }
+      } else {
+        seg0.tangentEnd = { x: -dirX * r0, y: -dirY * r0 }
+      }
+
+      const seg1 = newSegments[h1.segmentIndex]
+      if (h1.tangentField === 'tangentStart') {
+        seg1.tangentStart = { x: dirX * r1, y: dirY * r1 }
+      } else {
+        seg1.tangentEnd = { x: dirX * r1, y: dirY * r1 }
+      }
+    }
+  } else if (handles.length === 1) {
+    const h0 = handles[0]
+    const n0 = network.vertices[h0.neighborIndex]
+    const dx = n0.x - v.x
+    const dy = n0.y - v.y
+    const len = Math.hypot(dx, dy)
+    if (len > 1e-5) {
+      const seg0 = newSegments[h0.segmentIndex]
+      const t = { x: (dx / len) * (len * 0.33), y: (dy / len) * (len * 0.33) }
+      if (h0.tangentField === 'tangentStart') seg0.tangentStart = t
+      else seg0.tangentEnd = t
+    }
+  }
+
+  const newVertices = network.vertices.map((vx, i) => {
+    if (i !== vertexIndex) return vx
+    return { ...vx, handleMirroring: 'ANGLE_AND_LENGTH' as const }
+  })
+
+  return { vertices: newVertices, segments: newSegments, regions: network.regions }
+}
+
 // ---------------------------------------------------------------------------
 // Network connectivity
 // ---------------------------------------------------------------------------

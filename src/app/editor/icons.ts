@@ -18,6 +18,7 @@ import {
   Star as IconStar,
   Triangle as IconTriangle,
   Type as IconType,
+  Waypoints as IconWaypoints,
   type LucideIcon
 } from 'lucide-react'
 
@@ -35,6 +36,7 @@ export const toolIcons: Record<Tool, LucideIcon> = {
   SHADER: IconSparkles,
   PEN: IconPenTool,
   CURVATURE_PEN: IconSpline,
+  BEND: IconWaypoints,
   TEXT: IconType,
   HAND: IconHand
 }

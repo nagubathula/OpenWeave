@@ -4,6 +4,7 @@ import {
   ToolbarRoot,
   useEditorCommands,
   useI18n,
+  useSceneComputed,
   useToolbarState,
   useViewportKind
 } from '@openweave/react'
@@ -38,6 +39,7 @@ export default function Toolbar() {
       SHADER: 'Shader',
       PEN: toolTexts.pen,
       CURVATURE_PEN: toolTexts.curvaturePen,
+      BEND: 'Bend',
       TEXT: toolTexts.text,
       HAND: toolTexts.hand
     }),
@@ -57,6 +59,7 @@ export default function Toolbar() {
       SHADER: '',
       PEN: 'P',
       CURVATURE_PEN: '⇧P',
+      BEND: 'B',
       TEXT: 'T',
       HAND: 'H'
     }),
@@ -77,6 +80,8 @@ export default function Toolbar() {
     showActionToast(item.label)
   }
 
+  const inVectorEdit = useSceneComputed(() => Boolean(store.state.nodeEditState))
+
   return (
     <ToolbarRoot>
       {({ tools, activeTool, flyoutSelections, actions }) => {
@@ -90,6 +95,8 @@ export default function Toolbar() {
               toolLabels={toolLabels}
               toolShortcuts={toolShortcuts}
               ui={toolbarUi}
+              inVectorEdit={inVectorEdit}
+              onExitVectorEdit={() => store.exitNodeEditMode(true)}
               onSetTool={actions.setTool}
             />
           )

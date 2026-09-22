@@ -237,6 +237,8 @@ export {
   nearestPointOnCubic,
   nearestPointOnNetwork,
   splitSegmentAt,
+  bendSegment,
+  toggleVertexSmooth,
   removeVertex,
   breakAtVertex,
   deleteVertex,

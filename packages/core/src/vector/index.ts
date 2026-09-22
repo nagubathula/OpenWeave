@@ -1,6 +1,7 @@
 export * from './vectorize'
 
 export {
+  bendSegment,
   breakAtVertex,
   computeAccurateBounds,
   deleteVertex,
@@ -9,7 +10,8 @@ export {
   mirrorHandle,
   nearestPointOnNetwork,
   removeVertex,
-  splitSegmentAt
+  splitSegmentAt,
+  toggleVertexSmooth
 } from './bezier'
 
 import type { CanvasKit, Path } from 'canvaskit-wasm'

@@ -5,7 +5,13 @@ import {
   transformVectorNetwork,
   vectorNetworksEqual
 } from '@openweave/scene-graph'
-import type { VectorNetwork } from '@openweave/scene-graph'
+import type {
+  SceneNode,
+  Vector,
+  VectorNetwork,
+  VectorSegment,
+  VectorVertex
+} from '@openweave/scene-graph'
 import { getNodeLocalMatrix, getWorldMatrix } from '@openweave/scene-graph/coordinate'
 import Matrix from '@openweave/scene-graph/matrix'
 
@@ -76,16 +82,136 @@ export function createVectorEditLifecycle(editor: Editor, state: VectorEditState
     editor.requestRender()
   }
 
+  function shapeToVectorNetwork(node: SceneNode): VectorNetwork | null {
+    const w = Math.max(1, node.width)
+    const h = Math.max(1, node.height)
+
+    if (node.type === 'RECTANGLE' || node.type === 'FRAME') {
+      return {
+        vertices: [
+          { x: 0, y: 0, handleMirroring: 'NONE' },
+          { x: w, y: 0, handleMirroring: 'NONE' },
+          { x: w, y: h, handleMirroring: 'NONE' },
+          { x: 0, y: h, handleMirroring: 'NONE' }
+        ],
+        segments: [
+          { start: 0, end: 1, tangentStart: { x: 0, y: 0 }, tangentEnd: { x: 0, y: 0 } },
+          { start: 1, end: 2, tangentStart: { x: 0, y: 0 }, tangentEnd: { x: 0, y: 0 } },
+          { start: 2, end: 3, tangentStart: { x: 0, y: 0 }, tangentEnd: { x: 0, y: 0 } },
+          { start: 3, end: 0, tangentStart: { x: 0, y: 0 }, tangentEnd: { x: 0, y: 0 } }
+        ],
+        regions: [{ windingRule: 'NONZERO', loops: [[0, 1, 2, 3]] }]
+      }
+    }
+
+    if (node.type === 'LINE') {
+      return {
+        vertices: [
+          { x: 0, y: 0, handleMirroring: 'NONE' },
+          { x: w, y: 0, handleMirroring: 'NONE' }
+        ],
+        segments: [{ start: 0, end: 1, tangentStart: { x: 0, y: 0 }, tangentEnd: { x: 0, y: 0 } }],
+        regions: []
+      }
+    }
+
+    if (node.type === 'ELLIPSE') {
+      const rx = w / 2
+      const ry = h / 2
+      const kappa = 0.5522847498
+      const kx = rx * kappa
+      const ky = ry * kappa
+      return {
+        vertices: [
+          { x: rx, y: 0, handleMirroring: 'ANGLE_AND_LENGTH' },
+          { x: w, y: ry, handleMirroring: 'ANGLE_AND_LENGTH' },
+          { x: rx, y: h, handleMirroring: 'ANGLE_AND_LENGTH' },
+          { x: 0, y: ry, handleMirroring: 'ANGLE_AND_LENGTH' }
+        ],
+        segments: [
+          { start: 0, end: 1, tangentStart: { x: kx, y: 0 }, tangentEnd: { x: 0, y: -ky } },
+          { start: 1, end: 2, tangentStart: { x: 0, y: ky }, tangentEnd: { x: kx, y: 0 } },
+          { start: 2, end: 3, tangentStart: { x: -kx, y: 0 }, tangentEnd: { x: 0, y: ky } },
+          { start: 3, end: 0, tangentStart: { x: 0, y: -ky }, tangentEnd: { x: -kx, y: 0 } }
+        ],
+        regions: [{ windingRule: 'NONZERO', loops: [[0, 1, 2, 3]] }]
+      }
+    }
+
+    function buildPolygonNetwork(
+      pointCount: number,
+      calcPoint: (i: number) => Vector
+    ): VectorNetwork {
+      const vertices: VectorVertex[] = []
+      const segments: VectorSegment[] = []
+      const loop: number[] = []
+
+      for (let i = 0; i < pointCount; i++) {
+        const pt = calcPoint(i)
+        vertices.push({ x: pt.x, y: pt.y, handleMirroring: 'NONE' })
+        loop.push(i)
+        segments.push({
+          start: i,
+          end: (i + 1) % pointCount,
+          tangentStart: { x: 0, y: 0 },
+          tangentEnd: { x: 0, y: 0 }
+        })
+      }
+
+      return {
+        vertices,
+        segments,
+        regions: [{ windingRule: 'NONZERO', loops: [loop] }]
+      }
+    }
+
+    if (node.type === 'POLYGON') {
+      const count = Math.max(3, node.pointCount ?? 3)
+      const rx = w / 2
+      const ry = h / 2
+      return buildPolygonNetwork(count, (i) => {
+        const angle = -Math.PI / 2 + (i * 2 * Math.PI) / count
+        return { x: rx + rx * Math.cos(angle), y: ry + ry * Math.sin(angle) }
+      })
+    }
+
+    if (node.type === 'STAR') {
+      const points = Math.max(3, node.pointCount ?? 5)
+      const count = points * 2
+      const innerRatio = node.starInnerRadius ?? 0.38
+      const rx = w / 2
+      const ry = h / 2
+      return buildPolygonNetwork(count, (i) => {
+        const ratio = i % 2 === 1 ? innerRatio : 1
+        const angle = -Math.PI / 2 + (i * Math.PI) / points
+        return { x: rx + rx * ratio * Math.cos(angle), y: ry + ry * ratio * Math.sin(angle) }
+      })
+    }
+
+    return null
+  }
+
   function enterNodeEditMode(nodeId: string) {
     const node = editor.graph.getNode(nodeId)
-    if (node?.type !== 'VECTOR' || !node.vectorNetwork) return
+    if (!node) return
+
+    let currentNetwork = node.vectorNetwork
+    if (!currentNetwork) {
+      const generated = shapeToVectorNetwork(node)
+      if (!generated) return
+      editor.graph.updateNode(nodeId, {
+        type: 'VECTOR',
+        vectorNetwork: generated
+      })
+      currentNetwork = generated
+    }
 
     const world = getWorldMatrix(node, editor.graph)
-    const absNetwork = transformVectorNetwork(world, node.vectorNetwork)
+    const absNetwork = transformVectorNetwork(world, currentNetwork)
 
     state.nodeEditState = {
       nodeId,
-      origNetwork: cloneVectorNetwork(node.vectorNetwork),
+      origNetwork: cloneVectorNetwork(currentNetwork),
       origBounds: { x: node.x, y: node.y, width: node.width, height: node.height },
       origAbsNetwork: cloneVectorNetwork(absNetwork),
       vertices: absNetwork.vertices,

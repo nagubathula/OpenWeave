@@ -13,12 +13,14 @@ export {
   NODE_HIT_THRESHOLD
 } from '#react/shared/input/node-edit/hit-test'
 import type { Editor } from '@openweave/core/editor'
+import { nearestPointOnNetwork } from '@openweave/core/vector'
 import type { Vector } from '@openweave/scene-graph/primitives'
 
 type NodeEditEditor = Partial<{
   nodeEditSelectVertex: (vertexIndex: number, addToSelection: boolean) => void
   exitNodeEditMode: (commit: boolean) => void
   nodeEditRemoveVertex: (vertexIndex: number) => void
+  nodeEditToggleVertexSmooth: (vertexIndex: number) => void
   penResumeFromEndpoint: (nodeId: string, endpointVertexIndex: number) => void
   nodeEditAddVertex: (cx: number, cy: number) => void
   nodeEditPushHistory: () => void
@@ -79,6 +81,26 @@ export function handleNodeEditDown(
   if (vi !== null) {
     if (!e.shiftKey) es.selectedHandles = new Set()
 
+    if (editor.state.activeTool === 'BEND') {
+      if (e.altKey) {
+        nodeEditEditor.nodeEditToggleVertexSmooth?.(vi)
+        return
+      }
+      nodeEditEditor.nodeEditSelectVertex?.(vi, false)
+      nodeEditEditor.nodeEditPushHistory?.()
+      setDrag({
+        type: 'bend-handle',
+        vertexIndex: vi,
+        startX: es.vertices[vi].x,
+        startY: es.vertices[vi].y,
+        lockedMode: null,
+        dragSamples: [],
+        targetSegmentIndex: null,
+        targetTangentField: null
+      })
+      return
+    }
+
     if (e.metaKey || e.ctrlKey) {
       nodeEditEditor.nodeEditSelectVertex?.(vi, false)
       nodeEditEditor.nodeEditPushHistory?.()
@@ -117,7 +139,28 @@ export function handleNodeEditDown(
     return
   }
 
-  nodeEditEditor.exitNodeEditMode?.(true)
+  // Check if a segment is clicked to bend
+  const liveNetwork = { vertices: es.vertices, segments: es.segments, regions: [] }
+  const nearest = nearestPointOnNetwork(cx, cy, liveNetwork, 10 / editor.state.zoom)
+  if (nearest && (editor.state.activeTool === 'BEND' || e.metaKey || e.ctrlKey)) {
+    const seg = es.segments[nearest.segmentIndex]
+    nodeEditEditor.nodeEditPushHistory?.()
+    setDrag({
+      type: 'bend-segment',
+      segmentIndex: nearest.segmentIndex,
+      startX: cx,
+      startY: cy,
+      t: nearest.t,
+      initialTangentStart: { x: seg.tangentStart.x, y: seg.tangentStart.y },
+      initialTangentEnd: { x: seg.tangentEnd.x, y: seg.tangentEnd.y },
+      initialPoint: { x: nearest.x, y: nearest.y }
+    })
+    return
+  }
+
+  if (editor.state.activeTool !== 'BEND') {
+    nodeEditEditor.exitNodeEditMode?.(true)
+  }
 }
 
 export function handlePenNodeEditDown(e: MouseEvent, cx: number, cy: number, editor: Editor) {

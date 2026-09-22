@@ -23,8 +23,13 @@ export function createVectorEditActions(editor: Editor, state: VectorEditState) 
     editor,
     state
   )
-  const { nodeEditConnectEndpoints, nodeEditAddVertex, nodeEditRemoveVertex } =
-    createVectorEditNetworkActions(editor, state, getNodeEditState)
+  const {
+    nodeEditConnectEndpoints,
+    nodeEditAddVertex,
+    nodeEditRemoveVertex,
+    nodeEditBendSegment,
+    nodeEditToggleVertexSmooth
+  } = createVectorEditNetworkActions(editor, state, getNodeEditState)
 
   return {
     getNodeEditState,
@@ -40,6 +45,8 @@ export function createVectorEditActions(editor: Editor, state: VectorEditState) 
     nodeEditConnectEndpoints,
     nodeEditAddVertex,
     nodeEditRemoveVertex,
+    nodeEditBendSegment,
+    nodeEditToggleVertexSmooth,
     nodeEditAlignVertices,
     nodeEditDeleteSelected,
     nodeEditBreakAtVertex,

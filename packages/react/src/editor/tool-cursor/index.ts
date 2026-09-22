@@ -13,6 +13,7 @@ const TOOL_CURSORS: Record<Tool, string> = {
   TEXT: 'text',
   PEN: 'crosshair',
   CURVATURE_PEN: 'crosshair',
+  BEND: 'crosshair',
   HAND: 'grab'
 }
 

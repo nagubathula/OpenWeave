@@ -55,6 +55,18 @@ export function createKeyboardActions({
         store.textEditor?.selectAll()
         store.requestRender()
       })
+      return
+    }
+    if (
+      node &&
+      (node.type === 'VECTOR' ||
+        node.type === 'RECTANGLE' ||
+        node.type === 'ELLIPSE' ||
+        node.type === 'LINE' ||
+        node.type === 'POLYGON' ||
+        node.type === 'STAR')
+    ) {
+      store.enterNodeEditMode(node.id)
     }
   }
 

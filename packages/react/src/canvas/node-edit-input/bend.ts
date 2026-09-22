@@ -22,8 +22,18 @@ export type CanvasNodeEditMethods = Partial<{
     targetSegmentIndex: number | null,
     targetTangentField: 'tangentStart' | 'tangentEnd' | null
   ) => void
+  nodeEditBendSegment: (
+    segmentIndex: number,
+    t: number,
+    target: Vector,
+    initialTangentStart: Vector,
+    initialTangentEnd: Vector,
+    initialPoint: Vector
+  ) => void
+  nodeEditToggleVertexSmooth: (vertexIndex: number) => void
   nodeEditZeroVertexHandles: (vertexIndex: number) => void
   nodeEditConnectEndpoints: (a: number, b: number) => void
+  nodeEditPushHistory: () => void
   enterNodeEditMode: (nodeId: string) => void
 }>
 
@@ -118,5 +128,22 @@ export function handleBendHandleMove(
     d.lockedMode === 'independent',
     d.targetSegmentIndex,
     d.targetTangentField
+  )
+}
+
+export function handleBendSegmentMove(
+  d: Extract<DragState, { type: 'bend-segment' }>,
+  cx: number,
+  cy: number,
+  editor: Editor
+): void {
+  const nodeEditEditor = editor as Editor & CanvasNodeEditMethods
+  nodeEditEditor.nodeEditBendSegment?.(
+    d.segmentIndex,
+    d.t,
+    { x: cx, y: cy },
+    d.initialTangentStart,
+    d.initialTangentEnd,
+    d.initialPoint
   )
 }

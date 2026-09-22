@@ -1,5 +1,6 @@
 import {
   handleBendHandleMove,
+  handleBendSegmentMove,
   handleNodeEditMouseUp,
   updateNodeEditHover
 } from '#react/canvas/node-edit-input/use'
@@ -323,6 +324,11 @@ export function useCanvasInput(
 
     if (d.type === 'bend-handle') {
       handleBendHandleMove(d, cx, cy, e, editor)
+      return
+    }
+
+    if (d.type === 'bend-segment') {
+      handleBendSegmentMove(d, cx, cy, editor)
       return
     }
 
