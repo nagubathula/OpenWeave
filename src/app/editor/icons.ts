@@ -2,6 +2,7 @@ import {
   Circle as IconCircle,
   Columns3 as IconColumns,
   Component as IconComponentSet,
+  Crop as IconCrop,
   Diamond as IconComponent,
   Frame as IconFrame,
   Grid3X3 as IconGrid,
@@ -37,6 +38,7 @@ export const toolIcons: Record<Tool, LucideIcon> = {
   PEN: IconPenTool,
   CURVATURE_PEN: IconSpline,
   BEND: IconWaypoints,
+  CROP: IconCrop,
   TEXT: IconType,
   HAND: IconHand
 }

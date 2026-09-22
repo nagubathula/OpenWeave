@@ -17,3 +17,4 @@ export {
 export { SkiaRenderer, type RenderOverlays, type RulerTheme } from './renderer'
 export { drawDistanceMeasurements } from './overlays/measurement'
 export * from './shaders'
+export * from './crop-math'

@@ -1,4 +1,4 @@
-import type { VectorRegion, VectorVertex } from '@openweave/scene-graph'
+import type { GradientTransform, VectorRegion, VectorVertex } from '@openweave/scene-graph'
 import type { Color, Rect, Vector } from '@openweave/scene-graph/primitives'
 import type { SnapGuide } from '@openweave/scene-graph/snap'
 
@@ -86,4 +86,10 @@ export interface RenderOverlays {
   devMode?: boolean
   /** Live prototype-connection drag from a node's connector handle. */
   prototypeDrag?: { sourceId: string; cursorX: number; cursorY: number } | null
+  cropState?: {
+    nodeId: string
+    fillIndex: number
+    origTransform?: GradientTransform
+    origScale?: number
+  } | null
 }

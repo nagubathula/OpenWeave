@@ -1,6 +1,8 @@
+import type { CropHandle } from '@openweave/core/canvas'
 import type { Tool } from '@openweave/core/editor'
 import type {
   GeometryPath,
+  GradientTransform,
   LayoutAlignSelf,
   LayoutSizing,
   NodeType,
@@ -189,6 +191,21 @@ export interface DragGuide {
   origOffset?: number
 }
 
+export interface DragCrop {
+  type: 'crop'
+  subType: 'pan' | 'scale' | 'rotate'
+  handle?: CropHandle
+  corner?: 'tl' | 'tr' | 'br' | 'bl'
+  startCx: number
+  startCy: number
+  startNodeX: number
+  startNodeY: number
+  origTransform: GradientTransform
+  nodeId: string
+  nodeWidth: number
+  nodeHeight: number
+}
+
 export type DragState =
   | DragDraw
   | DragMove
@@ -207,6 +224,7 @@ export type DragState =
   | DragAutoLayoutGap
   | DragCornerRadius
   | DragGuide
+  | DragCrop
 
 export const TOOL_TO_NODE: Partial<Record<Tool, NodeType>> = {
   FRAME: 'FRAME',

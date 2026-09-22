@@ -1,3 +1,4 @@
+import { handleCropDragMove, updateCropHoverCursor } from '#react/canvas/crop-input'
 import {
   handleBendHandleMove,
   handleBendSegmentMove,
@@ -224,6 +225,15 @@ export function useCanvasInput(
   function onDblClick(e: MouseEvent) {
     if (startAutoLayoutPaddingEdit(e)) return
     if (startAutoLayoutGapEdit(e)) return
+    const { cx, cy } = getCoords(e)
+    const hit = hitFns.hitTestInScope(cx, cy, true)
+    if (hit) {
+      const hasImageFill = hit.fills?.some((f) => f.type === 'IMAGE')
+      if (hasImageFill) {
+        ;(editor as Editor & { enterCropMode?: (id: string) => void }).enterCropMode?.(hit.id)
+        return
+      }
+    }
     onTextDblClick(e)
   }
 
@@ -257,7 +267,8 @@ export function useCanvasInput(
       cursorOverride: setCursorOverride,
       setDrag,
       tryStartRotation,
-      handleTextEditClick
+      handleTextEditClick,
+      canvasToLocal
     })
   }
 
@@ -268,6 +279,11 @@ export function useCanvasInput(
     editor.setPointerWorld?.({ x: cx, y: cy })
 
     if (!drag.current) {
+      if (editor.state.activeTool === 'CROP' || editor.state.cropState != null) {
+        const cropCursor = updateCropHoverCursor(cx, cy, editor, canvasToLocal)
+        setCursorOverride(cropCursor ?? 'default')
+        return
+      }
       updatePenHover(cx, cy, editor)
       updateNodeEditHover(editor, cx, cy)
       if (editor.state.activeTool === 'SELECT') {
@@ -314,6 +330,11 @@ export function useCanvasInput(
 
     if (d.type === 'proto-connect') {
       handlePrototypeConnectMove(d, cx, cy, editor)
+      return
+    }
+
+    if (d.type === 'crop') {
+      handleCropDragMove(d, cx, cy, canvasToLocal, editor, e.shiftKey)
       return
     }
 
@@ -501,6 +522,11 @@ export function useCanvasInput(
       const sx = e ? getCoords(e).sx : lastScreenPos.current.sx
       const sy = e ? getCoords(e).sy : lastScreenPos.current.sy
       handleGuideDragUp(d, editor, sx, sy)
+    } else if (d.type === 'crop') {
+      const node = editor.graph.getNode(d.nodeId)
+      if (node?.fills) {
+        editor.updateNodeWithUndo(d.nodeId, { fills: [...node.fills] }, 'Crop Image')
+      }
     }
 
     drag.current = null

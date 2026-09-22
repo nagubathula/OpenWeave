@@ -1,3 +1,4 @@
+import { startCropInput } from '#react/canvas/crop-input/use'
 import { startPenInput } from '#react/canvas/pen-input/use'
 import { startPrototypeConnect } from '#react/canvas/prototype-input/use'
 import { handleVariantAddClick } from '#react/canvas/variant-input/use'
@@ -21,6 +22,7 @@ type ToolMouseDownOptions = {
   setDrag: (d: DragState) => void
   tryStartRotation: (cx: number, cy: number) => boolean
   handleTextEditClick: (cx: number, cy: number, shiftKey: boolean) => boolean
+  canvasToLocal?: (cx: number, cy: number, id: string) => { lx: number; ly: number }
 }
 
 export { startPanDrag }
@@ -36,13 +38,20 @@ export function handleToolMouseDown({
   cursorOverride,
   setDrag,
   tryStartRotation,
-  handleTextEditClick
+  handleTextEditClick,
+  canvasToLocal
 }: ToolMouseDownOptions) {
   const tool = editor.state.activeTool
 
   if (event.button === 1 || tool === 'HAND') {
     startPanDrag(event, setDrag, editor)
     return
+  }
+
+  if (tool === 'CROP' || editor.state.cropState != null) {
+    if (canvasToLocal && startCropInput(event, cx, cy, editor, canvasToLocal, setDrag)) {
+      return
+    }
   }
 
   if (tool === 'SELECT') {

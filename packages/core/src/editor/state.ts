@@ -34,6 +34,7 @@ export function createDefaultEditorState(pageId: string): EditorState {
     prototypeMode: false,
     devMode: false,
     prototypeDrag: null,
-    copiedProperties: null
+    copiedProperties: null,
+    cropState: null
   }
 }

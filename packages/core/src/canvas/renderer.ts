@@ -274,6 +274,11 @@ export class SkiaRenderer {
     graph: SceneGraph,
     editState?: RenderOverlays['nodeEditState']
   ) => void
+  declare drawCropOverlay: (
+    canvas: Canvas,
+    graph: SceneGraph,
+    cropState?: RenderOverlays['cropState']
+  ) => void
   declare drawPenOverlay: (canvas: Canvas, penState: RenderOverlays['penState']) => void
   declare drawPrototypeOverlay: (
     canvas: Canvas,

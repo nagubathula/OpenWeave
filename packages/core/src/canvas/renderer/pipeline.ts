@@ -79,7 +79,8 @@ export function renderFromEditorState(
       prototypeMode: state.prototypeMode,
       devMode: state.devMode,
       prototypeDrag: state.prototypeDrag,
-      activeGuide: state.activeGuide
+      activeGuide: state.activeGuide,
+      cropState: state.cropState ?? null
     },
     state.sceneVersion,
     layer
@@ -91,7 +92,8 @@ function hasVolatileOverlay(overlays: RenderOverlays): boolean {
     overlays.dropTargetId != null ||
     overlays.rotationPreview != null ||
     overlays.editingTextId != null ||
-    overlays.nodeEditState != null
+    overlays.nodeEditState != null ||
+    overlays.cropState != null
   )
 }
 
@@ -245,6 +247,7 @@ export function render(
     r.drawMarquee(canvas, overlays.marquee)
     r.drawLayoutInsertIndicator(canvas, overlays.layoutInsertIndicator)
     r.drawAutoLayoutHover(canvas, graph, overlays.autoLayoutHover)
+    r.drawCropOverlay(canvas, graph, overlays.cropState)
     r.drawNodeEditOverlay(canvas, graph, overlays.nodeEditState)
     r.drawPenOverlay(canvas, overlays.penState)
     r.drawPrototypeOverlay(canvas, graph, {

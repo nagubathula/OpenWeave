@@ -207,6 +207,94 @@ function ImageFillControls({ fill, onChange }: { fill: Fill; onChange: (fill: Fi
           ))}
         </select>
       </label>
+
+      {fill.imageScaleMode === 'CROP' && (
+        <button
+          type="button"
+          data-test-id="fill-crop-btn"
+          className="w-full rounded bg-primary/20 py-1 text-[11px] font-medium text-primary hover:bg-primary/30 transition-colors"
+          onClick={() => {
+            const selId = [...editor.state.selectedIds][0]
+            if (selId) {
+              const cropEditor = editor as unknown as {
+                enterCropMode?: (id: string) => void
+                exitCropMode?: (commit?: boolean) => void
+              }
+              if (editor.state.cropState) {
+                cropEditor.exitCropMode?.(true)
+              } else {
+                cropEditor.enterCropMode?.(selId)
+              }
+            }
+          }}
+        >
+          {editor.state.cropState ? 'Exit Crop' : 'Crop Image'}
+        </button>
+      )}
+
+      {fill.imageScaleMode === 'TILE' && (
+        <div className="space-y-1.5 rounded bg-input/40 p-1.5 border border-border">
+          <div className="flex items-center justify-between text-[10px] text-muted">
+            <span>Tile Scale</span>
+            <span className="font-mono text-surface">{Math.round((fill.scale ?? 1) * 100)}%</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <input
+              type="range"
+              min={0.1}
+              max={5}
+              step={0.05}
+              value={fill.scale ?? 1}
+              data-test-id="fill-tile-scale-slider"
+              className="flex-1 accent-primary h-1.5 bg-input/60 rounded cursor-pointer"
+              onChange={(e) => {
+                const s = parseFloat(e.target.value)
+                onChange({ ...fill, scale: s })
+                const cropEditor = editor as unknown as { setTileScale?: (scale: number) => void }
+                cropEditor.setTileScale?.(s)
+              }}
+            />
+            <input
+              type="number"
+              min={10}
+              max={500}
+              value={Math.round((fill.scale ?? 1) * 100)}
+              data-test-id="fill-tile-scale-input"
+              className="w-12 bg-input/70 px-1 py-0.5 rounded border border-border text-[11px] text-right"
+              onChange={(e) => {
+                const val = parseInt(e.target.value, 10)
+                if (!isNaN(val) && val > 0) {
+                  const s = val / 100
+                  onChange({ ...fill, scale: s })
+                  const cropEditor = editor as unknown as { setTileScale?: (scale: number) => void }
+                  cropEditor.setTileScale?.(s)
+                }
+              }}
+            />
+          </div>
+          <button
+            type="button"
+            data-test-id="fill-tile-crop-btn"
+            className="w-full rounded bg-input/60 py-1 text-[10px] text-muted hover:text-surface transition-colors"
+            onClick={() => {
+              const selId = [...editor.state.selectedIds][0]
+              if (selId) {
+                const cropEditor = editor as unknown as {
+                  enterCropMode?: (id: string) => void
+                  exitCropMode?: (commit?: boolean) => void
+                }
+                if (editor.state.cropState) {
+                  cropEditor.exitCropMode?.(true)
+                } else {
+                  cropEditor.enterCropMode?.(selId)
+                }
+              }
+            }}
+          >
+            {editor.state.cropState ? 'Exit Tile Manipulator' : 'Adjust Tile Matrix…'}
+          </button>
+        </div>
+      )}
       <input
         ref={fileInputRef}
         type="file"

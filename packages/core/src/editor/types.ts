@@ -1,6 +1,7 @@
 import type { CanvasKit } from 'canvaskit-wasm'
 
 import type {
+  GradientTransform,
   SceneGraph,
   SceneGraphEvents,
   SceneNode,
@@ -33,6 +34,7 @@ export type Tool =
   | 'PEN'
   | 'CURVATURE_PEN'
   | 'BEND'
+  | 'CROP'
   | 'HAND'
 
 export interface EditorState {
@@ -99,6 +101,12 @@ export interface EditorState {
   cursorCanvasX?: number | null
   cursorCanvasY?: number | null
   copiedProperties?: CopiedProperties | null
+  cropState?: {
+    nodeId: string
+    fillIndex: number
+    origTransform?: GradientTransform
+    origScale?: number
+  } | null
 }
 
 export interface ClipboardImageResolution {

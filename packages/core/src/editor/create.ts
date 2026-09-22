@@ -21,6 +21,7 @@ import { createClipboardActions } from './clipboard'
 import { createColorSpaceActions } from './color-space'
 import { createComponentSyncScheduler } from './component-sync'
 import { createComponentActions } from './components'
+import { createCropActions } from './crop'
 import { createGraphEventSubscription } from './graph-events'
 import { createGraphReadActions } from './graph-reads'
 import { createLayoutRunner } from './layout-runner'
@@ -179,6 +180,7 @@ export function createEditor(options?: EditorOptions) {
   const colorSpace = createColorSpaceActions(ctx)
   const undoActions = createUndoActions(ctx)
   const text = createTextActions(ctx)
+  const crop = createCropActions(ctx, nodes.updateNodeWithUndo)
   const variables = createVariableActions(ctx)
   const vectorize = createVectorizeActions(ctx)
   const alignment = createAlignmentActions(ctx)
@@ -279,6 +281,9 @@ export function createEditor(options?: EditorOptions) {
 
     // Bitmap-to-vector replacement
     ...vectorize,
+
+    // Image crop & affine manipulator
+    ...crop,
 
     // Variables
     ...variables,

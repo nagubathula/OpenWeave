@@ -40,6 +40,7 @@ export default function Toolbar() {
       PEN: toolTexts.pen,
       CURVATURE_PEN: toolTexts.curvaturePen,
       BEND: 'Bend',
+      CROP: 'Crop',
       TEXT: toolTexts.text,
       HAND: toolTexts.hand
     }),
@@ -60,6 +61,7 @@ export default function Toolbar() {
       PEN: 'P',
       CURVATURE_PEN: '⇧P',
       BEND: 'B',
+      CROP: '',
       TEXT: 'T',
       HAND: 'H'
     }),
@@ -81,6 +83,9 @@ export default function Toolbar() {
   }
 
   const inVectorEdit = useSceneComputed(() => Boolean(store.state.nodeEditState))
+  const inCropMode = useSceneComputed(() =>
+    Boolean(store.state.cropState || store.state.activeTool === 'CROP')
+  )
 
   return (
     <ToolbarRoot>
@@ -97,6 +102,9 @@ export default function Toolbar() {
               ui={toolbarUi}
               inVectorEdit={inVectorEdit}
               onExitVectorEdit={() => store.exitNodeEditMode(true)}
+              inCropMode={inCropMode}
+              onExitCropMode={(commit?: boolean) => store.exitCropMode(commit)}
+              onResetCrop={() => store.resetCrop()}
               onSetTool={actions.setTool}
             />
           )

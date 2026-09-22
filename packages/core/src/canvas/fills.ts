@@ -390,7 +390,10 @@ export function makeImageFillLocalMatrix(
   imgH: number
 ) {
   const scaleMode = fill.imageScaleMode ?? 'FILL'
-  if (scaleMode === 'TILE' && !fill.imageTransform) return r.ck.Matrix.identity()
+  if (scaleMode === 'TILE' && !fill.imageTransform) {
+    const s = fill.scale ?? 1
+    return r.ck.Matrix.scaled(s, s)
+  }
 
   if ((scaleMode === 'CROP' || scaleMode === 'TILE') && fill.imageTransform) {
     const t = fill.imageTransform

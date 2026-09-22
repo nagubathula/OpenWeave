@@ -138,6 +138,14 @@ const rendererMethods: ThisType<SkiaRenderer> = {
     )
   },
 
+  drawCropOverlay(
+    canvas: Canvas,
+    graph: SceneGraph,
+    cropState?: RenderOverlays['cropState']
+  ): void {
+    Overlays.drawCropOverlay(this, canvas, graph, cropState)
+  },
+
   drawPenOverlay(canvas: Canvas, penState: RenderOverlays['penState']): void {
     PenOverlay.drawPenOverlay(this, canvas, penState)
   },

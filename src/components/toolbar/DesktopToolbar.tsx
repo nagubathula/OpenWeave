@@ -26,6 +26,9 @@ interface DesktopToolbarProps {
   ui?: ToolbarUI
   inVectorEdit?: boolean
   onExitVectorEdit?: () => void
+  inCropMode?: boolean
+  onExitCropMode?: (commit?: boolean) => void
+  onResetCrop?: () => void
   onSetTool: (tool: Tool) => void
 }
 
@@ -39,6 +42,9 @@ export default function DesktopToolbar({
   ui,
   inVectorEdit,
   onExitVectorEdit,
+  inCropMode,
+  onExitCropMode,
+  onResetCrop,
   onSetTool
 }: DesktopToolbarProps) {
   const { activeTab: activeTabAtom } = useAIChat()
@@ -99,6 +105,43 @@ export default function DesktopToolbar({
               data-test-id="vector-done-btn"
               className="flex items-center gap-1.5 rounded-full bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground shadow-sm hover:opacity-90 active:scale-95 transition-all"
               onClick={onExitVectorEdit}
+            >
+              <Check className="size-3.5" />
+              <span>Done</span>
+            </button>
+          </Tip>
+        </div>
+      </div>
+    )
+  }
+
+  if (inCropMode) {
+    return (
+      <div className="absolute bottom-3 left-1/2 z-20 flex -translate-x-1/2 items-center transition-all duration-300">
+        <div
+          data-test-id="crop-toolbar"
+          className="flex items-center gap-2 rounded-full bg-panel px-3 py-1.5 shadow-[0_8px_30px_rgb(0_0_0/0.45)] border border-primary/20 text-xs"
+        >
+          <span className="text-muted font-medium">Crop Image</span>
+          <div className="h-4 w-px bg-border/60" />
+          {/* oxlint-disable-next-line openweave/no-hardcoded-tip-labels */}
+          <Tip label="Reset Image Bounds">
+            <button
+              type="button"
+              data-test-id="crop-reset-btn"
+              className="rounded-full px-2.5 py-1 text-xs text-muted hover:text-surface hover:bg-input/50 transition-colors"
+              onClick={onResetCrop}
+            >
+              Reset
+            </button>
+          </Tip>
+          {/* oxlint-disable-next-line openweave/no-hardcoded-tip-labels */}
+          <Tip label="Exit Crop (Esc / Enter)">
+            <button
+              type="button"
+              data-test-id="crop-done-btn"
+              className="flex items-center gap-1.5 rounded-full bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground shadow-sm hover:opacity-90 active:scale-95 transition-all"
+              onClick={() => onExitCropMode?.(true)}
             >
               <Check className="size-3.5" />
               <span>Done</span>
