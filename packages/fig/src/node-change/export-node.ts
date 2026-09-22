@@ -798,6 +798,29 @@ export function sceneNodeToKiwiWithContext(
     const startGuid = getOrCreateNodeGuid(context, node.prototypeStartNodeId, localIdCounter)
     if (startGuid) nc.prototypeStartNodeID = startGuid
   }
+  if (node.prototypeStartingPoint) {
+    nc.prototypeStartingPoint = {
+      name: node.prototypeStartingPoint.name,
+      description: node.prototypeStartingPoint.description ?? '',
+      position: node.prototypeStartingPoint.position ?? ''
+    }
+  }
+  if (node.overlayPosition) {
+    nc.overlayPositionType = node.overlayPosition
+  }
+  if (node.overlayCloseOnClickOutside !== undefined) {
+    nc.overlayBackgroundInteraction = node.overlayCloseOnClickOutside
+      ? 'CLOSE_ON_CLICK_OUTSIDE'
+      : 'NONE'
+  }
+  if (node.overlayBackgroundScrim !== undefined) {
+    nc.overlayBackgroundAppearance = node.overlayBackgroundScrim
+      ? {
+          backgroundType: 'SOLID_COLOR',
+          backgroundColor: node.overlayBackgroundColor ?? { r: 0, g: 0, b: 0, a: 0.25 }
+        }
+      : { backgroundType: 'NONE' }
+  }
   // Only set strokeWeight/strokeAlign when the node has strokes in the scene
   // model. For imported nodes without strokes but with raw strokeWeight data
   // (e.g. text nodes, instance children with scaled strokes), the raw value

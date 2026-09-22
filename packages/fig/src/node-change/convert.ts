@@ -64,7 +64,8 @@ import type {
   ComponentPropertyType,
   SymbolLink,
   VariantPropSpec,
-  VariableModeMap
+  VariableModeMap,
+  OverlayPosition
 } from '@openweave/scene-graph'
 import type { GUID } from '@openweave/scene-graph/primitives'
 
@@ -634,6 +635,34 @@ export function nodeChangeToProps(
     autoRename: (nc.autoRename ?? true) as boolean,
     reactions: nodeChangeToReactions(nc as Parameters<typeof nodeChangeToReactions>[0]),
     prototypeStartNodeId: nc.prototypeStartNodeID ? guidToString(nc.prototypeStartNodeID) : null,
+    prototypeStartingPoint: nc.prototypeStartingPoint
+      ? {
+          name: (nc.prototypeStartingPoint as { name?: string }).name ?? '',
+          description: (nc.prototypeStartingPoint as { description?: string }).description ?? '',
+          position: (nc.prototypeStartingPoint as { position?: string }).position ?? ''
+        }
+      : null,
+    overlayPosition: (nc as { overlayPositionType?: string }).overlayPositionType
+      ? ((nc as { overlayPositionType?: string }).overlayPositionType as OverlayPosition)
+      : undefined,
+    overlayCloseOnClickOutside:
+      (nc as { overlayBackgroundInteraction?: string }).overlayBackgroundInteraction !== undefined
+        ? (nc as { overlayBackgroundInteraction?: string }).overlayBackgroundInteraction ===
+          'CLOSE_ON_CLICK_OUTSIDE'
+        : undefined,
+    overlayBackgroundScrim:
+      (nc as { overlayBackgroundAppearance?: { backgroundType?: string } })
+        .overlayBackgroundAppearance !== undefined
+        ? (nc as { overlayBackgroundAppearance?: { backgroundType?: string } })
+            .overlayBackgroundAppearance?.backgroundType === 'SOLID_COLOR'
+        : undefined,
+    overlayBackgroundColor: (
+      nc as {
+        overlayBackgroundAppearance?: {
+          backgroundColor?: SceneNode['overlayBackgroundColor']
+        }
+      }
+    ).overlayBackgroundAppearance?.backgroundColor,
     boundVariables: extractBoundVariables(nc),
     variableModes: extractVariableModes(nc),
     exportSettings: extractExportSettings(nc),

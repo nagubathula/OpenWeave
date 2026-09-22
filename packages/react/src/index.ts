@@ -21,6 +21,11 @@ export { EditorProvider, useEditor, EditorContext } from '#react/editor/context'
 export { useCanvas } from '#react/canvas/surface/use'
 export type { UseCanvasOptions } from '#react/canvas/surface/use'
 export { useCanvasInput } from '#react/canvas/useCanvasInput'
+export {
+  startPrototypeConnect,
+  handlePrototypeConnectMove,
+  finishPrototypeConnect
+} from '#react/canvas/prototype-input/use'
 export { useCanvasVirtualReference } from '#react/canvas/overlays/useCanvasVirtualReference'
 export { useTextEdit } from '#react/canvas/text-edit/use'
 export { useCanvasDrop, extractImageFilesFromClipboard } from '#react/canvas/drop/use'

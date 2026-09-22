@@ -69,8 +69,58 @@ export function handlePrototypeConnectMove(
   editor.requestRepaint()
 }
 
-/** Topmost top-level frame containing the point, excluding the source's own top frame. */
-function dropTarget(editor: Editor, sourceId: string, x: number, y: number): SceneNode | null {
+function findVariantTarget(
+  editor: Editor,
+  sourceId: string,
+  x: number,
+  y: number
+): SceneNode | null {
+  const source = editor.graph.getNode(sourceId)
+  if (!source) return null
+
+  let componentSetId: string | null = null
+  if (source.type === 'COMPONENT' && source.parentId) {
+    const parent = editor.graph.getNode(source.parentId)
+    if (parent?.type === 'COMPONENT_SET') componentSetId = parent.id
+  } else if (source.type === 'INSTANCE' && source.componentId) {
+    const comp = editor.graph.getNode(source.componentId)
+    if (comp?.parentId) {
+      const parent = editor.graph.getNode(comp.parentId)
+      if (parent?.type === 'COMPONENT_SET') componentSetId = parent.id
+    }
+  }
+
+  if (!componentSetId) return null
+  const componentSet = editor.graph.getNode(componentSetId)
+  if (!componentSet) return null
+
+  for (const childId of componentSet.childIds) {
+    if (childId === sourceId) continue
+    const variant = editor.graph.getNode(childId)
+    if (!variant || !variant.visible) continue
+    const abs = editor.graph.getAbsolutePosition(variant.id)
+    if (x >= abs.x && x <= abs.x + variant.width && y >= abs.y && y <= abs.y + variant.height) {
+      return variant
+    }
+  }
+  return null
+}
+
+interface DropTargetResult {
+  target: SceneNode
+  isVariant: boolean
+}
+
+/** Topmost target containing the point: first checks variant components, then top-level frames. */
+function dropTarget(
+  editor: Editor,
+  sourceId: string,
+  x: number,
+  y: number
+): DropTargetResult | null {
+  const variant = findVariantTarget(editor, sourceId, x, y)
+  if (variant) return { target: variant, isVariant: true }
+
   const sourceTopId = topLevelAncestorId(editor, sourceId)
   const page = editor.graph.getNode(editor.state.currentPageId)
   if (!page) return null
@@ -79,7 +129,7 @@ function dropTarget(editor: Editor, sourceId: string, x: number, y: number): Sce
     if (!frame || !frame.visible || frame.id === sourceTopId) continue
     const abs = editor.graph.getAbsolutePosition(frame.id)
     if (x >= abs.x && x <= abs.x + frame.width && y >= abs.y && y <= abs.y + frame.height) {
-      return frame
+      return { target: frame, isVariant: false }
     }
   }
   return null
@@ -87,7 +137,8 @@ function dropTarget(editor: Editor, sourceId: string, x: number, y: number): Sce
 
 /**
  * Finish the connection drag: dropping on another top-level frame creates (or
- * retargets) the source's on-click navigate reaction; dropping elsewhere cancels.
+ * retargets) the source's on-click navigate reaction; dropping on a sibling variant
+ * creates a change-to reaction; dropping elsewhere cancels.
  */
 export function finishPrototypeConnect(d: DragProtoConnect, editor: Editor): void {
   const drag = editor.state.prototypeDrag
@@ -95,12 +146,14 @@ export function finishPrototypeConnect(d: DragProtoConnect, editor: Editor): voi
   editor.requestRepaint()
   if (!drag) return
 
-  const target = dropTarget(editor, d.sourceId, drag.cursorX, drag.cursorY)
+  const drop = dropTarget(editor, d.sourceId, drag.cursorX, drag.cursorY)
   const source = editor.graph.getNode(d.sourceId)
-  if (!target || !source) return
+  if (!drop || !source) return
+  const { target, isVariant } = drop
 
+  const actionType = isVariant ? 'CHANGE_TO' : 'NAVIGATE'
   const existingIndex = source.reactions.findIndex(
-    (reaction) => reaction.trigger === 'ON_CLICK' && reaction.action === 'NAVIGATE'
+    (reaction) => reaction.trigger === 'ON_CLICK' && reaction.action === actionType
   )
   const reactions: PrototypeReaction[] =
     existingIndex !== -1
@@ -112,11 +165,13 @@ export function finishPrototypeConnect(d: DragProtoConnect, editor: Editor): voi
           {
             trigger: 'ON_CLICK',
             timeout: 800,
-            action: 'NAVIGATE',
+            action: actionType,
             destinationId: target.id,
             url: '',
-            transition: 'INSTANT',
-            transitionDuration: 300
+            transition: isVariant ? 'SMART_ANIMATE' : 'INSTANT',
+            transitionDuration: 300,
+            easing: isVariant ? 'SPRING' : undefined,
+            springPreset: isVariant ? 'BOUNCY' : undefined
           }
         ]
 

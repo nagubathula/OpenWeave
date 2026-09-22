@@ -1,6 +1,6 @@
 import type { Canvas, Paint } from 'canvaskit-wasm'
 
-import type { SceneGraph, SceneNode } from '@openweave/scene-graph'
+import type { PrototypeActionType, SceneGraph, SceneNode } from '@openweave/scene-graph'
 import { getAbsolutePosition } from '@openweave/scene-graph/coordinate'
 import type { Vector } from '@openweave/scene-graph/primitives'
 
@@ -18,6 +18,7 @@ export interface PrototypeOverlayState {
 interface PrototypeLink {
   from: SceneNode
   to: SceneNode
+  action: PrototypeActionType
 }
 
 const ANCHOR_RADIUS = 4
@@ -33,6 +34,14 @@ export function prototypeHandlePosition(graph: SceneGraph, node: SceneNode): Vec
   return { x: abs.x + node.width, y: abs.y + node.height / 2 }
 }
 
+const SUPPORTED_LINK_ACTIONS = new Set<PrototypeActionType>([
+  'NAVIGATE',
+  'CHANGE_TO',
+  'OPEN_OVERLAY',
+  'SWAP_OVERLAY',
+  'SCROLL_TO'
+])
+
 function collectLinks(graph: SceneGraph, pageId: string): PrototypeLink[] {
   const page = graph.getNode(pageId)
   if (!page) return []
@@ -42,9 +51,9 @@ function collectLinks(graph: SceneGraph, pageId: string): PrototypeLink[] {
     const node = graph.getNode(stack.pop() as string)
     if (!node) continue
     for (const reaction of node.reactions) {
-      if (reaction.action !== 'NAVIGATE' || !reaction.destinationId) continue
+      if (!SUPPORTED_LINK_ACTIONS.has(reaction.action) || !reaction.destinationId) continue
       const dest = graph.getNode(reaction.destinationId)
-      if (dest) links.push({ from: node, to: dest })
+      if (dest) links.push({ from: node, to: dest, action: reaction.action })
     }
     stack.push(...node.childIds)
   }
@@ -133,6 +142,65 @@ function handleNodes(graph: SceneGraph, pageId: string, state: PrototypeOverlayS
   return nodes
 }
 
+function actionColor(r: SkiaRenderer, action: PrototypeActionType) {
+  if (action === 'CHANGE_TO') {
+    // Violet/Purple for interactive component variant changes
+    return r.ck.Color4f(0.59, 0.28, 1, 1)
+  }
+  if (action === 'OPEN_OVERLAY' || action === 'SWAP_OVERLAY') {
+    // Teal for overlays
+    return r.ck.Color4f(0, 0.76, 0.6, 1)
+  }
+  if (action === 'SCROLL_TO') {
+    // Amber for scroll
+    return r.ck.Color4f(0.95, 0.6, 0.29, 1)
+  }
+  const { r: cr, g, b } = SELECTION_COLOR
+  return r.ck.Color4f(cr, g, b, 1)
+}
+
+function drawFlowBadge(r: SkiaRenderer, canvas: Canvas, screenPos: Vector, label: string): void {
+  const font = r.sizeFont ?? r.textFont
+  let textWidth = label.length * 6.5
+  if (font) {
+    try {
+      const glyphs = font.getGlyphIDs(label)
+      const widths = font.getGlyphWidths(glyphs)
+      textWidth = widths.reduce((acc, w) => acc + w, 0)
+    } catch {
+      // fallback
+    }
+  }
+
+  const padX = 7
+  const height = 18
+  const iconW = 6
+  const iconH = 8
+  const pillW = padX + iconW + 5 + textWidth + padX
+  const badgeX = screenPos.x
+  const badgeY = screenPos.y - height - 6
+
+  const { r: cr, g, b } = SELECTION_COLOR
+  r.auxFill.setColor(r.ck.Color4f(cr, g, b, 1))
+  const rrect = r.ck.RRectXY(r.ck.LTRBRect(badgeX, badgeY, badgeX + pillW, badgeY + height), 4, 4)
+  canvas.drawRRect(rrect, r.auxFill)
+
+  r.auxFill.setColor(r.ck.WHITE)
+  const iconLeft = badgeX + padX
+  const iconTop = badgeY + (height - iconH) / 2
+  const playPath = new r.ck.Path()
+  playPath.moveTo(iconLeft, iconTop)
+  playPath.lineTo(iconLeft + iconW, iconTop + iconH / 2)
+  playPath.lineTo(iconLeft, iconTop + iconH)
+  playPath.close()
+  canvas.drawPath(playPath, r.auxFill)
+  playPath.delete()
+
+  if (font) {
+    canvas.drawText(label, iconLeft + iconW + 5, badgeY + height - 5, r.auxFill, font)
+  }
+}
+
 export function drawPrototypeOverlay(
   r: SkiaRenderer,
   canvas: Canvas,
@@ -146,6 +214,23 @@ export function drawPrototypeOverlay(
     y: y * r.zoom + r.panY
   })
 
+  // Flow starting point badges
+  const page = graph.getNode(r.pageId)
+  if (page) {
+    for (const childId of page.childIds) {
+      const frame = graph.getNode(childId)
+      if (!frame || !frame.visible) continue
+      const isStart =
+        frame.id === page.prototypeStartNodeId || Boolean(frame.prototypeStartingPoint?.name)
+      if (isStart) {
+        const abs = getAbsolutePosition(frame, graph)
+        const screenPos = toScreen(abs.x, abs.y)
+        const flowName = frame.prototypeStartingPoint?.name || 'Flow 1'
+        drawFlowBadge(r, canvas, screenPos, flowName)
+      }
+    }
+  }
+
   const { r: cr, g, b } = SELECTION_COLOR
   r.auxStroke.setColor(r.ck.Color4f(cr, g, b, 1))
   r.auxStroke.setStrokeWidth(2)
@@ -153,6 +238,9 @@ export function drawPrototypeOverlay(
   r.auxFill.setColor(r.ck.Color4f(cr, g, b, 1))
 
   for (const link of collectLinks(graph, r.pageId)) {
+    const col = actionColor(r, link.action)
+    r.auxStroke.setColor(col)
+    r.auxFill.setColor(col)
     const { start, end, horizontal } = linkAnchors(graph, link)
     drawNoodle(
       r,

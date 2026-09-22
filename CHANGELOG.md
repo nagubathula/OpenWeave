@@ -15,6 +15,7 @@
 
 - Measure distances dynamically on canvas with <kbd>Alt</kbd> (Option), rendering Figma-style target outlines, projection lines, and numeric dimension pills.
 - Create and manage canvas ruler guides by dragging from top and left rulers onto the canvas with live coordinate badges, existing guide repositioning, and deletion when dragged back onto rulers.
+- Full .fig prototype round-trip and canvas hotspot link connections, preserving variant CHANGE_TO (SWAP_STATE), spring & custom cubic bezier easing curves, overlay positions and scrim settings, flow starting point flags, and multi-action colored noodles.
 - Distribute layers with horizontal and vertical spacing controls directly from the Position toolbar alongside alignment tools.
 - Toggle text cases with segmented quick-select buttons (`Aa`, `AA`, `aa`, `Aa Bb`) and configure text truncation with inline max lines in the Typography inspector.
 

@@ -37,6 +37,53 @@ describe('roundtrip: prototype reactions', () => {
       height: 32
     })
 
+    const modal = graph.createNode('FRAME', page.id, {
+      name: 'Modal',
+      x: 600,
+      y: 0,
+      width: 150,
+      height: 100
+    })
+    modal.overlayPosition = 'TOP_CENTER'
+    modal.overlayCloseOnClickOutside = true
+    modal.overlayBackgroundScrim = true
+
+    const componentSet = graph.createNode('COMPONENT_SET', page.id, {
+      name: 'Toggle',
+      x: 0,
+      y: 300,
+      width: 120,
+      height: 60
+    })
+    const variantOff = graph.createNode('COMPONENT', componentSet.id, {
+      name: 'State=Off',
+      x: 0,
+      y: 300,
+      width: 50,
+      height: 30
+    })
+    const variantOn = graph.createNode('COMPONENT', componentSet.id, {
+      name: 'State=On',
+      x: 60,
+      y: 300,
+      width: 50,
+      height: 30
+    })
+
+    variantOff.reactions = [
+      {
+        trigger: 'ON_CLICK',
+        timeout: 800,
+        action: 'CHANGE_TO',
+        destinationId: variantOn.id,
+        url: '',
+        transition: 'SMART_ANIMATE',
+        transitionDuration: 300,
+        easing: 'SPRING',
+        springPreset: 'BOUNCY'
+      }
+    ]
+
     button.reactions = [
       {
         trigger: 'ON_CLICK',
@@ -45,7 +92,9 @@ describe('roundtrip: prototype reactions', () => {
         destinationId: detail.id,
         url: '',
         transition: 'SLIDE_FROM_RIGHT',
-        transitionDuration: 450
+        transitionDuration: 450,
+        easing: 'CUSTOM_CUBIC',
+        easingFunction: [0.25, 0.1, 0.25, 1]
       },
       {
         trigger: 'ON_HOVER',
@@ -55,6 +104,18 @@ describe('roundtrip: prototype reactions', () => {
         url: 'https://example.com',
         transition: 'INSTANT',
         transitionDuration: 300
+      },
+      {
+        trigger: 'ON_CLICK',
+        timeout: 800,
+        action: 'OPEN_OVERLAY',
+        destinationId: modal.id,
+        url: '',
+        transition: 'DISSOLVE',
+        transitionDuration: 200,
+        overlayPosition: 'TOP_CENTER',
+        overlayCloseOnClickOutside: true,
+        overlayBackgroundScrim: true
       }
     ]
     detail.reactions = [
@@ -69,6 +130,11 @@ describe('roundtrip: prototype reactions', () => {
       }
     ]
     page.prototypeStartNodeId = home.id
+    home.prototypeStartingPoint = {
+      name: 'Main Flow',
+      description: 'Primary app flow',
+      position: '0'
+    }
 
     const bytes = await exportFigFile(graph)
     reImported = await parseFigFile(bytes.slice().buffer)
@@ -123,6 +189,49 @@ describe('roundtrip: prototype reactions', () => {
     const page = reImported.getPages()[0]
     const home = byName('Home')
     expect(page.prototypeStartNodeId).toBe(home.id)
+  })
+
+  test('custom cubic bezier easing survives with control points', () => {
+    const button = byName('Button')
+    const nav = button.reactions.find((r) => r.action === 'NAVIGATE')
+    expectDefined(nav)
+    expect(nav.easing).toBe('CUSTOM_CUBIC')
+    expect(nav.easingFunction).toBeDefined()
+    expect(nav.easingFunction?.[0]).toBeCloseTo(0.25, 2)
+    expect(nav.easingFunction?.[1]).toBeCloseTo(0.1, 2)
+    expect(nav.easingFunction?.[2]).toBeCloseTo(0.25, 2)
+    expect(nav.easingFunction?.[3]).toBeCloseTo(1, 2)
+  })
+
+  test('change_to interactive component variant switching survives', () => {
+    const variantOff = byName('State=Off')
+    const variantOn = byName('State=On')
+    const changeTo = variantOff.reactions.find((r) => r.action === 'CHANGE_TO')
+    expectDefined(changeTo)
+    expect(changeTo.trigger).toBe('ON_CLICK')
+    expect(changeTo.destinationId).toBe(variantOn.id)
+    expect(changeTo.transition).toBe('SMART_ANIMATE')
+    expect(changeTo.transitionDuration).toBe(300)
+    expect(changeTo.easing).toBe('SPRING')
+    expect(changeTo.springPreset).toBe('BOUNCY')
+  })
+
+  test('open_overlay reaction survives with overlay settings', () => {
+    const button = byName('Button')
+    const modal = byName('Modal')
+    const overlay = button.reactions.find((r) => r.action === 'OPEN_OVERLAY')
+    expectDefined(overlay)
+    expect(overlay.destinationId).toBe(modal.id)
+    expect(overlay.overlayPosition).toBe('TOP_CENTER')
+    expect(overlay.overlayCloseOnClickOutside).toBe(true)
+    expect(overlay.overlayBackgroundScrim).toBe(true)
+  })
+
+  test('frame prototype starting point survives with name and description', () => {
+    const home = byName('Home')
+    expect(home.prototypeStartingPoint).toBeDefined()
+    expect(home.prototypeStartingPoint?.name).toBe('Main Flow')
+    expect(home.prototypeStartingPoint?.description).toBe('Primary app flow')
   })
 
   test('nodes without reactions import with an empty list', () => {

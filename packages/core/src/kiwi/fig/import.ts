@@ -370,6 +370,14 @@ function remapComponentIds(graph: SceneGraph, guidToNodeId: Map<string, string>)
   }
 }
 
+const ACTIONS_WITH_DESTINATION = new Set([
+  'NAVIGATE',
+  'CHANGE_TO',
+  'OPEN_OVERLAY',
+  'SWAP_OVERLAY',
+  'SCROLL_TO'
+])
+
 /** Prototype references are imported as GUID strings; remap them to graph ids. */
 function remapPrototypeIds(graph: SceneGraph, guidToNodeId: Map<string, string>): void {
   for (const node of graph.getAllNodes()) {
@@ -379,19 +387,49 @@ function remapPrototypeIds(graph: SceneGraph, guidToNodeId: Map<string, string>)
     }
     if (node.reactions.length === 0) continue
     node.reactions = node.reactions.flatMap((reaction) => {
-      if (reaction.action !== 'NAVIGATE') return [reaction]
+      if (!ACTIONS_WITH_DESTINATION.has(reaction.action)) return [reaction]
       const destinationId = reaction.destinationId
         ? (guidToNodeId.get(reaction.destinationId) ?? null)
         : null
-      // A navigate reaction whose destination did not import is dead weight.
+      // A reaction whose destination did not import is dead weight.
       if (!destinationId) return []
-      return [{ ...reaction, destinationId }]
+      const patched: typeof reaction = { ...reaction, destinationId }
+      if (reaction.action === 'OPEN_OVERLAY' || reaction.action === 'SWAP_OVERLAY') {
+        const dest = graph.getNode(destinationId)
+        if (dest?.overlayPosition && !patched.overlayPosition) {
+          patched.overlayPosition = dest.overlayPosition
+        }
+        if (
+          dest?.overlayCloseOnClickOutside !== undefined &&
+          patched.overlayCloseOnClickOutside === undefined
+        ) {
+          patched.overlayCloseOnClickOutside = dest.overlayCloseOnClickOutside
+        }
+        if (
+          dest?.overlayBackgroundScrim !== undefined &&
+          patched.overlayBackgroundScrim === undefined
+        ) {
+          patched.overlayBackgroundScrim = dest.overlayBackgroundScrim
+        }
+        if (dest?.overlayBackgroundColor && !patched.overlayBackgroundColor) {
+          patched.overlayBackgroundColor = dest.overlayBackgroundColor
+        }
+      }
+      return [patched]
     })
   }
   for (const page of graph.getPages(true)) {
     if (page.prototypeStartNodeId) {
       const remapped = guidToNodeId.get(page.prototypeStartNodeId)
       if (remapped) page.prototypeStartNodeId = remapped
+    } else {
+      for (const childId of page.childIds) {
+        const child = graph.getNode(childId)
+        if (child?.prototypeStartingPoint) {
+          page.prototypeStartNodeId = child.id
+          break
+        }
+      }
     }
   }
 }

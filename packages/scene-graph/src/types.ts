@@ -497,6 +497,8 @@ export interface PrototypeReaction {
   springPreset?: SpringPreset
   /** Custom spring physics configuration */
   springConfig?: SpringConfig
+  /** Custom cubic bezier control points [x1, y1, x2, y2] when easing is CUSTOM_CUBIC */
+  easingFunction?: number[]
   /** Overlay settings */
   overlayPosition?: OverlayPosition
   overlayCloseOnClickOutside?: boolean
@@ -652,6 +654,13 @@ export interface SceneNode {
   reactions: PrototypeReaction[]
   /** On PAGE nodes: the frame the prototype flow starts from. */
   prototypeStartNodeId: string | null
+  /** Prototype flow starting point metadata (name, description, position). */
+  prototypeStartingPoint?: { name: string; description?: string; position?: string } | null
+  /** Overlay presentation settings when this frame is targeted as an overlay. */
+  overlayPosition?: OverlayPosition
+  overlayCloseOnClickOutside?: boolean
+  overlayBackgroundScrim?: boolean
+  overlayBackgroundColor?: Color
 
   /** Timeline animation tracks for this node. */
   motionTracks?: NodeAnimationTrack

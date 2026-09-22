@@ -452,7 +452,21 @@ export default function InteractionDetailsPopover({
                     {/* Embedded Bézier Curve Editor for custom curves */}
                     {reaction.easing === 'CUSTOM_CUBIC' && (
                       <div className="rounded border border-border/50 bg-background/30 p-2 space-y-2">
-                        <BezierCurveEditor />
+                        <BezierCurveEditor
+                          points={
+                            reaction.easingFunction && reaction.easingFunction.length === 4
+                              ? {
+                                  x1: reaction.easingFunction[0],
+                                  y1: reaction.easingFunction[1],
+                                  x2: reaction.easingFunction[2],
+                                  y2: reaction.easingFunction[3]
+                                }
+                              : undefined
+                          }
+                          onChange={(pts) =>
+                            onUpdate({ easingFunction: [pts.x1, pts.y1, pts.x2, pts.y2] })
+                          }
+                        />
                       </div>
                     )}
                   </div>

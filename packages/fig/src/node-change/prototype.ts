@@ -1,11 +1,13 @@
 import { guidToString } from '@openweave/kiwi/fig/guid'
 import type {
   PrototypeActionType,
+  PrototypeEasing,
   PrototypeReaction,
   PrototypeTransition,
-  PrototypeTrigger
+  PrototypeTrigger,
+  SpringPreset
 } from '@openweave/scene-graph'
-import type { GUID } from '@openweave/scene-graph/primitives'
+import type { GUID, Vector } from '@openweave/scene-graph/primitives'
 
 /**
  * Maps the simplified OpenWeave prototype reaction model to and from Figma's
@@ -31,6 +33,8 @@ interface KiwiPrototypeAction {
   transitionShouldSmartAnimate?: boolean
   transitionPreserveScroll?: boolean
   openUrlInNewTab?: boolean
+  easingFunction?: number[]
+  overlayRelativePosition?: Vector
 }
 
 interface KiwiPrototypeInteraction {
@@ -104,6 +108,47 @@ function kiwiToTransition(value: string | undefined): PrototypeTransition {
   return 'INSTANT'
 }
 
+function reactionEasingToKiwi(easing?: PrototypeEasing, springPreset?: SpringPreset): string {
+  if (easing === 'LINEAR') return 'LINEAR'
+  if (easing === 'EASE_IN') return 'IN_CUBIC'
+  if (easing === 'EASE_OUT') return 'OUT_CUBIC'
+  if (easing === 'EASE_IN_AND_OUT') return 'INOUT_CUBIC'
+  if (easing === 'CUSTOM_CUBIC') return 'CUSTOM_CUBIC'
+  if (easing === 'SPRING') {
+    if (springPreset === 'QUICK') return 'SPRING_PRESET_ONE'
+    if (springPreset === 'BOUNCY') return 'SPRING_PRESET_TWO'
+    if (springPreset === 'SLOW') return 'SPRING_PRESET_THREE'
+    if (springPreset === 'CUSTOM') return 'CUSTOM_SPRING'
+    return 'GENTLE_SPRING'
+  }
+  return 'OUT_CUBIC'
+}
+
+function kiwiToReactionEasing(
+  easingType?: string,
+  easingFunction?: number[]
+): { easing?: PrototypeEasing; springPreset?: SpringPreset; easingFunction?: number[] } {
+  if (!easingType) return {}
+  if (easingType === 'LINEAR') return { easing: 'LINEAR' }
+  if (easingType === 'IN_CUBIC') return { easing: 'EASE_IN' }
+  if (easingType === 'OUT_CUBIC') return { easing: 'EASE_OUT' }
+  if (easingType === 'INOUT_CUBIC') return { easing: 'EASE_IN_AND_OUT' }
+  if (easingType === 'CUSTOM_CUBIC') {
+    return {
+      easing: 'CUSTOM_CUBIC',
+      easingFunction: easingFunction && easingFunction.length === 4 ? easingFunction : undefined
+    }
+  }
+  if (easingType === 'GENTLE_SPRING') return { easing: 'SPRING', springPreset: 'GENTLE' }
+  if (easingType === 'SPRING_PRESET_ONE') return { easing: 'SPRING', springPreset: 'QUICK' }
+  if (easingType === 'SPRING_PRESET_TWO') return { easing: 'SPRING', springPreset: 'BOUNCY' }
+  if (easingType === 'SPRING_PRESET_THREE') return { easing: 'SPRING', springPreset: 'SLOW' }
+  if (easingType === 'CUSTOM_SPRING' || easingType === 'SPRING') {
+    return { easing: 'SPRING', springPreset: 'CUSTOM' }
+  }
+  return {}
+}
+
 export function reactionsToKiwiInteractions(
   reactions: PrototypeReaction[],
   resolveGuid: (nodeId: string) => GUID | undefined,
@@ -115,9 +160,16 @@ export function reactionsToKiwiInteractions(
     const action: KiwiPrototypeAction = {
       transitionType: TRANSITION_TO_KIWI[reaction.transition] ?? 'INSTANT_TRANSITION',
       transitionDuration: reaction.transitionDuration / 1000,
-      easingType: reaction.easing === 'SPRING' ? 'GENTLE' : 'OUT_CUBIC',
+      easingType: reactionEasingToKiwi(reaction.easing, reaction.springPreset),
       transitionShouldSmartAnimate: isSmartAnimate,
       transitionPreserveScroll: false
+    }
+    if (
+      reaction.easing === 'CUSTOM_CUBIC' &&
+      reaction.easingFunction &&
+      reaction.easingFunction.length === 4
+    ) {
+      action.easingFunction = reaction.easingFunction
     }
     if (reaction.action === 'NAVIGATE') {
       if (!reaction.destinationId) continue
@@ -125,6 +177,13 @@ export function reactionsToKiwiInteractions(
       if (!destGuid) continue
       action.connectionType = 'INTERNAL_NODE'
       action.navigationType = 'NAVIGATE'
+      action.transitionNodeID = destGuid
+    } else if (reaction.action === 'CHANGE_TO') {
+      if (!reaction.destinationId) continue
+      const destGuid = resolveGuid(reaction.destinationId)
+      if (!destGuid) continue
+      action.connectionType = 'INTERNAL_NODE'
+      action.navigationType = 'SWAP_STATE'
       action.transitionNodeID = destGuid
     } else if (reaction.action === 'BACK') {
       action.connectionType = 'BACK'
@@ -141,6 +200,9 @@ export function reactionsToKiwiInteractions(
       action.connectionType = 'INTERNAL_NODE'
       action.navigationType = reaction.action === 'OPEN_OVERLAY' ? 'OVERLAY' : 'SWAP'
       action.transitionNodeID = destGuid
+      if (reaction.overlayPosition === 'MANUAL') {
+        action.overlayRelativePosition = { x: 0, y: 0 }
+      }
     } else if (reaction.action === 'CLOSE_OVERLAY') {
       action.connectionType = 'CLOSE'
       action.navigationType = 'NAVIGATE'
@@ -196,7 +258,7 @@ export function legacyPrototypeFields(
     transitionNodeID: destGuid,
     transitionType: TRANSITION_TO_KIWI[first.transition] ?? 'INSTANT_TRANSITION',
     transitionDuration: first.transitionDuration / 1000,
-    easingType: 'OUT_CUBIC',
+    easingType: reactionEasingToKiwi(first.easing, first.springPreset),
     interactionType: 'ON_CLICK',
     connectionType: 'INTERNAL_NODE'
   }
@@ -238,11 +300,18 @@ export function kiwiInteractionsToReactions(raw: unknown[] | undefined): Prototy
     const action = interaction.actions?.[0]
     if (!trigger || !action) continue
 
+    const easingInfo = kiwiToReactionEasing(action.easingType, action.easingFunction)
+    const isSmartAnimate =
+      action.transitionShouldSmartAnimate === true || action.transitionType === 'SMART_ANIMATE'
+
     const base = {
       trigger,
       timeout: Math.round((interaction.event?.transitionTimeout ?? 0.8) * 1000),
-      transition: kiwiToTransition(action.transitionType),
-      transitionDuration: Math.round((action.transitionDuration ?? 0.3) * 1000)
+      transition: isSmartAnimate
+        ? ('SMART_ANIMATE' as const)
+        : kiwiToTransition(action.transitionType),
+      transitionDuration: Math.round((action.transitionDuration ?? 0.3) * 1000),
+      ...easingInfo
     }
 
     if (action.connectionType === 'BACK') {
@@ -259,16 +328,23 @@ export function kiwiInteractionsToReactions(raw: unknown[] | undefined): Prototy
       })
     } else if (action.transitionNodeID) {
       let mappedAction: PrototypeActionType = 'NAVIGATE'
-      if (action.navigationType === 'OVERLAY') mappedAction = 'OPEN_OVERLAY'
-      if (action.navigationType === 'SWAP') mappedAction = 'SWAP_OVERLAY'
-      if (action.navigationType === 'SCROLL_TO') mappedAction = 'SCROLL_TO'
-      if (action.navigationType === 'SET_VARIABLE') mappedAction = 'SET_VARIABLE'
+      if (action.navigationType === 'SWAP_STATE') mappedAction = 'CHANGE_TO'
+      else if (action.navigationType === 'OVERLAY') mappedAction = 'OPEN_OVERLAY'
+      else if (action.navigationType === 'SWAP') mappedAction = 'SWAP_OVERLAY'
+      else if (action.navigationType === 'SCROLL_TO') mappedAction = 'SCROLL_TO'
+      else if (action.navigationType === 'SET_VARIABLE') mappedAction = 'SET_VARIABLE'
+
+      const overlayProps =
+        mappedAction === 'OPEN_OVERLAY' && action.overlayRelativePosition
+          ? { overlayPosition: 'MANUAL' as const }
+          : {}
 
       reactions.push({
         ...base,
         action: mappedAction,
         destinationId: guidToString(action.transitionNodeID),
-        url: ''
+        url: '',
+        ...overlayProps
       })
     }
   }
