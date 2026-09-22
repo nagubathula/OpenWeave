@@ -612,7 +612,9 @@ export function createFigmaMotionTemplate(): SceneGraph {
     y: 50,
     width: 1760,
     height: 100,
-    fills: [{ type: 'SOLID', color: { r: 0.1, g: 0.1, b: 0.13, a: 0.6 }, opacity: 1, visible: true }],
+    fills: [
+      { type: 'SOLID', color: { r: 0.1, g: 0.1, b: 0.13, a: 0.6 }, opacity: 1, visible: true }
+    ],
     strokes: [
       {
         color: { r: 1, g: 1, b: 1, a: 0.08 },
@@ -633,7 +635,9 @@ export function createFigmaMotionTemplate(): SceneGraph {
     width: 100,
     height: 24,
     cornerRadius: 12,
-    fills: [{ type: 'SOLID', color: { r: 0.05, g: 0.6, b: 0.38, a: 0.2 }, opacity: 1, visible: true }],
+    fills: [
+      { type: 'SOLID', color: { r: 0.05, g: 0.6, b: 0.38, a: 0.2 }, opacity: 1, visible: true }
+    ],
     strokes: [
       {
         color: { r: 0.05, g: 0.6, b: 0.38, a: 0.4 },
@@ -692,7 +696,9 @@ export function createFigmaMotionTemplate(): SceneGraph {
     width: 190,
     height: 36,
     cornerRadius: 18,
-    fills: [{ type: 'SOLID', color: { r: 0.15, g: 0.15, b: 0.2, a: 1 }, opacity: 1, visible: true }],
+    fills: [
+      { type: 'SOLID', color: { r: 0.15, g: 0.15, b: 0.2, a: 1 }, opacity: 1, visible: true }
+    ],
     strokes: [
       {
         color: { r: 1, g: 1, b: 1, a: 0.1 },
@@ -727,7 +733,9 @@ export function createFigmaMotionTemplate(): SceneGraph {
     height: 320,
     cornerRadius: 20,
     clipsContent: true,
-    fills: [{ type: 'SOLID', color: { r: 0.11, g: 0.11, b: 0.14, a: 1 }, opacity: 1, visible: true }],
+    fills: [
+      { type: 'SOLID', color: { r: 0.11, g: 0.11, b: 0.14, a: 1 }, opacity: 1, visible: true }
+    ],
     strokes: [
       {
         color: { r: 0.18, g: 0.18, b: 0.24, a: 1 },
@@ -771,7 +779,9 @@ export function createFigmaMotionTemplate(): SceneGraph {
     y: 72,
     width: 260,
     height: 32,
-    fills: [{ type: 'SOLID', color: { r: 0.55, g: 0.55, b: 0.65, a: 1 }, opacity: 1, visible: true }]
+    fills: [
+      { type: 'SOLID', color: { r: 0.55, g: 0.55, b: 0.65, a: 1 }, opacity: 1, visible: true }
+    ]
   })
 
   // Toggle Track
@@ -782,7 +792,9 @@ export function createFigmaMotionTemplate(): SceneGraph {
     width: 130,
     height: 68,
     cornerRadius: 34,
-    fills: [{ type: 'SOLID', color: { r: 0.18, g: 0.18, b: 0.22, a: 1 }, opacity: 1, visible: true }]
+    fills: [
+      { type: 'SOLID', color: { r: 0.18, g: 0.18, b: 0.22, a: 1 }, opacity: 1, visible: true }
+    ]
   })
 
   // Toggle Thumb (Animated x, width)
@@ -835,7 +847,9 @@ export function createFigmaMotionTemplate(): SceneGraph {
     height: 320,
     cornerRadius: 20,
     clipsContent: true,
-    fills: [{ type: 'SOLID', color: { r: 0.11, g: 0.11, b: 0.14, a: 1 }, opacity: 1, visible: true }],
+    fills: [
+      { type: 'SOLID', color: { r: 0.11, g: 0.11, b: 0.14, a: 1 }, opacity: 1, visible: true }
+    ],
     strokes: [
       {
         color: { r: 0.18, g: 0.18, b: 0.24, a: 1 },
@@ -857,7 +871,9 @@ export function createFigmaMotionTemplate(): SceneGraph {
     y: 24,
     width: 200,
     height: 16,
-    fills: [{ type: 'SOLID', color: { r: 0.96, g: 0.25, b: 0.37, a: 1 }, opacity: 1, visible: true }]
+    fills: [
+      { type: 'SOLID', color: { r: 0.96, g: 0.25, b: 0.37, a: 1 }, opacity: 1, visible: true }
+    ]
   })
   graph.createNode('TEXT', card2.id, {
     name: 'Card 2 Title',
@@ -879,7 +895,9 @@ export function createFigmaMotionTemplate(): SceneGraph {
     y: 72,
     width: 260,
     height: 32,
-    fills: [{ type: 'SOLID', color: { r: 0.55, g: 0.55, b: 0.65, a: 1 }, opacity: 1, visible: true }]
+    fills: [
+      { type: 'SOLID', color: { r: 0.55, g: 0.55, b: 0.65, a: 1 }, opacity: 1, visible: true }
+    ]
   })
 
   // Heart Button Circle
@@ -890,7 +908,9 @@ export function createFigmaMotionTemplate(): SceneGraph {
     width: 80,
     height: 80,
     cornerRadius: 40,
-    fills: [{ type: 'SOLID', color: { r: 0.18, g: 0.18, b: 0.22, a: 1 }, opacity: 1, visible: true }]
+    fills: [
+      { type: 'SOLID', color: { r: 0.18, g: 0.18, b: 0.22, a: 1 }, opacity: 1, visible: true }
+    ]
   })
 
   // Animated Heart Badge
@@ -901,7 +921,9 @@ export function createFigmaMotionTemplate(): SceneGraph {
     width: 40,
     height: 40,
     cornerRadius: 12,
-    fills: [{ type: 'SOLID', color: { r: 0.96, g: 0.25, b: 0.37, a: 1 }, opacity: 1, visible: true }]
+    fills: [
+      { type: 'SOLID', color: { r: 0.96, g: 0.25, b: 0.37, a: 1 }, opacity: 1, visible: true }
+    ]
   })
   graph.createNode('TEXT', heartBadge.id, {
     name: 'Heart Glyph',
@@ -1000,7 +1022,9 @@ export function createFigmaMotionTemplate(): SceneGraph {
     height: 320,
     cornerRadius: 20,
     clipsContent: true,
-    fills: [{ type: 'SOLID', color: { r: 0.11, g: 0.11, b: 0.14, a: 1 }, opacity: 1, visible: true }],
+    fills: [
+      { type: 'SOLID', color: { r: 0.11, g: 0.11, b: 0.14, a: 1 }, opacity: 1, visible: true }
+    ],
     strokes: [
       {
         color: { r: 0.18, g: 0.18, b: 0.24, a: 1 },
@@ -1022,7 +1046,9 @@ export function createFigmaMotionTemplate(): SceneGraph {
     y: 24,
     width: 200,
     height: 16,
-    fills: [{ type: 'SOLID', color: { r: 0.05, g: 0.65, b: 0.95, a: 1 }, opacity: 1, visible: true }]
+    fills: [
+      { type: 'SOLID', color: { r: 0.05, g: 0.65, b: 0.95, a: 1 }, opacity: 1, visible: true }
+    ]
   })
   graph.createNode('TEXT', card3.id, {
     name: 'Card 3 Title',
@@ -1044,7 +1070,9 @@ export function createFigmaMotionTemplate(): SceneGraph {
     y: 72,
     width: 260,
     height: 32,
-    fills: [{ type: 'SOLID', color: { r: 0.55, g: 0.55, b: 0.65, a: 1 }, opacity: 1, visible: true }]
+    fills: [
+      { type: 'SOLID', color: { r: 0.55, g: 0.55, b: 0.65, a: 1 }, opacity: 1, visible: true }
+    ]
   })
 
   // Dynamic Island Pill (Animated x, width, height, cornerRadius)
@@ -1056,7 +1084,9 @@ export function createFigmaMotionTemplate(): SceneGraph {
     height: 44,
     cornerRadius: 22,
     clipsContent: true,
-    fills: [{ type: 'SOLID', color: { r: 0.04, g: 0.04, b: 0.06, a: 1 }, opacity: 1, visible: true }],
+    fills: [
+      { type: 'SOLID', color: { r: 0.04, g: 0.04, b: 0.06, a: 1 }, opacity: 1, visible: true }
+    ],
     strokes: [
       {
         color: { r: 0.25, g: 0.25, b: 0.35, a: 1 },
@@ -1076,7 +1106,9 @@ export function createFigmaMotionTemplate(): SceneGraph {
     width: 20,
     height: 20,
     cornerRadius: 10,
-    fills: [{ type: 'SOLID', color: { r: 0.05, g: 0.65, b: 0.95, a: 1 }, opacity: 1, visible: true }]
+    fills: [
+      { type: 'SOLID', color: { r: 0.05, g: 0.65, b: 0.95, a: 1 }, opacity: 1, visible: true }
+    ]
   })
 
   islandPill.motionTracks = {
@@ -1127,7 +1159,9 @@ export function createFigmaMotionTemplate(): SceneGraph {
     height: 320,
     cornerRadius: 20,
     clipsContent: true,
-    fills: [{ type: 'SOLID', color: { r: 0.11, g: 0.11, b: 0.14, a: 1 }, opacity: 1, visible: true }],
+    fills: [
+      { type: 'SOLID', color: { r: 0.11, g: 0.11, b: 0.14, a: 1 }, opacity: 1, visible: true }
+    ],
     strokes: [
       {
         color: { r: 0.18, g: 0.18, b: 0.24, a: 1 },
@@ -1149,7 +1183,9 @@ export function createFigmaMotionTemplate(): SceneGraph {
     y: 24,
     width: 200,
     height: 16,
-    fills: [{ type: 'SOLID', color: { r: 0.96, g: 0.62, b: 0.05, a: 1 }, opacity: 1, visible: true }]
+    fills: [
+      { type: 'SOLID', color: { r: 0.96, g: 0.62, b: 0.05, a: 1 }, opacity: 1, visible: true }
+    ]
   })
   graph.createNode('TEXT', card4.id, {
     name: 'Card 4 Title',
@@ -1171,7 +1207,9 @@ export function createFigmaMotionTemplate(): SceneGraph {
     y: 72,
     width: 260,
     height: 32,
-    fills: [{ type: 'SOLID', color: { r: 0.55, g: 0.55, b: 0.65, a: 1 }, opacity: 1, visible: true }]
+    fills: [
+      { type: 'SOLID', color: { r: 0.55, g: 0.55, b: 0.65, a: 1 }, opacity: 1, visible: true }
+    ]
   })
 
   // Progress Rail Background
@@ -1183,7 +1221,9 @@ export function createFigmaMotionTemplate(): SceneGraph {
     height: 16,
     cornerRadius: 8,
     clipsContent: true,
-    fills: [{ type: 'SOLID', color: { r: 0.18, g: 0.18, b: 0.22, a: 1 }, opacity: 1, visible: true }]
+    fills: [
+      { type: 'SOLID', color: { r: 0.18, g: 0.18, b: 0.22, a: 1 }, opacity: 1, visible: true }
+    ]
   })
 
   // Animated Progress Fill
@@ -1194,7 +1234,9 @@ export function createFigmaMotionTemplate(): SceneGraph {
     width: 20,
     height: 16,
     cornerRadius: 8,
-    fills: [{ type: 'SOLID', color: { r: 0.96, g: 0.62, b: 0.05, a: 1 }, opacity: 1, visible: true }]
+    fills: [
+      { type: 'SOLID', color: { r: 0.96, g: 0.62, b: 0.05, a: 1 }, opacity: 1, visible: true }
+    ]
   })
   progressFill.motionTracks = {
     nodeId: progressFill.id,
@@ -1225,7 +1267,9 @@ export function createFigmaMotionTemplate(): SceneGraph {
     height: 320,
     cornerRadius: 20,
     clipsContent: true,
-    fills: [{ type: 'SOLID', color: { r: 0.11, g: 0.11, b: 0.14, a: 1 }, opacity: 1, visible: true }],
+    fills: [
+      { type: 'SOLID', color: { r: 0.11, g: 0.11, b: 0.14, a: 1 }, opacity: 1, visible: true }
+    ],
     strokes: [
       {
         color: { r: 0.18, g: 0.18, b: 0.24, a: 1 },
@@ -1247,7 +1291,9 @@ export function createFigmaMotionTemplate(): SceneGraph {
     y: 24,
     width: 200,
     height: 16,
-    fills: [{ type: 'SOLID', color: { r: 0.55, g: 0.36, b: 0.96, a: 1 }, opacity: 1, visible: true }]
+    fills: [
+      { type: 'SOLID', color: { r: 0.55, g: 0.36, b: 0.96, a: 1 }, opacity: 1, visible: true }
+    ]
   })
   graph.createNode('TEXT', card5.id, {
     name: 'Card 5 Title',
@@ -1269,7 +1315,9 @@ export function createFigmaMotionTemplate(): SceneGraph {
     y: 72,
     width: 260,
     height: 32,
-    fills: [{ type: 'SOLID', color: { r: 0.55, g: 0.55, b: 0.65, a: 1 }, opacity: 1, visible: true }]
+    fills: [
+      { type: 'SOLID', color: { r: 0.55, g: 0.55, b: 0.65, a: 1 }, opacity: 1, visible: true }
+    ]
   })
 
   // Segmented Container
@@ -1281,7 +1329,9 @@ export function createFigmaMotionTemplate(): SceneGraph {
     height: 52,
     cornerRadius: 26,
     clipsContent: true,
-    fills: [{ type: 'SOLID', color: { r: 0.18, g: 0.18, b: 0.22, a: 1 }, opacity: 1, visible: true }]
+    fills: [
+      { type: 'SOLID', color: { r: 0.18, g: 0.18, b: 0.22, a: 1 }, opacity: 1, visible: true }
+    ]
   })
 
   // Active Glider Pill (Animated x)
@@ -1292,7 +1342,9 @@ export function createFigmaMotionTemplate(): SceneGraph {
     width: 82,
     height: 40,
     cornerRadius: 20,
-    fills: [{ type: 'SOLID', color: { r: 0.55, g: 0.36, b: 0.96, a: 1 }, opacity: 1, visible: true }]
+    fills: [
+      { type: 'SOLID', color: { r: 0.55, g: 0.36, b: 0.96, a: 1 }, opacity: 1, visible: true }
+    ]
   })
   gliderPill.motionTracks = {
     nodeId: gliderPill.id,

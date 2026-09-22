@@ -2,12 +2,21 @@
 
 ## Unreleased
 
+### Performance
+
+- Reduce canvas pan and zoom latency by applying wheel and gesture input before painting in the same frame. Stop hidden motion overlays from updating, and keep timeline resizing directly aligned with the pointer.
+
 ### Breaking changes
 
 - **Core SDK:** Import scene graph types, geometry, coordinate, matrix, snapping, undo, and path helpers from `@openweave/scene-graph`; import `.pen` parsing from `@openweave/pen`; and import synchronous Kiwi decompression from `@openweave/kiwi` instead of the `@openweave/core` compatibility barrel.
 - **React SDK:** Replace the removed color-picker model helpers with `useColorModel()`; replace the deprecated `FillPickerRoot` and `useFillPicker()` APIs with `FillRoot`, `FillSwatch`, `useFill()`, and a consumer-owned popover; rename `FontPickerUi` to `FontPickerUI`; and remove the exported `testId` prop helper types in favor of semantic component anatomy.
 
 ### Added
+
+- Measure distances dynamically on canvas with <kbd>Alt</kbd> (Option), rendering Figma-style target outlines, projection lines, and numeric dimension pills.
+- Create and manage canvas ruler guides by dragging from top and left rulers onto the canvas with live coordinate badges, existing guide repositioning, and deletion when dragged back onto rulers.
+- Distribute layers with horizontal and vertical spacing controls directly from the Position toolbar alongside alignment tools.
+- Toggle text cases with segmented quick-select buttons (`Aa`, `AA`, `aa`, `Aa Bb`) and configure text truncation with inline max lines in the Typography inspector.
 
 - Export selections, pages, and documents as editable PowerPoint (`.pptx`) files from the File menu, CLI, and SDK. Text, rectangles, ellipses, and lines remain editable; visually complex layers are embedded as images.
 - Import HTML, CSS, Tailwind, and JSX as editable documents from the app, CLI, and SDK, and export standalone browser-ready HTML with compiled CSS and optional external assets.

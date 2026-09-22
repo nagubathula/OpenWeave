@@ -6,6 +6,7 @@ import {
 } from '#react/shared/input/geometry'
 import { getNodeEditState } from '#react/shared/input/node-edit'
 import type { HitTestFns } from '#react/shared/input/select'
+import { hitTestCornerRadius } from '#react/shared/input/select/corner-radius'
 
 import type { Editor } from '@openweave/core/editor'
 import { getAbsoluteRotation } from '@openweave/scene-graph/coordinate'
@@ -66,6 +67,29 @@ export function updateHoverCursor(
   if (getNodeEditState(editor)) {
     editor.setHoveredNode(null)
     return null
+  }
+
+  // Auto layout padding/gap hover takes priority
+  const alHover = editor.state.autoLayoutHover
+  if (alHover && editor.state.selectedIds.has(alHover.nodeId)) {
+    if (alHover.kind === 'padding' || alHover.kind === 'padding-value') {
+      if (alHover.side === 'top' || alHover.side === 'bottom') return 'ns-resize'
+      if (alHover.side === 'left' || alHover.side === 'right') return 'ew-resize'
+    }
+    if (alHover.kind === 'spacing' || alHover.kind === 'spacing-value') {
+      const node = editor.graph.getNode(alHover.nodeId)
+      if (node) {
+        return node.layoutMode === 'HORIZONTAL' ? 'ew-resize' : 'ns-resize'
+      }
+    }
+  }
+
+  const cornerHit = hitTestCornerRadius(cx, cy, editor)
+  if (cornerHit) {
+    editor.setCornerRadiusHover({ nodeId: cornerHit.nodeId, corner: cornerHit.corner })
+    return 'default'
+  } else if (editor.state.cornerRadiusHover) {
+    editor.setCornerRadiusHover(null)
   }
 
   const cursor =

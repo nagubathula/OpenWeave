@@ -30,7 +30,8 @@ if (IS_BROWSER && 'window' in globalThis) {
 export async function readTauriDesignFile(path: string): Promise<File> {
   const { readFile } = await import('@tauri-apps/plugin-fs')
   const bytes = await readFile(path)
-  return new File([bytes], path.split('/').pop() ?? 'file.fig')
+  const name = path.split(/[/\\]/).pop() ?? 'file.fig'
+  return new File([bytes], name)
 }
 
 export async function chooseTauriOpenPath(): Promise<string | null> {

@@ -170,7 +170,7 @@ export default function ExportSection() {
             className="w-full rounded bg-accent px-3 py-1.5 text-center text-[11px] font-semibold text-accent-foreground hover:bg-accent/90 disabled:opacity-60"
             onClick={() => void doExport()}
           >
-            {exporting ? 'Exportingâ€¦' : `Export ${activeName}`}
+            {exporting ? 'Exporting...' : `Export ${activeName}`}
           </button>
         )}
 

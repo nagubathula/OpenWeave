@@ -120,6 +120,7 @@ export function useTypographyState(editor: Editor) {
     rangeFontSize: rangeSummary?.fontSize ?? null,
     currentWeightLabel,
     activeFormatting,
+    textAutoResize: node?.textAutoResize ?? 'NONE',
     missingFonts,
     hasMissingFonts
   }
@@ -411,6 +412,10 @@ export function createTypographyActions(
     setVerticalAlign,
     setTextCase,
     setTruncation,
+    setTextAutoResize: (mode: 'NONE' | 'WIDTH_AND_HEIGHT' | 'HEIGHT' | 'TRUNCATE') => {
+      if (!node) return
+      editor.updateNodeWithUndo(node.id, { textAutoResize: mode }, 'Change text auto resize')
+    },
     setFontFeature,
     toggleBold,
     toggleItalic,

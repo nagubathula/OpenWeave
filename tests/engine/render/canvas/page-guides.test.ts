@@ -53,4 +53,22 @@ describe('page guide rendering', () => {
 
     expect(canvas.drawRect).not.toHaveBeenCalled()
   })
+
+  test('renders active guide during interactive drag', () => {
+    const r = createMockRenderer({
+      pageId: 'page',
+      panX: 0,
+      panY: 0,
+      zoom: 1,
+      viewportWidth: 400,
+      viewportHeight: 400
+    })
+    const canvas = createMockCanvas()
+    const graph = graphWithGuides([])
+
+    drawPageGuides(r, canvas as Canvas, graph, { axis: 'X', offset: 120 })
+
+    expect(mockCalls(canvas.drawRect)).toHaveLength(1)
+    expect(mockCalls(r.ck.LTRBRect)[0]).toEqual([120, 0, 121, 400])
+  })
 })

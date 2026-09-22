@@ -98,6 +98,30 @@ export type NodeType =
   | 'INSTANCE'
   | 'CONNECTOR'
   | 'SHAPE_WITH_TEXT'
+  | 'SHADER'
+
+export type ShaderPresetType =
+  | 'ANIMATED_GRADIENT'
+  | 'NOISE_FIELD'
+  | 'PARTICLES'
+  | 'METABALLS'
+  | 'LIGHTING'
+  | 'DISPLACEMENT'
+  | 'CUSTOM'
+
+export interface ShaderConfig {
+  preset: ShaderPresetType
+  speed: number
+  scale: number
+  intensity: number
+  complexity: number
+  colors: Color[]
+  pointerInteraction: boolean
+  pointerRadius: number
+  pointerStrength: number
+  paused?: boolean
+  customCode?: string
+}
 
 export type FillType =
   | 'SOLID'
@@ -631,6 +655,8 @@ export interface SceneNode {
 
   /** Timeline animation tracks for this node. */
   motionTracks?: NodeAnimationTrack
+  /** Generative SkSL shader configuration for SHADER nodes or shader-enhanced layers. */
+  shader?: ShaderConfig
 
   pointCount: number
   starInnerRadius: number

@@ -30,6 +30,7 @@ import { installRendererDomainMethods } from './renderer/methods'
 import { initializeRendererPaints } from './renderer/paints'
 import * as RenderPipeline from './renderer/pipeline'
 import * as RendererState from './renderer/state'
+import { ShaderCompiler } from './shaders/compiler'
 import * as RenderText from './text'
 export type { RenderOverlays, RulerTheme } from './renderer/types'
 import type {
@@ -71,6 +72,8 @@ export class SkiaRenderer {
   declare selectionPaint: Paint
   declare parentOutlinePaint: Paint
   declare snapPaint: Paint
+  declare snapDashPaint: Paint
+  declare snapFill: Paint
   declare auxFill: Paint
   declare auxStroke: Paint
   declare opacityPaint: Paint
@@ -157,6 +160,9 @@ export class SkiaRenderer {
   subtreePictureCacheFontGeneration = -1
   readonly labelCache = new LabelCache()
   readonly profiler: RenderProfiler
+  readonly shaderCompiler = new ShaderCompiler()
+  shaderTime = 0
+  pointerWorld: Vector | null = null
 
   declare rulerBgPaint: Paint
   declare rulerTickPaint: Paint
@@ -218,7 +224,8 @@ export class SkiaRenderer {
     canvas: Canvas,
     node: SceneNode,
     rotation: number,
-    graph: SceneGraph
+    graph: SceneGraph,
+    overlays?: RenderOverlays
   ) => void
   declare drawSelectionLabels: (
     canvas: Canvas,
@@ -241,6 +248,12 @@ export class SkiaRenderer {
   declare getRotatedCorners: (node: SceneNode, abs: Vector) => Vector[]
   declare drawHandle: (canvas: Canvas, x: number, y: number) => void
   declare drawSnapGuides: (canvas: Canvas, guides?: SnapGuide[]) => void
+  declare drawDistanceMeasurements: (
+    canvas: Canvas,
+    graph: SceneGraph,
+    selectedIds: Set<string>,
+    overlays: RenderOverlays
+  ) => void
   declare drawMarquee: (canvas: Canvas, marquee?: Rect | null) => void
   declare drawFlashes: (canvas: Canvas, graph: SceneGraph) => void
   declare drawLayoutInsertIndicator: (
@@ -712,6 +725,28 @@ export class SkiaRenderer {
       console.warn('Raster encode fallback failed:', err)
       return null
     }
+  }
+
+  hasActiveShaders(graph: SceneGraph): boolean {
+    const pageId = this.pageId
+    if (!pageId) return false
+    const page = graph.getNode(pageId)
+    if (!page) return false
+    const stack = [...page.childIds]
+    while (stack.length > 0) {
+      const id = stack.pop()
+      if (!id) continue
+      const node = graph.getNode(id)
+      if (node) {
+        if ((node.type === 'SHADER' || !!node.shader) && !node.shader?.paused) {
+          return true
+        }
+        for (const childId of node.childIds) {
+          stack.push(childId)
+        }
+      }
+    }
+    return false
   }
 
   destroyed: boolean = false

@@ -1,5 +1,13 @@
 import * as ContextMenu from '@radix-ui/react-context-menu'
-import { BookOpen, LayoutGrid, List, Loader2, Plus, Component as ComponentIcon } from 'lucide-react'
+import {
+  BookOpen,
+  LayoutGrid,
+  List,
+  Loader2,
+  Palette,
+  Plus,
+  Component as ComponentIcon
+} from 'lucide-react'
 import React, {
   useCallback,
   useEffect,
@@ -24,6 +32,7 @@ import {
 import { openExternalLink } from '@/app/shell/ui'
 import LibrariesDialog from '@/components/assets/LibrariesDialog'
 import { findAssetPage } from '@/components/assets/page'
+import StylesDialog from '@/components/styles/StylesDialog'
 import { useButtonUI } from '@/components/ui/button'
 import { AppDialogRoot, AppDialogHeader } from '@/components/ui/dialog'
 import { useMenuUI } from '@/components/ui/menu'
@@ -190,6 +199,7 @@ export default function AssetsPanel() {
   const [assetView, setAssetView] = useState<AssetView>('grid')
   const [detailsOpen, setDetailsOpen] = useState(false)
   const [librariesOpen, setLibrariesOpen] = useState(false)
+  const [stylesOpen, setStylesOpen] = useState(false)
   const [selectedAssetId, setSelectedAssetId] = useState<string | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [previewLoading, setPreviewLoading] = useState(false)
@@ -469,6 +479,18 @@ export default function AssetsPanel() {
             onClick={() => setLibrariesOpen(true)}
           >
             <BookOpen className="size-3.5" />
+          </button>
+        </Tip>
+
+        <Tip label="Design system styles">
+          <button
+            type="button"
+            data-test-id="assets-styles-button"
+            aria-label="Design system styles"
+            className="flex size-7 shrink-0 items-center justify-center rounded border border-border text-muted transition-colors hover:bg-hover hover:text-surface"
+            onClick={() => setStylesOpen(true)}
+          >
+            <Palette className="size-3.5" />
           </button>
         </Tip>
       </div>
@@ -780,6 +802,8 @@ export default function AssetsPanel() {
       {librariesOpen && (
         <LibrariesDialog open={librariesOpen} onClose={() => setLibrariesOpen(false)} />
       )}
+
+      {stylesOpen && <StylesDialog open={stylesOpen} onClose={() => setStylesOpen(false)} />}
     </section>
   )
 }

@@ -99,6 +99,74 @@ export function createPageActions(ctx: EditorContext) {
     ctx.requestRender()
   }
 
+  function getPageGuides(pageId?: string): Array<{ axis: 'X' | 'Y'; offset: number }> {
+    const page = ctx.graph.getNode(pageId ?? ctx.state.currentPageId)
+    const guides = page?.source?.fig?.rawNodeFields?.guides
+    if (!Array.isArray(guides)) return []
+    return guides.filter(
+      (g): g is { axis: 'X' | 'Y'; offset: number } =>
+        g != null &&
+        typeof g === 'object' &&
+        (g.axis === 'X' || g.axis === 'Y') &&
+        typeof g.offset === 'number'
+    )
+  }
+
+  function setPageGuides(guides: Array<{ axis: 'X' | 'Y'; offset: number }>, pageId?: string) {
+    const targetPageId = pageId ?? ctx.state.currentPageId
+    const page = ctx.graph.getNode(targetPageId)
+    if (!page) return
+    const prevSource = page.source
+    const nextSource = {
+      ...page.source,
+      fig: {
+        ...page.source?.fig,
+        rawNodeFields: {
+          ...page.source?.fig?.rawNodeFields,
+          guides: structuredClone(guides)
+        }
+      }
+    }
+    const previous = { source: prevSource }
+    const next = { source: nextSource }
+    ctx.graph.updateNode(targetPageId, next)
+    ctx.undo.push({
+      label: 'Update guides',
+      forward: () => {
+        ctx.graph.updateNode(targetPageId, next)
+        ctx.requestRender()
+      },
+      inverse: () => {
+        ctx.graph.updateNode(targetPageId, previous)
+        ctx.requestRender()
+      }
+    })
+    ctx.requestRender()
+  }
+
+  function addPageGuide(guide: { axis: 'X' | 'Y'; offset: number }, pageId?: string) {
+    const current = getPageGuides(pageId)
+    setPageGuides([...current, guide], pageId)
+  }
+
+  function removePageGuide(index: number, pageId?: string) {
+    const current = getPageGuides(pageId)
+    if (index >= 0 && index < current.length) {
+      const next = [...current]
+      next.splice(index, 1)
+      setPageGuides(next, pageId)
+    }
+  }
+
+  function updatePageGuide(index: number, offset: number, pageId?: string) {
+    const current = getPageGuides(pageId)
+    if (index >= 0 && index < current.length) {
+      const next = [...current]
+      next[index] = { ...next[index], offset }
+      setPageGuides(next, pageId)
+    }
+  }
+
   return {
     switchPage,
     addPage,
@@ -106,6 +174,11 @@ export function createPageActions(ctx: EditorContext) {
     movePage,
     renamePage,
     setPageColor,
+    getPageGuides,
+    setPageGuides,
+    addPageGuide,
+    removePageGuide,
+    updatePageGuide,
     clearPageViewports: pageViewportStore.clearPageViewports
   }
 }

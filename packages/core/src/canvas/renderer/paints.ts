@@ -42,6 +42,18 @@ export function initializeRendererPaints(r: SkiaRenderer): void {
   r.snapPaint.setColor(ck.Color4f(SNAP_COLOR.r, SNAP_COLOR.g, SNAP_COLOR.b, 1))
   r.snapPaint.setAntiAlias(true)
 
+  r.snapDashPaint = new ck.Paint()
+  r.snapDashPaint.setStyle(ck.PaintStyle.Stroke)
+  r.snapDashPaint.setStrokeWidth(1)
+  r.snapDashPaint.setColor(ck.Color4f(SNAP_COLOR.r, SNAP_COLOR.g, SNAP_COLOR.b, 0.8))
+  r.snapDashPaint.setPathEffect(ck.PathEffect.MakeDash([3, 3], 0))
+  r.snapDashPaint.setAntiAlias(true)
+
+  r.snapFill = new ck.Paint()
+  r.snapFill.setStyle(ck.PaintStyle.Fill)
+  r.snapFill.setColor(ck.Color4f(SNAP_COLOR.r, SNAP_COLOR.g, SNAP_COLOR.b, 1))
+  r.snapFill.setAntiAlias(true)
+
   r.auxFill = new ck.Paint()
   r.auxFill.setStyle(ck.PaintStyle.Fill)
   r.auxFill.setAntiAlias(true)

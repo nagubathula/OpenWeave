@@ -142,6 +142,9 @@ export function registerKeyboardShortcuts(options: KeyboardShortcutOptions) {
     },
     ...commandShortcuts(
       'edit.undo',
+      'edit.copyProperties',
+      'edit.pasteProperties',
+      'view.commandPalette',
       'view.zoom100',
       'view.zoomFit',
       'view.zoomSelection',

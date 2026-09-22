@@ -45,8 +45,14 @@ const rendererMethods: ThisType<SkiaRenderer> = {
     Overlays.drawSelection(this, canvas, graph, selectedIds, overlays)
   },
 
-  drawNodeSelection(canvas: Canvas, node: SceneNode, rotation: number, graph: SceneGraph): void {
-    Overlays.drawNodeSelection(this, canvas, node, rotation, graph)
+  drawNodeSelection(
+    canvas: Canvas,
+    node: SceneNode,
+    rotation: number,
+    graph: SceneGraph,
+    overlays?: RenderOverlays
+  ): void {
+    Overlays.drawNodeSelection(this, canvas, node, rotation, graph, overlays)
   },
 
   drawSelectionLabels(
@@ -80,6 +86,15 @@ const rendererMethods: ThisType<SkiaRenderer> = {
 
   drawSnapGuides(canvas: Canvas, guides?: SnapGuide[]): void {
     Overlays.drawSnapGuides(this, canvas, guides)
+  },
+
+  drawDistanceMeasurements(
+    canvas: Canvas,
+    graph: SceneGraph,
+    selectedIds: Set<string>,
+    overlays: RenderOverlays
+  ): void {
+    Overlays.drawDistanceMeasurements(this, canvas, graph, selectedIds, overlays)
   },
 
   drawMarquee(canvas: Canvas, marquee?: Rect | null): void {

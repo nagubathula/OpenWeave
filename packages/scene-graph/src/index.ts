@@ -8,6 +8,7 @@ export {
   INSTANCE_SYNC_PROPS
 } from './instances'
 export * from './snap'
+export * from './measurement'
 export * from './export-scale'
 export * from './coordinate'
 export * from './constants'
@@ -17,6 +18,7 @@ export * from './shared-styles'
 export { default as TransformMatrix } from './matrix'
 export type { Mat3 } from './matrix'
 export { UndoManager, type UndoEntry, type UndoManagerOptions } from './undo'
+export { DEFAULT_SHADER_CONFIG } from './node-defaults'
 
 import { createNanoEvents } from 'nanoevents'
 

@@ -55,6 +55,7 @@ export function renderFromEditorState(
     state.selectedIds,
     {
       hoveredNodeId: state.hoveredNodeId,
+      altHeld: state.altHeld,
       enteredContainerId: state.enteredContainerId,
       editingTextId: state.editingTextId,
       textEditor: textEditor as RenderOverlays['textEditor'],
@@ -73,8 +74,11 @@ export function renderFromEditorState(
       nodeEditState: state.nodeEditState ?? null,
       remoteCursors: state.remoteCursors,
       autoLayoutHover: state.autoLayoutHover,
+      cornerRadiusHover: state.cornerRadiusHover,
+      cornerRadiusDrag: state.cornerRadiusDrag,
       prototypeMode: state.prototypeMode,
-      prototypeDrag: state.prototypeDrag
+      prototypeDrag: state.prototypeDrag,
+      activeGuide: state.activeGuide
     },
     state.sceneVersion,
     layer
@@ -116,6 +120,7 @@ function canUseScenePicture(
 ): boolean {
   return (
     !hasVolatileOverlays &&
+    !r.hasActiveShaders(graph) &&
     !!r.scenePicture &&
     graph.positionPreviewVersion === r.scenePicturePositionPreviewVersion &&
     sceneVersion === r.scenePictureVersion &&
@@ -233,8 +238,9 @@ export function render(
     r.drawSelection(canvas, graph, selectedIds, overlays)
     p.endPhase('render:selection')
     r.drawFlashes(canvas, graph)
-    drawPageGuides(r, canvas, graph)
+    drawPageGuides(r, canvas, graph, overlays.activeGuide)
     r.drawSnapGuides(canvas, overlays.snapGuides)
+    r.drawDistanceMeasurements(canvas, graph, selectedIds, overlays)
     r.drawMarquee(canvas, overlays.marquee)
     r.drawLayoutInsertIndicator(canvas, overlays.layoutInsertIndicator)
     r.drawAutoLayoutHover(canvas, graph, overlays.autoLayoutHover)
@@ -286,7 +292,7 @@ function renderSceneContent(
       p.setScenePictureDrawTime(duration)
     }
     p.endPhase('render:drawPicture')
-  } else if (hasVolatileOverlays) {
+  } else if (hasVolatileOverlays || r.hasActiveShaders(graph)) {
     p.setScenePictureMode('volatile', cacheMissReason)
     r._nodeCount = 0
     r._culledCount = 0

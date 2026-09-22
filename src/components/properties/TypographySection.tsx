@@ -14,7 +14,10 @@ import {
   ALargeSmall,
   AlertTriangle,
   ChevronDown,
-  ChevronRight
+  ChevronRight,
+  ArrowRightLeft,
+  ArrowUpDown,
+  Square
 } from 'lucide-react'
 import React, { useState } from 'react'
 
@@ -27,7 +30,6 @@ import FontPicker from '@/components/font-picker/FontPicker'
 import FontSettingsPopover from '@/components/font-settings/FontSettingsPopover'
 import NumberField from '@/components/inputs/NumberField'
 import SharedStyleField from '@/components/properties/shared-style/SharedStyleField'
-import { AppSelect } from '@/components/ui/AppSelect'
 import { AppSwitch } from '@/components/ui/AppSwitch'
 import IconButton from '@/components/ui/IconButton'
 import PanelGrid from '@/components/ui/panel/PanelGrid'
@@ -38,7 +40,6 @@ type TextAlign = SceneNode['textAlignHorizontal']
 type TextVerticalAlign = SceneNode['textAlignVertical']
 type TextCase = SceneNode['textCase']
 type TextDirection = SceneNode['textDirection']
-type TextTruncation = SceneNode['textTruncation']
 
 const inputClass =
   'w-full bg-input/50 rounded px-2 py-1 border border-border text-surface text-xs outline-none focus:border-accent'
@@ -88,7 +89,9 @@ export default function TypographySection() {
     updateProp,
     commitProp,
     missingFonts,
-    hasMissingFonts
+    hasMissingFonts,
+    textAutoResize,
+    setTextAutoResize
   } = useTypography()
   const { panels } = useI18n()
 
@@ -289,6 +292,44 @@ export default function TypographySection() {
         </PanelFieldGroup>
       </PanelGrid>
 
+      <PanelFieldGroup label="Resizing" className="mb-3">
+        <div
+          role="group"
+          aria-label="Text resizing"
+          className="inline-flex items-center gap-0.5 rounded bg-panel-field p-0.5"
+        >
+          {[
+            {
+              value: 'WIDTH_AND_HEIGHT',
+              label: 'Auto width',
+              icon: <ArrowRightLeft className="size-3.5" />
+            },
+            {
+              value: 'HEIGHT',
+              label: 'Auto height',
+              icon: <ArrowUpDown className="size-3.5" />
+            },
+            {
+              value: 'NONE',
+              label: 'Fixed size',
+              icon: <Square className="size-3.5" />
+            }
+          ].map((option) => (
+            <IconButton
+              key={option.value}
+              label={option.label}
+              size="md"
+              active={textAutoResize === option.value}
+              onClick={() =>
+                setTextAutoResize(option.value as 'NONE' | 'WIDTH_AND_HEIGHT' | 'HEIGHT')
+              }
+            >
+              {option.icon}
+            </IconButton>
+          ))}
+        </div>
+      </PanelFieldGroup>
+
       <PanelFieldGroup label="Direction" className="mb-3">
         <select
           className={inputClass + ' h-6'}
@@ -487,45 +528,83 @@ export default function TypographySection() {
         </div>
       )}
 
-      <PanelGrid columns={2} className="mb-3">
-        <PanelFieldGroup label={panels.textCase}>
-          <AppSelect
-            label={panels.textCase}
-            value={textCase}
-            onValueChange={(v) => setTextCase(v as TextCase)}
-            options={[
-              { value: 'ORIGINAL', label: panels.textCaseOriginal },
-              { value: 'UPPER', label: panels.textCaseUpper },
-              { value: 'LOWER', label: panels.textCaseLower },
-              { value: 'TITLE', label: panels.textCaseTitle }
-            ]}
-          />
-        </PanelFieldGroup>
-        <PanelFieldGroup label={panels.truncation}>
-          <AppSelect
-            label={panels.truncation}
-            value={textTruncation}
-            onValueChange={(v) => setTruncation(v as TextTruncation)}
-            options={[
-              { value: 'DISABLED', label: panels.truncationDisabled },
-              { value: 'ENDING', label: panels.truncationEnding }
-            ]}
-          />
-        </PanelFieldGroup>
-      </PanelGrid>
+      <PanelFieldGroup label={panels.textCase} className="mb-3">
+        <div
+          role="group"
+          aria-label={panels.textCase}
+          className="inline-flex items-center gap-0.5 rounded bg-panel-field p-0.5"
+        >
+          {[
+            { value: 'ORIGINAL', label: panels.textCaseOriginal, text: 'Aa' },
+            { value: 'UPPER', label: panels.textCaseUpper, text: 'AA' },
+            { value: 'LOWER', label: panels.textCaseLower, text: 'aa' },
+            { value: 'TITLE', label: panels.textCaseTitle, text: 'Aa Bb' }
+          ].map((option) => (
+            <Tip key={option.value} label={option.label}>
+              <button
+                type="button"
+                className={`h-6 px-2 text-[11px] font-medium rounded transition-colors ${
+                  textCase === option.value
+                    ? 'bg-hover text-surface shadow-xs font-semibold'
+                    : 'text-muted hover:text-surface hover:bg-hover/50'
+                }`}
+                onClick={() => setTextCase(option.value as TextCase)}
+              >
+                {option.text}
+              </button>
+            </Tip>
+          ))}
+        </div>
+      </PanelFieldGroup>
 
-      {textTruncation === 'ENDING' && (
-        <PanelFieldGroup label={panels.maxLines} className="mb-3">
-          <NumberField
-            ariaLabel={panels.maxLines}
-            value={maxLines}
-            min={1}
-            step={1}
-            onChange={(v) => updateProp('maxLines', Math.max(1, Math.round(v)))}
-            onCommit={(v, p) => commitProp('maxLines', v, p)}
-          />
+      <PanelGrid columns={textTruncation === 'ENDING' ? 2 : 1} className="mb-3">
+        <PanelFieldGroup label={panels.truncation}>
+          <div
+            role="group"
+            aria-label={panels.truncation}
+            className="inline-flex items-center gap-0.5 rounded bg-panel-field p-0.5"
+          >
+            <Tip label={panels.truncationDisabled}>
+              <button
+                type="button"
+                className={`h-6 px-2.5 text-[11px] font-medium rounded transition-colors ${
+                  textTruncation === 'DISABLED'
+                    ? 'bg-hover text-surface shadow-xs font-semibold'
+                    : 'text-muted hover:text-surface hover:bg-hover/50'
+                }`}
+                onClick={() => setTruncation('DISABLED')}
+              >
+                {panels.truncationDisabled}
+              </button>
+            </Tip>
+            <Tip label={panels.truncationEnding}>
+              <button
+                type="button"
+                className={`h-6 px-2.5 text-[11px] font-medium rounded transition-colors ${
+                  textTruncation === 'ENDING'
+                    ? 'bg-hover text-surface shadow-xs font-semibold'
+                    : 'text-muted hover:text-surface hover:bg-hover/50'
+                }`}
+                onClick={() => setTruncation('ENDING')}
+              >
+                {panels.truncationEnding}
+              </button>
+            </Tip>
+          </div>
         </PanelFieldGroup>
-      )}
+        {textTruncation === 'ENDING' && (
+          <PanelFieldGroup label={panels.maxLines}>
+            <NumberField
+              ariaLabel={panels.maxLines}
+              value={maxLines}
+              min={1}
+              step={1}
+              onChange={(v) => updateProp('maxLines', Math.max(1, Math.round(v)))}
+              onCommit={(v, p) => commitProp('maxLines', v, p)}
+            />
+          </PanelFieldGroup>
+        )}
+      </PanelGrid>
 
       <div className="mb-3">
         <button

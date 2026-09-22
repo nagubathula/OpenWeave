@@ -9,6 +9,7 @@ import {
 } from '@/app/document/io/save-targets'
 import type { DocumentSourceAccess } from '@/app/document/io/types'
 import { createDocumentWriter } from '@/app/document/io/write'
+import { addRecentFile } from '@/app/home/recent-files'
 import { IS_TAURI } from '@/constants'
 
 type SaveDocumentState = EditorState & { documentName: string }
@@ -51,23 +52,49 @@ export function createSaveActions({
     const downloadName = getDownloadName()
     if (storageBinding || filePath || fileHandle) {
       const wrote = await writeFile(await buildFigFile())
-      if (wrote && !storageBinding) setSourceIdentity({ handle: fileHandle, path: filePath })
+      if (wrote && !storageBinding) {
+        setSourceIdentity({ handle: fileHandle, path: filePath })
+        if (filePath) {
+          addRecentFile({
+            id: filePath,
+            name: state.documentName,
+            path: filePath,
+            format: 'fig',
+            updatedAt: new Date().toISOString()
+          })
+        }
+      }
     } else if (IS_TAURI) {
       // First save of a new document goes straight to Documents/openweave
       // without a picker; only Save As asks where.
       const data = await buildFigFile()
       const path = await defaultTauriFigSavePath(state.documentName)
-      setStorageBinding(null)
-      setFilePath(path)
-      setFileHandle(null)
-      state.documentName = documentNameFromFigPath(path)
-      if (await writeFile(data)) setSourceIdentity({ handle: null, path })
-      startWatchingFile()
+      await persistTauriSave(path, data)
     } else if (downloadName) {
       downloadBlob(new Uint8Array(await buildFigFile()), downloadName, 'application/octet-stream')
     } else {
       await saveFigFileAs()
     }
+  }
+
+  async function persistTauriSave(path: string, data: Uint8Array): Promise<boolean> {
+    setStorageBinding(null)
+    setFilePath(path)
+    setFileHandle(null)
+    state.documentName = documentNameFromFigPath(path)
+    const success = await writeFile(data)
+    if (success) {
+      setSourceIdentity({ handle: null, path })
+      addRecentFile({
+        id: path,
+        name: state.documentName,
+        path,
+        format: 'fig',
+        updatedAt: new Date().toISOString()
+      })
+    }
+    startWatchingFile()
+    return success
   }
 
   async function saveFigFileAs() {
@@ -76,12 +103,7 @@ export function createSaveActions({
     if (IS_TAURI) {
       const path = await chooseTauriFigSavePath(state.documentName)
       if (!path) return
-      setStorageBinding(null)
-      setFilePath(path)
-      setFileHandle(null)
-      state.documentName = documentNameFromFigPath(path)
-      if (await writeFile(data)) setSourceIdentity({ handle: null, path })
-      startWatchingFile()
+      await persistTauriSave(path, data)
       return
     }
 

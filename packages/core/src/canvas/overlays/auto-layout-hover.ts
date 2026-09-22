@@ -43,23 +43,19 @@ function setStroke(r: SkiaRenderer, color: Color) {
 }
 
 function drawHorizontalTick(r: SkiaRenderer, canvas: Canvas, x: number, y: number) {
-  canvas.drawLine(
-    x - AUTO_LAYOUT_HOVER_TICK_LENGTH,
-    y,
-    x + AUTO_LAYOUT_HOVER_TICK_LENGTH,
-    y,
-    r.auxStroke
-  )
+  const halfLen = AUTO_LAYOUT_HOVER_TICK_LENGTH
+  const rrect = r.ck.RRectXY(r.ck.LTRBRect(x - halfLen, y - 2, x + halfLen, y + 2), 2, 2)
+  r.auxFill.setColor(r.ck.Color4f(1, 1, 1, 1))
+  canvas.drawRRect(rrect, r.auxFill)
+  canvas.drawRRect(rrect, r.auxStroke)
 }
 
 function drawVerticalTick(r: SkiaRenderer, canvas: Canvas, x: number, y: number) {
-  canvas.drawLine(
-    x,
-    y - AUTO_LAYOUT_HOVER_TICK_LENGTH,
-    x,
-    y + AUTO_LAYOUT_HOVER_TICK_LENGTH,
-    r.auxStroke
-  )
+  const halfLen = AUTO_LAYOUT_HOVER_TICK_LENGTH
+  const rrect = r.ck.RRectXY(r.ck.LTRBRect(x - 2, y - halfLen, x + 2, y + halfLen), 2, 2)
+  r.auxFill.setColor(r.ck.Color4f(1, 1, 1, 1))
+  canvas.drawRRect(rrect, r.auxFill)
+  canvas.drawRRect(rrect, r.auxStroke)
 }
 
 function toScreenRect(r: SkiaRenderer, [x, y, width, height]: RectTuple) {
@@ -285,10 +281,10 @@ export function drawAutoLayoutHover(
 
   if (hover.kind === 'children') drawChildrenHover(r, canvas, graph, node)
   if (hover.kind === 'spacing' || hover.kind === 'spacing-value') {
-    drawSpacingHover(r, canvas, graph, node, hover.kind === 'spacing-value')
+    drawSpacingHover(r, canvas, graph, node, true)
   }
   if (hover.kind === 'padding' || hover.kind === 'padding-value') {
-    drawPaddingHover(r, canvas, graph, node, hover, hover.kind === 'padding-value')
+    drawPaddingHover(r, canvas, graph, node, hover, true)
   }
   drawBaselineTicks(r, canvas, graph, node)
 }

@@ -5,6 +5,8 @@ import {
   AlignStartHorizontal,
   AlignCenterHorizontal,
   AlignEndHorizontal,
+  AlignHorizontalSpaceBetween,
+  AlignVerticalSpaceBetween,
   RotateCw,
   FlipHorizontal2,
   FlipVertical2,
@@ -41,10 +43,24 @@ export default function PositionSection() {
 
   return (
     <PositionControlsRoot>
-      {({ active, isMulti, xValue, yValue, wValue, hValue, rotationValue, actions }) =>
+      {({
+        active,
+        isMulti,
+        xValue,
+        yValue,
+        wValue,
+        hValue,
+        rotationValue,
+        canDistribute,
+        actions
+      }) =>
         active ? (
           <PanelSection label="Position">
-            <div role="toolbar" aria-label="Position" className="mb-1.5 flex justify-between">
+            <div
+              role="toolbar"
+              aria-label="Position"
+              className="mb-1.5 flex items-center justify-between"
+            >
               <div className="flex gap-0.5">
                 <IconButton
                   label="Align left"
@@ -89,6 +105,24 @@ export default function PositionSection() {
                   onClick={() => handleAlign(actions.align, 'vertical', 'max')}
                 >
                   <AlignEndHorizontal className="size-3.5" />
+                </IconButton>
+              </div>
+              <div className="flex gap-0.5">
+                <IconButton
+                  label="Distribute horizontal spacing"
+                  size="md"
+                  disabled={!canDistribute}
+                  onClick={() => actions.distribute('horizontal')}
+                >
+                  <AlignHorizontalSpaceBetween className="size-3.5" />
+                </IconButton>
+                <IconButton
+                  label="Distribute vertical spacing"
+                  size="md"
+                  disabled={!canDistribute}
+                  onClick={() => actions.distribute('vertical')}
+                >
+                  <AlignVerticalSpaceBetween className="size-3.5" />
                 </IconButton>
               </div>
             </div>

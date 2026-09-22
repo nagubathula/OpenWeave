@@ -9,6 +9,7 @@ export default defineConfig({
     images: './src/images.ts',
     instances: './src/instances.ts',
     snap: './src/snap.ts',
+    measurement: './src/measurement.ts',
     'source-metadata': './src/source-metadata.ts',
     preview: './src/preview.ts',
     'text-picture': './src/text-picture.ts',

@@ -3,6 +3,7 @@ export { resolveHit } from '#react/shared/input/select/hit'
 import { resolveHit } from '#react/shared/input/select/hit'
 export { updateHoverCursor } from '#react/shared/input/select/hover'
 import { tryStartResize } from '#react/shared/input/resize'
+import { hitTestCornerRadius } from '#react/shared/input/select/corner-radius'
 import { createSelectionMoveDrag, selectionIsLocked } from '#react/shared/input/select/move'
 import type { DragState } from '#react/shared/input/types'
 
@@ -45,6 +46,65 @@ export function handleSelectDown(
   if (resizeDrag) {
     setDrag(resizeDrag)
     return
+  }
+
+  // Corner radius drag intercept
+  const cornerHit = hitTestCornerRadius(cx, cy, editor)
+  if (cornerHit) {
+    const node = editor.graph.getNode(cornerHit.nodeId)
+    if (node) {
+      setDrag({
+        type: 'corner-radius',
+        nodeId: node.id,
+        corner: cornerHit.corner,
+        startX: cx,
+        startY: cy,
+        initialValues: {
+          cornerRadius: node.cornerRadius,
+          topLeftRadius: node.topLeftRadius,
+          topRightRadius: node.topRightRadius,
+          bottomRightRadius: node.bottomRightRadius,
+          bottomLeftRadius: node.bottomLeftRadius,
+          independentCorners: node.independentCorners
+        }
+      })
+      return
+    }
+  }
+
+  // Auto layout padding & gap drag intercept
+  const alHover = editor.state.autoLayoutHover
+  if (alHover && editor.state.selectedIds.has(alHover.nodeId)) {
+    const node = editor.graph.getNode(alHover.nodeId)
+    if (node && (node.layoutMode === 'HORIZONTAL' || node.layoutMode === 'VERTICAL')) {
+      if ((alHover.kind === 'padding' || alHover.kind === 'padding-value') && alHover.side) {
+        setDrag({
+          type: 'auto-layout-padding',
+          nodeId: node.id,
+          side: alHover.side,
+          startX: cx,
+          startY: cy,
+          initialValues: {
+            top: node.paddingTop,
+            right: node.paddingRight,
+            bottom: node.paddingBottom,
+            left: node.paddingLeft
+          }
+        })
+        return
+      }
+      if (alHover.kind === 'spacing' || alHover.kind === 'spacing-value') {
+        setDrag({
+          type: 'auto-layout-gap',
+          nodeId: node.id,
+          startX: cx,
+          startY: cy,
+          initialSpacing: node.itemSpacing,
+          layoutMode: node.layoutMode
+        })
+        return
+      }
+    }
   }
 
   const hit = resolveHit(cx, cy, editor, fns)

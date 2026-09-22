@@ -6,6 +6,7 @@ import { EditorProvider } from '@openweave/react'
 
 import { getActiveEditorStoreOrNull } from '@/app/editor/active-store'
 import { preloadFonts } from '@/app/editor/fonts'
+import { closeHome } from '@/app/home/store'
 import { kickSyncEngine } from '@/app/storage/sync'
 import { activeTabId, createTab, tabCount } from '@/app/tabs'
 import { EditorLayout } from '@/components/layout/EditorLayout'
@@ -20,6 +21,9 @@ export default function Page() {
     // (automation/MCP) are all wired by activateTab — a bare
     // createEditorStore() would leave the bridge dangling.
     if (tabCount() === 0) createTab()
+    if (new URLSearchParams(window.location.search).has('room')) {
+      closeHome()
+    }
     setIsReady(true)
     // App-level startup that App.vue used to own: load fonts and start the
     // storage sync engine (local persistence / document database).

@@ -1,19 +1,11 @@
-export function createRafScheduler(flush: () => void) {
-  let rafId = 0
+import { getEditorFrameScheduler } from '#react/internal/frame-scheduler'
 
-  function schedule() {
-    if (rafId) return
-    rafId = requestAnimationFrame(() => {
-      rafId = 0
-      flush()
-    })
+import type { Editor } from '@openweave/core/editor'
+
+export function createRafScheduler(editor: Editor, flush: () => void) {
+  const scheduler = getEditorFrameScheduler(editor)
+  return {
+    schedule: () => scheduler.scheduleInput(flush),
+    cancel: () => scheduler.cancelInput(flush)
   }
-
-  function cancel() {
-    if (!rafId) return
-    cancelAnimationFrame(rafId)
-    rafId = 0
-  }
-
-  return { schedule, cancel }
 }

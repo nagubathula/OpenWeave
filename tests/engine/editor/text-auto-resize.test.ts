@@ -68,4 +68,33 @@ describe('editor text auto-resize updates', () => {
     expect(getNodeOrThrow(editor.graph, text.id).width).toBe(64)
     expect(getNodeOrThrow(editor.graph, text.id).height).toBe(32)
   })
+
+  test('switching textAutoResize recalculates node bounds', () => {
+    setTextMeasurer((node, maxWidth) => ({
+      width: maxWidth ?? node.fontSize * 6,
+      height: maxWidth ? 60 : node.fontSize * 2
+    }))
+
+    const editor = createEditor()
+    const text = editor.graph.createNode('TEXT', editor.state.currentPageId, {
+      text: 'Sample text content',
+      textAutoResize: 'NONE',
+      width: 100,
+      height: 40,
+      fontSize: 12
+    })
+
+    editor.updateNodeWithUndo(
+      text.id,
+      { textAutoResize: 'WIDTH_AND_HEIGHT' },
+      'Change text auto resize'
+    )
+    expect(getNodeOrThrow(editor.graph, text.id).textAutoResize).toBe('WIDTH_AND_HEIGHT')
+    expect(getNodeOrThrow(editor.graph, text.id).width).toBe(72)
+    expect(getNodeOrThrow(editor.graph, text.id).height).toBe(24)
+
+    editor.updateNodeWithUndo(text.id, { textAutoResize: 'HEIGHT' }, 'Change text auto resize')
+    expect(getNodeOrThrow(editor.graph, text.id).textAutoResize).toBe('HEIGHT')
+    expect(getNodeOrThrow(editor.graph, text.id).height).toBe(60)
+  })
 })

@@ -19,6 +19,7 @@ import {
   createActiveStorageAdapter,
   type StorageDocument
 } from '@/app/integrations/storage'
+import { toast } from '@/app/shell/ui'
 import { getLocalCanvasStore } from '@/app/storage/local-store'
 import { seedStorageCanvasFromRemote } from '@/app/storage/sync/persist'
 import { createFileOpenCoordinator } from '@/app/tabs/open/coordinator'
@@ -215,6 +216,12 @@ export async function openStorageDocumentInNewTab(document: StorageDocument): Pr
       updatedAt: document.updatedAt
     })
     closeHome()
+  } catch (error) {
+    console.error('Failed to open storage document:', error)
+    toast.error(
+      `Failed to open ${document.name}: ${error instanceof Error ? error.message : String(error)}`
+    )
+    throw error
   } finally {
     store.state.loading = false
   }
@@ -308,6 +315,10 @@ export async function openFileInNewTab(
     completion.resolve(undefined)
   } catch (error) {
     completion.reject(error)
+    console.error('Failed to open file in tab:', error)
+    toast.error(
+      `Failed to open ${file.name}: ${error instanceof Error ? error.message : String(error)}`
+    )
     throw error
   } finally {
     store.state.loading = false

@@ -132,7 +132,11 @@ export default function HomeScreen() {
           <div className="flex flex-col gap-3">
             <div className="flex items-center justify-between border-b border-border/30 pb-2">
               <h2 className="text-xs font-semibold text-surface">
-                {currentSection === 'templates' ? 'All Templates' : 'Recently viewed'}
+                {currentSection === 'templates'
+                  ? 'All Templates'
+                  : currentSection === 'drafts'
+                    ? 'Drafts & Local Files'
+                    : 'Recently viewed'}
               </h2>
             </div>
 

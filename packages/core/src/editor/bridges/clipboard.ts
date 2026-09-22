@@ -17,6 +17,8 @@ export function createClipboardBridge(clipboard: ClipboardActions, selection: Se
     loadFontsForNodes: clipboard.loadFontsForNodes,
     copySelectionAsText: clipboard.copySelectionAsText,
     copySelectionAsSVG: clipboard.copySelectionAsSVG,
-    copySelectionAsJSX: clipboard.copySelectionAsJSX
+    copySelectionAsJSX: clipboard.copySelectionAsJSX,
+    copyProperties: clipboard.copyProperties,
+    pasteProperties: clipboard.pasteProperties
   }
 }

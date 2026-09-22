@@ -1,4 +1,9 @@
-import type { Fill, NodeType, SceneNode } from '@openweave/scene-graph'
+import {
+  DEFAULT_SHADER_CONFIG,
+  type Fill,
+  type NodeType,
+  type SceneNode
+} from '@openweave/scene-graph'
 
 import {
   BLACK,
@@ -29,6 +34,12 @@ const DEFAULT_FILLS: Record<string, Fill> = {
   ELLIPSE: DEFAULT_SHAPE_FILL,
   POLYGON: DEFAULT_SHAPE_FILL,
   STAR: DEFAULT_SHAPE_FILL,
+  SHADER: {
+    type: 'SOLID',
+    color: { r: 0.12, g: 0.12, b: 0.22, a: 1 },
+    opacity: 1,
+    visible: true
+  },
   LINE: BLACK_FILL,
   TEXT: BLACK_FILL
 }
@@ -63,6 +74,9 @@ export function createShapeActions(ctx: EditorContext) {
     if (type === 'STAR') {
       overrides.pointCount = 5
       overrides.starInnerRadius = 0.38
+    }
+    if (type === 'SHADER') {
+      overrides.shader = { ...DEFAULT_SHADER_CONFIG }
     }
     const node = ctx.graph.createNode(type, pid, overrides)
     const id = node.id

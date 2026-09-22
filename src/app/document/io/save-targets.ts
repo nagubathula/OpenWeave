@@ -1,7 +1,7 @@
 /** Default save location for documents in the standalone (Tauri) app. */
 const DEFAULT_SAVE_DIR = 'openweave'
 
-async function defaultTauriSaveDir(): Promise<string> {
+export async function defaultTauriSaveDir(): Promise<string> {
   const { documentDir, join } = await import('@tauri-apps/api/path')
   const { mkdir } = await import('@tauri-apps/plugin-fs')
   const dir = await join(await documentDir(), DEFAULT_SAVE_DIR)

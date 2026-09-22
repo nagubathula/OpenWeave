@@ -116,6 +116,28 @@ export default function CanvasMenu() {
         <span>{t.pasteToReplace}</span>
       </ContextMenu.Item>
       <ContextMenu.Item
+        data-test-id="context-copy-properties"
+        className={cls.item}
+        disabled={!getCommand('edit.copyProperties').enabled}
+        onSelect={() => getCommand('edit.copyProperties').run()}
+      >
+        <span>{getCommand('edit.copyProperties').label}</span>
+        <AppShortcutText>
+          {formatShortcut(editorCommandMetadata('edit.copyProperties').shortcut)}
+        </AppShortcutText>
+      </ContextMenu.Item>
+      <ContextMenu.Item
+        data-test-id="context-paste-properties"
+        className={cls.item}
+        disabled={!getCommand('edit.pasteProperties').enabled}
+        onSelect={() => getCommand('edit.pasteProperties').run()}
+      >
+        <span>{getCommand('edit.pasteProperties').label}</span>
+        <AppShortcutText>
+          {formatShortcut(editorCommandMetadata('edit.pasteProperties').shortcut)}
+        </AppShortcutText>
+      </ContextMenu.Item>
+      <ContextMenu.Item
         data-test-id="context-duplicate"
         className={cls.item}
         disabled={!hasSelection}

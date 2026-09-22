@@ -1,5 +1,6 @@
 import { useStore } from '@nanostores/react'
-import React, { useEffect, useRef, useState } from 'react'
+import { Maximize2, Minus, Plus } from 'lucide-react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { useEventListener } from 'usehooks-ts'
 
 import { useAIChat } from '@/app/ai/chat/use'
@@ -15,21 +16,24 @@ import {
   selectAllKeyframes,
   selectKeyframe,
   setTimelineHeight,
+  setZoom,
   timelineHeightStore,
   timelineStore,
   togglePlay
 } from '@/app/motion/store'
 import type { AnimatableProperty } from '@/app/motion/types'
+import { HEADER_WIDTH } from '@/components/timeline/constants'
 import EmptyState from '@/components/timeline/EmptyState'
 import Playhead from '@/components/timeline/Playhead'
 import Ruler from '@/components/timeline/Ruler'
 import TrackList from '@/components/timeline/TrackList'
+import Tip from '@/components/ui/Tip'
 
 const MIN_TIMELINE_HEIGHT = 180
 
 export default function AnimationTimeline() {
   const { activeTab } = useAIChat()
-  const { currentTimeMs, durationMs, zoom } = useStore(timelineStore)
+  const { durationMs, zoom } = useStore(timelineStore)
   const tracks = useStore(nodeTracksStore)
   const timelineHeight = useStore(timelineHeightStore)
   const [scrollLeft, setScrollLeft] = useState(0)
@@ -125,6 +129,57 @@ export default function AnimationTimeline() {
     return unsub
   }, [])
 
+  const applyAnchoredZoom = useCallback((targetZoom: number, anchorClientX?: number) => {
+    const el = scrollContainerRef.current
+    const currentZoom = timelineStore.get().zoom
+    const clampedZoom = Math.max(0.2, Math.min(2.5, targetZoom))
+    if (Math.abs(clampedZoom - currentZoom) < 0.001) return
+
+    if (!el) {
+      setZoom(Number(clampedZoom.toFixed(2)))
+      return
+    }
+
+    const currentPxPerMs = 0.45 * currentZoom
+    const nextPxPerMs = 0.45 * clampedZoom
+
+    if (anchorClientX !== undefined) {
+      const rect = el.getBoundingClientRect()
+      const cursorViewportX = anchorClientX - rect.left - HEADER_WIDTH
+      const cursorTimelineX = cursorViewportX + el.scrollLeft
+      const anchorTimeMs = Math.max(0, cursorTimelineX / currentPxPerMs)
+      const nextScrollLeft = Math.max(0, anchorTimeMs * nextPxPerMs - cursorViewportX)
+      setZoom(Number(clampedZoom.toFixed(2)))
+      el.scrollLeft = nextScrollLeft
+    } else {
+      const currentTime = timelineStore.get().currentTimeMs
+      const playheadTimelineX = currentTime * currentPxPerMs
+      const playheadViewportX = playheadTimelineX - el.scrollLeft
+      const visibleWidth = el.clientWidth - HEADER_WIDTH
+
+      if (playheadViewportX >= 0 && playheadViewportX <= visibleWidth) {
+        const nextScrollLeft = Math.max(0, currentTime * nextPxPerMs - playheadViewportX)
+        setZoom(Number(clampedZoom.toFixed(2)))
+        el.scrollLeft = nextScrollLeft
+      } else {
+        const centerViewportX = visibleWidth / 2
+        const centerTimeMs = (el.scrollLeft + centerViewportX) / currentPxPerMs
+        const nextScrollLeft = Math.max(0, centerTimeMs * nextPxPerMs - centerViewportX)
+        setZoom(Number(clampedZoom.toFixed(2)))
+        el.scrollLeft = nextScrollLeft
+      }
+    }
+  }, [])
+
+  const handleZoomToFit = useCallback(() => {
+    const el = scrollContainerRef.current
+    if (!el) return
+    const availableWidth = Math.max(300, el.clientWidth - HEADER_WIDTH - 60)
+    const idealZoom = Math.max(0.2, Math.min(2.5, availableWidth / (durationMs * 0.45)))
+    setZoom(Number(idealZoom.toFixed(2)))
+    el.scrollLeft = 0
+  }, [durationMs])
+
   const onKeyDown = (e: KeyboardEvent) => {
     const target = e.target as HTMLElement | null
     const isInput =
@@ -132,7 +187,16 @@ export default function AnimationTimeline() {
       (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)
     if (isInput) return
 
-    if (e.code === 'Space') {
+    if ((e.code === 'Digit1' || e.code === 'Digit0') && e.shiftKey) {
+      e.preventDefault()
+      handleZoomToFit()
+    } else if (e.key === '=' || e.key === '+') {
+      e.preventDefault()
+      applyAnchoredZoom(zoom + 0.2)
+    } else if (e.key === '-' || e.key === '_') {
+      e.preventDefault()
+      applyAnchoredZoom(zoom - 0.2)
+    } else if (e.code === 'Space') {
       e.preventDefault()
       togglePlay()
     } else if (e.code === 'ArrowLeft') {
@@ -178,6 +242,33 @@ export default function AnimationTimeline() {
 
   useEventListener('keydown', onKeyDown)
 
+  useEffect(() => {
+    const el = scrollContainerRef.current
+    if (!el) return
+
+    const handleWheel = (e: WheelEvent) => {
+      // Zoom with Ctrl / Cmd / Alt + Wheel
+      if (e.ctrlKey || e.metaKey || e.altKey) {
+        e.preventDefault()
+        const currentZoom = timelineStore.get().zoom
+        const zoomFactor = Math.exp(-e.deltaY * 0.0025)
+        applyAnchoredZoom(currentZoom * zoomFactor, e.clientX)
+        return
+      }
+
+      // Smooth horizontal pan on vertical mouse wheel if no vertical overflow in timeline
+      if (e.deltaX === 0 && e.deltaY !== 0) {
+        if (el.scrollHeight <= el.clientHeight) {
+          e.preventDefault()
+          el.scrollLeft += e.deltaY
+        }
+      }
+    }
+
+    el.addEventListener('wheel', handleWheel, { passive: false })
+    return () => el.removeEventListener('wheel', handleWheel)
+  }, [applyAnchoredZoom])
+
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
     setScrollLeft(e.currentTarget.scrollLeft)
   }
@@ -189,7 +280,7 @@ export default function AnimationTimeline() {
   return (
     <div
       data-test-id="animation-timeline"
-      className="relative flex w-full flex-col border-t border-white/10 bg-[#1e1e20] shadow-2xl select-none transition-all duration-75"
+      className="relative flex w-full flex-col border-t border-border bg-panel shadow-2xl select-none"
       style={{ height: `${timelineHeight}px` }}
     >
       {/* Top draggable resize handle */}
@@ -201,13 +292,78 @@ export default function AnimationTimeline() {
         onPointerCancel={handleResizeEnd}
         onDoubleClick={handleResizeDoubleClick}
       >
-        <div className="h-px w-8 rounded-full bg-white/10 group-hover:bg-accent group-hover:h-[2px] transition-all" />
+        <div className="h-0.5 w-8 rounded-full bg-border group-hover:bg-accent transition-colors" />
+      </div>
+
+      {/* Docked Zoom Controls in top-right header overlay */}
+      <div
+        className="absolute top-1 right-3 z-30 flex items-center gap-1.5 h-6 px-2 py-0.5 rounded-full border border-border bg-panel shadow-xs select-none"
+        onPointerDown={(e) => e.stopPropagation()}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Zoom to fit button */}
+        {/* oxlint-disable-next-line openweave/no-hardcoded-tip-labels */}
+        <Tip label="Zoom to fit (Shift+1)">
+          <button
+            type="button"
+            data-test-id="timeline-zoom-fit"
+            aria-label="Zoom to fit"
+            className="size-3.5 flex items-center justify-center text-muted hover:text-surface transition-colors cursor-pointer"
+            onClick={handleZoomToFit}
+          >
+            <Maximize2 className="size-2.5" />
+          </button>
+        </Tip>
+
+        <div className="h-3 w-px bg-border/80" />
+
+        {/* Zoom out button */}
+        {/* oxlint-disable-next-line openweave/no-hardcoded-tip-labels */}
+        <Tip label="Zoom out (-)">
+          <button
+            type="button"
+            data-test-id="timeline-zoom-out"
+            aria-label="Zoom out"
+            className="size-3.5 flex items-center justify-center text-muted hover:text-surface transition-colors cursor-pointer"
+            onClick={() => applyAnchoredZoom(zoom - 0.2)}
+          >
+            <Minus className="size-2.5" />
+          </button>
+        </Tip>
+
+        {/* Smooth zoom slider */}
+        <input
+          type="range"
+          min={0.2}
+          max={2.5}
+          step={0.01}
+          value={zoom}
+          data-test-id="timeline-zoom-slider"
+          aria-label="Timeline zoom"
+          className="h-1 w-16 cursor-pointer appearance-none rounded-full bg-panel-field accent-accent outline-none [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:size-2.5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-accent [&::-webkit-slider-thumb]:shadow-xs [&::-webkit-slider-thumb]:hover:scale-125 [&::-webkit-slider-thumb]:transition-transform [&::-moz-range-thumb]:size-2.5 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-accent [&::-moz-range-thumb]:border-none"
+          onChange={(e) => applyAnchoredZoom(parseFloat(e.target.value))}
+          onDoubleClick={handleZoomToFit}
+        />
+
+        {/* Zoom in button */}
+        {/* oxlint-disable-next-line openweave/no-hardcoded-tip-labels */}
+        <Tip label="Zoom in (+)">
+          <button
+            type="button"
+            data-test-id="timeline-zoom-in"
+            aria-label="Zoom in"
+            className="size-3.5 flex items-center justify-center text-muted hover:text-surface transition-colors cursor-pointer"
+            onClick={() => applyAnchoredZoom(zoom + 0.2)}
+          >
+            <Plus className="size-2.5" />
+          </button>
+        </Tip>
       </div>
 
       {/* Upper scrollable tracks & ruler area */}
       <div
         ref={scrollContainerRef}
-        className="relative flex-1 min-h-0 overflow-x-auto overflow-y-auto"
+        className="relative flex-1 min-h-0 overflow-x-auto overflow-y-auto scrollbar-thin"
         onScroll={handleScroll}
       >
         <div className="relative min-w-full min-h-full">
@@ -224,12 +380,7 @@ export default function AnimationTimeline() {
           <TrackList durationMs={durationMs} zoom={zoom} onSeek={seek} />
 
           {/* Scrubber Playhead */}
-          <Playhead
-            currentTimeMs={currentTimeMs}
-            durationMs={durationMs}
-            zoom={zoom}
-            onSeek={seek}
-          />
+          <Playhead durationMs={durationMs} zoom={zoom} onSeek={seek} />
 
           {/* Empty state when no animation tracks exist */}
           {showEmpty && <EmptyState onDismiss={() => setEmptyDismissed(true)} />}
@@ -241,7 +392,7 @@ export default function AnimationTimeline() {
         <button
           type="button"
           aria-label="Help and resources"
-          className="flex h-6 w-6 items-center justify-center rounded-full bg-[#2c2c2e] text-white/70 hover:text-white hover:bg-[#38383c] border border-white/10 text-xs font-semibold shadow transition-colors cursor-pointer"
+          className="flex h-6 w-6 items-center justify-center rounded-full bg-panel-field text-surface/70 hover:text-surface hover:bg-hover border border-border text-xs font-semibold shadow transition-colors cursor-pointer"
         >
           ?
         </button>

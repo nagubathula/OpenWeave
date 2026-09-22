@@ -17,7 +17,7 @@ export function setupSafariGestureZoom(canvasRef: CanvasRefLike, editor: Editor)
     editor.setZoomAroundPoint(gestureStartZoom * scale, sx, sy)
   }
 
-  const gestureScheduler = createRafScheduler(flushGesture)
+  const gestureScheduler = createRafScheduler(editor, flushGesture)
 
   const removeStart = addListener(
     canvasRef,

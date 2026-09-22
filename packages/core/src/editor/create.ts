@@ -2,7 +2,7 @@ import type { CanvasKit } from 'canvaskit-wasm'
 import { createNanoEvents } from 'nanoevents'
 import type { Emitter } from 'nanoevents'
 
-import { SceneGraph } from '@openweave/scene-graph'
+import { SceneGraph, type Vector } from '@openweave/scene-graph'
 import { UndoManager } from '@openweave/scene-graph/undo'
 
 import type { SkiaRenderer } from '#core/canvas/renderer'
@@ -30,6 +30,7 @@ import { createSelectionActions } from './selection'
 import { createShapeActions } from './shapes'
 import { createDefaultEditorState } from './state'
 import { createStructureActions } from './structure'
+import { createStyleActions } from './styles'
 import { createTextActions } from './text'
 import type {
   EditorContext,
@@ -173,14 +174,15 @@ export function createEditor(options?: EditorOptions) {
   const shapes = createShapeActions(ctx)
   const structure = createStructureActions(ctx)
   const components = createComponentActions(ctx)
-  const clipboard = createClipboardActions(ctx)
+  const nodes = createNodeActions(ctx)
+  const clipboard = createClipboardActions(ctx, nodes.updateNodeWithUndo)
   const colorSpace = createColorSpaceActions(ctx)
   const undoActions = createUndoActions(ctx)
   const text = createTextActions(ctx)
-  const nodes = createNodeActions(ctx)
   const variables = createVariableActions(ctx)
   const vectorize = createVectorizeActions(ctx)
   const alignment = createAlignmentActions(ctx)
+  const styles = createStyleActions(ctx)
   const clipboardBridge = createClipboardBridge(clipboard, selection)
   const componentBridge = createComponentBridge(components, selection, structure, pages)
   const structureBridge = createStructureBridge(structure, selection)
@@ -243,10 +245,19 @@ export function createEditor(options?: EditorOptions) {
     requestRender,
     requestRepaint,
     onEditorEvent,
+    emitEditorEvent,
     setCanvasKit,
     removeCanvasRenderer,
     replaceGraph,
     subscribeToGraph,
+    setPointerWorld(pos: Vector | null) {
+      for (const r of _renderers) {
+        r.pointerWorld = pos
+      }
+      if ([..._renderers].some((r) => r.hasActiveShaders(_graph))) {
+        requestRepaint()
+      }
+    },
 
     // Selection
     ...selection,
@@ -274,6 +285,9 @@ export function createEditor(options?: EditorOptions) {
 
     // Text editing
     ...text,
+
+    // Shared styles
+    ...styles,
 
     // Viewport
     ...viewport,

@@ -13,6 +13,8 @@ export interface RulerTheme {
 
 export interface RenderOverlays {
   hoveredNodeId?: string | null
+  altHeld?: boolean
+  activeGuide?: { axis: 'X' | 'Y'; offset: number } | null
   enteredContainerId?: string | null
   editingTextId?: string | null
   textEditor?: TextEditor | null
@@ -31,6 +33,15 @@ export interface RenderOverlays {
     kind: 'frame' | 'children' | 'spacing' | 'spacing-value' | 'padding' | 'padding-value'
     index?: number
     side?: 'top' | 'right' | 'bottom' | 'left'
+  } | null
+  cornerRadiusHover?: {
+    nodeId: string
+    corner: 'tl' | 'tr' | 'br' | 'bl'
+  } | null
+  cornerRadiusDrag?: {
+    nodeId: string
+    corner: 'tl' | 'tr' | 'br' | 'bl'
+    radius: number
   } | null
   penState?: {
     vertices: Vector[]

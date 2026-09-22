@@ -58,5 +58,21 @@ export function useSharedStyleBinding(kind: SharedStyleKind) {
     update(`Detach ${kind} style`, () => sharedStyleDetachPatch(kind))
   }
 
-  return { kind, active, styleId, styles, bind, unbind }
+  function createStyle(name: string): string | null {
+    if (!active || nodes.length === 0) return null
+    return store.createSharedStyle(kind, name, nodes[0])
+  }
+
+  function deleteStyle(targetStyleId: string): boolean {
+    return store.deleteSharedStyle(targetStyleId)
+  }
+
+  function updateStyle(
+    targetStyleId: string,
+    patch: Parameters<typeof store.updateSharedStyle>[1]
+  ): boolean {
+    return store.updateSharedStyle(targetStyleId, patch)
+  }
+
+  return { kind, active, styleId, styles, bind, unbind, createStyle, deleteStyle, updateStyle }
 }

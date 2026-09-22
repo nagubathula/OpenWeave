@@ -250,7 +250,8 @@ export function NumberFieldRoot({
           document.body.style.cursor = 'ew-resize'
         }
         if (!hasMoved) return
-        accumulated += dx * stepValue * sensitivity
+        const multiplier = moveEvent.shiftKey ? 10 : moveEvent.altKey ? 0.1 : 1
+        accumulated += dx * stepValue * sensitivity * multiplier
         updateValue(accumulated)
       }
 

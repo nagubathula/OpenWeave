@@ -3,6 +3,8 @@ import type { ComponentType } from 'react'
 export type EditorCommandId =
   | 'edit.undo'
   | 'edit.redo'
+  | 'edit.copyProperties'
+  | 'edit.pasteProperties'
   | 'selection.selectAll'
   | 'selection.selectInverse'
   | 'selection.duplicate'
@@ -40,6 +42,7 @@ export type EditorCommandId =
   | 'view.zoom100'
   | 'view.zoomFit'
   | 'view.zoomSelection'
+  | 'view.commandPalette'
 
 export interface EditorCommand {
   id: EditorCommandId

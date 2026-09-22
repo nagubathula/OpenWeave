@@ -1,5 +1,7 @@
 export { createDefaultEditorState, createEditor } from './create'
 export type { Editor } from './create'
+export { createStyleActions } from './styles'
+export type { SharedStyleUpdatePatch, SharedStyleTypographyPatch } from './styles'
 export { createTextActions } from './text'
 export { opacityFromBuffer } from './nodes'
 export { EDITOR_TOOLS, TOOL_SHORTCUTS } from './tool-registry'

@@ -1,5 +1,23 @@
 import { BLACK, DEFAULT_FONT_FAMILY, DEFAULT_STROKE_MITER_LIMIT } from './constants'
-import type { NodeType, SceneNode, SourceMetadata } from './types'
+import type { NodeType, SceneNode, ShaderConfig, SourceMetadata } from './types'
+
+export const DEFAULT_SHADER_CONFIG: ShaderConfig = {
+  preset: 'ANIMATED_GRADIENT',
+  speed: 1.0,
+  scale: 1.0,
+  intensity: 1.0,
+  complexity: 4,
+  colors: [
+    { r: 0.38, g: 0.18, b: 0.89, a: 1 },
+    { r: 0.94, g: 0.28, b: 0.62, a: 1 },
+    { r: 0.12, g: 0.73, b: 0.96, a: 1 },
+    { r: 0.08, g: 0.08, b: 0.24, a: 1 }
+  ],
+  pointerInteraction: true,
+  pointerRadius: 150,
+  pointerStrength: 0.5,
+  paused: false
+}
 
 export function createDefaultSourceMetadata(): SourceMetadata {
   return {
@@ -29,18 +47,30 @@ export function createDefaultNode(
   return {
     id: generateId(),
     type,
-    name: type.charAt(0) + type.slice(1).toLowerCase(),
+    name: type === 'SHADER' ? 'Shader' : type.charAt(0) + type.slice(1).toLowerCase(),
     parentId: null,
     childIds: [],
     x: 0,
     y: 0,
-    width: 100,
-    height: 100,
+    width: type === 'SHADER' ? 300 : 100,
+    height: type === 'SHADER' ? 200 : 100,
     rotation: 0,
     source: createDefaultSourceMetadata(),
     figmaDerivedLayout: null,
     fills:
-      type === 'TEXT' ? [{ type: 'SOLID' as const, color: BLACK, opacity: 1, visible: true }] : [],
+      type === 'TEXT'
+        ? [{ type: 'SOLID' as const, color: BLACK, opacity: 1, visible: true }]
+        : type === 'SHADER'
+          ? [
+              {
+                type: 'SOLID' as const,
+                color: { r: 0.12, g: 0.12, b: 0.22, a: 1 },
+                opacity: 1,
+                visible: true
+              }
+            ]
+          : [],
+    ...(type === 'SHADER' ? { shader: { ...DEFAULT_SHADER_CONFIG } } : {}),
     strokes: [],
     effects: [],
     layoutGrids: [],

@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'bun:test'
 
 import { resolveAutoLayoutHover } from '#react/shared/input/auto-layout-hover'
+import { updateHoverCursor } from '#react/shared/input/select/hover'
 
 import type { Editor } from '@openweave/core/editor'
 import type { SceneNode } from '@openweave/scene-graph'
@@ -109,5 +110,39 @@ describe('auto-layout hover resolver', () => {
 
   test('falls back to frame hover inside empty selected areas', () => {
     expect(resolveAutoLayoutHover(240, 235, editor())).toMatchObject({ kind: 'frame' })
+  })
+})
+
+describe('auto-layout hover cursor', () => {
+  const dummyFns = {
+    hitTestInScope: () => null,
+    hitTestSectionTitle: () => null,
+    hitTestComponentLabel: () => null
+  }
+
+  test('returns ns-resize for vertical padding hover', () => {
+    const ed = editor()
+    ed.state.autoLayoutHover = { kind: 'padding', nodeId: 'frame', side: 'top' }
+    expect(updateHoverCursor(0, 0, ed, dummyFns)).toBe('ns-resize')
+  })
+
+  test('returns ew-resize for horizontal padding hover', () => {
+    const ed = editor()
+    ed.state.autoLayoutHover = { kind: 'padding-value', nodeId: 'frame', side: 'left' }
+    expect(updateHoverCursor(0, 0, ed, dummyFns)).toBe('ew-resize')
+  })
+
+  test('returns ns-resize for vertical layout spacing hover', () => {
+    const ed = editor()
+    ed.state.autoLayoutHover = { kind: 'spacing', nodeId: 'frame', index: 0 }
+    expect(updateHoverCursor(0, 0, ed, dummyFns)).toBe('ns-resize')
+  })
+
+  test('returns ew-resize for horizontal layout spacing hover', () => {
+    const ed = editor()
+    const frameNode = ed.graph.getNode('frame')
+    if (frameNode) frameNode.layoutMode = 'HORIZONTAL'
+    ed.state.autoLayoutHover = { kind: 'spacing-value', nodeId: 'frame', index: 0 }
+    expect(updateHoverCursor(0, 0, ed, dummyFns)).toBe('ew-resize')
   })
 })

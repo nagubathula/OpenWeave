@@ -13,7 +13,6 @@ import {
 } from 'lucide-react'
 import React, { useRef, useState } from 'react'
 
-import { colorToCSS } from '@openweave/core/color'
 import { useSelectionState } from '@openweave/react'
 
 import {
@@ -88,8 +87,6 @@ const MOTION_PRESETS: { id: MotionPreset; label: string; desc: string }[] = [
   { id: 'pulse', label: 'Pulse', desc: 'Looping heartbeat fade' }
 ]
 
-const GRID_LINE_CSS = colorToCSS({ r: 1, g: 1, b: 1, a: 0.03 })
-
 export default function TrackList({ durationMs, zoom, onSeek }: TrackListProps) {
   const { editor, selectedIds } = useSelectionState()
   const tracks = useStore(nodeTracksStore)
@@ -113,11 +110,17 @@ export default function TrackList({ durationMs, zoom, onSeek }: TrackListProps) 
     currY: number
   } | null>(null)
 
+  const cachedKfPositionsRef = useRef<Array<{ id: string; rect: DOMRect }>>([])
+  const marqueeRafRef = useRef<number | null>(null)
+  const dragRafRef = useRef<number | null>(null)
+
   const safeDurationMs = Math.max(100, Math.min(60000, Number(durationMs) || 2000))
   const safeZoom = Math.max(0.1, Math.min(5, Number(zoom) || 1))
   const pxPerMs = 0.45 * safeZoom
   const trackWidth = Math.max(800, safeDurationMs * pxPerMs + 100)
   const gridStepPx = Math.max(10, 200 * pxPerMs)
+
+  const gridBackgroundStyle = `repeating-linear-gradient(to right, color-mix(in srgb, var(--color-border) 40%, transparent) 0px, color-mix(in srgb, var(--color-border) 40%, transparent) 1px, transparent 1px, transparent ${gridStepPx}px)`
 
   const selectedSet = new Set(
     selectedKeyframeIds && selectedKeyframeIds.length > 0
@@ -136,6 +139,18 @@ export default function TrackList({ durationMs, zoom, onSeek }: TrackListProps) 
     const target = e.target as HTMLElement
     if (target.closest('[data-keyframe-btn]')) return
     if (!e.shiftKey && !e.metaKey && !e.ctrlKey) selectKeyframe(undefined)
+
+    // Cache keyframe element bounding boxes once to eliminate layout thrashing during mousemove
+    if (containerRef.current) {
+      const kfElements = containerRef.current.querySelectorAll<HTMLElement>('[data-keyframe-id]')
+      const cached: Array<{ id: string; rect: DOMRect }> = []
+      kfElements.forEach((el) => {
+        const id = el.getAttribute('data-keyframe-id')
+        if (id) cached.push({ id, rect: el.getBoundingClientRect() })
+      })
+      cachedKfPositionsRef.current = cached
+    }
+
     setMarquee({ startX: e.clientX, startY: e.clientY, currX: e.clientX, currY: e.clientY })
     e.currentTarget.setPointerCapture(e.pointerId)
   }
@@ -144,26 +159,35 @@ export default function TrackList({ durationMs, zoom, onSeek }: TrackListProps) 
     if (!marquee) return
     const currX = e.clientX
     const currY = e.clientY
-    setMarquee((prev) => (prev ? { ...prev, currX, currY } : null))
-    const minX = Math.min(marquee.startX, currX)
-    const maxX = Math.max(marquee.startX, currX)
-    const minY = Math.min(marquee.startY, currY)
-    const maxY = Math.max(marquee.startY, currY)
-    if (containerRef.current) {
-      const kfElements = containerRef.current.querySelectorAll<HTMLElement>('[data-keyframe-id]')
-      const matched: string[] = []
-      kfElements.forEach((el) => {
-        const rect = el.getBoundingClientRect()
-        if (rect.right >= minX && rect.left <= maxX && rect.bottom >= minY && rect.top <= maxY) {
-          const id = el.getAttribute('data-keyframe-id')
-          if (id) matched.push(id)
+
+    if (marqueeRafRef.current === null) {
+      marqueeRafRef.current = requestAnimationFrame(() => {
+        marqueeRafRef.current = null
+        setMarquee((prev) => (prev ? { ...prev, currX, currY } : null))
+
+        const minX = Math.min(marquee.startX, currX)
+        const maxX = Math.max(marquee.startX, currX)
+        const minY = Math.min(marquee.startY, currY)
+        const maxY = Math.max(marquee.startY, currY)
+
+        const matched: string[] = []
+        for (const item of cachedKfPositionsRef.current) {
+          const rect = item.rect
+          if (rect.right >= minX && rect.left <= maxX && rect.bottom >= minY && rect.top <= maxY) {
+            matched.push(item.id)
+          }
         }
+        selectMultipleKeyframes(matched)
       })
-      selectMultipleKeyframes(matched)
     }
   }
 
   const handleCanvasPointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (marqueeRafRef.current !== null) {
+      cancelAnimationFrame(marqueeRafRef.current)
+      marqueeRafRef.current = null
+    }
+    cachedKfPositionsRef.current = []
     if (marquee) {
       try {
         e.currentTarget.releasePointerCapture(e.pointerId)
@@ -214,22 +238,32 @@ export default function TrackList({ durationMs, zoom, onSeek }: TrackListProps) 
     const targetTime = isOverride
       ? rawTargetTime
       : snapToNearestKeyframe(rawTargetTime, Math.max(12, 12 / pxPerMs), dragging.keyframeId)
-    if (dragging.isMulti) {
-      const stepDelta = targetTime - dragging.lastTimeMs
-      if (stepDelta !== 0) {
-        moveSelectedKeyframes(stepDelta)
-        setDragging((prev) =>
-          prev ? { ...prev, lastTimeMs: targetTime, startX: e.clientX } : null
-        )
-        onSeek(targetTime)
-      }
-    } else {
-      moveKeyframe(dragging.nodeId, dragging.property, dragging.keyframeId, targetTime)
-      onSeek(targetTime)
+
+    if (dragRafRef.current === null) {
+      dragRafRef.current = requestAnimationFrame(() => {
+        dragRafRef.current = null
+        if (dragging.isMulti) {
+          const stepDelta = targetTime - dragging.lastTimeMs
+          if (stepDelta !== 0) {
+            moveSelectedKeyframes(stepDelta)
+            setDragging((prev) =>
+              prev ? { ...prev, lastTimeMs: targetTime, startX: e.clientX } : null
+            )
+            onSeek(targetTime)
+          }
+        } else {
+          moveKeyframe(dragging.nodeId, dragging.property, dragging.keyframeId, targetTime)
+          onSeek(targetTime)
+        }
+      })
     }
   }
 
   const handleKeyframePointerUp = (e: React.PointerEvent<HTMLButtonElement>) => {
+    if (dragRafRef.current !== null) {
+      cancelAnimationFrame(dragRafRef.current)
+      dragRafRef.current = null
+    }
     if (dragging) {
       try {
         e.currentTarget.releasePointerCapture(e.pointerId)
@@ -244,7 +278,7 @@ export default function TrackList({ durationMs, zoom, onSeek }: TrackListProps) 
     <div
       ref={containerRef}
       className="flex flex-1 min-h-0 flex-col"
-      style={{ width: `${HEADER_WIDTH + trackWidth}px` }}
+      style={{ width: `max(100%, ${HEADER_WIDTH + trackWidth}px)` }}
     >
       {/* Marquee rubber-band box */}
       {marquee && (
@@ -271,8 +305,8 @@ export default function TrackList({ durationMs, zoom, onSeek }: TrackListProps) 
           <div key={trackKey} className="flex flex-col">
             {/* Node header row */}
             <div
-              className={`flex h-8 items-center border-b border-white/10 transition-colors cursor-pointer ${
-                isSelectedNode ? 'bg-[#1a2a3f]' : 'bg-[#1e1e20] hover:bg-white/[0.03]'
+              className={`flex h-8 items-center border-b border-border transition-colors cursor-pointer ${
+                isSelectedNode ? 'bg-accent/10' : 'bg-panel hover:bg-hover'
               }`}
               onClick={() => editor.select([nodeTrack.nodeId])}
             >
@@ -280,15 +314,15 @@ export default function TrackList({ durationMs, zoom, onSeek }: TrackListProps) 
               <div
                 className={`sticky left-0 z-10 flex h-full shrink-0 items-center gap-1.5 border-r px-2 transition-colors ${
                   isSelectedNode
-                    ? 'border-accent/20 bg-[#1a2a3f] border-l-2 border-l-accent'
-                    : 'border-white/10 bg-[#1e1e20]'
+                    ? 'border-accent/30 bg-accent/10 border-l-2 border-l-accent'
+                    : 'border-border bg-panel'
                 }`}
                 style={{ width: `${HEADER_WIDTH}px` }}
               >
                 <button
                   type="button"
                   aria-label="Toggle collapse"
-                  className="flex size-3.5 shrink-0 cursor-pointer items-center justify-center text-white/25 hover:text-white/60 transition-colors"
+                  className="flex size-3.5 shrink-0 cursor-pointer items-center justify-center text-muted hover:text-surface transition-colors"
                   onClick={(e) => {
                     e.stopPropagation()
                     toggleCollapse(nodeTrack.nodeId)
@@ -301,7 +335,7 @@ export default function TrackList({ durationMs, zoom, onSeek }: TrackListProps) 
                   )}
                 </button>
 
-                <span className="text-white/40 text-[10px] select-none shrink-0 font-mono">
+                <span className="text-muted text-[10px] select-none shrink-0 font-mono">
                   {nodeTrack.nodeName.toLowerCase().includes('vector')
                     ? '✦'
                     : nodeTrack.nodeName.toLowerCase().includes('ellipse')
@@ -310,7 +344,7 @@ export default function TrackList({ durationMs, zoom, onSeek }: TrackListProps) 
                 </span>
                 <span
                   className={`truncate text-[11px] font-medium select-none flex-1 ${
-                    isSelectedNode ? 'text-white' : 'text-white/70'
+                    isSelectedNode ? 'text-surface font-semibold' : 'text-surface/80'
                   }`}
                 >
                   {nodeTrack.nodeName || 'Layer'}
@@ -326,7 +360,7 @@ export default function TrackList({ durationMs, zoom, onSeek }: TrackListProps) 
                     <button
                       type="button"
                       aria-label={nodeTrack.hidden ? 'Show layer' : 'Hide layer'}
-                      className="flex size-5 cursor-pointer items-center justify-center rounded text-white/25 hover:text-white/70 hover:bg-white/5 transition-colors"
+                      className="flex size-5 cursor-pointer items-center justify-center rounded text-muted hover:text-surface hover:bg-hover transition-colors"
                       onClick={() => toggleTrackHidden(nodeTrack.nodeId)}
                     >
                       {nodeTrack.hidden ? (
@@ -345,7 +379,7 @@ export default function TrackList({ durationMs, zoom, onSeek }: TrackListProps) 
                         <button
                           type="button"
                           aria-label="Motion presets"
-                          className="flex size-5 items-center justify-center rounded text-white/25 hover:text-accent hover:bg-white/5 cursor-pointer transition-colors"
+                          className="flex size-5 items-center justify-center rounded text-muted hover:text-accent hover:bg-hover cursor-pointer transition-colors"
                         >
                           <Sparkles className="size-3" />
                         </button>
@@ -353,10 +387,10 @@ export default function TrackList({ durationMs, zoom, onSeek }: TrackListProps) 
                     </DropdownMenu.Trigger>
                     <DropdownMenu.Portal>
                       <DropdownMenu.Content
-                        className="z-50 min-w-44 rounded-md bg-[#1a1a1f] p-1 shadow-xl border border-white/10 text-xs"
+                        className="z-50 min-w-44 rounded-md bg-panel p-1 shadow-xl border border-border text-xs text-surface"
                         align="end"
                       >
-                        <div className="px-2 py-1 text-[10px] font-medium text-white/30 uppercase tracking-wider">
+                        <div className="px-2 py-1 text-[10px] font-medium text-muted uppercase tracking-wider">
                           Motion Presets
                         </div>
                         {MOTION_PRESETS.map((p) => (
@@ -365,8 +399,8 @@ export default function TrackList({ durationMs, zoom, onSeek }: TrackListProps) 
                             className="flex flex-col gap-0.5 rounded px-2 py-1.5 cursor-pointer outline-none hover:bg-accent hover:text-white"
                             onSelect={() => applyMotionPreset(nodeTrack.nodeId, p.id)}
                           >
-                            <span className="font-medium text-white/80">{p.label}</span>
-                            <span className="text-[10px] text-white/40">{p.desc}</span>
+                            <span className="font-medium text-surface/80">{p.label}</span>
+                            <span className="text-[10px] text-muted">{p.desc}</span>
                           </DropdownMenu.Item>
                         ))}
                       </DropdownMenu.Content>
@@ -381,7 +415,7 @@ export default function TrackList({ durationMs, zoom, onSeek }: TrackListProps) 
                         <button
                           type="button"
                           aria-label="Add property"
-                          className="flex size-5 items-center justify-center rounded text-white/25 hover:text-white/70 hover:bg-white/5 cursor-pointer transition-colors"
+                          className="flex size-5 items-center justify-center rounded text-muted hover:text-surface hover:bg-hover cursor-pointer transition-colors"
                         >
                           <Plus className="size-3" />
                         </button>
@@ -389,7 +423,7 @@ export default function TrackList({ durationMs, zoom, onSeek }: TrackListProps) 
                     </DropdownMenu.Trigger>
                     <DropdownMenu.Portal>
                       <DropdownMenu.Content
-                        className="z-50 min-w-36 rounded-md bg-[#1a1a1f] p-1 shadow-xl border border-white/10 text-xs"
+                        className="z-50 min-w-36 rounded-md bg-panel p-1 shadow-xl border border-border text-xs text-surface"
                         align="end"
                       >
                         {ALL_PROPERTIES.map((prop) => {
@@ -399,7 +433,7 @@ export default function TrackList({ durationMs, zoom, onSeek }: TrackListProps) 
                             <DropdownMenu.Item
                               key={prop}
                               disabled={hasProp}
-                              className={`flex items-center gap-2 rounded px-2 py-1.5 cursor-pointer outline-none text-white/70 ${
+                              className={`flex items-center gap-2 rounded px-2 py-1.5 cursor-pointer outline-none text-surface/80 ${
                                 hasProp
                                   ? 'opacity-30 cursor-not-allowed'
                                   : 'hover:bg-accent hover:text-white'
@@ -420,15 +454,21 @@ export default function TrackList({ durationMs, zoom, onSeek }: TrackListProps) 
 
               {/* Right: node-level track area */}
               <div
-                className="relative h-full select-none"
+                className="relative h-full select-none flex-1"
                 style={{
-                  width: `${trackWidth}px`,
-                  backgroundImage: `repeating-linear-gradient(to right, ${GRID_LINE_CSS} 0px, ${GRID_LINE_CSS} 1px, transparent 1px, transparent ${gridStepPx}px)`
+                  minWidth: `${trackWidth}px`,
+                  backgroundImage: gridBackgroundStyle
                 }}
                 onPointerDown={handleCanvasPointerDown}
                 onPointerMove={handleCanvasPointerMove}
                 onPointerUp={handleCanvasPointerUp}
-              />
+              >
+                {/* Sequence end delimiter line & inactive region */}
+                <div
+                  className="absolute top-0 bottom-0 right-0 pointer-events-none bg-black/10 border-l border-dashed border-border/60"
+                  style={{ left: `${safeDurationMs * pxPerMs}px` }}
+                />
+              </div>
             </div>
 
             {/* Property sub-tracks */}
@@ -443,18 +483,18 @@ export default function TrackList({ durationMs, zoom, onSeek }: TrackListProps) 
                 return (
                   <div
                     key={property}
-                    className="group flex h-[22px] items-center border-b border-white/[0.06] bg-[#1e1e20] hover:bg-white/[0.02]"
+                    className="group flex h-[22px] items-center border-b border-border/40 bg-panel/50 hover:bg-hover/50"
                   >
                     {/* Property label with Figma Motion prev / diamond / next navigation */}
                     <div
-                      className="sticky left-0 z-10 flex h-full shrink-0 items-center justify-between border-r border-white/10 bg-[#1e1e20] pl-6 pr-2 cursor-pointer hover:bg-white/[0.02] transition-colors"
+                      className="sticky left-0 z-10 flex h-full shrink-0 items-center justify-between border-r border-border bg-panel pl-6 pr-2 cursor-pointer hover:bg-hover transition-colors"
                       style={{ width: `${HEADER_WIDTH}px` }}
                       onClick={() => editor.select([nodeTrack.nodeId])}
                     >
                       <div className="flex items-center gap-2">
                         <span
                           className={`text-[11px] select-none ${
-                            isLocked ? 'text-white/20' : 'text-white/70 font-medium'
+                            isLocked ? 'text-muted/40' : 'text-surface/80 font-medium'
                           }`}
                         >
                           {label}
@@ -470,7 +510,7 @@ export default function TrackList({ durationMs, zoom, onSeek }: TrackListProps) 
                             <button
                               type="button"
                               aria-label="Previous keyframe"
-                              className="flex size-3.5 items-center justify-center rounded text-white/30 hover:text-white hover:bg-white/10 transition-colors"
+                              className="flex size-3.5 items-center justify-center rounded text-muted hover:text-surface hover:bg-hover transition-colors"
                               onClick={() =>
                                 jumpToPropertyKeyframe(nodeTrack.nodeId, property, 'prev')
                               }
@@ -509,7 +549,7 @@ export default function TrackList({ durationMs, zoom, onSeek }: TrackListProps) 
                                 className={`size-[7px] rotate-45 rounded-[1px] transition-colors border ${
                                   isAtKf
                                     ? 'bg-accent border-accent shadow-[0_0_6px_rgba(59,130,246,0.6)]'
-                                    : 'bg-transparent border-white/35 hover:border-white'
+                                    : 'bg-transparent border-muted hover:border-surface'
                                 }`}
                               />
                             </button>
@@ -521,7 +561,7 @@ export default function TrackList({ durationMs, zoom, onSeek }: TrackListProps) 
                             <button
                               type="button"
                               aria-label="Next keyframe"
-                              className="flex size-3.5 items-center justify-center rounded text-white/30 hover:text-white hover:bg-white/10 transition-colors"
+                              className="flex size-3.5 items-center justify-center rounded text-muted hover:text-surface hover:bg-hover transition-colors"
                               onClick={() =>
                                 jumpToPropertyKeyframe(nodeTrack.nodeId, property, 'next')
                               }
@@ -533,17 +573,17 @@ export default function TrackList({ durationMs, zoom, onSeek }: TrackListProps) 
                       </div>
 
                       {/* Current value */}
-                      <span className="font-mono text-[10px] text-white/25 tabular-nums">
+                      <span className="font-mono text-[10px] text-muted tabular-nums">
                         {Math.round(currentVal * 10) / 10}
                       </span>
                     </div>
 
                     {/* Track area */}
                     <div
-                      className="relative h-full select-none cursor-pointer"
+                      className="relative h-full select-none cursor-pointer flex-1"
                       style={{
-                        width: `${trackWidth}px`,
-                        backgroundImage: `repeating-linear-gradient(to right, ${GRID_LINE_CSS} 0px, ${GRID_LINE_CSS} 1px, transparent 1px, transparent ${gridStepPx}px)`
+                        minWidth: `${trackWidth}px`,
+                        backgroundImage: gridBackgroundStyle
                       }}
                       onPointerDown={handleCanvasPointerDown}
                       onPointerMove={handleCanvasPointerMove}
@@ -574,7 +614,7 @@ export default function TrackList({ durationMs, zoom, onSeek }: TrackListProps) 
                         onSeek(t)
                       }}
                     >
-                      {/* Capsule from first to last keyframe - neutral dark gray matching Figma Motion */}
+                      {/* Capsule from first to last keyframe - neutral subtle pill matching Figma Motion */}
                       {(() => {
                         if (keyframes.length < 2) return null
                         const first = keyframes[0]
@@ -585,13 +625,13 @@ export default function TrackList({ durationMs, zoom, onSeek }: TrackListProps) 
                         if (width <= 0) return null
                         return (
                           <div
-                            className="absolute top-[3px] bottom-[3px] rounded bg-[#38383c] border border-white/10 flex items-center justify-between px-1 overflow-hidden shadow-sm"
+                            className="absolute top-[3px] bottom-[3px] rounded bg-panel-field border border-border flex items-center justify-between px-1 overflow-hidden shadow-xs"
                             style={{ left: `${startX}px`, width: `${width}px` }}
                           >
-                            <span className="text-[10px] text-white/20 font-mono select-none">
+                            <span className="text-[10px] text-muted/40 font-mono select-none">
                               |
                             </span>
-                            <span className="text-[10px] text-white/20 font-mono select-none">
+                            <span className="text-[10px] text-muted/40 font-mono select-none">
                               |
                             </span>
                           </div>
@@ -627,16 +667,16 @@ export default function TrackList({ durationMs, zoom, onSeek }: TrackListProps) 
                                   <div
                                     className={`size-2 rotate-45 rounded-[1px] transition-all border ${
                                       isSelected
-                                        ? 'bg-white border-white shadow-[0_0_8px_rgba(255,255,255,0.9)] scale-110'
-                                        : 'bg-[#2b2b2f] border-white/75 hover:border-white hover:bg-white/20'
+                                        ? 'bg-accent border-accent shadow-[0_0_8px_rgba(59,130,246,0.8)] scale-110'
+                                        : 'bg-panel-field border-muted/80 hover:border-surface hover:bg-surface/20'
                                     }`}
                                   />
                                 </button>
                               </Tip>
                             </ContextMenu.Trigger>
                             <ContextMenu.Portal>
-                              <ContextMenu.Content className="z-50 min-w-36 rounded-md bg-[#1a1a1f] p-1 shadow-xl border border-white/10 text-xs">
-                                <div className="px-2 py-1 text-[10px] font-medium text-white/30 uppercase tracking-wider">
+                              <ContextMenu.Content className="z-50 min-w-36 rounded-md bg-panel p-1 shadow-xl border border-border text-xs text-surface">
+                                <div className="px-2 py-1 text-[10px] font-medium text-muted uppercase tracking-wider">
                                   Easing
                                 </div>
                                 {EASING_OPTIONS.map((eas) => (
@@ -645,7 +685,7 @@ export default function TrackList({ durationMs, zoom, onSeek }: TrackListProps) 
                                     className={`flex items-center justify-between rounded px-2 py-1.5 cursor-pointer outline-none hover:bg-accent hover:text-white ${
                                       (kf.easing || 'ease-in-out') === eas.value
                                         ? 'text-accent'
-                                        : 'text-white/70'
+                                        : 'text-surface/80'
                                     }`}
                                     onSelect={() =>
                                       setKeyframeEasing(
@@ -660,7 +700,7 @@ export default function TrackList({ durationMs, zoom, onSeek }: TrackListProps) 
                                     {(kf.easing || 'ease-in-out') === eas.value && <span>✓</span>}
                                   </ContextMenu.Item>
                                 ))}
-                                <ContextMenu.Separator className="my-1 h-px bg-white/10" />
+                                <ContextMenu.Separator className="my-1 h-px bg-border" />
                                 <ContextMenu.Item
                                   className="flex items-center gap-2 rounded px-2 py-1.5 text-red-400 cursor-pointer outline-none hover:bg-red-500 hover:text-white"
                                   onSelect={() => removeKeyframe(nodeTrack.nodeId, property, kf.id)}
@@ -673,6 +713,12 @@ export default function TrackList({ durationMs, zoom, onSeek }: TrackListProps) 
                           </ContextMenu.Root>
                         )
                       })}
+
+                      {/* Sequence end delimiter line & inactive region */}
+                      <div
+                        className="absolute top-0 bottom-0 right-0 pointer-events-none bg-black/10 border-l border-dashed border-border/60"
+                        style={{ left: `${safeDurationMs * pxPerMs}px` }}
+                      />
                     </div>
                   </div>
                 )

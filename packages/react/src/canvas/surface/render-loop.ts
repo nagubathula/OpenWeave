@@ -1,49 +1,11 @@
+import { getEditorFrameScheduler } from '#react/internal/frame-scheduler'
+
 import type { Editor } from '@openweave/core/editor'
 
 import type { CanvasRenderLayer } from './types'
 
 type RenderLoopOptions = {
   layer?: CanvasRenderLayer
-}
-
-type EditorRenderScheduler = {
-  schedule: (callback: () => void) => void
-  cancel: (callback: () => void) => void
-}
-
-const renderSchedulers = new WeakMap<Editor, EditorRenderScheduler>()
-
-function getRenderScheduler(editor: Editor): EditorRenderScheduler {
-  const existing = renderSchedulers.get(editor)
-  if (existing) return existing
-
-  let frameId: number | null = null
-  const callbacks = new Set<() => void>()
-
-  function flush() {
-    frameId = null
-    const pending = [...callbacks]
-    callbacks.clear()
-    for (const callback of pending) callback()
-  }
-
-  const scheduler = {
-    schedule(callback: () => void) {
-      callbacks.add(callback)
-      if (frameId !== null) return
-      frameId = requestAnimationFrame(flush)
-    },
-    cancel(callback: () => void) {
-      callbacks.delete(callback)
-      if (callbacks.size === 0 && frameId !== null) {
-        cancelAnimationFrame(frameId)
-        frameId = null
-      }
-    }
-  }
-
-  renderSchedulers.set(editor, scheduler)
-  return scheduler
 }
 
 function shouldScheduleForSelection(layer: CanvasRenderLayer | undefined) {
@@ -55,11 +17,38 @@ export function createCanvasRenderLoop(
   renderNow: () => void,
   options: RenderLoopOptions = {}
 ) {
-  const scheduler = getRenderScheduler(editor)
+  const scheduler = getEditorFrameScheduler(editor)
   let dirty = true
   let frameScheduled = false
   let lastRenderVersion = -1
   let lastSelectedIds: Set<string> | null = null
+  let animFrameId: number | null = null
+
+  function checkShaderAnimation() {
+    if (typeof requestAnimationFrame === 'undefined') return
+    const renderers = editor.canvasRenderers ?? []
+    const hasShaders = renderers.some((r) => r.hasActiveShaders(editor.graph))
+    if (hasShaders && animFrameId === null) {
+      animFrameId = requestAnimationFrame(tickShaderAnimation)
+    } else if (!hasShaders && animFrameId !== null) {
+      cancelAnimationFrame(animFrameId)
+      animFrameId = null
+    }
+  }
+
+  function tickShaderAnimation(nowMs: number) {
+    animFrameId = null
+    const renderers = editor.canvasRenderers ?? []
+    const hasShaders = renderers.some((r) => r.hasActiveShaders(editor.graph))
+    if (!hasShaders) return
+
+    for (const r of renderers) {
+      r.shaderTime = nowMs / 1000
+    }
+    dirty = true
+    renderFrame()
+    animFrameId = requestAnimationFrame(tickShaderAnimation)
+  }
 
   function renderFrame() {
     frameScheduled = false
@@ -73,6 +62,7 @@ export function createCanvasRenderLoop(
     if (dirty || versionChanged || selectionChanged) {
       dirty = false
       renderNow()
+      checkShaderAnimation()
     }
   }
 
@@ -80,7 +70,7 @@ export function createCanvasRenderLoop(
     dirty = true
     if (frameScheduled) return
     frameScheduled = true
-    scheduler.schedule(renderFrame)
+    scheduler.scheduleRender(renderFrame)
   }
 
   const unsubscribe = [
@@ -89,6 +79,7 @@ export function createCanvasRenderLoop(
   ]
 
   unsubscribe.push(editor.onEditorEvent('repaint:requested', scheduleRender))
+  unsubscribe.push(editor.onEditorEvent('page:changed', checkShaderAnimation))
 
   if (shouldScheduleForSelection(options.layer)) {
     unsubscribe.push(editor.onEditorEvent('selection:changed', scheduleRender))
@@ -102,8 +93,12 @@ export function createCanvasRenderLoop(
   function pause() {
     for (const off of unsubscribe) off()
     if (frameScheduled) {
-      scheduler.cancel(renderFrame)
+      scheduler.cancelRender(renderFrame)
       frameScheduled = false
+    }
+    if (animFrameId !== null) {
+      cancelAnimationFrame(animFrameId)
+      animFrameId = null
     }
   }
 

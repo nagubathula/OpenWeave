@@ -31,25 +31,52 @@ interface WorkerParseResult {
 
 function parseViaWorker(buffer: ArrayBuffer, options: ParseFigFileOptions): Promise<SceneGraph> {
   return new Promise((resolve, reject) => {
-    const worker = new Worker(new URL('../../../kiwi/fig/parse/worker.ts', import.meta.url), {
-      type: 'module'
-    })
+    let settled = false
+    let timeoutId: ReturnType<typeof setTimeout> | undefined
 
-    worker.onmessage = (e: MessageEvent<WorkerParseResult>) => {
-      worker.terminate()
-      if (e.data.error || !e.data.graph) {
-        reject(new Error(e.data.error ?? 'Worker failed to parse .fig file'))
-        return
+    const cleanup = () => {
+      if (timeoutId) clearTimeout(timeoutId)
+    }
+
+    try {
+      const worker = new Worker(new URL('../../../kiwi/fig/parse/worker.ts', import.meta.url), {
+        type: 'module'
+      })
+
+      timeoutId = setTimeout(() => {
+        if (settled) return
+        settled = true
+        worker.terminate()
+        reject(new Error('Worker parsing timed out after 5000ms'))
+      }, 5000)
+
+      worker.onmessage = (e: MessageEvent<WorkerParseResult>) => {
+        if (settled) return
+        settled = true
+        cleanup()
+        worker.terminate()
+        if (e.data.error || !e.data.graph) {
+          reject(new Error(e.data.error ?? 'Worker failed to parse .fig file'))
+          return
+        }
+        resolve(deserializeSceneGraph(e.data.graph))
       }
-      resolve(deserializeSceneGraph(e.data.graph))
-    }
 
-    worker.onerror = (err) => {
-      worker.terminate()
-      reject(new Error(err.message || 'Worker failed to parse .fig file'))
-    }
+      worker.onerror = (err) => {
+        if (settled) return
+        settled = true
+        cleanup()
+        worker.terminate()
+        reject(new Error(err.message || 'Worker failed to parse .fig file'))
+      }
 
-    worker.postMessage({ buffer, options }, [buffer])
+      worker.postMessage({ buffer, options }, [buffer])
+    } catch (err) {
+      if (settled) return
+      settled = true
+      cleanup()
+      reject(err instanceof Error ? err : new Error(String(err)))
+    }
   })
 }
 

@@ -59,7 +59,7 @@ export default function Controls({ onClose }: ControlsProps) {
   return (
     <div
       data-test-id="timeline-controls"
-      className="flex h-8 shrink-0 items-center justify-between border-t border-white/[0.06] bg-[#111113] px-3 text-xs select-none"
+      className="flex h-8 shrink-0 items-center justify-between border-t border-border bg-panel-secondary px-3 text-xs select-none"
     >
       {/* Left group */}
       <div className="flex items-center gap-1">
@@ -72,8 +72,8 @@ export default function Controls({ onClose }: ControlsProps) {
             aria-label="Toggle recording"
             className={`flex size-5 cursor-pointer items-center justify-center rounded transition-colors ${
               isRecording
-                ? 'text-red-500 hover:bg-white/5'
-                : 'text-white/30 hover:text-white/60 hover:bg-white/5'
+                ? 'text-red-500 hover:bg-hover'
+                : 'text-muted hover:text-surface hover:bg-hover'
             }`}
             onClick={() => toggleRecording()}
           >
@@ -85,7 +85,7 @@ export default function Controls({ onClose }: ControlsProps) {
           </button>
         </Tip>
 
-        <div className="mx-1 h-3.5 w-px bg-white/[0.08]" />
+        <div className="mx-1 h-3.5 w-px bg-border" />
 
         {/* Go to start */}
         {/* oxlint-disable-next-line openweave/no-hardcoded-tip-labels */}
@@ -94,7 +94,7 @@ export default function Controls({ onClose }: ControlsProps) {
             type="button"
             data-test-id="timeline-reset-button"
             aria-label="Go to start"
-            className="flex size-5 cursor-pointer items-center justify-center rounded text-white/40 transition-colors hover:bg-white/5 hover:text-white/80"
+            className="flex size-5 cursor-pointer items-center justify-center rounded text-muted transition-colors hover:bg-hover hover:text-surface"
             onClick={() => seek(0)}
           >
             <RotateCcw className="size-3" />
@@ -107,7 +107,7 @@ export default function Controls({ onClose }: ControlsProps) {
           <button
             type="button"
             aria-label="Previous keyframe"
-            className="flex size-5 cursor-pointer items-center justify-center rounded text-white/40 transition-colors hover:bg-white/5 hover:text-white/80"
+            className="flex size-5 cursor-pointer items-center justify-center rounded text-muted transition-colors hover:bg-hover hover:text-surface"
             onClick={jumpToPreviousKeyframe}
           >
             <SkipBack className="size-3" />
@@ -120,7 +120,7 @@ export default function Controls({ onClose }: ControlsProps) {
             type="button"
             data-test-id="timeline-play-button"
             aria-label={isPlaying ? 'Pause' : 'Play'}
-            className="mx-0.5 flex size-6 cursor-pointer items-center justify-center rounded bg-white/10 text-white transition-colors hover:bg-white/20"
+            className="mx-0.5 flex size-6 cursor-pointer items-center justify-center rounded bg-panel-field text-surface transition-colors hover:bg-hover border border-border/40"
             onClick={togglePlay}
           >
             {isPlaying ? (
@@ -137,14 +137,14 @@ export default function Controls({ onClose }: ControlsProps) {
           <button
             type="button"
             aria-label="Next keyframe"
-            className="flex size-5 cursor-pointer items-center justify-center rounded text-white/40 transition-colors hover:bg-white/5 hover:text-white/80"
+            className="flex size-5 cursor-pointer items-center justify-center rounded text-muted transition-colors hover:bg-hover hover:text-surface"
             onClick={jumpToNextKeyframe}
           >
             <SkipForward className="size-3" />
           </button>
         </Tip>
 
-        <div className="mx-1 h-3.5 w-px bg-white/[0.08]" />
+        <div className="mx-1 h-3.5 w-px bg-border" />
 
         {/* Time display */}
         {editingDuration ? (
@@ -153,11 +153,11 @@ export default function Controls({ onClose }: ControlsProps) {
               type="text"
               autoFocus
               value={tempDuration}
-              className="w-14 rounded border border-white/10 bg-white/5 px-1.5 py-0.5 font-mono text-[11px] text-white outline-none focus:border-accent"
+              className="w-14 rounded border border-border bg-input px-1.5 py-0.5 font-mono text-[11px] text-surface outline-none focus:border-accent"
               onChange={(e) => setTempDuration(e.target.value)}
               onBlur={() => setEditingDuration(false)}
             />
-            <span className="font-mono text-[10px] text-white/30">ms</span>
+            <span className="font-mono text-[10px] text-muted">ms</span>
           </form>
         ) : (
           /* oxlint-disable-next-line openweave/no-hardcoded-tip-labels */
@@ -165,17 +165,17 @@ export default function Controls({ onClose }: ControlsProps) {
             <button
               type="button"
               data-test-id="timeline-time-display"
-              className="flex items-center gap-1.5 rounded-md border border-white/10 bg-[#1e1e22] px-2 py-0.5 font-mono text-[11px] hover:bg-white/10 cursor-pointer transition-colors shadow-sm"
+              className="flex items-center gap-1.5 rounded-md border border-border bg-panel-field px-2 py-0.5 font-mono text-[11px] hover:bg-hover cursor-pointer transition-colors shadow-xs"
               onClick={() => {
                 setTempDuration(String(durationMs))
                 setEditingDuration(true)
               }}
             >
-              <span className="text-white font-medium tabular-nums">
+              <span className="text-surface font-medium tabular-nums">
                 {Math.round(currentTimeMs)}
               </span>
-              <span className="text-white/40 tabular-nums">{durationMs} ms</span>
-              <Repeat className={`size-2.5 ${loop ? 'text-accent' : 'text-white/30'}`} />
+              <span className="text-muted tabular-nums">{durationMs} ms</span>
+              <Repeat className={`size-2.5 ${loop ? 'text-accent' : 'text-muted'}`} />
             </button>
           </Tip>
         )}
@@ -189,7 +189,7 @@ export default function Controls({ onClose }: ControlsProps) {
           <button
             type="button"
             aria-label="Playback speed"
-            className="h-5 rounded border border-white/10 bg-white/5 px-1.5 font-mono text-[9px] font-semibold text-white/50 hover:text-white/80 hover:bg-white/10 cursor-pointer transition-colors"
+            className="h-5 rounded border border-border bg-panel-field px-1.5 font-mono text-[9px] font-semibold text-muted hover:text-surface hover:bg-hover cursor-pointer transition-colors"
             onClick={() => setPlaybackSpeed(nextSpeed)}
           >
             {playbackSpeed}×
@@ -203,9 +203,7 @@ export default function Controls({ onClose }: ControlsProps) {
             data-test-id="timeline-loop-toggle"
             aria-label="Loop"
             className={`flex size-5 cursor-pointer items-center justify-center rounded transition-colors ${
-              loop
-                ? 'text-accent bg-accent/15'
-                : 'text-white/30 hover:bg-white/5 hover:text-white/70'
+              loop ? 'text-accent bg-accent/15' : 'text-muted hover:bg-hover hover:text-surface'
             }`}
             onClick={() => setLoop(!loop)}
           >
@@ -214,7 +212,7 @@ export default function Controls({ onClose }: ControlsProps) {
         </Tip>
 
         {/* Zoom slider */}
-        <div className="flex items-center gap-1 text-white/25">
+        <div className="flex items-center gap-1 text-muted">
           <ZoomOut className="size-3" />
           <input
             type="range"
@@ -236,7 +234,7 @@ export default function Controls({ onClose }: ControlsProps) {
               type="button"
               data-test-id="timeline-close-button"
               aria-label="Close timeline"
-              className="flex size-5 cursor-pointer items-center justify-center rounded text-white/30 transition-colors hover:bg-white/5 hover:text-white/70"
+              className="flex size-5 cursor-pointer items-center justify-center rounded text-muted transition-colors hover:bg-hover hover:text-surface"
               onClick={onClose}
             >
               <X className="size-3" />

@@ -14,6 +14,7 @@ export function destroyRenderer(r: SkiaRenderer): void {
   if (r.destroyed) return
   r.destroyed = true
 
+  r.shaderCompiler?.dispose()
   for (const img of r.imageCache.values()) img.delete()
   r.imageCache.clear()
   for (const cache of [
@@ -33,6 +34,8 @@ export function destroyRenderer(r: SkiaRenderer): void {
   r.selectionPaint.delete()
   r.parentOutlinePaint.delete()
   r.snapPaint.delete()
+  r.snapDashPaint?.delete()
+  r.snapFill?.delete()
   r.auxFill.delete()
   r.auxStroke.delete()
   r.opacityPaint.delete()

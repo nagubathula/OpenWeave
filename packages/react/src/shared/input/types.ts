@@ -130,6 +130,54 @@ export interface DragBendHandle {
   targetTangentField: 'tangentStart' | 'tangentEnd' | null
 }
 
+export interface DragAutoLayoutPadding {
+  type: 'auto-layout-padding'
+  nodeId: string
+  side: 'top' | 'right' | 'bottom' | 'left'
+  startX: number
+  startY: number
+  initialValues: {
+    top: number
+    right: number
+    bottom: number
+    left: number
+  }
+}
+
+export interface DragAutoLayoutGap {
+  type: 'auto-layout-gap'
+  nodeId: string
+  startX: number
+  startY: number
+  initialSpacing: number
+  layoutMode: 'HORIZONTAL' | 'VERTICAL'
+}
+
+export interface DragCornerRadius {
+  type: 'corner-radius'
+  nodeId: string
+  corner: 'tl' | 'tr' | 'br' | 'bl'
+  startX: number
+  startY: number
+  initialValues: {
+    cornerRadius: number
+    topLeftRadius: number
+    topRightRadius: number
+    bottomRightRadius: number
+    bottomLeftRadius: number
+    independentCorners: boolean
+  }
+}
+
+export interface DragGuide {
+  type: 'guide-drag'
+  axis: 'X' | 'Y'
+  currentOffset: number
+  isNew: boolean
+  guideIndex?: number
+  origOffset?: number
+}
+
 export type DragState =
   | DragDraw
   | DragMove
@@ -143,6 +191,10 @@ export type DragState =
   | DragEditNode
   | DragEditHandle
   | DragBendHandle
+  | DragAutoLayoutPadding
+  | DragAutoLayoutGap
+  | DragCornerRadius
+  | DragGuide
 
 export const TOOL_TO_NODE: Partial<Record<Tool, NodeType>> = {
   FRAME: 'FRAME',
@@ -152,5 +204,6 @@ export const TOOL_TO_NODE: Partial<Record<Tool, NodeType>> = {
   LINE: 'LINE',
   POLYGON: 'POLYGON',
   STAR: 'STAR',
+  SHADER: 'SHADER',
   TEXT: 'TEXT'
 }

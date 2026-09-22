@@ -16,6 +16,7 @@ import {
   applyExportSettingsPluginData,
   mergePluginData,
   NODE_TYPE_PLUGIN_KEY,
+  SHADER_PLUGIN_KEY,
   serializePluginRelaunchData,
   upsertPluginData
 } from './plugin-data'
@@ -811,6 +812,8 @@ export function sceneNodeToKiwiWithContext(
   applyComponentMetadata(context, node, nc)
   applyInstancePayload(context, node, nc, localIdCounter)
   if (node.type === 'COMPONENT_SET') upsertPluginData(node, NODE_TYPE_PLUGIN_KEY, node.type)
+  if (node.type === 'SHADER') upsertPluginData(node, NODE_TYPE_PLUGIN_KEY, node.type)
+  if (node.shader) upsertPluginData(node, SHADER_PLUGIN_KEY, JSON.stringify(node.shader))
   if (nc.type === 'CANVAS') nc.pageType = 'DESIGN'
   if (node.type === 'BOOLEAN_OPERATION')
     nc.booleanOperation = toKiwiBooleanOperation(node.booleanOperation)

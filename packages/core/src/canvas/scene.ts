@@ -1,7 +1,12 @@
 /* eslint-disable max-lines -- scene dispatch stays together while shape domains live in sibling modules */
 import type { Canvas, Path } from 'canvaskit-wasm'
 
-import type { SceneNode, SceneGraph, Fill } from '@openweave/scene-graph'
+import {
+  DEFAULT_SHADER_CONFIG,
+  type SceneNode,
+  type SceneGraph,
+  type Fill
+} from '@openweave/scene-graph'
 import { computeDescendantVisualBounds } from '@openweave/scene-graph/geometry'
 import type { Color } from '@openweave/scene-graph/primitives'
 
@@ -348,9 +353,10 @@ export function renderShape(
   node: SceneNode,
   graph: SceneGraph
 ): void {
+  const isAnimatedShader = (node.type === 'SHADER' || !!node.shader) && !node.shader?.paused
   const hasEffects = node.effects.length > 0 && node.effects.some((e) => e.visible)
 
-  if (hasEffects) {
+  if (hasEffects && !isAnimatedShader) {
     const cached = r.nodePictureCache.get(node.id)
     const cachedGeneration = r.nodePictureCacheGenerations.get(node.id)
     if (cached && cachedGeneration === r.fontGeneration) {
@@ -556,6 +562,41 @@ function drawNodeStroke(
   canvas.restore()
 }
 
+export function renderNodeShader(
+  r: SkiaRenderer,
+  canvas: Canvas,
+  node: SceneNode,
+  graph: SceneGraph,
+  rect: Float32Array,
+  hasRadius: boolean
+): boolean {
+  const config = node.shader ?? (node.type === 'SHADER' ? DEFAULT_SHADER_CONFIG : undefined)
+  if (!config || !r.ck?.RuntimeEffect) return false
+
+  const time = config.paused
+    ? 0
+    : r.shaderTime || (typeof performance !== 'undefined' ? performance.now() / 1000 : 0)
+
+  let px = node.width * 0.5
+  let py = node.height * 0.5
+  if (r.pointerWorld && config.pointerInteraction) {
+    const absPos = graph.getAbsolutePosition(node.id)
+    px = r.pointerWorld.x - absPos.x
+    py = r.pointerWorld.y - absPos.y
+  }
+
+  const shader = r.shaderCompiler.createShader(r.ck, config, node.width, node.height, time, px, py)
+
+  if (!shader) return false
+
+  r.fillPaint.setShader(shader)
+  r.fillPaint.setColor(r.ck.Color4f(1, 1, 1, node.opacity ?? 1))
+  r.drawNodeFill(canvas, node, rect, hasRadius)
+  r.fillPaint.setShader(null)
+  shader.delete()
+  return true
+}
+
 export function renderShapeUncached(
   r: SkiaRenderer,
   canvas: Canvas,
@@ -568,7 +609,12 @@ export function renderShapeUncached(
   const shadowChild = getShadowShapeChild(node, graph)
   r.renderEffects(canvas, node, rect, hasRadius, 'behind', shadowChild)
 
-  if (!drawVectorMultiStyleFills(r, canvas, node, graph)) {
+  let renderedShader = false
+  if (node.type === 'SHADER' || node.shader) {
+    renderedShader = renderNodeShader(r, canvas, node, graph, rect, hasRadius)
+  }
+
+  if (!renderedShader && !drawVectorMultiStyleFills(r, canvas, node, graph)) {
     drawVisibleFills(r, node, graph, (fill) => r.drawNodeFill(canvas, node, rect, hasRadius, fill))
   }
 

@@ -12,12 +12,16 @@ export function createDefaultEditorState(pageId: string): EditorState {
     dropTargetId: null,
     layoutInsertIndicator: null,
     hoveredNodeId: null,
+    altHeld: false,
+    activeGuide: null,
     editingTextId: null,
     penState: null,
     penCursorX: null,
     penCursorY: null,
     remoteCursors: [],
     autoLayoutHover: null,
+    cornerRadiusHover: null,
+    cornerRadiusDrag: null,
     documentName: 'Untitled',
     panX: 0,
     pageColor: { ...CANVAS_BG_COLOR },
@@ -28,6 +32,7 @@ export function createDefaultEditorState(pageId: string): EditorState {
     loading: false,
     enteredContainerId: null,
     prototypeMode: false,
-    prototypeDrag: null
+    prototypeDrag: null,
+    copiedProperties: null
   }
 }

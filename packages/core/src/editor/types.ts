@@ -15,6 +15,10 @@ import type { RulerTheme, SkiaRenderer } from '#core/canvas/renderer'
 import type { RenderOverlays } from '#core/canvas/renderer/types'
 import type { TextEditor } from '#core/text/editor'
 
+import type { CopiedProperties } from './clipboard/properties'
+
+export type { CopiedProperties }
+
 export type Tool =
   | 'SELECT'
   | 'FRAME'
@@ -24,6 +28,7 @@ export type Tool =
   | 'LINE'
   | 'POLYGON'
   | 'STAR'
+  | 'SHADER'
   | 'TEXT'
   | 'PEN'
   | 'CURVATURE_PEN'
@@ -46,6 +51,8 @@ export interface EditorState {
     direction: 'HORIZONTAL' | 'VERTICAL'
   } | null
   hoveredNodeId: string | null
+  altHeld: boolean
+  activeGuide: { axis: 'X' | 'Y'; offset: number } | null
   editingTextId: string | null
   penState: {
     vertices: VectorVertex[]
@@ -68,12 +75,9 @@ export interface EditorState {
     y: number
     selection?: string[]
   }>
-  autoLayoutHover: {
-    nodeId: string
-    kind: 'frame' | 'children' | 'spacing' | 'spacing-value' | 'padding' | 'padding-value'
-    index?: number
-    side?: 'top' | 'right' | 'bottom' | 'left'
-  } | null
+  autoLayoutHover: RenderOverlays['autoLayoutHover']
+  cornerRadiusHover?: RenderOverlays['cornerRadiusHover']
+  cornerRadiusDrag?: RenderOverlays['cornerRadiusDrag']
   documentName: string
   panX: number
   pageColor: Color
@@ -91,6 +95,7 @@ export interface EditorState {
   nodeEditState?: RenderOverlays['nodeEditState'] | null
   cursorCanvasX?: number | null
   cursorCanvasY?: number | null
+  copiedProperties?: CopiedProperties | null
 }
 
 export interface ClipboardImageResolution {
@@ -116,6 +121,7 @@ export interface EditorEvents extends SceneGraphEvents {
     viewport: { panX: number; panY: number; zoom: number },
     previous: { panX: number; panY: number; zoom: number }
   ) => void
+  'command-palette:toggle': () => void
 }
 
 export type EditorEventName = keyof EditorEvents

@@ -14,6 +14,15 @@ export interface SharedLibraryComponent {
   serialized: SerializedLibraryNode
 }
 
+export interface SharedLibraryStyle {
+  id: string
+  name: string
+  key: string
+  type: 'FILL' | 'TEXT' | 'EFFECT' | 'GRID'
+  description?: string
+  node: SceneNode
+}
+
 export interface SharedLibrary {
   id: string
   name: string
@@ -22,6 +31,7 @@ export interface SharedLibrary {
   updatedAt: string
   enabled: boolean
   components: SharedLibraryComponent[]
+  styles?: SharedLibraryStyle[]
 }
 
 const STORAGE_KEY = 'openweave_shared_libraries_v1'
@@ -154,7 +164,8 @@ export function importLibraryJson(jsonString: string): SharedLibrary | null {
       description: parsed.description ?? '',
       updatedAt: new Date().toISOString(),
       enabled: true,
-      components: parsed.components as SharedLibraryComponent[]
+      components: parsed.components as SharedLibraryComponent[],
+      styles: Array.isArray(parsed.styles) ? (parsed.styles as SharedLibraryStyle[]) : []
     }
     saveSharedLibrary(library)
     return library
@@ -180,9 +191,11 @@ function serializeNodeSubtree(
   }
 }
 
-export function publishComponentsToLibrary(
+export function publishDesignSystem(
   getNode: (id: string) => SceneNode | undefined,
+  allNodes: Iterable<SceneNode>,
   componentIds: string[],
+  styleIds: string[],
   meta: { name: string; version: string; description?: string }
 ): SharedLibrary {
   const components: SharedLibraryComponent[] = []
@@ -201,6 +214,21 @@ export function publishComponentsToLibrary(
     })
   }
 
+  const styles: SharedLibraryStyle[] = []
+  const allNodesArray = Array.from(allNodes)
+  for (const sId of styleIds) {
+    const styleNode = allNodesArray.find((n) => Boolean(n.sharedStyleType) && n.source?.id === sId)
+    if (!styleNode || !styleNode.sharedStyleType) continue
+    styles.push({
+      id: sId,
+      name: styleNode.name,
+      key: styleNode.componentKey ?? sId,
+      type: styleNode.sharedStyleType,
+      description: styleNode.symbolDescription || undefined,
+      node: structuredClone(styleNode)
+    })
+  }
+
   const library: SharedLibrary = {
     id: `lib_${crypto.randomUUID()}`,
     name: meta.name.trim() || 'Untitled Library',
@@ -208,11 +236,20 @@ export function publishComponentsToLibrary(
     description: meta.description?.trim() || '',
     updatedAt: new Date().toISOString(),
     enabled: true,
-    components
+    components,
+    styles
   }
 
   saveSharedLibrary(library)
   return library
+}
+
+export function publishComponentsToLibrary(
+  getNode: (id: string) => SceneNode | undefined,
+  componentIds: string[],
+  meta: { name: string; version: string; description?: string }
+): SharedLibrary {
+  return publishDesignSystem(getNode, [], componentIds, [], meta)
 }
 
 function restoreNodeSubtree(
@@ -297,4 +334,40 @@ export function ensureLibraryComponentInDocument(
     libraryId,
     graph.currentPageId
   )
+}
+
+/**
+ * Ensures a shared library style exists in the current document graph.
+ * If already imported (matched by sourceLibraryKey and style key/name), returns existing style source id.
+ * Otherwise, creates an internal style node in the document.
+ */
+export function ensureLibraryStyleInDocument(
+  graph: {
+    getAllNodes: () => Iterable<SceneNode> | SceneNode[]
+    getNode: (id: string) => SceneNode | undefined
+    setNode: (node: SceneNode) => void
+    currentPageId: string
+  },
+  libraryId: string,
+  libStyle: SharedLibraryStyle
+): string {
+  const allNodes = Array.from(graph.getAllNodes())
+  const existing = allNodes.find(
+    (n) =>
+      n.sharedStyleType === libStyle.type &&
+      n.sourceLibraryKey === libraryId &&
+      (n.source?.id === libStyle.id || n.name === libStyle.name)
+  )
+  if (existing?.source?.id) return existing.source.id
+
+  const randomSuffix = crypto.getRandomValues(new Uint32Array(1))[0].toString(36)
+  const newStyleId = `style_ext_${randomSuffix}`
+  const cloned = structuredClone(libStyle.node)
+  cloned.id = `node_${newStyleId}`
+  cloned.parentId = graph.currentPageId
+  cloned.sourceLibraryKey = libraryId
+  cloned.source = { ...cloned.source, id: newStyleId }
+  cloned.internalOnly = true
+  graph.setNode(cloned)
+  return newStyleId
 }

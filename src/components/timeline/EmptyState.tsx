@@ -46,7 +46,7 @@ export default function EmptyState({ onDismiss }: EmptyStateProps) {
 
   return (
     <div className="absolute inset-0 flex items-center justify-center p-4 pointer-events-none">
-      <div className="relative pointer-events-auto flex flex-col items-center rounded-xl border border-border/70 bg-[#1e1e22]/95 px-6 py-5 shadow-2xl backdrop-blur max-w-sm text-center">
+      <div className="relative pointer-events-auto flex flex-col items-center rounded-xl border border-border bg-panel/95 px-6 py-5 shadow-2xl backdrop-blur max-w-sm text-center">
         {onDismiss && (
           <button
             type="button"
@@ -62,7 +62,7 @@ export default function EmptyState({ onDismiss }: EmptyStateProps) {
           <Sparkles className="size-4" />
         </div>
 
-        <h4 className="text-xs font-semibold text-white mb-1.5">No animations in timeline</h4>
+        <h4 className="text-xs font-semibold text-surface mb-1.5">No animations in timeline</h4>
 
         <p className="text-[11px] text-muted leading-relaxed mb-4">
           Select objects on the canvas to animate them, or ask the AI agent to generate motion.

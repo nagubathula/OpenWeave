@@ -6,6 +6,7 @@ import { EditorProvider } from '@openweave/react'
 
 import { getActiveEditorStoreOrNull } from '@/app/editor/active-store'
 import { preloadFonts } from '@/app/editor/fonts'
+import { closeHome } from '@/app/home/store'
 import { kickSyncEngine } from '@/app/storage/sync'
 import { createTab, tabCount } from '@/app/tabs'
 import { EditorLayout } from '@/components/layout/EditorLayout'
@@ -25,6 +26,7 @@ export default function SharePage() {
   useEffect(() => {
     // Boilerplate setup mirroring the root editor page.
     if (tabCount() === 0) createTab()
+    closeHome()
 
     // The actual join flow lives in CollabPanel (mounted by EditorLayout): it
     // reads ?room= from the URL, auto-opens the join prompt, and connects once

@@ -111,7 +111,7 @@ export function drawSelection(
 
     const rotation =
       overlays.rotationPreview?.nodeId === id ? overlays.rotationPreview.angle : node.rotation
-    r.drawNodeSelection(canvas, node, rotation, graph)
+    r.drawNodeSelection(canvas, node, rotation, graph, overlays)
     r.drawSelectionLabels(canvas, graph, selectedIds, overlays)
 
     r.selectionPaint.setColor(r.selColor())
@@ -200,15 +200,99 @@ function drawSelectionRect(
   })
 }
 
+function nodeSupportsCornerRadius(node: SceneNode): boolean {
+  return (
+    node.type === 'RECTANGLE' ||
+    node.type === 'FRAME' ||
+    node.type === 'COMPONENT' ||
+    node.type === 'INSTANCE'
+  )
+}
+
+export function drawCornerRadiusHandles(
+  r: SkiaRenderer,
+  canvas: Canvas,
+  node: SceneNode,
+  overlays?: RenderOverlays
+): void {
+  if (!nodeSupportsCornerRadius(node)) return
+
+  const minDim = Math.min(node.width, node.height)
+  if (minDim * r.zoom < 36) return
+
+  const maxRadius = Math.floor(minDim / 2)
+  const activeDrag =
+    overlays?.cornerRadiusDrag?.nodeId === node.id ? overlays.cornerRadiusDrag : null
+  const dragRadius = activeDrag?.radius
+
+  const tlRadius = activeDrag
+    ? node.independentCorners && activeDrag.corner !== 'tl'
+      ? node.topLeftRadius
+      : (dragRadius ?? node.topLeftRadius)
+    : node.independentCorners
+      ? node.topLeftRadius
+      : node.cornerRadius
+
+  const trRadius = activeDrag
+    ? node.independentCorners && activeDrag.corner !== 'tr'
+      ? node.topRightRadius
+      : (dragRadius ?? node.topRightRadius)
+    : node.independentCorners
+      ? node.topRightRadius
+      : node.cornerRadius
+
+  const brRadius = activeDrag
+    ? node.independentCorners && activeDrag.corner !== 'br'
+      ? node.bottomRightRadius
+      : (dragRadius ?? node.bottomRightRadius)
+    : node.independentCorners
+      ? node.bottomRightRadius
+      : node.cornerRadius
+
+  const blRadius = activeDrag
+    ? node.independentCorners && activeDrag.corner !== 'bl'
+      ? node.bottomLeftRadius
+      : (dragRadius ?? node.bottomLeftRadius)
+    : node.independentCorners
+      ? node.bottomLeftRadius
+      : node.cornerRadius
+
+  const d_tl = Math.max(12, Math.min(maxRadius - 4, (tlRadius ?? 0) + 10))
+  const d_tr = Math.max(12, Math.min(maxRadius - 4, (trRadius ?? 0) + 10))
+  const d_br = Math.max(12, Math.min(maxRadius - 4, (brRadius ?? 0) + 10))
+  const d_bl = Math.max(12, Math.min(maxRadius - 4, (blRadius ?? 0) + 10))
+
+  const hoveredCorner =
+    overlays?.cornerRadiusHover?.nodeId === node.id ? overlays.cornerRadiusHover.corner : null
+  const activeCorner =
+    overlays?.cornerRadiusDrag?.nodeId === node.id ? overlays.cornerRadiusDrag.corner : null
+
+  const radius = 3.5 / r.zoom
+  const drawHandleDot = (x: number, y: number, corner: 'tl' | 'tr' | 'br' | 'bl') => {
+    const isHoveredOrActive = hoveredCorner === corner || activeCorner === corner
+    r.auxFill.setColor(isHoveredOrActive ? r.selColor() : r.ck.WHITE)
+    canvas.drawCircle(x, y, radius, r.auxFill)
+    r.selectionPaint.setStrokeWidth(1.2 / r.zoom)
+    canvas.drawCircle(x, y, radius, r.selectionPaint)
+  }
+
+  drawHandleDot(d_tl, d_tl, 'tl')
+  drawHandleDot(node.width - d_tr, d_tr, 'tr')
+  drawHandleDot(node.width - d_br, node.height - d_br, 'br')
+  drawHandleDot(d_bl, node.height - d_bl, 'bl')
+}
+
 export function drawNodeSelection(
   r: SkiaRenderer,
   canvas: Canvas,
   node: SceneNode,
   rotation: number,
-  graph: SceneGraph
+  graph: SceneGraph,
+  overlays?: RenderOverlays
 ): void {
   drawSelectionRect(r, canvas, node, rotation, graph, (x1, y1, x2, y2) => {
     drawBoundsHandles(r, canvas, x1, y1, x2, y2)
+    drawCornerRadiusHandles(r, canvas, node, overlays)
   })
 }
 

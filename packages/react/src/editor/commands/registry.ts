@@ -9,6 +9,16 @@ export interface EditorCommandMetadata {
 export const EDITOR_COMMAND_METADATA = {
   'edit.undo': { shortcut: 'MOD+Z', keybinding: '$mod+KeyZ' },
   'edit.redo': { shortcut: 'MOD+SHIFT+Z', keybinding: ['$mod+Shift+KeyZ', '$mod+KeyY'] },
+  'edit.copyProperties': {
+    shortcut: 'MOD+ALT+C',
+    keybinding: '$mod+Alt+KeyC',
+    contextTestId: 'context-copy-properties'
+  },
+  'edit.pasteProperties': {
+    shortcut: 'MOD+ALT+V',
+    keybinding: '$mod+Alt+KeyV',
+    contextTestId: 'context-paste-properties'
+  },
   'selection.selectAll': { shortcut: 'MOD+A', keybinding: '$mod+KeyA' },
   'selection.selectInverse': { shortcut: 'MOD+SHIFT+A', keybinding: '$mod+Shift+KeyA' },
   'selection.duplicate': {
@@ -113,7 +123,11 @@ export const EDITOR_COMMAND_METADATA = {
   'selection.setOpacity': { shortcut: '1-9, 0' },
   'view.zoom100': { keybinding: '$mod+Digit0' },
   'view.zoomFit': { keybinding: ['$mod+Digit1', 'Shift+Digit1'] },
-  'view.zoomSelection': { keybinding: ['$mod+Digit2', 'Shift+Digit2'] }
+  'view.zoomSelection': { keybinding: ['$mod+Digit2', 'Shift+Digit2'] },
+  'view.commandPalette': {
+    shortcut: 'MOD+K',
+    keybinding: ['$mod+KeyK', '$mod+Slash']
+  }
 } satisfies Record<EditorCommandId, EditorCommandMetadata>
 
 export function editorCommandMetadata(id: EditorCommandId): EditorCommandMetadata {

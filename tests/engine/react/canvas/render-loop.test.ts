@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'bun:test'
 
 import { createCanvasRenderLoop } from '#react/canvas/surface/render-loop'
+import { createRafScheduler } from '#react/shared/input/raf-scheduler'
 
 import type { Editor, EditorEvents } from '@openweave/core/editor'
 
@@ -64,6 +65,94 @@ function createEditor() {
 }
 
 describe('canvas render loop', () => {
+  test('applies coalesced input before both surfaces paint in the same frame', () => {
+    const scheduler = createFrameScheduler()
+    try {
+      const { editor, emit } = createEditor()
+      const paintedVersions: number[] = []
+      for (const layer of ['scene', 'overlays'] as const) {
+        createCanvasRenderLoop(editor, () => paintedVersions.push(editor.state.renderVersion), {
+          layer
+        })
+      }
+      let inputs = 0
+      const input = createRafScheduler(editor, () => {
+        inputs++
+        editor.state.renderVersion++
+        emit('viewport:changed')
+        emit('repaint:requested')
+      })
+
+      // Even when a paint was queued first, it must observe the latest input.
+      emit('repaint:requested')
+      input.schedule()
+      input.schedule()
+      expect(scheduler.pendingCount).toBe(1)
+      scheduler.flush()
+      expect(inputs).toBe(1)
+      expect(paintedVersions).toEqual([1, 1])
+      expect(scheduler.pendingCount).toBe(0)
+
+      // Input alone must also paint without waiting for a second frame.
+      input.schedule()
+      scheduler.flush()
+      expect(paintedVersions).toEqual([1, 1, 2, 2])
+      expect(scheduler.pendingCount).toBe(0)
+    } finally {
+      scheduler.restore()
+    }
+  })
+
+  test('canceling input preserves pending paint and pause preserves pending input', () => {
+    const scheduler = createFrameScheduler()
+    try {
+      const { editor, emit } = createEditor()
+      let renders = 0
+      let inputs = 0
+      const loop = createCanvasRenderLoop(editor, () => renders++)
+      const input = createRafScheduler(editor, () => inputs++)
+      emit('repaint:requested')
+      input.schedule()
+      input.cancel()
+      scheduler.flush()
+      expect(renders).toBe(1)
+      expect(inputs).toBe(0)
+
+      emit('repaint:requested')
+      input.schedule()
+      loop.pause()
+      scheduler.flush()
+      expect(renders).toBe(1)
+      expect(inputs).toBe(1)
+      input.schedule()
+      input.cancel()
+      expect(scheduler.pendingCount).toBe(0)
+    } finally {
+      scheduler.restore()
+    }
+  })
+
+  test('defers render-time invalidation to the next frame without looping', () => {
+    const scheduler = createFrameScheduler()
+    try {
+      const { editor, emit } = createEditor()
+      let renders = 0
+      createCanvasRenderLoop(editor, () => {
+        renders++
+        if (renders === 1) emit('repaint:requested')
+      })
+      emit('repaint:requested')
+      scheduler.flush()
+      expect(renders).toBe(1)
+      expect(scheduler.pendingCount).toBe(1)
+      scheduler.flush()
+      expect(renders).toBe(2)
+      expect(scheduler.pendingCount).toBe(0)
+    } finally {
+      scheduler.restore()
+    }
+  })
+
   test('waits for editor events before scheduling renders', () => {
     const scheduler = createFrameScheduler()
     try {

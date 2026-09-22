@@ -18,6 +18,7 @@ export const LAYOUT_DIRECTION_PLUGIN_KEY = 'layoutDirection'
 export const NODE_TYPE_PLUGIN_KEY = 'nodeType'
 export const BOUND_VARIABLES_PLUGIN_KEY = 'boundVariables'
 export const EXPORT_SETTINGS_PLUGIN_KEY = 'exportSettings'
+export const SHADER_PLUGIN_KEY = 'shader'
 
 const NATIVE_EXPORT_FORMATS: Record<string, ExportFormatId> = {
   PNG: 'png',

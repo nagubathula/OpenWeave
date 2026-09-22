@@ -69,7 +69,7 @@ export function setupWheelPanZoom(canvasRef: CanvasRefLike, editor: Editor) {
     wheelAccum.hasZoom = false
   }
 
-  const wheelScheduler = createRafScheduler(flushWheel)
+  const wheelScheduler = createRafScheduler(editor, flushWheel)
 
   function onWheel(e: WheelEvent) {
     const canvas = getCanvas(canvasRef)

@@ -68,8 +68,13 @@ export {
   type CharacterStyleOverride,
   type StyleRun,
   type SceneGraphEvents,
-  type DocumentColorSpace
+  type DocumentColorSpace,
+  type ShaderPresetType,
+  type ShaderConfig,
+  DEFAULT_SHADER_CONFIG
 } from '@openweave/scene-graph'
+
+export * from './canvas/shaders'
 
 export { FigmaAPI, FigmaNodeProxy, computeImageHash, type FigmaFontName } from './figma-api'
 export {

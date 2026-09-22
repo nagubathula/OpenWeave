@@ -12,6 +12,7 @@ import { deleteIds, recreateSnapshots, restoreDeletedEntries } from './clipboard
 import { replaceTargetsWithCreated, selectedReplacementTargets } from './clipboard/paste-replace'
 import { resolvePasteTarget } from './clipboard/paste-target'
 import { createClipboardPlacementActions } from './clipboard/placement'
+import { createClipboardPropertiesActions } from './clipboard/properties'
 import { collectSubtrees, restoreSubtree, snapshotSubtree } from './clipboard/subtree-history'
 import { ensureUniqueVariantValues } from './components/variants'
 import type { EditorContext } from './types'
@@ -20,7 +21,10 @@ type PasteOptions = {
   replaceSelection?: boolean
 }
 
-export function createClipboardActions(ctx: EditorContext) {
+export function createClipboardActions(
+  ctx: EditorContext,
+  updateNodeWithUndo: (id: string, changes: Partial<SceneNode>, label?: string) => void
+) {
   function duplicateSelected(selectedNodes: SceneNode[]) {
     const prevSelection = new Set(ctx.state.selectedIds)
     const selectedSet = new Set(selectedNodes.map((n) => n.id))
@@ -264,6 +268,7 @@ export function createClipboardActions(ctx: EditorContext) {
   const fontActions = createClipboardFontActions(ctx)
   const assetActions = createClipboardAssetActions(ctx, pushCreatedNodesUndo)
   const placementActions = createClipboardPlacementActions(ctx)
+  const propertiesActions = createClipboardPropertiesActions(ctx, updateNodeWithUndo)
 
   return {
     collectSubtrees,
@@ -271,6 +276,7 @@ export function createClipboardActions(ctx: EditorContext) {
     ...fontActions,
     duplicateSelected,
     ...copyActions,
+    ...propertiesActions,
     pasteFromHTML,
     warnMissingImages,
     deleteSelected,

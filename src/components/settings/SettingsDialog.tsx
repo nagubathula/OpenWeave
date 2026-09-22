@@ -7,6 +7,7 @@ import { useEventListener } from 'usehooks-ts'
 import { useI18n } from '@openweave/react'
 
 import { browserCredentialsRemembered, setRememberCredentials } from '@/app/ai/chat/storage'
+import { nudgeSettings, setNudgeSettings } from '@/app/editor/nudge-settings'
 import {
   setVectorizeCredential,
   vectorizeCredentialStatus,
@@ -63,6 +64,7 @@ const labelClass = 'block text-[11px] font-medium text-surface'
 function AppearancePanel() {
   const { dialogs } = useI18n()
   const [theme, setTheme] = useState<ThemeSetting>(() => readThemeSetting())
+  const nudge = useStore(nudgeSettings)
 
   const options: { value: ThemeSetting; label: string }[] = [
     { value: 'light', label: dialogs.settingsThemeLight },
@@ -76,7 +78,7 @@ function AppearancePanel() {
   }
 
   return (
-    <div className="flex flex-col gap-3" data-test-id="settings-appearance-panel">
+    <div className="flex flex-col gap-4" data-test-id="settings-appearance-panel">
       <h3 className="text-xs font-semibold text-surface">{dialogs.settingsAppearance}</h3>
       <div className="flex flex-col gap-1.5">
         <span className={labelClass}>{dialogs.settingsTheme}</span>
@@ -95,6 +97,44 @@ function AppearancePanel() {
               {option.label}
             </button>
           ))}
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-2 pt-3 border-t border-border">
+        <span className={labelClass}>Nudge amount</span>
+        <div className="flex gap-3">
+          <label className="flex-1 flex flex-col gap-1">
+            <span className="text-[10px] text-muted">Small nudge</span>
+            <div className="relative">
+              <input
+                type="number"
+                min="0.1"
+                step="0.5"
+                value={nudge.small}
+                onChange={(e) => setNudgeSettings({ small: Number(e.target.value) || 1 })}
+                className={inputClass}
+              />
+              <span className="absolute right-2 top-1 text-[10px] text-muted pointer-events-none">
+                px
+              </span>
+            </div>
+          </label>
+          <label className="flex-1 flex flex-col gap-1">
+            <span className="text-[10px] text-muted">Big nudge (Shift)</span>
+            <div className="relative">
+              <input
+                type="number"
+                min="1"
+                step="1"
+                value={nudge.big}
+                onChange={(e) => setNudgeSettings({ big: Number(e.target.value) || 10 })}
+                className={inputClass}
+              />
+              <span className="absolute right-2 top-1 text-[10px] text-muted pointer-events-none">
+                px
+              </span>
+            </div>
+          </label>
         </div>
       </div>
     </div>

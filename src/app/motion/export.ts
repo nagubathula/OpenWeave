@@ -139,7 +139,9 @@ export function generateFramerMotion(track: NodeAnimationTrack, durationMs: numb
     primaryEasing === 'spring' && !hasMultiKeyframe
       ? '        type: "spring",\n        stiffness: 300,\n        damping: 20'
       : `        ease: ${easeStr}`,
-    hasMultiKeyframe && multiTimes.length > 0 ? `        times: ${JSON.stringify(multiTimes)}` : null
+    hasMultiKeyframe && multiTimes.length > 0
+      ? `        times: ${JSON.stringify(multiTimes)}`
+      : null
   ].filter(Boolean)
 
   return `// Framer Motion Export for ${track.nodeName || 'Layer'}

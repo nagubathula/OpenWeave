@@ -27,7 +27,10 @@ import PageSection from '@/components/properties/PageSection'
 import PositionSection from '@/components/properties/PositionSection'
 import PropertyBindingSection from '@/components/properties/PropertyBindingSection'
 import SelectionActionsControl from '@/components/properties/SelectionActionsControl'
+import ShaderSection from '@/components/properties/ShaderSection'
+import ShapeSection from '@/components/properties/ShapeSection'
 import StrokeSection from '@/components/properties/StrokeSection'
+import StylesSection from '@/components/properties/StylesSection'
 import TextContentSection from '@/components/properties/TextContentSection'
 import TypographySection from '@/components/properties/TypographySection'
 import VariableModesSection from '@/components/properties/VariableModesSection'
@@ -190,12 +193,14 @@ export function DesignPanel() {
 
         {node.type === 'TEXT' && <TextContentSection />}
         <PositionSection />
+        <ShapeSection />
         <ConstraintsSection />
         <LayoutSection />
         <AppearanceSection />
         <MaskSection />
         {node.type === 'TEXT' && <TypographySection />}
         <FillSection />
+        <ShaderSection />
         <StrokeSection />
         {supportsLayoutGuides && <LayoutGridSection />}
         {supportsLayoutGuides && <VariableModesSection />}
@@ -213,6 +218,7 @@ export function DesignPanel() {
     >
       <PageSection />
       <VariablesSection />
+      <StylesSection />
       <ExportSection />
     </div>
   )

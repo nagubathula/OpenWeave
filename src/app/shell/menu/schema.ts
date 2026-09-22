@@ -50,7 +50,6 @@ export const APP_MENU_SCHEMA = [
         ]
       },
       { type: 'separator' },
-      { id: 'autosave', label: 'Autosave', checkbox: true },
       { id: 'close', label: 'Close Tab', shortcut: 'MOD+W' }
     ]
   },
@@ -72,6 +71,16 @@ export const APP_MENU_SCHEMA = [
       { id: 'cut', label: 'Cut', shortcut: 'MOD+X' },
       { id: 'paste', label: 'Paste', shortcut: 'MOD+V' },
       { id: 'paste-to-replace', label: 'Paste to replace', shortcut: 'MOD+SHIFT+R' },
+      {
+        id: 'edit.copyProperties',
+        label: 'Copy Properties',
+        command: 'edit.copyProperties'
+      },
+      {
+        id: 'edit.pasteProperties',
+        label: 'Paste Properties',
+        command: 'edit.pasteProperties'
+      },
       {
         id: 'selection.duplicate',
         label: 'Duplicate',
@@ -99,6 +108,12 @@ export const APP_MENU_SCHEMA = [
   {
     label: 'View',
     items: [
+      {
+        id: 'view.commandPalette',
+        label: 'Quick Actions…',
+        command: 'view.commandPalette'
+      },
+      { type: 'separator' },
       {
         id: 'view.zoom100',
         label: 'Zoom to 100%',

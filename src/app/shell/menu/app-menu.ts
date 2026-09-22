@@ -53,12 +53,14 @@ export function useAppMenu(): { topMenus: AppMenuGroup[] } {
     save: 'save',
     'save-as': 'saveAs',
     'export-selection': 'exportSelection',
-    autosave: 'autosave',
     close: 'closeTab',
     copy: 'copy',
     cut: 'cut',
     paste: 'paste',
     'paste-to-replace': 'pasteToReplace',
+    'edit.copyProperties': 'copyProperties',
+    'edit.pasteProperties': 'pasteProperties',
+    'view.commandPalette': 'commandPalette',
     'selection.rename': 'renameSelection',
     'selection.moveToPage': 'moveToPage',
     language: 'language',
@@ -123,8 +125,6 @@ export function useAppMenu(): { topMenus: AppMenuGroup[] } {
 
   function checked(item: AppMenuActionItem): boolean | undefined {
     switch (item.id) {
-      case 'autosave':
-        return store.state.autosaveEnabled
       case 'profiler':
         return store.renderer?.profiler.hudVisible ?? false
       case 'view-rulers':
@@ -144,10 +144,6 @@ export function useAppMenu(): { topMenus: AppMenuGroup[] } {
 
   function onCheckedChange(item: AppMenuActionItem): ((checked: boolean) => void) | undefined {
     switch (item.id) {
-      case 'autosave':
-        return (value: boolean) => {
-          store.state.autosaveEnabled = value
-        }
       case 'profiler':
         return () => store.toggleProfiler()
       case 'view-rulers':

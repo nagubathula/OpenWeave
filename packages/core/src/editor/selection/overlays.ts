@@ -51,13 +51,56 @@ export function createSelectionOverlayActions(ctx: EditorContext) {
     ctx.requestRepaint()
   }
 
+  function setCornerRadiusHover(hover: typeof ctx.state.cornerRadiusHover) {
+    const current = ctx.state.cornerRadiusHover
+    if (current?.nodeId === hover?.nodeId && current?.corner === hover?.corner) {
+      return
+    }
+    ctx.state.cornerRadiusHover = hover
+    ctx.requestRepaint()
+  }
+
+  function setCornerRadiusDrag(drag: typeof ctx.state.cornerRadiusDrag) {
+    const current = ctx.state.cornerRadiusDrag
+    if (
+      current?.nodeId === drag?.nodeId &&
+      current?.corner === drag?.corner &&
+      current?.radius === drag?.radius
+    ) {
+      return
+    }
+    ctx.state.cornerRadiusDrag = drag
+    ctx.requestRepaint()
+  }
+
+  function setAltHeld(held: boolean) {
+    if (ctx.state.altHeld === held) return
+    ctx.state.altHeld = held
+    ctx.requestRepaint()
+  }
+
+  function setActiveGuide(guide: { axis: 'X' | 'Y'; offset: number } | null) {
+    if (
+      ctx.state.activeGuide?.axis === guide?.axis &&
+      ctx.state.activeGuide?.offset === guide?.offset
+    ) {
+      return
+    }
+    ctx.state.activeGuide = guide
+    ctx.requestRepaint()
+  }
+
   return {
     setMarquee,
     setSnapGuides,
     setRotationPreview,
     setHoveredNode,
+    setAltHeld,
+    setActiveGuide,
     setDropTarget,
     setLayoutInsertIndicator,
-    setAutoLayoutHover
+    setAutoLayoutHover,
+    setCornerRadiusHover,
+    setCornerRadiusDrag
   }
 }

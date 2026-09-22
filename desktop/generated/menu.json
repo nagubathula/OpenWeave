@@ -59,11 +59,6 @@
         "type": "separator"
       },
       {
-        "id": "autosave",
-        "label": "Autosave",
-        "checkbox": true
-      },
-      {
         "id": "close",
         "label": "Close Tab",
         "accelerator": "CmdOrCtrl+W"
@@ -107,6 +102,16 @@
         "accelerator": "CmdOrCtrl+Shift+R"
       },
       {
+        "id": "edit.copyProperties",
+        "label": "Copy Properties",
+        "accelerator": "CmdOrCtrl+Alt+C"
+      },
+      {
+        "id": "edit.pasteProperties",
+        "label": "Paste Properties",
+        "accelerator": "CmdOrCtrl+Alt+V"
+      },
+      {
         "id": "selection.duplicate",
         "label": "Duplicate",
         "accelerator": "CmdOrCtrl+D"
@@ -139,6 +144,14 @@
   {
     "label": "View",
     "items": [
+      {
+        "id": "view.commandPalette",
+        "label": "Quick Actions…",
+        "accelerator": "CmdOrCtrl+K"
+      },
+      {
+        "type": "separator"
+      },
       {
         "id": "view.zoom100",
         "label": "Zoom to 100%"

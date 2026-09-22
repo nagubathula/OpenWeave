@@ -1,8 +1,10 @@
 import { guidToString } from '@openweave/kiwi/fig/guid'
 import {
   DEFAULT_FONT_FAMILY,
+  DEFAULT_SHADER_CONFIG,
   DEFAULT_STROKE_MITER_LIMIT,
-  styleToWeight
+  styleToWeight,
+  type ShaderConfig
 } from '@openweave/scene-graph'
 import { parseVariantName } from '@openweave/scene-graph/variant-name'
 /* eslint-disable max-lines -- kiwi↔scene conversion helpers are tightly coupled */
@@ -19,6 +21,7 @@ import {
   getOpenWeavePluginValue,
   LAYOUT_DIRECTION_PLUGIN_KEY,
   NODE_TYPE_PLUGIN_KEY,
+  SHADER_PLUGIN_KEY,
   TEXT_DIRECTION_PLUGIN_KEY
 } from './plugin-data'
 import { nodeChangeToReactions } from './prototype'
@@ -538,6 +541,9 @@ function convertVectorAndStrokeProps(nc: NodeChange, blobs: Uint8Array[]) {
 }
 
 function resolveNodeType(nc: NodeChange): NodeType | 'DOCUMENT' | 'VARIABLE' {
+  if (getOpenWeavePluginValue(nc, NODE_TYPE_PLUGIN_KEY) === 'SHADER') {
+    return 'SHADER'
+  }
   const nodeType = mapNodeType(nc.type)
   if (
     (nodeType === 'FRAME' && isComponentSet(nc)) ||
@@ -633,6 +639,8 @@ export function nodeChangeToProps(
     exportSettings: extractExportSettings(nc),
     pluginData: extractPluginData(nc),
     pluginRelaunchData: extractPluginRelaunchData(nc),
+    shader:
+      extractShaderConfig(nc) ?? (nodeType === 'SHADER' ? { ...DEFAULT_SHADER_CONFIG } : undefined),
     clipsContent: nc.frameMaskDisabled === false && nc.resizeToFit !== true,
     componentId: extractSymbolId(nc),
     componentPropertyDefinitions: extractComponentPropertyDefs(nc),
@@ -640,6 +648,16 @@ export function nodeChangeToProps(
     componentPropertyAssignments: extractComponentPropertyAssignments(nc),
     componentPropertyValues: extractComponentPropertyValues(nc),
     ...extractComponentMetadata(nc)
+  }
+}
+
+function extractShaderConfig(nc: NodeChange): ShaderConfig | undefined {
+  const raw = getOpenWeavePluginValue(nc, SHADER_PLUGIN_KEY)
+  if (!raw) return undefined
+  try {
+    return JSON.parse(raw) as ShaderConfig
+  } catch {
+    return undefined
   }
 }
 

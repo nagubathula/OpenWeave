@@ -12,6 +12,7 @@ import {
   MousePointer2 as IconMousePointer,
   PenTool as IconPenTool,
   Rows3 as IconRows,
+  Sparkles as IconSparkles,
   Spline as IconSpline,
   Square as IconSquare,
   Star as IconStar,
@@ -31,6 +32,7 @@ export const toolIcons: Record<Tool, LucideIcon> = {
   LINE: IconMinus,
   POLYGON: IconTriangle,
   STAR: IconStar,
+  SHADER: IconSparkles,
   PEN: IconPenTool,
   CURVATURE_PEN: IconSpline,
   TEXT: IconType,
@@ -48,7 +50,8 @@ export const NODE_ICONS: Partial<Record<string, LucideIcon>> = {
   LINE: IconMinus,
   TEXT: IconType,
   VECTOR: IconPenTool,
-  RECTANGLE: IconSquare
+  RECTANGLE: IconSquare,
+  SHADER: IconSparkles
 }
 
 export const AUTO_LAYOUT_ICONS: Partial<Record<string, LucideIcon>> = {

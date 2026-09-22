@@ -14,10 +14,12 @@ export interface PositionControlsRootSlotProps {
   hValue: MixedValue<number>
   rotationValue: MixedValue<number>
   mixed: typeof MIXED
+  canDistribute: boolean
   actions: {
     updateProp: (key: keyof SceneNode, value: number) => void
     commitProp: (key: keyof SceneNode, value: number, previous: number) => void
     align: (axis: 'horizontal' | 'vertical', pos: 'min' | 'center' | 'max') => void
+    distribute: (axis: 'horizontal' | 'vertical') => void
     flip: (axis: 'horizontal' | 'vertical') => void
     rotate: (degrees: number) => void
   }
@@ -62,9 +64,18 @@ export function PositionControlsRoot({ children }: PositionControlsRootProps) {
 
   const ids = useMemo(() => nodes.map((n) => n.id), [nodes])
 
+  const canDistribute = useMemo(() => store.canDistributeNodes(ids), [store, ids])
+
   const align = useCallback(
     (axis: 'horizontal' | 'vertical', pos: 'min' | 'center' | 'max') => {
       store.alignNodes(ids, axis, pos)
+    },
+    [store, ids]
+  )
+
+  const distribute = useCallback(
+    (axis: 'horizontal' | 'vertical') => {
+      store.distributeNodes(ids, axis)
     },
     [store, ids]
   )
@@ -88,10 +99,11 @@ export function PositionControlsRoot({ children }: PositionControlsRootProps) {
       updateProp,
       commitProp,
       align,
+      distribute,
       flip,
       rotate
     }),
-    [updateProp, commitProp, align, flip, rotate]
+    [updateProp, commitProp, align, distribute, flip, rotate]
   )
 
   const renderedChildren =
@@ -106,6 +118,7 @@ export function PositionControlsRoot({ children }: PositionControlsRootProps) {
           hValue,
           rotationValue,
           mixed: MIXED,
+          canDistribute,
           actions
         })
       : children

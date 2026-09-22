@@ -9,6 +9,7 @@ const TOOL_CURSORS: Record<Tool, string> = {
   LINE: 'crosshair',
   POLYGON: 'crosshair',
   STAR: 'crosshair',
+  SHADER: 'crosshair',
   TEXT: 'text',
   PEN: 'crosshair',
   CURVATURE_PEN: 'crosshair',

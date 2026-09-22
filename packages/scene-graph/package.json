@@ -34,6 +34,12 @@
       "import": "./dist/snap.js",
       "default": "./dist/snap.js"
     },
+    "./measurement": {
+      "types": "./dist/measurement.d.ts",
+      "bun": "./src/measurement.ts",
+      "import": "./dist/measurement.js",
+      "default": "./dist/measurement.js"
+    },
     "./source-metadata": {
       "types": "./dist/source-metadata.d.ts",
       "bun": "./src/source-metadata.ts",

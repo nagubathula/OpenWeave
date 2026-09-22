@@ -1,6 +1,8 @@
 import { BookOpen, Check, Download, Package, Trash2, Upload } from 'lucide-react'
 import React, { useMemo, useState, useSyncExternalStore } from 'react'
 
+import type { SharedStyleType } from '@openweave/scene-graph'
+
 import { downloadBlob } from '@/app/document/io/browser'
 import { useEditorStore } from '@/app/editor/active-store'
 import {
@@ -9,7 +11,7 @@ import {
   getSharedLibrariesServerSnapshot,
   importLibraryJson,
   listSharedLibraries,
-  publishComponentsToLibrary,
+  publishDesignSystem,
   subscribeSharedLibraries,
   toggleSharedLibrary
 } from '@/app/libraries/library-store'
@@ -19,6 +21,12 @@ interface LibrariesDialogProps {
   _brand?: 'LibrariesDialog'
   open: boolean
   onClose: () => void
+}
+
+interface LocalStyleItem {
+  id: string
+  name: string
+  type: SharedStyleType
 }
 
 export default function LibrariesDialog({ open, onClose }: LibrariesDialogProps) {
@@ -42,8 +50,22 @@ export default function LibrariesDialog({ open, onClose }: LibrariesDialogProps)
     })
   }, [editor])
 
+  // Local styles available for publishing
+  const localStyles = useMemo<LocalStyleItem[]>(() => {
+    const list: LocalStyleItem[] = []
+    for (const node of editor.graph.nodes.values()) {
+      if (node.sharedStyleType && typeof node.source?.id === 'string') {
+        list.push({ id: node.source.id, name: node.name, type: node.sharedStyleType })
+      }
+    }
+    return list
+  }, [editor])
+
   const [selectedComponentIds, setSelectedComponentIds] = useState<Set<string>>(
     () => new Set(localComponents.map((c) => c.id))
+  )
+  const [selectedStyleIds, setSelectedStyleIds] = useState<Set<string>>(
+    () => new Set(localStyles.map((s) => s.id))
   )
   const [libName, setLibName] = useState('Design System')
   const [libVersion, setLibVersion] = useState('1.0.0')
@@ -59,13 +81,28 @@ export default function LibrariesDialog({ open, onClose }: LibrariesDialogProps)
     })
   }
 
-  const handlePublish = () => {
-    if (selectedComponentIds.size === 0 || !libName.trim()) return
-    publishComponentsToLibrary((id) => editor.graph.getNode(id), [...selectedComponentIds], {
-      name: libName,
-      version: libVersion,
-      description: libDesc
+  const toggleSelectStyle = (id: string) => {
+    setSelectedStyleIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
     })
+  }
+
+  const handlePublish = () => {
+    if ((selectedComponentIds.size === 0 && selectedStyleIds.size === 0) || !libName.trim()) return
+    publishDesignSystem(
+      (id) => editor.graph.getNode(id),
+      editor.graph.nodes.values(),
+      [...selectedComponentIds],
+      [...selectedStyleIds],
+      {
+        name: libName,
+        version: libVersion,
+        description: libDesc
+      }
+    )
     setPublishSuccess(true)
     setTimeout(() => {
       setPublishSuccess(false)
@@ -169,6 +206,7 @@ export default function LibrariesDialog({ open, onClose }: LibrariesDialogProps)
                         </div>
                         <p className="mt-0.5 text-[11px] text-muted truncate">
                           {lib.components.length} components
+                          {lib.styles?.length ? ` • ${lib.styles.length} styles` : ''}
                           {lib.description ? ` • ${lib.description}` : ''}
                         </p>
                       </div>
@@ -271,9 +309,9 @@ export default function LibrariesDialog({ open, onClose }: LibrariesDialogProps)
                   </div>
                 </div>
 
-                <div className="max-h-44 space-y-1 overflow-y-auto rounded-md border border-border bg-input/30 p-2">
+                <div className="max-h-36 space-y-1 overflow-y-auto rounded-md border border-border bg-input/30 p-2">
                   {localComponents.length === 0 ? (
-                    <p className="py-3 text-center text-xs text-muted">
+                    <p className="py-2 text-center text-xs text-muted">
                       No components found in current document
                     </p>
                   ) : (
@@ -301,10 +339,77 @@ export default function LibrariesDialog({ open, onClose }: LibrariesDialogProps)
                 </div>
               </div>
 
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="text-[11px] font-medium text-muted">
+                    Select Styles ({selectedStyleIds.size} of {localStyles.length})
+                  </span>
+                  <div className="flex gap-2 text-[11px]">
+                    <button
+                      type="button"
+                      className="text-accent hover:underline"
+                      onClick={() => setSelectedStyleIds(new Set(localStyles.map((s) => s.id)))}
+                    >
+                      Select all
+                    </button>
+                    <button
+                      type="button"
+                      className="text-muted hover:underline"
+                      onClick={() => setSelectedStyleIds(new Set())}
+                    >
+                      Clear
+                    </button>
+                  </div>
+                </div>
+
+                <div className="max-h-36 space-y-1 overflow-y-auto rounded-md border border-border bg-input/30 p-2">
+                  {localStyles.length === 0 ? (
+                    <p className="py-2 text-center text-xs text-muted">
+                      No styles found in current document
+                    </p>
+                  ) : (
+                    localStyles.map((style) => {
+                      const checked = selectedStyleIds.has(style.id)
+                      const typeLabel =
+                        style.type === 'FILL'
+                          ? 'Color'
+                          : style.type === 'TEXT'
+                            ? 'Typography'
+                            : style.type === 'EFFECT'
+                              ? 'Effect'
+                              : 'Grid'
+                      return (
+                        <label
+                          key={style.id}
+                          className="flex cursor-pointer items-center justify-between gap-2 rounded px-2 py-1 text-xs hover:bg-hover"
+                        >
+                          <div className="flex items-center gap-2 truncate">
+                            <span className="text-[10px] uppercase font-semibold px-1 py-0.5 rounded bg-panel text-muted">
+                              {typeLabel}
+                            </span>
+                            <span className="truncate text-surface">{style.name}</span>
+                          </div>
+                          <input
+                            type="checkbox"
+                            checked={checked}
+                            onChange={() => toggleSelectStyle(style.id)}
+                            className="rounded border-border accent-accent"
+                          />
+                        </label>
+                      )
+                    })
+                  )}
+                </div>
+              </div>
+
               <div className="flex justify-end pt-2">
                 <button
                   type="button"
-                  disabled={selectedComponentIds.size === 0 || !libName.trim() || publishSuccess}
+                  disabled={
+                    (selectedComponentIds.size === 0 && selectedStyleIds.size === 0) ||
+                    !libName.trim() ||
+                    publishSuccess
+                  }
                   className="inline-flex items-center gap-1.5 rounded bg-accent px-4 py-2 text-xs font-semibold text-accent-foreground hover:bg-accent/90 disabled:opacity-50"
                   onClick={handlePublish}
                 >

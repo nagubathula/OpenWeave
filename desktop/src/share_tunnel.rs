@@ -184,7 +184,10 @@ pub async fn start_share_tunnel(app: tauri::AppHandle) -> Result<ShareTunnelInfo
 
         // Release builds embed the frontend; dev builds serve it from the
         // Next dev server, which ngrok can tunnel directly.
-        let (server, port) = if app.asset_resolver().get("index.html".into()).is_some() {
+        let is_dev = cfg!(debug_assertions)
+            || std::net::TcpStream::connect(("127.0.0.1", DEV_SERVER_PORT)).is_ok();
+
+        let (server, port) = if !is_dev && app.asset_resolver().get("index.html".into()).is_some() {
             let (server, port) = spawn_asset_server(app.clone())?;
             (Some(server), port)
         } else {

@@ -134,7 +134,11 @@ export function drawSingleSelectionSize(
   overlays: RenderOverlays,
   sizeFont: NonNullable<SkiaRenderer['sizeFont']>
 ): void {
-  const sizeText = `${Math.round(node.width)} × ${Math.round(node.height)}`
+  const cornerDrag =
+    overlays.cornerRadiusDrag?.nodeId === node.id ? overlays.cornerRadiusDrag : null
+  const sizeText = cornerDrag
+    ? `R: ${Math.round(cornerDrag.radius)}`
+    : `${Math.round(node.width)} × ${Math.round(node.height)}`
   const pillColor = r.isComponentType(node.type) ? r.compColor() : r.selColor()
   const overlayRotation = getOverlayRotation(node, overlays)
 

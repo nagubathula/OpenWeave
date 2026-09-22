@@ -5,11 +5,13 @@ import { SceneGraph } from '@openweave/scene-graph'
 import {
   deleteSharedLibrary,
   ensureLibraryComponentInDocument,
+  ensureLibraryStyleInDocument,
   exportLibraryJson,
   getSharedLibrary,
   importLibraryJson,
   listSharedLibraries,
   publishComponentsToLibrary,
+  publishDesignSystem,
   saveSharedLibrary
 } from '@/app/libraries/library-store'
 
@@ -91,6 +93,95 @@ describe('shared libraries service', () => {
     expect(secondCallId).toBe(restoredId)
 
     // Cleanup
+    deleteSharedLibrary(library.id)
+  })
+
+  test('publishes styles to a library, exports/imports JSON, and restores into a document', () => {
+    const graphA = new SceneGraph()
+    const pageAId = graphA.getPages()[0].id
+
+    graphA.createNode('RECTANGLE', pageAId, {
+      name: 'Brand Primary',
+      sharedStyleType: 'FILL',
+      internalOnly: true,
+      source: { id: 'style_brand_primary', name: 'Brand Primary' },
+      fills: [
+        {
+          type: 'SOLID',
+          color: { r: 0.1, g: 0.5, b: 0.9, a: 1 },
+          opacity: 1,
+          visible: true
+        }
+      ]
+    })
+
+    const library = publishDesignSystem(
+      (id) => graphA.getNode(id),
+      graphA.nodes.values(),
+      [],
+      ['style_brand_primary'],
+      {
+        name: 'Brand Tokens',
+        version: '2.0.0',
+        description: 'Brand color and typography tokens'
+      }
+    )
+
+    expect(library.name).toBe('Brand Tokens')
+    expect(library.version).toBe('2.0.0')
+    expect(library.styles?.length).toBe(1)
+    expect(library.styles?.[0].name).toBe('Brand Primary')
+    expect(library.styles?.[0].type).toBe('FILL')
+    expect(library.styles?.[0].id).toBe('style_brand_primary')
+
+    const exportedJson = exportLibraryJson(library.id)
+    expect(exportedJson).not.toBeNull()
+    if (exportedJson) {
+      const imported = importLibraryJson(exportedJson)
+      expect(imported).not.toBeNull()
+      expect(imported?.styles?.length).toBe(1)
+      expect(imported?.styles?.[0].name).toBe('Brand Primary')
+    }
+
+    const graphB = new SceneGraph()
+    const pageBId = graphB.getPages()[0].id
+
+    const restoredStyleId = ensureLibraryStyleInDocument(
+      {
+        getAllNodes: () => [...graphB.nodes.values()],
+        getNode: (id) => graphB.getNode(id),
+        setNode: (node) => {
+          graphB.nodes.set(node.id, node)
+        },
+        currentPageId: pageBId
+      },
+      library.id,
+      library.styles![0]
+    )
+
+    expect(restoredStyleId).toBeDefined()
+    const restoredNode = [...graphB.nodes.values()].find(
+      (n) => n.sharedStyleType === 'FILL' && n.source?.id === restoredStyleId
+    )
+    expect(restoredNode).toBeDefined()
+    expect(restoredNode?.name).toBe('Brand Primary')
+    expect(restoredNode?.sourceLibraryKey).toBe(library.id)
+    expect(restoredNode?.fills?.[0]?.color).toEqual({ r: 0.1, g: 0.5, b: 0.9, a: 1 })
+
+    const secondCallId = ensureLibraryStyleInDocument(
+      {
+        getAllNodes: () => [...graphB.nodes.values()],
+        getNode: (id) => graphB.getNode(id),
+        setNode: (node) => {
+          graphB.nodes.set(node.id, node)
+        },
+        currentPageId: pageBId
+      },
+      library.id,
+      library.styles![0]
+    )
+    expect(secondCallId).toBe(restoredStyleId)
+
     deleteSharedLibrary(library.id)
   })
 

@@ -23,6 +23,8 @@ function createRenderer() {
     selectionPaint: deletable<Paint>(),
     parentOutlinePaint: deletable<Paint>(),
     snapPaint: deletable<Paint>(),
+    snapDashPaint: deletable<Paint>(),
+    snapFill: deletable<Paint>(),
     auxFill: deletable<Paint>(),
     auxStroke: deletable<Paint>(),
     opacityPaint: deletable<Paint>(),

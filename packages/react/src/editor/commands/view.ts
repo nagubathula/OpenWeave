@@ -6,8 +6,11 @@ export function createViewCommands({
   capabilities,
   messages: t
 }: EditorCommandMapOptions): Pick<
-  Record<'view.zoom100' | 'view.zoomFit' | 'view.zoomSelection', EditorCommand>,
-  'view.zoom100' | 'view.zoomFit' | 'view.zoomSelection'
+  Record<
+    'view.zoom100' | 'view.zoomFit' | 'view.zoomSelection' | 'view.commandPalette',
+    EditorCommand
+  >,
+  'view.zoom100' | 'view.zoomFit' | 'view.zoomSelection' | 'view.commandPalette'
 > {
   return {
     'view.zoom100': {
@@ -33,6 +36,16 @@ export function createViewCommands({
       },
       enabled: capabilities.canZoomToSelection,
       run: () => editor.zoomToSelection()
+    },
+    'view.commandPalette': {
+      id: 'view.commandPalette',
+      get label() {
+        return t.value.commandPalette ?? 'Quick actions'
+      },
+      enabled: true,
+      run: () => {
+        editor.emitEditorEvent('command-palette:toggle')
+      }
     }
   }
 }

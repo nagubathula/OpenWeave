@@ -1,7 +1,7 @@
 import type { EditorCommandMapOptions } from './context'
 import type { EditorCommand } from './types'
 
-type EditCommandId = 'edit.undo' | 'edit.redo'
+type EditCommandId = 'edit.undo' | 'edit.redo' | 'edit.copyProperties' | 'edit.pasteProperties'
 
 // Vector edit mode keeps a session-local history; undo/redo route there
 // while it is active instead of the document undo stack.
@@ -43,6 +43,26 @@ export function createEditCommands({
           return
         }
         editor.redoAction()
+      }
+    },
+    'edit.copyProperties': {
+      id: 'edit.copyProperties',
+      get label() {
+        return t.value.copyProperties ?? 'Copy properties'
+      },
+      enabled: capabilities.canCopyProperties,
+      run: () => {
+        editor.copyProperties()
+      }
+    },
+    'edit.pasteProperties': {
+      id: 'edit.pasteProperties',
+      get label() {
+        return t.value.pasteProperties ?? 'Paste properties'
+      },
+      enabled: capabilities.canPasteProperties,
+      run: () => {
+        editor.pasteProperties()
       }
     }
   }

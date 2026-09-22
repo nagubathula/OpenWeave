@@ -22,6 +22,7 @@ import { useCollabInjected } from '@/app/collab/use'
 import { useEditorStore } from '@/app/editor/active-store'
 import { useCanvasCollaborationAwareness } from '@/app/editor/canvas/collaboration-awareness'
 import { createCanvasContextSelection } from '@/app/editor/canvas/context-selection'
+import { useEditorState } from '@/app/editor/session/use-editor-state'
 import NumberField from '@/components/inputs/NumberField'
 import MotionTrajectoryOverlay from '@/components/motion/MotionTrajectoryOverlay'
 
@@ -29,6 +30,7 @@ import CanvasMenu from '../canvas/CanvasMenu'
 
 export default function EditorCanvas() {
   const store = useEditorStore()
+  const loading = useEditorState((s) => s.loading, false)
   const { activeTab: activeTabAtom } = useAIChat()
   const activeTab = useStore(activeTabAtom)
 
@@ -58,7 +60,11 @@ export default function EditorCanvas() {
     autoLayoutPaddingEdit,
     updateAutoLayoutPaddingEdit,
     commitAutoLayoutPaddingEdit,
-    cancelAutoLayoutPaddingEdit
+    cancelAutoLayoutPaddingEdit,
+    autoLayoutGapEdit,
+    updateAutoLayoutGapEdit,
+    commitAutoLayoutGapEdit,
+    cancelAutoLayoutGapEdit
   } = useCanvasInput(
     canvasRef,
     store,
@@ -95,6 +101,17 @@ export default function EditorCanvas() {
     [paddingEditorVirtualRefCurrent]
   )
 
+  const gapEditorAnchor = useMemo(() => {
+    if (!autoLayoutGapEdit) return null
+    return { x: autoLayoutGapEdit.x, y: autoLayoutGapEdit.y }
+  }, [autoLayoutGapEdit])
+
+  const gapEditorVirtualRefCurrent = useCanvasVirtualReference(canvasRef, store, gapEditorAnchor)
+  const gapEditorVirtualRef = useMemo(
+    () => ({ current: gapEditorVirtualRefCurrent }),
+    [gapEditorVirtualRefCurrent]
+  )
+
   const cursor = toolCursor(store.state.activeTool, cursorOverride)
 
   return (
@@ -120,11 +137,13 @@ export default function EditorCanvas() {
           />
 
           {/* On-Canvas Motion Trajectory Overlay */}
-          <MotionTrajectoryOverlay
-            containerRef={containerRef}
-            store={store}
-            activeTab={activeTab}
-          />
+          {activeTab === 'motion' && (
+            <MotionTrajectoryOverlay
+              containerRef={containerRef}
+              store={store}
+              activeTab={activeTab}
+            />
+          )}
 
           {/* Floating Figma Motion "Open Timeline" Canvas Pill */}
           {activeTab !== 'motion' && (
@@ -185,7 +204,44 @@ export default function EditorCanvas() {
             </Popover.Portal>
           </Popover.Root>
 
-          {store.state.loading && (
+          <Popover.Root open={!!autoLayoutGapEdit}>
+            <Popover.Anchor virtualRef={gapEditorVirtualRef} />
+            <Popover.Portal>
+              {autoLayoutGapEdit && (
+                <Popover.Content
+                  onInteractOutside={() => {
+                    commitAutoLayoutGapEdit(autoLayoutGapEdit.value)
+                  }}
+                  onEscapeKeyDown={(e) => {
+                    e.preventDefault()
+                    cancelAutoLayoutGapEdit()
+                  }}
+                  onOpenAutoFocus={(e) => e.preventDefault()}
+                  side="top"
+                  align="center"
+                  sideOffset={8}
+                  collisionPadding={8}
+                  className="z-50 w-20 rounded-md bg-panel p-1 shadow-lg"
+                  data-test-id="auto-layout-gap-editor"
+                >
+                  <NumberField
+                    value={autoLayoutGapEdit.value}
+                    min={0}
+                    step={1}
+                    dataTestId="auto-layout-gap-input"
+                    onChange={updateAutoLayoutGapEdit}
+                    onCommit={(v) => commitAutoLayoutGapEdit(v)}
+                    onEditingChange={(editing) =>
+                      !editing && commitAutoLayoutGapEdit(autoLayoutGapEdit?.value ?? 0)
+                    }
+                    className="w-full bg-transparent px-1 text-xs outline-none"
+                  />
+                </Popover.Content>
+              )}
+            </Popover.Portal>
+          </Popover.Root>
+
+          {loading && (
             <div
               data-test-id="canvas-loading"
               className="absolute inset-0 z-50 flex items-center justify-center bg-canvas transition-opacity duration-300"

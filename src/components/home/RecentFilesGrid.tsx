@@ -6,6 +6,8 @@ import { getRecentFiles, recentFilesRevision, removeRecentFile } from '@/app/hom
 import { closeHome, homeSearchQuery, homeViewMode } from '@/app/home/store'
 import { HOME_TEMPLATES } from '@/app/home/templates'
 import { openFileDialog, openFileFromPath } from '@/app/shell/menu/files'
+import { toast } from '@/app/shell/ui'
+import { extractFigThumbnail } from '@/app/storage/fig-thumbnail'
 import { getLocalCanvasStore } from '@/app/storage/local-store'
 import {
   allTabs,
@@ -16,6 +18,7 @@ import {
   openTemplateInTab,
   switchTab
 } from '@/app/tabs'
+import { isTauri } from '@/app/tauri/env'
 
 export interface RecentDocItem {
   id: string
@@ -50,33 +53,49 @@ function formatTimeAgo(isoString: string): string {
 
 function DocumentThumbnail({
   storageId,
+  path,
   format
 }: {
   storageId?: string
+  path?: string | null
   format: 'fig' | 'pen' | 'document'
 }) {
   const [url, setUrl] = useState<string | null>(null)
 
   useEffect(() => {
-    if (!storageId) {
-      setUrl(null)
-      return
-    }
-
     let active = true
     let objectUrl: string | null = null
 
     const loadThumb = async () => {
       try {
-        const store = getLocalCanvasStore()
-        const bytes = await store.readThumb(storageId)
-        if (!active) return
-        if (bytes && bytes.length > 0) {
-          objectUrl = URL.createObjectURL(new Blob([new Uint8Array(bytes)], { type: 'image/png' }))
-          setUrl(objectUrl)
-        } else {
-          setUrl(null)
+        if (storageId) {
+          const store = getLocalCanvasStore()
+          const bytes = await store.readThumb(storageId)
+          if (!active) return
+          if (bytes && bytes.length > 0) {
+            objectUrl = URL.createObjectURL(
+              new Blob([new Uint8Array(bytes)], { type: 'image/png' })
+            )
+            setUrl(objectUrl)
+            return
+          }
         }
+
+        if (path && isTauri() && format === 'fig') {
+          const { readFile } = await import('@tauri-apps/plugin-fs')
+          const fileBytes = await readFile(path)
+          if (!active) return
+          const thumbBytes = extractFigThumbnail(fileBytes)
+          if (thumbBytes && thumbBytes.length > 0) {
+            objectUrl = URL.createObjectURL(
+              new Blob([new Uint8Array(thumbBytes)], { type: 'image/png' })
+            )
+            setUrl(objectUrl)
+            return
+          }
+        }
+
+        setUrl(null)
       } catch {
         if (active) setUrl(null)
       }
@@ -87,7 +106,7 @@ function DocumentThumbnail({
       active = false
       if (objectUrl) URL.revokeObjectURL(objectUrl)
     }
-  }, [storageId])
+  }, [storageId, path, format])
 
   if (url) {
     return (
@@ -239,6 +258,58 @@ export default function RecentFilesGrid({ onCountChange }: RecentFilesGridProps)
         // Storage might be offline in some web environments
       }
 
+      // 4. Collect files from default documents directory on Tauri
+      if (isTauri()) {
+        try {
+          const { defaultTauriSaveDir } = await import('@/app/document/io/save-targets')
+          const { join } = await import('@tauri-apps/api/path')
+          const { readDir, stat } = await import('@tauri-apps/plugin-fs')
+          const saveDir = await defaultTauriSaveDir()
+          const entries = await readDir(saveDir).catch(() => [])
+          for (const entry of entries) {
+            if (!entry.isFile || !entry.name.toLowerCase().endsWith('.fig')) continue
+            const fullPath = await join(saveDir, entry.name)
+            const docName = entry.name.replace(/\.[^.]+$/i, '')
+
+            let existing = itemsMap.get(fullPath)
+            if (!existing) {
+              for (const val of itemsMap.values()) {
+                if (val.path === fullPath || val.name.toLowerCase() === docName.toLowerCase()) {
+                  existing = val
+                  break
+                }
+              }
+            }
+
+            const fileInfo = await stat(fullPath).catch(() => null)
+            const mtimeIso = fileInfo?.mtime
+              ? new Date(fileInfo.mtime).toISOString()
+              : new Date().toISOString()
+
+            if (existing) {
+              existing.path = fullPath
+              if (
+                !existing.updatedAt ||
+                new Date(mtimeIso).getTime() > new Date(existing.updatedAt).getTime()
+              ) {
+                existing.updatedAt = mtimeIso
+              }
+            } else {
+              itemsMap.set(fullPath, {
+                id: fullPath,
+                name: docName,
+                path: fullPath,
+                format: 'fig',
+                updatedAt: mtimeIso,
+                isOpen: false
+              })
+            }
+          }
+        } catch {
+          // Tauri fs not available or directory unreadable
+        }
+      }
+
       // Sort newest first
       const sorted = [...itemsMap.values()].sort(
         (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
@@ -263,54 +334,59 @@ export default function RecentFilesGrid({ onCountChange }: RecentFilesGridProps)
   })
 
   const handleOpenDoc = async (doc: RecentDocItem) => {
-    closeHome()
+    try {
+      closeHome()
 
-    // 1. If tab is already open with this tabId
-    if (doc.tabId) {
-      switchTab(doc.tabId)
-      return
+      // 1. If tab is already open with this tabId
+      if (doc.tabId) {
+        switchTab(doc.tabId)
+        return
+      }
+
+      // 1b. Or if a tab is already open with the same document name
+      const openTabs = getTabsSnapshot()
+      const matchingTab = openTabs.find(
+        (t) => t.store.state.documentName === doc.name && doc.name !== 'Untitled'
+      )
+      if (matchingTab) {
+        switchTab(matchingTab.id)
+        return
+      }
+
+      // 2. Open from disk if file path exists
+      if (doc.path) {
+        await openFileFromPath(doc.path)
+        return
+      }
+
+      // 3. Open from storage if storageId exists
+      if (doc.storageId) {
+        await openStorageDocumentInNewTab({
+          id: doc.storageId,
+          name: doc.name,
+          updatedAt: doc.updatedAt,
+          metadataAuthoritative: true
+        })
+        return
+      }
+
+      // 4. Open from template (by templateId or matching name against HOME_TEMPLATES)
+      const tpl = doc.templateId
+        ? HOME_TEMPLATES.find((t) => t.id === doc.templateId)
+        : HOME_TEMPLATES.find((t) => t.name.toLowerCase() === doc.name.toLowerCase())
+      if (tpl) {
+        openTemplateInTab(tpl)
+        return
+      }
+
+      // 5. Fallback for unlinked document
+      const tab = createTab()
+      tab.store.state.documentName = doc.name
+      void tab.store.fitCurrentPageToViewport()
+    } catch (err) {
+      console.error('Failed to open document:', err)
+      toast.error(`Failed to open document: ${err instanceof Error ? err.message : String(err)}`)
     }
-
-    // 1b. Or if a tab is already open with the same document name
-    const openTabs = getTabsSnapshot()
-    const matchingTab = openTabs.find(
-      (t) => t.store.state.documentName === doc.name && doc.name !== 'Untitled'
-    )
-    if (matchingTab) {
-      switchTab(matchingTab.id)
-      return
-    }
-
-    // 2. Open from disk if file path exists
-    if (doc.path) {
-      await openFileFromPath(doc.path)
-      return
-    }
-
-    // 3. Open from storage if storageId exists
-    if (doc.storageId) {
-      await openStorageDocumentInNewTab({
-        id: doc.storageId,
-        name: doc.name,
-        updatedAt: doc.updatedAt,
-        metadataAuthoritative: true
-      })
-      return
-    }
-
-    // 4. Open from template (by templateId or matching name against HOME_TEMPLATES)
-    const tpl = doc.templateId
-      ? HOME_TEMPLATES.find((t) => t.id === doc.templateId)
-      : HOME_TEMPLATES.find((t) => t.name.toLowerCase() === doc.name.toLowerCase())
-    if (tpl) {
-      openTemplateInTab(tpl)
-      return
-    }
-
-    // 5. Fallback for unlinked document
-    const tab = createTab()
-    tab.store.state.documentName = doc.name
-    void tab.store.fitCurrentPageToViewport()
   }
 
   const handleDeleteDoc = async (e: React.MouseEvent, doc: RecentDocItem) => {
@@ -320,6 +396,14 @@ export default function RecentFilesGrid({ onCountChange }: RecentFilesGridProps)
     }
     if (doc.path) {
       removeRecentFile(doc.path)
+      if (isTauri()) {
+        try {
+          const { remove } = await import('@tauri-apps/plugin-fs')
+          await remove(doc.path)
+        } catch {
+          // Ignore removal failure
+        }
+      }
     }
     removeRecentFile(doc.id)
     if (doc.templateId) {
@@ -412,7 +496,7 @@ export default function RecentFilesGrid({ onCountChange }: RecentFilesGridProps)
             className="group flex cursor-pointer items-center gap-3.5 px-4 py-2.5 transition-colors hover:bg-hover/60"
           >
             <div className="size-9 shrink-0 overflow-hidden rounded-md border border-border/60 bg-input/30">
-              <DocumentThumbnail storageId={doc.storageId} format={doc.format} />
+              <DocumentThumbnail storageId={doc.storageId} path={doc.path} format={doc.format} />
             </div>
             <div className="flex min-w-0 flex-1 flex-col">
               <div className="flex items-center gap-2">
@@ -465,7 +549,7 @@ export default function RecentFilesGrid({ onCountChange }: RecentFilesGridProps)
         >
           {/* Card Thumbnail */}
           <div className="relative aspect-[16/10] w-full overflow-hidden border-b border-border/40 bg-input/30">
-            <DocumentThumbnail storageId={doc.storageId} format={doc.format} />
+            <DocumentThumbnail storageId={doc.storageId} path={doc.path} format={doc.format} />
             <span className="absolute left-2.5 bottom-2.5 rounded bg-black/60 px-1.5 py-0.5 text-[9px] font-medium text-white backdrop-blur-sm uppercase">
               .{doc.format}
             </span>

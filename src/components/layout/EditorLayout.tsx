@@ -12,7 +12,7 @@ import { spawnMCPIfNeeded } from '@/app/automation/mcp/spawn'
 import { CollabProvider, useCollab } from '@/app/collab/use'
 import { getActiveEditorStore } from '@/app/editor/active-store'
 import { useEditorState } from '@/app/editor/session/use-editor-state'
-import { isHomeOpen } from '@/app/home/store'
+import { closeHome, isHomeOpen } from '@/app/home/store'
 import { useAppKeyboard } from '@/app/shell/keyboard/use-app-keyboard'
 import { loadEditorLayout, saveEditorLayout } from '@/app/shell/layout-storage'
 import { openFileFromPath } from '@/app/shell/menu/files'
@@ -21,6 +21,7 @@ import { activeTabId, getActiveStore } from '@/app/tabs'
 import { isTauri } from '@/app/tauri/env'
 import AcpPermissionDialog from '@/components/chat/AcpPermissionDialog'
 import CollabPanel from '@/components/collab-panel/CollabPanel'
+import CommandPalette from '@/components/command-palette/CommandPalette'
 import EditorCanvas from '@/components/editor-canvas/EditorCanvas'
 import HomeScreen from '@/components/home/HomeScreen'
 import LayersPanel from '@/components/layers-panel/LayersPanel'
@@ -97,7 +98,11 @@ export function EditorLayout() {
   const activeTab = useStore(activeTabAtom)
 
   useEffect(() => {
-    setNoChrome(new URLSearchParams(window.location.search).has('no-chrome'))
+    const params = new URLSearchParams(window.location.search)
+    setNoChrome(params.has('no-chrome'))
+    if (params.has('room') || window.location.pathname.startsWith('/share')) {
+      closeHome()
+    }
   }, [])
 
   // Ported from src/views/EditorView.vue: block the browser's pinch/⌘-scroll zoom
@@ -175,6 +180,7 @@ export function EditorLayout() {
       >
         <SafariBanner />
         <RenameSelectionDialog />
+        <CommandPalette />
         <AcpPermissionDialog />
         <AppToast />
         <TabBar />
@@ -227,7 +233,12 @@ export function EditorLayout() {
                 className="w-1 bg-border/50 hover:bg-accent hover:w-2 transition-all"
               />
 
-              <Panel id="canvas" minSize="30%">
+              <Panel
+                id="canvas"
+                minSize="30%"
+                className="overflow-hidden"
+                style={{ overflow: 'hidden' }}
+              >
                 <div className="relative flex h-full flex-col overflow-hidden">
                   <div className="relative flex flex-col flex-1 min-h-0 min-w-0 size-full">
                     <EditorCanvas key={currentTabId} />
