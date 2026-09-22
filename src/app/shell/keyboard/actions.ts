@@ -111,6 +111,14 @@ export function createKeyboardActions({
     }
   }
 
+  function toggleDevMode() {
+    const isDev = activeTab.get() === 'dev'
+    const nextTab = isDev ? 'design' : 'dev'
+    activeTab.set(nextTab)
+    store.state.devMode = !isDev
+    store.requestRepaint()
+  }
+
   function exportSelectionPng() {
     if (store.state.selectedIds.size > 0) void store.exportSelection(1, 'png')
   }
@@ -150,6 +158,7 @@ export function createKeyboardActions({
     toggleAutoLayout,
     toggleUI,
     toggleAI,
+    toggleDevMode,
     exportSelectionPng,
     opacityDigit
   }

@@ -135,6 +135,12 @@ export function createViewportActions(ctx: EditorContext) {
     zoomToBounds(b.x, b.y, b.x + b.width, b.y + b.height)
   }
 
+  function setDevMode(enabled: boolean) {
+    if (ctx.state.devMode === enabled) return
+    ctx.state.devMode = enabled
+    ctx.requestRepaint()
+  }
+
   return {
     screenToCanvas,
     setZoomAroundPoint,
@@ -145,6 +151,7 @@ export function createViewportActions(ctx: EditorContext) {
     zoomTo100,
     zoomToLevel,
     zoomToSelection,
-    zoomToNode
+    zoomToNode,
+    setDevMode
   }
 }

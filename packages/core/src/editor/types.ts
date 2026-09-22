@@ -91,6 +91,8 @@ export interface EditorState {
   enteredContainerId: string | null
   /** Show prototype connection arrows on the canvas (Prototype tab active). */
   prototypeMode: boolean
+  /** Enable Dev Mode redline annotations and distance inspection on hover. */
+  devMode: boolean
   /** Live drag state while pulling a prototype connection from a node's handle. */
   prototypeDrag: { sourceId: string; cursorX: number; cursorY: number } | null
   nodeEditState?: RenderOverlays['nodeEditState'] | null

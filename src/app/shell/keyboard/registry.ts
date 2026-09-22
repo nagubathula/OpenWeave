@@ -129,6 +129,7 @@ export function registerKeyboardShortcuts(options: KeyboardShortcutOptions) {
       run: ({ actions }) => actions.toggleUI()
     },
     { id: 'toggle-ai', keys: '$mod+J', run: ({ actions }) => actions.toggleAI() },
+    { id: 'toggle-dev-mode', keys: 'Shift+D', run: ({ actions }) => actions.toggleDevMode() },
     {
       id: 'close-tab',
       keys: appMenuTinykeysShortcut('close') ?? '$mod+W',

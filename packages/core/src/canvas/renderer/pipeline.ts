@@ -77,6 +77,7 @@ export function renderFromEditorState(
       cornerRadiusHover: state.cornerRadiusHover,
       cornerRadiusDrag: state.cornerRadiusDrag,
       prototypeMode: state.prototypeMode,
+      devMode: state.devMode,
       prototypeDrag: state.prototypeDrag,
       activeGuide: state.activeGuide
     },

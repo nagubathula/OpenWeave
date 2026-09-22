@@ -74,6 +74,9 @@ export class SkiaRenderer {
   declare snapPaint: Paint
   declare snapDashPaint: Paint
   declare snapFill: Paint
+  declare redlinePaint: Paint
+  declare redlineDashPaint: Paint
+  declare redlineFill: Paint
   declare auxFill: Paint
   declare auxStroke: Paint
   declare opacityPaint: Paint

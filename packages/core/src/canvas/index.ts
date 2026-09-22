@@ -15,4 +15,5 @@ export {
   variantAddTarget
 } from './variant-overlay'
 export { SkiaRenderer, type RenderOverlays, type RulerTheme } from './renderer'
+export { drawDistanceMeasurements } from './overlays/measurement'
 export * from './shaders'

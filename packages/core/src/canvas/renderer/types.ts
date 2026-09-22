@@ -82,6 +82,8 @@ export interface RenderOverlays {
   }>
   /** Draw prototype connection arrows (Prototype tab active). */
   prototypeMode?: boolean
+  /** Enable Dev Mode redline overlays on hover. */
+  devMode?: boolean
   /** Live prototype-connection drag from a node's connector handle. */
   prototypeDrag?: { sourceId: string; cursorX: number; cursorY: number } | null
 }

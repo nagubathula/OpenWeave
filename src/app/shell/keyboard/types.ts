@@ -9,6 +9,7 @@ export type KeyboardShortcutActions = {
   toggleAutoLayout: () => void
   toggleUI: () => void
   toggleAI: () => void
+  toggleDevMode: () => void
   exportSelectionPng: () => void
   opacityDigit: (digit: string) => void
 }

@@ -4,6 +4,7 @@ import {
   PARENT_OUTLINE_ALPHA,
   PARENT_OUTLINE_DASH,
   PEN_PATH_STROKE_WIDTH,
+  REDLINE_COLOR,
   RULER_BG_COLOR,
   RULER_TEXT_COLOR,
   RULER_TICK_COLOR,
@@ -53,6 +54,24 @@ export function initializeRendererPaints(r: SkiaRenderer): void {
   r.snapFill.setStyle(ck.PaintStyle.Fill)
   r.snapFill.setColor(ck.Color4f(SNAP_COLOR.r, SNAP_COLOR.g, SNAP_COLOR.b, 1))
   r.snapFill.setAntiAlias(true)
+
+  r.redlinePaint = new ck.Paint()
+  r.redlinePaint.setStyle(ck.PaintStyle.Stroke)
+  r.redlinePaint.setStrokeWidth(1)
+  r.redlinePaint.setColor(ck.Color4f(REDLINE_COLOR.r, REDLINE_COLOR.g, REDLINE_COLOR.b, 1))
+  r.redlinePaint.setAntiAlias(true)
+
+  r.redlineDashPaint = new ck.Paint()
+  r.redlineDashPaint.setStyle(ck.PaintStyle.Stroke)
+  r.redlineDashPaint.setStrokeWidth(1)
+  r.redlineDashPaint.setColor(ck.Color4f(REDLINE_COLOR.r, REDLINE_COLOR.g, REDLINE_COLOR.b, 0.8))
+  r.redlineDashPaint.setPathEffect(ck.PathEffect.MakeDash([3, 3], 0))
+  r.redlineDashPaint.setAntiAlias(true)
+
+  r.redlineFill = new ck.Paint()
+  r.redlineFill.setStyle(ck.PaintStyle.Fill)
+  r.redlineFill.setColor(ck.Color4f(REDLINE_COLOR.r, REDLINE_COLOR.g, REDLINE_COLOR.b, 1))
+  r.redlineFill.setAntiAlias(true)
 
   r.auxFill = new ck.Paint()
   r.auxFill.setStyle(ck.PaintStyle.Fill)

@@ -32,6 +32,7 @@ export function createDefaultEditorState(pageId: string): EditorState {
     loading: false,
     enteredContainerId: null,
     prototypeMode: false,
+    devMode: false,
     prototypeDrag: null,
     copiedProperties: null
   }

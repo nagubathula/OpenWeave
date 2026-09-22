@@ -1,11 +1,12 @@
 import { useStore } from '@nanostores/react'
 import * as Tabs from '@radix-ui/react-tabs'
-import { Code, Film, Sparkles } from 'lucide-react'
+import { Code, Code2, Film, Sparkles } from 'lucide-react'
 import React, { useEffect } from 'react'
 
 import { useAIChat, type PropertiesTab } from '@/app/ai/chat/use'
 import { useEditorStore } from '@/app/editor/active-store'
 import ChatPanel from '@/components/chat/ChatPanel'
+import DevPanel from '@/components/dev-mode/DevPanel'
 import ZoomDropdown from '@/components/editor/ZoomDropdown'
 import CodePanel from '@/components/properties/CodePanel'
 import DesignPanel from '@/components/properties/DesignPanel'
@@ -21,13 +22,15 @@ export default function PropertiesPanel() {
     activeTabAtom.set(value as PropertiesTab)
   }
 
-  // Prototype connection arrows on the canvas follow the tab.
+  // Prototype connection arrows and Dev Mode redlines follow the tab.
   const store = useEditorStore()
   useEffect(() => {
     store.state.prototypeMode = activeTab === 'prototype'
+    store.state.devMode = activeTab === 'dev'
     store.requestRepaint()
     return () => {
       store.state.prototypeMode = false
+      store.state.devMode = false
       store.requestRepaint()
     }
   }, [store, activeTab])
@@ -67,6 +70,14 @@ export default function PropertiesPanel() {
             Motion
           </Tabs.Trigger>
           <Tabs.Trigger
+            value="dev"
+            data-test-id="properties-tab-dev"
+            className="relative flex items-center gap-1 rounded px-2.5 py-1 text-[11px] text-muted hover:text-surface data-[state=active]:font-semibold data-[state=active]:text-emerald-400 after:absolute after:inset-x-2 after:-bottom-[9px] after:h-0.5 after:rounded-full after:bg-transparent data-[state=active]:after:bg-emerald-400"
+          >
+            <Code2 className="size-3" />
+            Dev
+          </Tabs.Trigger>
+          <Tabs.Trigger
             value="code"
             data-test-id="properties-tab-code"
             className="relative flex items-center gap-1 rounded px-2.5 py-1 text-[11px] text-muted hover:text-surface data-[state=active]:font-semibold data-[state=active]:text-surface after:absolute after:inset-x-2 after:-bottom-[9px] after:h-0.5 after:rounded-full after:bg-transparent data-[state=active]:after:bg-accent"
@@ -100,6 +111,10 @@ export default function PropertiesPanel() {
 
         <Tabs.Content value="motion" className="flex min-h-0 flex-1 flex-col">
           <MotionPanel />
+        </Tabs.Content>
+
+        <Tabs.Content value="dev" className="flex min-h-0 flex-1 flex-col">
+          <DevPanel />
         </Tabs.Content>
 
         <Tabs.Content value="code" className="flex min-h-0 flex-1 flex-col">

@@ -22,6 +22,7 @@ import { isTauri } from '@/app/tauri/env'
 import AcpPermissionDialog from '@/components/chat/AcpPermissionDialog'
 import CollabPanel from '@/components/collab-panel/CollabPanel'
 import CommandPalette from '@/components/command-palette/CommandPalette'
+import DevModeToggle from '@/components/dev-mode/DevModeToggle'
 import EditorCanvas from '@/components/editor-canvas/EditorCanvas'
 import HomeScreen from '@/components/home/HomeScreen'
 import LayersPanel from '@/components/layers-panel/LayersPanel'
@@ -260,7 +261,8 @@ export function EditorLayout() {
                 className="bg-panel/50 border-l border-border/50"
               >
                 <div className="flex h-full flex-col">
-                  <div className="flex shrink-0 items-center justify-between border-b border-border px-1.5 py-1.5">
+                  <div className="flex shrink-0 items-center justify-between gap-2 border-b border-border px-2 py-1.5">
+                    <DevModeToggle />
                     <CollabPanel />
                   </div>
                   <PropertiesPanel />
