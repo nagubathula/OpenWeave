@@ -16,6 +16,7 @@ import { convertEffects, convertFills, convertStrokes } from './paint'
 import {
   extractBoundVariables,
   extractExportSettings,
+  extractMotionTracks,
   extractPluginData,
   extractPluginRelaunchData,
   getOpenWeavePluginValue,
@@ -689,6 +690,7 @@ export function nodeChangeToProps(
     pluginRelaunchData: extractPluginRelaunchData(nc),
     shader:
       extractShaderConfig(nc) ?? (nodeType === 'SHADER' ? { ...DEFAULT_SHADER_CONFIG } : undefined),
+    motionTracks: extractMotionTracks(nc),
     clipsContent: nc.frameMaskDisabled === false && nc.resizeToFit !== true,
     componentId: extractSymbolId(nc),
     componentPropertyDefinitions: extractComponentPropertyDefs(nc),

@@ -4,6 +4,7 @@ import { SceneGraph } from '@openweave/scene-graph'
 
 import {
   getActiveEditorStore,
+  getActiveEditorStoreOrNull,
   setActiveEditorStore,
   useEditorStore
 } from '@/app/editor/active-store'
@@ -48,23 +49,43 @@ export function createEditorStore(initialGraph?: SceneGraph) {
   const io = new IORegistry(BUILTIN_IO_FORMATS)
   bindClipboardNotifications(editor)
 
-  // Hydrate timeline state from the graph
+  // Hydrate timeline state from the graph if this editor is active
+  const isEditorActive = () => {
+    try {
+      const active = getActiveEditorStoreOrNull()
+      return !active || active.graph === editor.graph
+    } catch {
+      return true
+    }
+  }
+
   import('@/app/motion/store')
     .then((m) => {
-      m.hydrateTimelineFromGraph(editor.graph)
-      editor.onEditorEvent('graph:replaced', (g) => m.hydrateTimelineFromGraph(g))
+      if (isEditorActive()) {
+        m.hydrateTimelineFromGraph(editor.graph)
+      }
+      editor.onEditorEvent('graph:replaced', (g) => {
+        if (isEditorActive()) m.hydrateTimelineFromGraph(g)
+      })
       editor.onEditorEvent('node:created', (node) => {
-        if (node.motionTracks) {
+        if (node.motionTracks && isEditorActive()) {
           m.hydrateTimelineFromGraph(editor.graph)
         }
       })
       editor.onEditorEvent('node:updated', (_node, changes) => {
-        if (changes && typeof changes === 'object' && 'motionTracks' in changes) {
+        if (
+          changes &&
+          typeof changes === 'object' &&
+          'motionTracks' in changes &&
+          isEditorActive()
+        ) {
           m.hydrateTimelineFromGraph(editor.graph)
         }
       })
       editor.onEditorEvent('node:deleted', () => {
-        m.hydrateTimelineFromGraph(editor.graph)
+        if (isEditorActive()) {
+          m.hydrateTimelineFromGraph(editor.graph)
+        }
       })
     })
     .catch(() => {})

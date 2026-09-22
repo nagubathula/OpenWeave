@@ -4,6 +4,7 @@ import {
   clampExportScale,
   type ExportFormatId,
   type ExportSetting,
+  type NodeAnimationTrack,
   type PluginDataEntry,
   type PluginRelaunchDataEntry,
   type SceneNode
@@ -19,6 +20,7 @@ export const NODE_TYPE_PLUGIN_KEY = 'nodeType'
 export const BOUND_VARIABLES_PLUGIN_KEY = 'boundVariables'
 export const EXPORT_SETTINGS_PLUGIN_KEY = 'exportSettings'
 export const SHADER_PLUGIN_KEY = 'shader'
+export const MOTION_TRACKS_PLUGIN_KEY = 'motionTracks'
 
 const NATIVE_EXPORT_FORMATS: Record<string, ExportFormatId> = {
   PNG: 'png',
@@ -173,6 +175,20 @@ export function getOpenWeavePluginValue(nc: NodeChange, key: string): string | n
     nc.pluginData?.find((entry) => entry.pluginID === OPEN_PENCIL_PLUGIN_ID && entry.key === key)
       ?.value ?? null
   )
+}
+
+export function extractMotionTracks(nc: NodeChange): NodeAnimationTrack | undefined {
+  const raw = getOpenWeavePluginValue(nc, MOTION_TRACKS_PLUGIN_KEY)
+  if (!raw) return undefined
+  try {
+    const parsed = JSON.parse(raw) as unknown
+    if (parsed && typeof parsed === 'object' && 'tracks' in parsed) {
+      return parsed as NodeAnimationTrack
+    }
+    return undefined
+  } catch {
+    return undefined
+  }
 }
 
 export function extractPluginRelaunchData(nc: NodeChange): PluginRelaunchDataEntry[] {

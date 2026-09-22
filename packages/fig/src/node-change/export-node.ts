@@ -15,6 +15,7 @@ import { bytesToHex } from './bytes'
 import {
   applyExportSettingsPluginData,
   mergePluginData,
+  MOTION_TRACKS_PLUGIN_KEY,
   NODE_TYPE_PLUGIN_KEY,
   SHADER_PLUGIN_KEY,
   serializePluginRelaunchData,
@@ -845,6 +846,9 @@ export function sceneNodeToKiwiWithContext(
   if (node.type === 'COMPONENT_SET') upsertPluginData(node, NODE_TYPE_PLUGIN_KEY, node.type)
   if (node.type === 'SHADER') upsertPluginData(node, NODE_TYPE_PLUGIN_KEY, node.type)
   if (node.shader) upsertPluginData(node, SHADER_PLUGIN_KEY, JSON.stringify(node.shader))
+  if (node.motionTracks) {
+    upsertPluginData(node, MOTION_TRACKS_PLUGIN_KEY, JSON.stringify(node.motionTracks))
+  }
   if (nc.type === 'CANVAS') nc.pageType = 'DESIGN'
   if (node.type === 'BOOLEAN_OPERATION')
     nc.booleanOperation = toKiwiBooleanOperation(node.booleanOperation)

@@ -98,6 +98,9 @@ function activateTab(tab: Tab) {
   activeTabId.set(tab.id)
   setActiveEditorStore(tab.store)
   setOpenWeaveStore(tab.store)
+  import('@/app/motion/store')
+    .then((m) => m.hydrateTimelineFromGraph(tab.store.graph))
+    .catch(() => {})
 }
 
 export function switchTab(tabId: string) {

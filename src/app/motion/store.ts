@@ -353,17 +353,12 @@ export function addKeyframe(
   timeMs?: number,
   easing: KeyframeEasing = 'ease-in-out'
 ): TimelineKeyframe {
-  // Guard: top-level frames (artboards) are the canvas — not animatable.
-  // A node is a top-level frame when its type is FRAME and its parent is a CANVAS (page).
+  // Guard: CANVAS (page) nodes are not animatable.
   try {
     const store = getActiveEditorStore()
     const node = store.graph.getNode(nodeId)
-    if (node && node.type === 'FRAME' && node.parentId) {
-      const parent = store.graph.getNode(node.parentId)
-      if (parent && parent.type === 'CANVAS') {
-        // Silently skip — artboard cannot be animated
-        return { id: generateId(), timeMs: timeMs ?? 0, value, easing }
-      }
+    if (node && node.type === 'CANVAS') {
+      return { id: generateId(), timeMs: timeMs ?? 0, value, easing }
     }
   } catch {
     // headless / test — continue
@@ -447,11 +442,8 @@ export function hydrateTimelineFromGraph(graph: any) {
   let maxKfTime = 0
   for (const node of graph.getAllNodes()) {
     if (!node.motionTracks) continue
-    // Skip top-level frames (artboards) — their parent is a CANVAS (page) node
-    if (node.type === 'FRAME' && node.parentId) {
-      const parent = graph.getNode(node.parentId)
-      if (parent && parent.type === 'CANVAS') continue
-    }
+    // CANVAS (page) nodes are not animatable
+    if (node.type === 'CANVAS') continue
     allTracks[node.id] = node.motionTracks
     if (node.motionTracks.tracks) {
       for (const track of Object.values(node.motionTracks.tracks)) {

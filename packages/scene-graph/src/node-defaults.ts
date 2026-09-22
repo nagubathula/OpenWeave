@@ -174,6 +174,7 @@ export function createDefaultNode(
     overlayBackgroundScrim: undefined,
     overlayBackgroundColor: undefined,
     prototypeDevice: null,
+    motionTracks: undefined,
     pointCount: 5,
     starInnerRadius: 0.38,
     componentId: null,

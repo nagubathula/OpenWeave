@@ -548,6 +548,9 @@ export function importNodeChanges(
 
     const parentId = canvasIdToPageId.get(graphParentId) ?? graphParentId
     const node = graph.createNode(nodeType, parentId, props)
+    if (node.motionTracks) {
+      node.motionTracks.nodeId = node.id
+    }
     guidToNodeId.set(ncId, node.id)
 
     for (const childId of getChildren(ncId)) {

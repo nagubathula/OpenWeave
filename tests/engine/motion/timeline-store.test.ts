@@ -1,5 +1,7 @@
 import { describe, expect, it, beforeEach } from 'bun:test'
 
+import { SceneGraph } from '@openweave/scene-graph'
+
 import {
   addKeyframe,
   applyMotionPreset,
@@ -26,6 +28,7 @@ import {
   setKeyframeEasingForSelected,
   setPlaybackSpeed,
   setTimeFormat,
+  hydrateTimelineFromGraph,
   snapToNearestKeyframe,
   timelineStore,
   toggleRecording,
@@ -310,5 +313,59 @@ describe('Motion Timeline Store', () => {
 
     jumpToPropertyKeyframe('rect-1', 'x', 'prev')
     expect(timelineStore.get().currentTimeMs).toBe(100)
+  })
+
+  it('hydrates timeline from scene graph including top-level frames and adjusts duration', () => {
+    const graph = new SceneGraph()
+    const page = graph.getPages()[0]
+
+    const frame = graph.createNode('FRAME', page.id, {
+      name: 'Card Pop',
+      x: 0,
+      y: 0,
+      width: 300,
+      height: 200,
+      motionTracks: {
+        nodeId: '',
+        nodeName: 'Card Pop',
+        tracks: {
+          opacity: {
+            property: 'opacity',
+            keyframes: [
+              { id: 'kf-a', timeMs: 0, value: 0, easing: 'ease-out' },
+              { id: 'kf-b', timeMs: 3500, value: 1, easing: 'ease-out' }
+            ]
+          }
+        }
+      }
+    })
+
+    graph.createNode('RECTANGLE', frame.id, {
+      name: 'Button',
+      x: 20,
+      y: 20,
+      width: 80,
+      height: 40,
+      motionTracks: {
+        nodeId: '',
+        nodeName: 'Button',
+        tracks: {
+          scale: {
+            property: 'scale',
+            keyframes: [{ id: 'kf-c', timeMs: 4000, value: 1.2, easing: 'spring' }]
+          }
+        }
+      }
+    })
+
+    hydrateTimelineFromGraph(graph)
+
+    const tracks = nodeTracksStore.get()
+    expect(tracks[frame.id]).toBeDefined()
+    expect(tracks[frame.id]?.nodeName).toBe('Card Pop')
+    expect(tracks[frame.id]?.tracks.opacity?.keyframes).toHaveLength(2)
+
+    const duration = timelineStore.get().durationMs
+    expect(duration).toBeGreaterThanOrEqual(4000)
   })
 })
