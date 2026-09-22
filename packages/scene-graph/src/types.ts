@@ -475,6 +475,17 @@ export type OverlayPosition =
   | 'BOTTOM_RIGHT'
   | 'MANUAL'
 
+export type PrototypeDeviceType = 'NONE' | 'PRESET' | 'CUSTOM' | 'PRESENTATION'
+export type DeviceRotation = 'NONE' | 'CCW_90'
+
+export interface PrototypeDevice {
+  type: PrototypeDeviceType
+  size?: Vector
+  presetIdentifier?: string
+  rotation?: DeviceRotation
+  color?: 'DARK' | 'LIGHT' | 'TITANIUM'
+}
+
 /** A Figma-style prototype interaction attached to a node. */
 export interface PrototypeReaction {
   trigger: PrototypeTrigger
@@ -661,6 +672,8 @@ export interface SceneNode {
   overlayCloseOnClickOutside?: boolean
   overlayBackgroundScrim?: boolean
   overlayBackgroundColor?: Color
+  /** On PAGE nodes: prototype presentation device mockup settings. */
+  prototypeDevice?: PrototypeDevice | null
 
   /** Timeline animation tracks for this node. */
   motionTracks?: NodeAnimationTrack

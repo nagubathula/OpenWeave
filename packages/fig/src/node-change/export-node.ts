@@ -821,6 +821,14 @@ export function sceneNodeToKiwiWithContext(
         }
       : { backgroundType: 'NONE' }
   }
+  if (node.prototypeDevice) {
+    nc.prototypeDevice = {
+      type: node.prototypeDevice.type,
+      size: node.prototypeDevice.size,
+      presetIdentifier: node.prototypeDevice.presetIdentifier ?? '',
+      rotation: node.prototypeDevice.rotation ?? 'NONE'
+    }
+  }
   // Only set strokeWeight/strokeAlign when the node has strokes in the scene
   // model. For imported nodes without strokes but with raw strokeWeight data
   // (e.g. text nodes, instance children with scaled strokes), the raw value

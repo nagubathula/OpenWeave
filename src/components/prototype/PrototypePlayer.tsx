@@ -1,4 +1,4 @@
-import { RotateCcw, X } from 'lucide-react'
+import { RotateCcw, RotateCw, X } from 'lucide-react'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 
@@ -7,11 +7,13 @@ import {
   getSpringCssEasing,
   matchLayers,
   PrototypeEvaluator,
-  PROTOTYPE_EASING_CSS
+  PROTOTYPE_EASING_CSS,
+  resolveDeviceSpec
 } from '@openweave/core/editor'
 import type { LayerMatch, SmartAnimatePlan } from '@openweave/core/editor'
 import { useI18n } from '@openweave/react'
 import type {
+  PrototypeDevice,
   PrototypeEasing,
   PrototypeReaction,
   PrototypeTransition,
@@ -23,6 +25,7 @@ import type {
 
 import { useEditorStore } from '@/app/editor/active-store'
 import { openExternalLink } from '@/app/shell/ui'
+import DeviceFrame from '@/components/prototype/DeviceFrame'
 
 interface PrototypePlayerProps {
   onClose: () => void
@@ -258,15 +261,47 @@ export default function PrototypePlayer({ onClose }: PrototypePlayerProps) {
 
   const frame = frameId ? store.graph.getNode(frameId) : null
 
-  // Fit the frame into the viewport, leaving room for the top bar.
+  const pageDevice = useMemo(
+    () => store.graph.getNode(store.state.currentPageId)?.prototypeDevice ?? null,
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [store, store.state.currentPageId]
+  )
+  const [deviceOverride, setDeviceOverride] = useState<PrototypeDevice | null>(() => pageDevice)
+  const activeDevice = deviceOverride ?? pageDevice
+
+  const activeDeviceSpec = useMemo(() => {
+    return resolveDeviceSpec(activeDevice, frame)
+  }, [activeDevice, frame])
+
+  const isLandscape = activeDevice?.rotation === 'CCW_90'
+  const deviceColor = activeDevice?.color ?? 'DARK'
+
+  const toggleOrientation = useCallback(() => {
+    setDeviceOverride((prev) => {
+      const base = prev ?? pageDevice ?? { type: 'PRESET', presetIdentifier: 'iphone-16-pro' }
+      const nextRot = base.rotation === 'CCW_90' ? 'NONE' : 'CCW_90'
+      return {
+        ...base,
+        rotation: nextRot
+      }
+    })
+  }, [pageDevice])
+
+  // Fit the frame and device mockup chassis into the viewport
   const [viewport, setViewport] = useState({ w: window.innerWidth, h: window.innerHeight })
   useEffect(() => {
     const onResize = () => setViewport({ w: window.innerWidth, h: window.innerHeight })
     window.addEventListener('resize', onResize)
     return () => window.removeEventListener('resize', onResize)
   }, [])
+
+  const extraW = activeDeviceSpec ? activeDeviceSpec.bezel.left + activeDeviceSpec.bezel.right : 0
+  const extraH = activeDeviceSpec ? activeDeviceSpec.bezel.top + activeDeviceSpec.bezel.bottom : 0
+  const totalW = (frame?.width ?? 0) + extraW
+  const totalH = (frame?.height ?? 0) + extraH
+
   const scale = frame
-    ? Math.min(1, (viewport.w - 48) / frame.width, (viewport.h - 96) / frame.height)
+    ? Math.min(1, (viewport.w - 64) / Math.max(1, totalW), (viewport.h - 110) / Math.max(1, totalH))
     : 1
 
   const renderFrame = useCallback(
@@ -477,17 +512,30 @@ export default function PrototypePlayer({ onClose }: PrototypePlayerProps) {
     return () => clearTimeout(timer)
   }, [frame, runReaction])
 
-  // Escape closes the player before the editor's own shortcut handling runs.
+  const restart = useCallback(() => {
+    historyRef.current = []
+    setPrevious(null)
+    setVariantOverrides(new Map())
+    setFrameId(startFrameId)
+  }, [startFrameId])
+
+  // Escape closes the player, R restarts, O toggles orientation
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         e.stopPropagation()
         onClose()
+      } else if (e.key === 'r' || e.key === 'R') {
+        e.stopPropagation()
+        restart()
+      } else if (e.key === 'o' || e.key === 'O') {
+        e.stopPropagation()
+        toggleOrientation()
       }
     }
     window.addEventListener('keydown', onKeyDown, { capture: true })
     return () => window.removeEventListener('keydown', onKeyDown, { capture: true })
-  }, [onClose])
+  }, [onClose, restart, toggleOrientation])
 
   const hotspots: Hotspot[] = useMemo(() => {
     if (!frame) return []
@@ -517,13 +565,6 @@ export default function PrototypePlayer({ onClose }: PrototypePlayerProps) {
     return result
   }, [frame, store])
 
-  function restart() {
-    historyRef.current = []
-    setPrevious(null)
-    setVariantOverrides(new Map())
-    setFrameId(startFrameId)
-  }
-
   if (!frame) return null
 
   const imageUrl = imagesRef.current.get(
@@ -542,6 +583,161 @@ export default function PrototypePlayer({ onClose }: PrototypePlayerProps) {
   const displayW = frame.width * scale
   const displayH = frame.height * scale
 
+  const screenBody = (
+    <>
+      {previousUrl && (
+        <div
+          className={`absolute inset-0 ${previous?.transition.startsWith('MOVE_OUT') ? 'z-10' : 'z-0'}`}
+          style={
+            outgoingAnimation && previous
+              ? { animation: `${outgoingAnimation} ${previous.duration}ms ${easingCss} both` }
+              : undefined
+          }
+        >
+          <img src={previousUrl} alt="" draggable={false} className="size-full select-none" />
+        </div>
+      )}
+      {previous?.transition === 'SMART_ANIMATE' &&
+        previous.smartAnimatePlan?.matches.map((match) => (
+          <SmartAnimateLayer
+            key={`smart-${match.source.id}-${match.destination.id}`}
+            match={match}
+            scale={scale}
+            duration={previous.duration}
+            easingCss={easingCss}
+            store={store}
+          />
+        ))}
+      <div
+        key={frame.id}
+        className={`absolute inset-0 ${previous?.transition.startsWith('MOVE_OUT') ? 'z-0' : 'z-1'}`}
+        style={
+          incomingAnimation && previous
+            ? { animation: `${incomingAnimation} ${previous.duration}ms ${easingCss} both` }
+            : undefined
+        }
+      >
+        {imageUrl && (
+          <img
+            src={imageUrl}
+            alt={frame.name}
+            draggable={false}
+            className="size-full select-none"
+          />
+        )}
+        {hotspots.map((hotspot) => {
+          const click = hotspot.node.reactions.find((r) => r.trigger === 'ON_CLICK')
+          const hover = hotspot.node.reactions.find((r) => r.trigger === 'ON_HOVER')
+          const hoverReverts = hover?.action === 'CHANGE_TO'
+          return (
+            <div
+              key={hotspot.node.id}
+              data-test-id="prototype-hotspot"
+              role={click ? 'button' : undefined}
+              aria-label={hotspot.node.name}
+              className={click ? 'absolute cursor-pointer' : 'absolute'}
+              style={{
+                left: hotspot.x * scale,
+                top: hotspot.y * scale,
+                width: hotspot.width * scale,
+                height: hotspot.height * scale
+              }}
+              onClick={click ? () => runReaction(click, hotspot.node.id) : undefined}
+              onMouseEnter={hover ? () => runReaction(hover, hotspot.node.id) : undefined}
+              onMouseLeave={hoverReverts ? () => setVariantState(hotspot.node.id, null) : undefined}
+            />
+          )
+        })}
+      </div>
+
+      {/* Overlays */}
+      {overlays.map((overlay, index) => {
+        const overlayNode = store.graph.getNode(overlay.frameId)
+        if (!overlayNode) return null
+
+        const overlayImageUrl = imagesRef.current.get(
+          frameImageKey(overlay.frameId, variantOverrides, variableOverrides)
+        )
+        if (!overlayImageUrl) return null
+
+        // Simple positioning implementation (Centered)
+        const oWidth = overlayNode.width * scale
+        const oHeight = overlayNode.height * scale
+        let left = (displayW - oWidth) / 2
+        let top = (displayH - oHeight) / 2
+
+        // Handle basic pos overrides
+        if (overlay.reaction.overlayPosition === 'TOP_LEFT') {
+          left = 0
+          top = 0
+        } else if (overlay.reaction.overlayPosition === 'TOP_RIGHT') {
+          left = displayW - oWidth
+          top = 0
+        } else if (overlay.reaction.overlayPosition === 'BOTTOM_LEFT') {
+          left = 0
+          top = displayH - oHeight
+        } else if (overlay.reaction.overlayPosition === 'BOTTOM_RIGHT') {
+          left = displayW - oWidth
+          top = displayH - oHeight
+        } else if (overlay.reaction.overlayPosition === 'TOP_CENTER') {
+          top = 0
+        } else if (overlay.reaction.overlayPosition === 'BOTTOM_CENTER') {
+          top = displayH - oHeight
+        }
+
+        return (
+          <div
+            key={`${overlay.frameId}-${index}`}
+            className="absolute inset-0 z-10 pointer-events-none"
+          >
+            {overlay.reaction.overlayBackgroundScrim && (
+              <div
+                className="absolute inset-0 bg-black/25 pointer-events-auto"
+                onClick={
+                  overlay.reaction.overlayCloseOnClickOutside
+                    ? () =>
+                        setOverlays((current) =>
+                          current.filter((o) => o.frameId !== overlay.frameId)
+                        )
+                    : undefined
+                }
+              />
+            )}
+            {!overlay.reaction.overlayBackgroundScrim &&
+              overlay.reaction.overlayCloseOnClickOutside && (
+                <div
+                  className="absolute inset-0 pointer-events-auto"
+                  onClick={() =>
+                    setOverlays((current) => current.filter((o) => o.frameId !== overlay.frameId))
+                  }
+                />
+              )}
+            <div
+              className="absolute pointer-events-auto shadow-2xl"
+              style={{ left, top, width: oWidth, height: oHeight }}
+            >
+              <img
+                src={overlayImageUrl}
+                alt={overlayNode.name}
+                draggable={false}
+                className="size-full select-none"
+              />
+              {/* Basic overlay click-to-close handler on the overlay itself if it has a reaction */}
+              {overlayNode.reactions.some((r) => r.action === 'CLOSE_OVERLAY') && (
+                <div
+                  className="absolute inset-0 cursor-pointer"
+                  onClick={() =>
+                    setOverlays((current) => current.filter((o) => o.frameId !== overlay.frameId))
+                  }
+                />
+              )}
+            </div>
+          </div>
+        )
+      })}
+    </>
+  )
+
   return createPortal(
     <div
       data-test-id="prototype-player"
@@ -550,8 +746,31 @@ export default function PrototypePlayer({ onClose }: PrototypePlayerProps) {
       <style>{PLAYER_KEYFRAMES}</style>
 
       <div className="flex h-11 shrink-0 items-center justify-between px-3">
-        <span className="truncate text-xs font-medium text-white/80">{frame.name}</span>
+        <div className="flex items-center gap-2">
+          <span className="truncate text-xs font-medium text-white/80">{frame.name}</span>
+          {activeDeviceSpec && activeDeviceSpec.id !== 'none' && (
+            <span
+              data-test-id="prototype-player-device-badge"
+              className="rounded bg-white/10 px-2 py-0.5 text-[11px] font-medium text-white/70"
+            >
+              {activeDeviceSpec.name}
+            </span>
+          )}
+        </div>
         <div className="flex items-center gap-1">
+          {activeDeviceSpec && activeDeviceSpec.id !== 'none' && (
+            <button
+              type="button"
+              aria-label="Rotate device (O)"
+              data-test-id="prototype-player-rotate"
+              className={`rounded p-1.5 text-white/70 hover:bg-white/10 hover:text-white ${
+                isLandscape ? 'text-accent' : ''
+              }`}
+              onClick={toggleOrientation}
+            >
+              <RotateCw className="size-4" />
+            </button>
+          )}
           <button
             type="button"
             aria-label={panels.prototypeRestart}
@@ -574,167 +793,30 @@ export default function PrototypePlayer({ onClose }: PrototypePlayerProps) {
       </div>
 
       <div className="flex min-h-0 flex-1 items-center justify-center pb-6">
-        <div
-          className="relative overflow-hidden rounded shadow-2xl"
-          style={{ width: displayW, height: displayH }}
-        >
-          {previousUrl && (
-            <div
-              className={`absolute inset-0 ${previous?.transition.startsWith('MOVE_OUT') ? 'z-10' : 'z-0'}`}
-              style={
-                outgoingAnimation && previous
-                  ? { animation: `${outgoingAnimation} ${previous.duration}ms ${easingCss} both` }
-                  : undefined
-              }
-            >
-              <img src={previousUrl} alt="" draggable={false} className="size-full select-none" />
-            </div>
-          )}
-          {previous?.transition === 'SMART_ANIMATE' &&
-            previous.smartAnimatePlan?.matches.map((match) => (
-              <SmartAnimateLayer
-                key={`smart-${match.source.id}-${match.destination.id}`}
-                match={match}
-                scale={scale}
-                duration={previous.duration}
-                easingCss={easingCss}
-                store={store}
-              />
-            ))}
-          <div
-            key={frame.id}
-            className={`absolute inset-0 ${previous?.transition.startsWith('MOVE_OUT') ? 'z-0' : 'z-1'}`}
-            style={
-              incomingAnimation && previous
-                ? { animation: `${incomingAnimation} ${previous.duration}ms ${easingCss} both` }
-                : undefined
-            }
+        {activeDeviceSpec && activeDeviceSpec.id !== 'none' ? (
+          <DeviceFrame
+            spec={activeDeviceSpec}
+            rotation={activeDevice?.rotation}
+            color={deviceColor}
+            scale={scale}
           >
-            {imageUrl && (
-              <img
-                src={imageUrl}
-                alt={frame.name}
-                draggable={false}
-                className="size-full select-none"
-              />
-            )}
-            {hotspots.map((hotspot) => {
-              const click = hotspot.node.reactions.find((r) => r.trigger === 'ON_CLICK')
-              const hover = hotspot.node.reactions.find((r) => r.trigger === 'ON_HOVER')
-              const hoverReverts = hover?.action === 'CHANGE_TO'
-              return (
-                <div
-                  key={hotspot.node.id}
-                  data-test-id="prototype-hotspot"
-                  role={click ? 'button' : undefined}
-                  aria-label={hotspot.node.name}
-                  className={click ? 'absolute cursor-pointer' : 'absolute'}
-                  style={{
-                    left: hotspot.x * scale,
-                    top: hotspot.y * scale,
-                    width: hotspot.width * scale,
-                    height: hotspot.height * scale
-                  }}
-                  onClick={click ? () => runReaction(click, hotspot.node.id) : undefined}
-                  onMouseEnter={hover ? () => runReaction(hover, hotspot.node.id) : undefined}
-                  onMouseLeave={
-                    hoverReverts ? () => setVariantState(hotspot.node.id, null) : undefined
-                  }
-                />
-              )
-            })}
+            <div
+              data-test-id="prototype-screen-viewport"
+              className="relative overflow-hidden"
+              style={{ width: displayW, height: displayH }}
+            >
+              {screenBody}
+            </div>
+          </DeviceFrame>
+        ) : (
+          <div
+            data-test-id="prototype-screen-viewport"
+            className="relative overflow-hidden rounded shadow-2xl"
+            style={{ width: displayW, height: displayH }}
+          >
+            {screenBody}
           </div>
-
-          {/* Overlays */}
-          {overlays.map((overlay, index) => {
-            const overlayNode = store.graph.getNode(overlay.frameId)
-            if (!overlayNode) return null
-
-            const overlayImageUrl = imagesRef.current.get(
-              frameImageKey(overlay.frameId, variantOverrides, variableOverrides)
-            )
-            if (!overlayImageUrl) return null
-
-            // Simple positioning implementation (Centered)
-            const oWidth = overlayNode.width * scale
-            const oHeight = overlayNode.height * scale
-            let left = (displayW - oWidth) / 2
-            let top = (displayH - oHeight) / 2
-
-            // Handle basic pos overrides
-            if (overlay.reaction.overlayPosition === 'TOP_LEFT') {
-              left = 0
-              top = 0
-            } else if (overlay.reaction.overlayPosition === 'TOP_RIGHT') {
-              left = displayW - oWidth
-              top = 0
-            } else if (overlay.reaction.overlayPosition === 'BOTTOM_LEFT') {
-              left = 0
-              top = displayH - oHeight
-            } else if (overlay.reaction.overlayPosition === 'BOTTOM_RIGHT') {
-              left = displayW - oWidth
-              top = displayH - oHeight
-            } else if (overlay.reaction.overlayPosition === 'TOP_CENTER') {
-              top = 0
-            } else if (overlay.reaction.overlayPosition === 'BOTTOM_CENTER') {
-              top = displayH - oHeight
-            }
-
-            return (
-              <div
-                key={`${overlay.frameId}-${index}`}
-                className="absolute inset-0 z-10 pointer-events-none"
-              >
-                {overlay.reaction.overlayBackgroundScrim && (
-                  <div
-                    className="absolute inset-0 bg-black/25 pointer-events-auto"
-                    onClick={
-                      overlay.reaction.overlayCloseOnClickOutside
-                        ? () =>
-                            setOverlays((current) =>
-                              current.filter((o) => o.frameId !== overlay.frameId)
-                            )
-                        : undefined
-                    }
-                  />
-                )}
-                {!overlay.reaction.overlayBackgroundScrim &&
-                  overlay.reaction.overlayCloseOnClickOutside && (
-                    <div
-                      className="absolute inset-0 pointer-events-auto"
-                      onClick={() =>
-                        setOverlays((current) =>
-                          current.filter((o) => o.frameId !== overlay.frameId)
-                        )
-                      }
-                    />
-                  )}
-                <div
-                  className="absolute pointer-events-auto shadow-2xl"
-                  style={{ left, top, width: oWidth, height: oHeight }}
-                >
-                  <img
-                    src={overlayImageUrl}
-                    alt={overlayNode.name}
-                    draggable={false}
-                    className="size-full select-none"
-                  />
-                  {/* Basic overlay click-to-close handler on the overlay itself if it has a reaction */}
-                  {overlayNode.reactions.some((r) => r.action === 'CLOSE_OVERLAY') && (
-                    <div
-                      className="absolute inset-0 cursor-pointer"
-                      onClick={() =>
-                        setOverlays((current) =>
-                          current.filter((o) => o.frameId !== overlay.frameId)
-                        )
-                      }
-                    />
-                  )}
-                </div>
-              </div>
-            )
-          })}
-        </div>
+        )}
       </div>
     </div>,
     document.body

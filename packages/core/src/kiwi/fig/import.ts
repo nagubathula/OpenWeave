@@ -13,7 +13,13 @@ import {
 } from '@openweave/fig/node-change'
 import type { NodeChange, VariableDataValuesEntry, Color, GUID } from '@openweave/kiwi/fig/codec'
 import { SceneGraph } from '@openweave/scene-graph'
-import type { VariableType, VariableValue } from '@openweave/scene-graph'
+import type {
+  DeviceRotation,
+  PrototypeDeviceType,
+  Vector,
+  VariableType,
+  VariableValue
+} from '@openweave/scene-graph'
 
 import { BLACK } from '#core/constants'
 import { setLazyFigImportContext } from '#core/kiwi/fig/lazy-import'
@@ -39,6 +45,15 @@ function applyImportedCanvasMetadata(
     // Stored as the GUID string for now; remapPrototypeIds resolves it to the
     // created node id once every node exists.
     page.prototypeStartNodeId = guidToString(canvasNc.prototypeStartNodeID)
+  }
+  if (canvasNc.prototypeDevice) {
+    page.prototypeDevice = {
+      type: (canvasNc.prototypeDevice as { type?: PrototypeDeviceType }).type ?? 'NONE',
+      size: (canvasNc.prototypeDevice as { size?: Vector }).size,
+      presetIdentifier:
+        (canvasNc.prototypeDevice as { presetIdentifier?: string }).presetIdentifier ?? '',
+      rotation: (canvasNc.prototypeDevice as { rotation?: DeviceRotation }).rotation ?? 'NONE'
+    }
   }
 }
 

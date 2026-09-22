@@ -173,6 +173,7 @@ export function createDefaultNode(
     overlayCloseOnClickOutside: undefined,
     overlayBackgroundScrim: undefined,
     overlayBackgroundColor: undefined,
+    prototypeDevice: null,
     pointCount: 5,
     starInnerRadius: 0.38,
     componentId: null,

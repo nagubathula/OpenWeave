@@ -503,10 +503,20 @@ export async function exportFigFile(
   // children pass above, so they resolve only after every node has a GUID.
   for (const { page, canvasNc } of orderedCanvasEntries) {
     if (!page.id) continue
-    const startId = graph.getNode(page.id)?.prototypeStartNodeId
-    if (!startId) continue
-    const startGuid = nodeIdToGuid.get(startId)
-    if (startGuid) canvasNc.prototypeStartNodeID = startGuid
+    const pageNode = graph.getNode(page.id)
+    const startId = pageNode?.prototypeStartNodeId
+    if (startId) {
+      const startGuid = nodeIdToGuid.get(startId)
+      if (startGuid) canvasNc.prototypeStartNodeID = startGuid
+    }
+    if (pageNode?.prototypeDevice) {
+      canvasNc.prototypeDevice = {
+        type: pageNode.prototypeDevice.type,
+        size: pageNode.prototypeDevice.size,
+        presetIdentifier: pageNode.prototypeDevice.presetIdentifier ?? '',
+        rotation: pageNode.prototypeDevice.rotation ?? 'NONE'
+      }
+    }
   }
 
   appendInternalResources({

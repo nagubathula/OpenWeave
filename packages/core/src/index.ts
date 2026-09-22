@@ -5,7 +5,16 @@ export { randomHex, randomInt, randomIndex } from './random'
 
 export * from './constants'
 
-export { createDefaultEditorState, createEditor, EDITOR_TOOLS, TOOL_SHORTCUTS } from './editor'
+export {
+  createDefaultEditorState,
+  createEditor,
+  EDITOR_TOOLS,
+  TOOL_SHORTCUTS,
+  DEVICE_SPECS,
+  DEVICE_PRESET_OPTIONS,
+  resolveDeviceSpec,
+  computeDeviceOuterBounds
+} from './editor'
 export type {
   ClipboardImageResolution,
   Editor,
@@ -14,7 +23,10 @@ export type {
   EditorState,
   EditorToolDef,
   FigmaClipboardImageResolver,
-  Tool
+  Tool,
+  DevicePresetId,
+  DeviceCutoutType,
+  DeviceSpec
 } from './editor'
 
 export {

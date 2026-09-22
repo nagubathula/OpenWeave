@@ -27,6 +27,17 @@ export {
   solveSpringDisplacement,
   getSpringSettlingDuration,
   springToCubicBezier,
-  getSpringCssEasing
+  getSpringCssEasing,
+  DEVICE_SPECS,
+  DEVICE_PRESET_OPTIONS,
+  resolveDeviceSpec,
+  computeDeviceOuterBounds
 } from './prototype'
-export type { LayerMatch, MatchedNodeBounds, SmartAnimatePlan } from './prototype'
+export type {
+  LayerMatch,
+  MatchedNodeBounds,
+  SmartAnimatePlan,
+  DevicePresetId,
+  DeviceCutoutType,
+  DeviceSpec
+} from './prototype'

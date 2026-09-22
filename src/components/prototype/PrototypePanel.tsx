@@ -5,18 +5,29 @@ import {
   MousePointer,
   Play,
   Plus,
+  RotateCw,
+  Smartphone,
   Sparkles,
   Trash2,
   Zap
 } from 'lucide-react'
 import React, { useState } from 'react'
 
+import { DEVICE_PRESET_OPTIONS, DEVICE_SPECS } from '@openweave/core/editor'
+import type { DevicePresetId } from '@openweave/core/editor'
 import { useI18n, useSceneComputed, useSelectionState } from '@openweave/react'
-import type { PrototypeReaction, PrototypeTrigger, SceneNode } from '@openweave/scene-graph'
+import type {
+  DeviceRotation,
+  PrototypeDevice,
+  PrototypeReaction,
+  PrototypeTrigger,
+  SceneNode
+} from '@openweave/scene-graph'
 
 import { useEditorStore } from '@/app/editor/active-store'
 import InteractionDetailsPopover from '@/components/prototype/InteractionDetailsPopover'
 import PrototypePlayer from '@/components/prototype/PrototypePlayer'
+import { AppSelect } from '@/components/ui/AppSelect'
 import PanelSection from '@/components/ui/panel/PanelSection'
 import Tip from '@/components/ui/Tip'
 
@@ -195,6 +206,76 @@ export default function PrototypePanel() {
     )
   }
 
+  const currentPage = useSceneComputed(() => store.graph.getNode(store.state.currentPageId))
+  const currentDevice: PrototypeDevice | null = currentPage?.prototypeDevice ?? null
+
+  const activePreset =
+    currentDevice?.type === 'NONE' ? 'none' : (currentDevice?.presetIdentifier ?? 'none')
+
+  const activeRotation: DeviceRotation = currentDevice?.rotation ?? 'NONE'
+  const activeColor: 'DARK' | 'LIGHT' | 'TITANIUM' = currentDevice?.color ?? 'DARK'
+
+  function setDevicePreset(presetId: string) {
+    const pageId = store.state.currentPageId
+    if (presetId === 'none') {
+      store.updateNodeWithUndo(
+        pageId,
+        { prototypeDevice: { type: 'NONE' } },
+        'Set prototype device'
+      )
+      return
+    }
+    const spec = DEVICE_SPECS[presetId as DevicePresetId]
+    if (!spec) return
+    store.updateNodeWithUndo(
+      pageId,
+      {
+        prototypeDevice: {
+          type: 'PRESET',
+          presetIdentifier: presetId,
+          rotation: activeRotation,
+          color: activeColor,
+          size: { x: spec.width, y: spec.height }
+        }
+      },
+      'Set prototype device'
+    )
+  }
+
+  function setDeviceRotation(rotation: DeviceRotation) {
+    const pageId = store.state.currentPageId
+    store.updateNodeWithUndo(
+      pageId,
+      {
+        prototypeDevice: {
+          type: currentDevice?.type ?? 'PRESET',
+          presetIdentifier: currentDevice?.presetIdentifier ?? 'iphone-16-pro',
+          rotation,
+          color: activeColor,
+          size: currentDevice?.size
+        }
+      },
+      'Set device orientation'
+    )
+  }
+
+  function setDeviceColor(color: 'DARK' | 'LIGHT' | 'TITANIUM') {
+    const pageId = store.state.currentPageId
+    store.updateNodeWithUndo(
+      pageId,
+      {
+        prototypeDevice: {
+          type: currentDevice?.type ?? 'PRESET',
+          presetIdentifier: currentDevice?.presetIdentifier ?? 'iphone-16-pro',
+          rotation: activeRotation,
+          color,
+          size: currentDevice?.size
+        }
+      },
+      'Set device material'
+    )
+  }
+
   const isTopLevel = !!node && node.parentId === store.state.currentPageId
 
   return (
@@ -346,6 +427,101 @@ export default function PrototypePanel() {
           )}
         </PanelSection>
       )}
+
+      <PanelSection label="Device">
+        <div className="space-y-3 p-1">
+          <div className="space-y-1.5">
+            <label className="text-[11px] font-medium text-muted">Model</label>
+            <AppSelect
+              label="Device preset"
+              options={DEVICE_PRESET_OPTIONS}
+              value={activePreset}
+              onValueChange={setDevicePreset}
+            />
+          </div>
+
+          {activePreset !== 'none' && (
+            <>
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-medium text-muted">Orientation</label>
+                <div className="grid grid-cols-2 gap-1.5">
+                  <button
+                    type="button"
+                    data-test-id="prototype-orientation-portrait"
+                    className={`flex items-center justify-center gap-1.5 rounded-md border px-2.5 py-1.5 text-xs font-medium transition-colors cursor-pointer ${
+                      activeRotation === 'NONE'
+                        ? 'border-accent bg-accent/15 text-accent'
+                        : 'border-border/60 text-muted hover:border-border hover:text-surface'
+                    }`}
+                    onClick={() => setDeviceRotation('NONE')}
+                  >
+                    <Smartphone className="size-3.5" />
+                    <span>Portrait</span>
+                  </button>
+                  <button
+                    type="button"
+                    data-test-id="prototype-orientation-landscape"
+                    className={`flex items-center justify-center gap-1.5 rounded-md border px-2.5 py-1.5 text-xs font-medium transition-colors cursor-pointer ${
+                      activeRotation === 'CCW_90'
+                        ? 'border-accent bg-accent/15 text-accent'
+                        : 'border-border/60 text-muted hover:border-border hover:text-surface'
+                    }`}
+                    onClick={() => setDeviceRotation('CCW_90')}
+                  >
+                    <RotateCw className="size-3.5" />
+                    <span>Landscape</span>
+                  </button>
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-medium text-muted">Finish</label>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    data-test-id="prototype-color-dark"
+                    aria-label="Space Black"
+                    className={`flex size-7 items-center justify-center rounded-full border transition-all cursor-pointer ${
+                      activeColor === 'DARK'
+                        ? 'border-accent ring-2 ring-accent/30 scale-105'
+                        : 'border-border/60 hover:border-surface/60'
+                    }`}
+                    onClick={() => setDeviceColor('DARK')}
+                  >
+                    <span className="size-4 rounded-full bg-[#18181b] shadow-xs" />
+                  </button>
+                  <button
+                    type="button"
+                    data-test-id="prototype-color-light"
+                    aria-label="Silver"
+                    className={`flex size-7 items-center justify-center rounded-full border transition-all cursor-pointer ${
+                      activeColor === 'LIGHT'
+                        ? 'border-accent ring-2 ring-accent/30 scale-105'
+                        : 'border-border/60 hover:border-surface/60'
+                    }`}
+                    onClick={() => setDeviceColor('LIGHT')}
+                  >
+                    <span className="size-4 rounded-full bg-[#e4e4e7] border border-black/10 shadow-xs" />
+                  </button>
+                  <button
+                    type="button"
+                    data-test-id="prototype-color-titanium"
+                    aria-label="Natural Titanium"
+                    className={`flex size-7 items-center justify-center rounded-full border transition-all cursor-pointer ${
+                      activeColor === 'TITANIUM'
+                        ? 'border-accent ring-2 ring-accent/30 scale-105'
+                        : 'border-border/60 hover:border-surface/60'
+                    }`}
+                    onClick={() => setDeviceColor('TITANIUM')}
+                  >
+                    <span className="size-4 rounded-full bg-[#78716c] shadow-xs" />
+                  </button>
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+      </PanelSection>
 
       {presenting && <PrototypePlayer onClose={() => setPresenting(false)} />}
     </div>

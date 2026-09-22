@@ -65,7 +65,9 @@ import type {
   SymbolLink,
   VariantPropSpec,
   VariableModeMap,
-  OverlayPosition
+  OverlayPosition,
+  PrototypeDeviceType,
+  DeviceRotation
 } from '@openweave/scene-graph'
 import type { GUID } from '@openweave/scene-graph/primitives'
 
@@ -663,6 +665,23 @@ export function nodeChangeToProps(
         }
       }
     ).overlayBackgroundAppearance?.backgroundColor,
+    prototypeDevice: nc.prototypeDevice
+      ? {
+          type: (nc.prototypeDevice as { type?: PrototypeDeviceType }).type ?? 'NONE',
+          size: (
+            nc.prototypeDevice as {
+              size?: SceneNode['prototypeDevice'] extends infer T
+                ? T extends { size?: infer S }
+                  ? S
+                  : never
+                : never
+            }
+          ).size,
+          presetIdentifier:
+            (nc.prototypeDevice as { presetIdentifier?: string }).presetIdentifier ?? '',
+          rotation: (nc.prototypeDevice as { rotation?: DeviceRotation }).rotation ?? 'NONE'
+        }
+      : null,
     boundVariables: extractBoundVariables(nc),
     variableModes: extractVariableModes(nc),
     exportSettings: extractExportSettings(nc),
