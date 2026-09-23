@@ -51,9 +51,13 @@ fn spawn_asset_server(app: tauri::AppHandle) -> Result<(Arc<tiny_http::Server>, 
                 .trim_start_matches('/')
                 .to_string();
             // Static-export fallbacks: /share resolves to share.html, and
-            // unknown paths fall back to the SPA entry point.
+            // unknown HTML routes fall back to the SPA entry point.
+            // Assets with file extensions must 404 rather than returning HTML.
+            let has_extension = path.rsplit('/').next().map_or(false, |f| f.contains('.'));
             let candidates = if path.is_empty() {
                 vec!["index.html".to_string()]
+            } else if has_extension {
+                vec![path.clone()]
             } else {
                 vec![
                     path.clone(),
@@ -69,6 +73,12 @@ fn spawn_asset_server(app: tauri::AppHandle) -> Result<(Arc<tiny_http::Server>, 
                     if let Ok(header) = tiny_http::Header::from_bytes(
                         &b"Content-Type"[..],
                         asset.mime_type.as_bytes(),
+                    ) {
+                        response = response.with_header(header);
+                    }
+                    if let Ok(header) = tiny_http::Header::from_bytes(
+                        &b"Access-Control-Allow-Origin"[..],
+                        &b"*"[..],
                     ) {
                         response = response.with_header(header);
                     }
@@ -91,6 +101,7 @@ fn spawn_ngrok(port: u16) -> Result<(Child, String), String> {
     cmd.args([
         "http",
         &port.to_string(),
+        "--host-header=rewrite",
         "--log",
         "stdout",
         "--log-format",

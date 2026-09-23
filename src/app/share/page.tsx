@@ -1,5 +1,6 @@
 'use client'
 
+import { useStore } from '@nanostores/react'
 import React, { useEffect, useState } from 'react'
 
 import { EditorProvider } from '@openweave/react'
@@ -8,7 +9,7 @@ import { getActiveEditorStoreOrNull } from '@/app/editor/active-store'
 import { preloadFonts } from '@/app/editor/fonts'
 import { closeHome } from '@/app/home/store'
 import { kickSyncEngine } from '@/app/storage/sync'
-import { createTab, tabCount } from '@/app/tabs'
+import { activeTabId, createTab, tabCount } from '@/app/tabs'
 import { EditorLayout } from '@/components/layout/EditorLayout'
 
 /**
@@ -22,6 +23,7 @@ import { EditorLayout } from '@/components/layout/EditorLayout'
  */
 export default function SharePage() {
   const [isReady, setIsReady] = useState(false)
+  const currentTabId = useStore(activeTabId)
 
   useEffect(() => {
     // Boilerplate setup mirroring the root editor page.
@@ -40,7 +42,7 @@ export default function SharePage() {
   if (!isReady || !store) return null
 
   return (
-    <EditorProvider value={store}>
+    <EditorProvider key={currentTabId} value={store}>
       <EditorLayout />
     </EditorProvider>
   )

@@ -67,10 +67,13 @@ export const TRYSTERO_APP_ID = 'openweave'
 export const ROOM_ID_LENGTH = 8
 export const ROOM_ID_CHARS = 'abcdefghijklmnopqrstuvwxyz0123456789'
 
-export const WEB_APP_ORIGIN = 'https://app.openweave.dev'
+export const WEB_APP_ORIGIN =
+  typeof process !== 'undefined' && process.env?.NEXT_PUBLIC_APP_ORIGIN
+    ? process.env.NEXT_PUBLIC_APP_ORIGIN
+    : 'http://localhost:1420'
 
 export function getShareUrl(roomId: string): string {
-  const base = IS_TAURI || !IS_BROWSER ? WEB_APP_ORIGIN : window.location.origin
+  const base = !IS_BROWSER || IS_TAURI ? WEB_APP_ORIGIN : window.location.origin
   // Query-param form: compatible with static export (`output: 'export'`), where
   // a /share/[roomId] path segment could never serve arbitrary room ids.
   return `${base}/share?room=${roomId}`
