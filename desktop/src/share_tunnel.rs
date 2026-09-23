@@ -17,8 +17,63 @@ pub struct ShareTunnelState(pub Mutex<Option<TunnelHandle>>);
 
 pub struct TunnelHandle {
     url: String,
-    child: Child,
+    child: Option<Child>,
     server: Option<Arc<tiny_http::Server>>,
+}
+
+fn kill_stale_ngrok() {
+    #[cfg(windows)]
+    {
+        use std::os::windows::process::CommandExt;
+        const CREATE_NO_WINDOW: u32 = 0x0800_0000;
+        let _ = Command::new("taskkill")
+            .args(["/F", "/IM", "ngrok.exe"])
+            .creation_flags(CREATE_NO_WINDOW)
+            .output();
+    }
+    #[cfg(not(windows))]
+    {
+        let _ = Command::new("pkill").args(["-x", "ngrok"]).output();
+    }
+}
+
+fn check_existing_ngrok(port: u16) -> Option<String> {
+    use std::io::{Read, Write};
+    use std::net::TcpStream;
+
+    let socket_addr = "127.0.0.1:4040".parse().ok()?;
+    let mut stream = TcpStream::connect_timeout(&socket_addr, Duration::from_millis(500)).ok()?;
+    stream
+        .set_read_timeout(Some(Duration::from_millis(1000)))
+        .ok()?;
+    stream
+        .write_all(b"GET /api/tunnels HTTP/1.1\r\nHost: 127.0.0.1:4040\r\nConnection: close\r\n\r\n")
+        .ok()?;
+
+    let mut response = String::new();
+    stream.read_to_string(&mut response).ok()?;
+
+    let body = response.split("\r\n\r\n").nth(1)?;
+    let json: serde_json::Value = serde_json::from_str(body).ok()?;
+    let tunnels = json.get("tunnels")?.as_array()?;
+    let port_str = port.to_string();
+    for tunnel in tunnels {
+        let addr = tunnel
+            .get("config")
+            .and_then(|c| c.get("addr"))
+            .and_then(|a| a.as_str())
+            .unwrap_or("");
+        let public_url = tunnel
+            .get("public_url")
+            .and_then(|u| u.as_str())
+            .unwrap_or("");
+        if (addr.ends_with(&port_str) || addr.contains(&format!(":{port_str}")))
+            && public_url.starts_with("https://")
+        {
+            return Some(public_url.to_string());
+        }
+    }
+    None
 }
 
 #[derive(Clone, Serialize)]
@@ -205,26 +260,52 @@ pub async fn start_share_tunnel(app: tauri::AppHandle) -> Result<ShareTunnelInfo
             (None, DEV_SERVER_PORT)
         };
 
-        match spawn_ngrok(port) {
-            Ok((child, url)) => {
-                *state
-                    .0
-                    .lock()
-                    .map_err(|_| "Share tunnel state poisoned".to_string())? =
-                    Some(TunnelHandle {
-                        url: url.clone(),
-                        child,
-                        server,
-                    });
-                Ok(ShareTunnelInfo { url })
+        // If an existing ngrok instance is already tunneling this port, adopt it.
+        if let Some(existing_url) = check_existing_ngrok(port) {
+            *state
+                .0
+                .lock()
+                .map_err(|_| "Share tunnel state poisoned".to_string())? =
+                Some(TunnelHandle {
+                    url: existing_url.clone(),
+                    child: None,
+                    server,
+                });
+            return Ok(ShareTunnelInfo { url: existing_url });
+        }
+
+        let spawn_result = spawn_ngrok(port);
+        let (child, url) = match spawn_result {
+            Ok((c, u)) => (Some(c), u),
+            Err(err) if err.contains("ERR_NGROK_334") || err.contains("already online") => {
+                kill_stale_ngrok();
+                thread::sleep(Duration::from_millis(500));
+                let (c, u) = spawn_ngrok(port).map_err(|e| {
+                    if let Some(server) = &server {
+                        server.unblock();
+                    }
+                    e
+                })?;
+                (Some(c), u)
             }
             Err(err) => {
                 if let Some(server) = server {
                     server.unblock();
                 }
-                Err(err)
+                return Err(err);
             }
-        }
+        };
+
+        *state
+            .0
+            .lock()
+            .map_err(|_| "Share tunnel state poisoned".to_string())? =
+            Some(TunnelHandle {
+                url: url.clone(),
+                child,
+                server,
+            });
+        Ok(ShareTunnelInfo { url })
     })
     .await
     .map_err(|e| e.to_string())?
@@ -237,22 +318,29 @@ pub fn stop_share_tunnel(state: tauri::State<ShareTunnelState>) {
 
 #[tauri::command]
 pub fn share_tunnel_status(state: tauri::State<ShareTunnelState>) -> Option<String> {
-    state
+    if let Some(url) = state
         .0
         .lock()
         .ok()
         .and_then(|handle| handle.as_ref().map(|h| h.url.clone()))
+    {
+        return Some(url);
+    }
+    check_existing_ngrok(DEV_SERVER_PORT)
 }
 
 fn shutdown(state: &Mutex<Option<TunnelHandle>>) {
     let Ok(mut guard) = state.lock() else { return };
     if let Some(mut handle) = guard.take() {
-        let _ = handle.child.kill();
-        let _ = handle.child.wait();
+        if let Some(mut child) = handle.child.take() {
+            let _ = child.kill();
+            let _ = child.wait();
+        }
         if let Some(server) = handle.server {
             server.unblock();
         }
     }
+    kill_stale_ngrok();
 }
 
 pub fn shutdown_share_tunnel(app: &tauri::AppHandle) {

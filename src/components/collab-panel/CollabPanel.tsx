@@ -342,7 +342,15 @@ function NgrokShareSection() {
           <div className="text-red-500">
             {collab.dialogs.ngrokFailed({ error: collab.tunnel.error })}
           </div>
-          {collab.dialogs.ngrokSetupHint}
+          <div className="mt-1">{collab.dialogs.ngrokSetupHint}</div>
+          <button
+            type="button"
+            data-test-id="collab-ngrok-stop"
+            className="mt-2 flex h-6 cursor-pointer items-center justify-center rounded border border-border bg-transparent px-2 text-[11px] text-muted hover:bg-hover hover:text-surface"
+            onClick={collab.stopNgrok}
+          >
+            {collab.dialogs.ngrokStopTunnel}
+          </button>
         </div>
       ) : (
         <div className="mb-3 text-[11px] text-muted">{collab.dialogs.ngrokHint}</div>
