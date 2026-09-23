@@ -24,6 +24,12 @@ import {
 } from '@/app/collab/use'
 import { initials, toast } from '@/app/shell/ui'
 import { AppInput } from '@/components/ui/AppInput'
+import {
+  AppDialogBody,
+  AppDialogFooter,
+  AppDialogHeader,
+  AppDialogRoot
+} from '@/components/ui/dialog'
 import { usePopoverUI } from '@/components/ui/popover'
 import Tip from '@/components/ui/Tip'
 import { getShareUrl, IS_TAURI } from '@/constants'
@@ -72,15 +78,22 @@ function useCollabPanelState() {
   const [nameDraft, setNameDraft] = useState(collab?.state.get().localName ?? '')
   const [pendingRoomId, setPendingRoomId] = useState<string | null>(null)
   const [popoverOpen, setPopoverOpen] = useState(false)
+  const [joinDialogOpen, setJoinDialogOpen] = useState(false)
   const [copied, setCopied] = useState(false)
   const copyTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  // Pending room from the URL (?room=...): auto-open the join popover.
+  // Pending room from the URL (?room=...): auto-open the join dialog.
   useEffect(() => {
     const roomId = new URLSearchParams(window.location.search).get('room')
     setPendingRoomId(roomId)
-    if (roomId && !collab?.state.get().connected) setPopoverOpen(true)
+    if (roomId && !collab?.state.get().connected) setJoinDialogOpen(true)
   }, [collab])
+
+  useEffect(() => {
+    if (state.localName && !nameDraft) {
+      setNameDraft(state.localName)
+    }
+  }, [state.localName, nameDraft])
 
   useEffect(() => {
     return () => {
@@ -155,7 +168,7 @@ function useCollabPanelState() {
     }
   }
 
-  const join = () => {
+  const joinRoom = () => {
     if (!collab) return
     const roomId = pendingRoomId || extractRoomId(joinInput)
     if (!roomId || !nameDraft.trim()) return
@@ -163,6 +176,7 @@ function useCollabPanelState() {
     collab.connect(roomId)
     router.push(`/share?room=${roomId}`)
     setPopoverOpen(false)
+    setJoinDialogOpen(false)
   }
 
   const disconnect = () => {
@@ -170,6 +184,7 @@ function useCollabPanelState() {
     collab.disconnect()
     void stopShareTunnel()
     setPopoverOpen(false)
+    setJoinDialogOpen(false)
     router.push('/')
   }
 
@@ -186,6 +201,8 @@ function useCollabPanelState() {
     setNameDraft,
     popoverOpen,
     setPopoverOpen,
+    joinDialogOpen,
+    setJoinDialogOpen,
     state,
     peers,
     followingPeer,
@@ -199,7 +216,8 @@ function useCollabPanelState() {
     stopNgrok,
     share,
     shareAndTunnel,
-    join,
+    join: joinRoom,
+    joinRoom,
     disconnect,
     toggleFollowPeer
   }
@@ -377,41 +395,6 @@ function ConnectedRoom() {
   )
 }
 
-function JoinRoomPrompt() {
-  const collab = usePanel()
-  return (
-    <>
-      <div className="mb-1 text-xs font-medium text-surface">
-        {collab.dialogs.joinCollaboration}
-      </div>
-      <div className="mb-3 text-[11px] text-muted">{collab.dialogs.someoneSharedFileJoin}</div>
-
-      <div className="mb-3">
-        <label className="mb-1 block text-xs text-muted">{collab.dialogs.yourName}</label>
-        <AppInput
-          value={collab.nameDraft}
-          data-test-id="collab-name-input"
-          placeholder={collab.dialogs.enterYourName}
-          autoFocus
-          onChange={(event) => collab.setNameDraft(event.target.value)}
-          onEnter={collab.join}
-        />
-      </div>
-
-      <button
-        type="button"
-        data-test-id="collab-join-button"
-        className="flex h-8 w-full cursor-pointer items-center justify-center gap-1.5 rounded border-none bg-accent text-xs font-medium text-white hover:bg-accent/90 disabled:opacity-50"
-        disabled={!collab.nameDraft.trim()}
-        onClick={collab.join}
-      >
-        <Users className="size-3.5" />
-        {collab.dialogs.joinRoom}
-      </button>
-    </>
-  )
-}
-
 function ShareOrJoinRoom() {
   const collab = usePanel()
   return (
@@ -505,6 +488,21 @@ function CollabSharePopover() {
   const connection = collab.state.connected ? 'connected' : collab.isJoining ? 'joining' : 'idle'
   const styles = collaboration({ connection })
 
+  if (collab.isJoining) {
+    return (
+      <button
+        type="button"
+        data-test-id="collab-share-button"
+        data-connection={connection}
+        className={styles.shareButton()}
+        onClick={() => collab.setJoinDialogOpen(true)}
+      >
+        <Share2 className="size-3.5" />
+        {collab.dialogs.joinRoom}
+      </button>
+    )
+  }
+
   return (
     <Popover.Root open={collab.popoverOpen} onOpenChange={collab.setPopoverOpen}>
       <Popover.Trigger asChild>
@@ -515,11 +513,7 @@ function CollabSharePopover() {
           className={styles.shareButton()}
         >
           <Share2 className="size-3.5" />
-          {collab.state.connected
-            ? collab.dialogs.connected
-            : collab.isJoining
-              ? collab.dialogs.joinRoom
-              : collab.dialogs.share}
+          {collab.state.connected ? collab.dialogs.connected : collab.dialogs.share}
         </button>
       </Popover.Trigger>
 
@@ -531,16 +525,70 @@ function CollabSharePopover() {
           side="bottom"
           align="end"
         >
-          {collab.state.connected ? (
-            <ConnectedRoom />
-          ) : collab.isJoining ? (
-            <JoinRoomPrompt />
-          ) : (
-            <ShareOrJoinRoom />
-          )}
+          {collab.state.connected ? <ConnectedRoom /> : <ShareOrJoinRoom />}
         </Popover.Content>
       </Popover.Portal>
     </Popover.Root>
+  )
+}
+
+function JoinRoomDialog() {
+  const collab = usePanel()
+
+  return (
+    <AppDialogRoot
+      open={collab.joinDialogOpen}
+      onOpenChange={collab.setJoinDialogOpen}
+      size="sm"
+      ui={{ overlay: 'backdrop-blur-md bg-black/60' }}
+    >
+      <form
+        className="flex min-h-0 flex-col"
+        onSubmit={(event) => {
+          event.preventDefault()
+          if (collab.nameDraft.trim()) collab.joinRoom()
+        }}
+      >
+        <AppDialogHeader
+          heading={collab.dialogs.joinCollaboration}
+          description={collab.dialogs.someoneSharedFileJoin}
+          showClose={true}
+          closeTestId="collab-modal-close"
+        />
+        <AppDialogBody className="space-y-3">
+          <div>
+            <label className="mb-1.5 block text-xs font-medium text-muted">
+              {collab.dialogs.yourName}
+            </label>
+            <AppInput
+              value={collab.nameDraft}
+              data-test-id="collab-name-input"
+              placeholder={collab.dialogs.enterYourName}
+              autoFocus
+              onChange={(event) => collab.setNameDraft(event.target.value)}
+            />
+          </div>
+        </AppDialogBody>
+        <AppDialogFooter>
+          <button
+            type="button"
+            className="flex h-8 cursor-pointer items-center justify-center rounded-lg border border-border bg-transparent px-3 text-xs font-medium text-muted transition-colors hover:bg-hover hover:text-surface"
+            onClick={() => collab.setJoinDialogOpen(false)}
+          >
+            {collab.dialogs.cancel}
+          </button>
+          <button
+            type="submit"
+            data-test-id="collab-join-button"
+            className="flex h-8 cursor-pointer items-center justify-center gap-1.5 rounded-lg border-none bg-accent px-4 text-xs font-medium text-white transition-opacity hover:bg-accent/90 disabled:opacity-50"
+            disabled={!collab.nameDraft.trim()}
+          >
+            <Users className="size-3.5" />
+            {collab.dialogs.joinRoom}
+          </button>
+        </AppDialogFooter>
+      </form>
+    </AppDialogRoot>
   )
 }
 
@@ -553,6 +601,7 @@ export default function CollabPanel() {
         <div className="flex-1" />
         <CollabSharePopover />
       </div>
+      <JoinRoomDialog />
     </CollabPanelContext.Provider>
   )
 }
