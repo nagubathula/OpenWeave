@@ -1,4 +1,9 @@
-import { duplicateNodeName, type SceneNode } from '@openweave/scene-graph'
+import {
+  duplicateNodeName,
+  type SceneNode,
+  type Variable,
+  type VariableCollection
+} from '@openweave/scene-graph'
 import type { Vector } from '@openweave/scene-graph/primitives'
 
 import { importClipboardNodes, parseFigmaClipboard, parseOpenWeaveClipboard } from '#core/clipboard'
@@ -92,12 +97,23 @@ export function createClipboardActions(
   async function pasteFromHTML(html: string, cursorPos?: Vector, options: PasteOptions = {}) {
     const openWeave = parseOpenWeaveClipboard(html)
     if (openWeave) {
-      const created = pasteOpenWeaveNodes(openWeave.nodes, openWeave.images, cursorPos, options)
+      const created = pasteOpenWeaveNodes(
+        openWeave.nodes,
+        openWeave.images,
+        openWeave.variables,
+        openWeave.variableCollections,
+        cursorPos,
+        options
+      )
       await fontActions.loadFontsForNodes(created)
       return
     }
 
     const figma = await parseFigmaClipboard(html)
+    if (figma === 'too-large') {
+      ctx.emitEditorEvent('clipboard:paste-failed', { reason: 'too-large' })
+      return
+    }
     if (figma) {
       const prevSelection = new Set(ctx.state.selectedIds)
       const replacementTargets = options.replaceSelection ? selectedReplacementTargets(ctx) : []
@@ -123,17 +139,24 @@ export function createClipboardActions(
         pushCreatedNodesUndo(created, prevSelection)
       }
 
-      await Promise.all([
-        hydrateFigmaClipboardImages(figma.meta.fileKey, created),
-        fontActions.loadFontsForNodes(created)
-      ])
-      ctx.requestRender()
+      // Defer image/font loading and render to the next macrotask so the browser
+      // can run GC after the synchronous node-creation work before allocating
+      // more memory for font data, Figma images, and CanvasKit paint operations.
+      setTimeout(async () => {
+        await Promise.all([
+          hydrateFigmaClipboardImages(figma.meta.fileKey, created),
+          fontActions.loadFontsForNodes(created)
+        ])
+        ctx.requestRender()
+      }, 0)
     }
   }
 
   function pasteOpenWeaveNodes(
     nodes: Array<SceneNode & { children?: SceneNode[] }>,
     images: Map<string, Uint8Array>,
+    variables?: Variable[],
+    variableCollections?: VariableCollection[],
     cursorPos?: Vector,
     options: PasteOptions = {}
   ) {
@@ -141,15 +164,38 @@ export function createClipboardActions(
     const replacementTargets = options.replaceSelection ? selectedReplacementTargets(ctx) : []
     for (const [hash, bytes] of images) ctx.graph.images.set(hash, bytes)
 
+    if (variableCollections) {
+      for (const col of variableCollections) {
+        if (!ctx.graph.variableCollections.has(col.id)) {
+          ctx.graph.addCollection(col)
+        }
+      }
+    }
+    if (variables) {
+      for (const v of variables) {
+        if (!ctx.graph.variables.has(v.id)) {
+          ctx.graph.addVariable(v)
+        }
+      }
+    }
+
     const created: string[] = []
+    const idMap = new Map<string, string>()
     const createNodeTree = (source: SceneNode & { children?: SceneNode[] }, parentId: string) => {
-      const { id: _id, childIds: _childIds, children = [], parentId: _parentId, ...rest } = source
+      const {
+        id: sourceId,
+        childIds: _childIds,
+        children = [],
+        parentId: _parentId,
+        ...rest
+      } = source
       const node = ctx.graph.createNode(source.type, parentId, {
         ...structuredClone(rest),
         x: source.x + 20,
         y: source.y + 20,
         childIds: []
       })
+      idMap.set(sourceId, node.id)
       for (const child of children) createNodeTree(child, node.id)
       return node.id
     }
@@ -157,6 +203,39 @@ export function createClipboardActions(
     const pasteTarget = replacementTargets[0]?.parentId ?? resolvePasteTarget(ctx)
     for (const node of nodes) created.push(createNodeTree(node, pasteTarget))
     if (created.length === 0) return created
+
+    for (const [, newId] of idMap) {
+      const node = ctx.graph.getNode(newId)
+      if (!node) continue
+      if (node.componentId && idMap.has(node.componentId)) {
+        ctx.graph.updateNode(newId, { componentId: idMap.get(node.componentId) })
+      }
+      if (node.overrides && Object.keys(node.overrides).length > 0) {
+        let overridesChanged = false
+        const newOverrides: Record<string, unknown> = {}
+        for (const [key, val] of Object.entries(node.overrides)) {
+          const colonIdx = key.indexOf(':')
+          if (colonIdx > 0) {
+            const targetId = key.slice(0, colonIdx)
+            const prop = key.slice(colonIdx + 1)
+            const remappedTarget = idMap.get(targetId) ?? targetId
+            const remappedVal =
+              prop === 'sourceComponentId' && typeof val === 'string' && idMap.has(val)
+                ? idMap.get(val)
+                : val
+            newOverrides[`${remappedTarget}:${prop}`] = remappedVal
+            if (remappedTarget !== targetId || remappedVal !== val) {
+              overridesChanged = true
+            }
+          } else {
+            newOverrides[key] = val
+          }
+        }
+        if (overridesChanged) {
+          ctx.graph.updateNode(newId, { overrides: newOverrides })
+        }
+      }
+    }
 
     if (replacementTargets.length > 0) {
       replaceTargetsWithCreated(

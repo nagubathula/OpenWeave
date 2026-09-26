@@ -20,20 +20,40 @@ export function createCanvasMenuActions(store: EditorStore, selectedIds: string[
   }
 
   function execCommand(cmd: 'copy' | 'cut' | 'paste') {
-    void executeClipboardCommand(store, cmd).then((ok) => {
-      if (!ok) toast.error('Clipboard access is blocked in this browser context')
-      return undefined
-    })
+    void executeClipboardCommand(store, cmd)
+      .then((ok) => {
+        if (!ok) {
+          toast.error(
+            cmd === 'paste'
+              ? 'Clipboard access is blocked in this browser context. Press Ctrl+V (or ⌘V) to paste.'
+              : 'Clipboard access is blocked in this browser context'
+          )
+        }
+        return undefined
+      })
+      .catch((error) => {
+        console.warn(`Clipboard ${cmd} command failed`, error)
+        toast.error(
+          cmd === 'paste'
+            ? 'Clipboard access is blocked in this browser context. Press Ctrl+V (or ⌘V) to paste.'
+            : 'Clipboard access is blocked in this browser context'
+        )
+      })
   }
 
   async function clipboardWrite(text: string | null, label: string) {
     if (!text) return
-    if (isTauri()) {
-      await writeTauriClipboardText(text)
-    } else {
-      await navigator.clipboard.writeText(text)
+    try {
+      if (isTauri()) {
+        await writeTauriClipboardText(text)
+      } else {
+        await navigator.clipboard.writeText(text)
+      }
+      toast.info(`Copied as ${label}`)
+    } catch (error) {
+      console.warn(`Failed to copy ${label}`, error)
+      toast.error('Clipboard access is blocked in this browser context')
     }
-    toast.info(`Copied as ${label}`)
   }
 
   async function copyNodeId() {

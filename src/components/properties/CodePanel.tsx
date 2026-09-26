@@ -82,10 +82,25 @@ export default function CodePanel() {
   const pasteImportHtml = async () => {
     try {
       setImportError('')
+      if (typeof navigator === 'undefined' || !navigator.clipboard?.readText) {
+        setImportError('Clipboard access is not available in this browser')
+        return
+      }
       const text = await navigator.clipboard.readText()
+      if (!text) {
+        setImportError('Clipboard is empty or does not contain text')
+        return
+      }
       setImportHtml(text)
     } catch (e) {
-      setImportError(importErrorMessage(e))
+      if (
+        e instanceof DOMException &&
+        (e.name === 'NotFoundError' || e.message.includes('not available'))
+      ) {
+        setImportError('Clipboard is empty or does not contain text')
+      } else {
+        setImportError(importErrorMessage(e))
+      }
     }
   }
 

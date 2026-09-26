@@ -59,15 +59,20 @@ function applyPropAssignments(
   parentId: string,
   valueByDef: Map<string, ComponentPropValue>,
   propRefsMap: Map<string, ComponentPropRef[]>,
-  modified?: Set<string>
+  modified?: Set<string>,
+  depth = 0,
+  visited = new Set<string>()
 ): void {
+  if (depth > 12 || visited.has(parentId)) return
+  visited.add(parentId)
   const parent = ctx.graph.getNode(parentId)
   if (!parent) return
 
   for (const childId of parent.childIds) {
+    if (visited.has(childId)) continue
     const child = ctx.graph.getNode(childId)
     if (!child?.componentId) {
-      applyPropAssignments(ctx, childId, valueByDef, propRefsMap, modified)
+      applyPropAssignments(ctx, childId, valueByDef, propRefsMap, modified, depth + 1, visited)
       continue
     }
 
@@ -76,7 +81,7 @@ function applyPropAssignments(
       findPropRefs(ctx, child.componentId, propRefsMap) ??
       fallbackRefsForChild(ctx, child.name, valueByDef)
     applyChildPropRefs(ctx, childId, refs, valueByDef, modified)
-    applyPropAssignments(ctx, childId, valueByDef, propRefsMap, modified)
+    applyPropAssignments(ctx, childId, valueByDef, propRefsMap, modified, depth + 1, visited)
   }
 }
 

@@ -116,63 +116,131 @@ function useComponentContentVersion(
   return useSyncExternalStore(subscribe, getVersion, getVersion)
 }
 
+// Thumbnail render concurrency limiter & LRU cache
+const thumbnailBlobCache = new Map<string, string>()
+const MAX_CACHED_THUMBNAILS = 150
+const MAX_CONCURRENT_THUMBNAIL_RENDERS = 2
+
+type ThumbnailTask = () => Promise<void>
+const thumbnailTaskQueue: ThumbnailTask[] = []
+let activeThumbnailRenders = 0
+
+function enqueueThumbnailRender(task: ThumbnailTask) {
+  thumbnailTaskQueue.push(task)
+  drainThumbnailQueue()
+}
+
+function drainThumbnailQueue() {
+  while (activeThumbnailRenders < MAX_CONCURRENT_THUMBNAIL_RENDERS && thumbnailTaskQueue.length > 0) {
+    const nextTask = thumbnailTaskQueue.shift()
+    if (!nextTask) break
+    activeThumbnailRenders++
+    nextTask().finally(() => {
+      activeThumbnailRenders--
+      drainThumbnailQueue()
+    })
+  }
+}
+
+function storeCachedThumbnail(key: string, url: string) {
+  if (thumbnailBlobCache.size >= MAX_CACHED_THUMBNAILS) {
+    const oldestKey = thumbnailBlobCache.keys().next().value
+    if (oldestKey) {
+      const oldUrl = thumbnailBlobCache.get(oldestKey)
+      if (oldUrl) URL.revokeObjectURL(oldUrl)
+      thumbnailBlobCache.delete(oldestKey)
+    }
+  }
+  thumbnailBlobCache.set(key, url)
+}
+
 function AssetThumbnail({ nodeId, alt, size }: { nodeId: string; alt: string; size: number }) {
   const editor = useEditorStore()
   const [url, setUrl] = useState<string | null>(null)
+  const [isVisible, setIsVisible] = useState(false)
+  const containerRef = useRef<HTMLDivElement>(null)
   const contentVersion = useComponentContentVersion(editor, nodeId)
   const isGrid = size === ASSET_GRID_THUMBNAIL_SIZE
-  // Tracks the blob URL currently rendered in the <img>, so it can be revoked
-  // only once a replacement is ready (or on unmount) — never while it's still
-  // the src in the DOM, which would surface as a net::ERR_FILE_NOT_FOUND
-  // console error the next time the browser touches that <img>.
   const currentUrlRef = useRef<string | null>(null)
 
+  // IntersectionObserver: only render thumbnail when in or near viewport
   useEffect(() => {
+    const element = containerRef.current
+    if (!element || typeof IntersectionObserver === 'undefined') {
+      setIsVisible(true)
+      return
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            setIsVisible(true)
+            observer.disconnect()
+            break
+          }
+        }
+      },
+      { rootMargin: '200px' }
+    )
+
+    observer.observe(element)
+    return () => observer.disconnect()
+  }, [])
+
+  useEffect(() => {
+    if (!isVisible) return
+
     let active = true
+    const cacheKey = `${nodeId}:${contentVersion}:${size}`
+    const cached = thumbnailBlobCache.get(cacheKey)
+    if (cached) {
+      currentUrlRef.current = cached
+      setUrl(cached)
+      return
+    }
+
     const node = editor.graph.getNode(nodeId)
     if (!node) {
       setUrl(null)
       return
     }
+
     const maxDimension = Math.max(node.width, node.height, 1)
-    const scale = (size * ASSET_THUMBNAIL_RENDER_SCALE) / maxDimension
+    const scale = Math.min((size * ASSET_THUMBNAIL_RENDER_SCALE) / maxDimension, 4)
     const pageId = findAssetPage(node, editor.graph)?.id ?? editor.state.currentPageId
-    void editor
-      .renderExportImage([nodeId], scale, 'PNG', pageId)
-      .then((data) => {
+
+    enqueueThumbnailRender(async () => {
+      if (!active) return
+      try {
+        const data = await editor.renderExportImage([nodeId], scale, 'PNG', pageId)
         if (!active) return
         const previousUrl = currentUrlRef.current
         if (data) {
           const objectUrl = URL.createObjectURL(
             new Blob([new Uint8Array(data)], { type: 'image/png' })
           )
+          storeCachedThumbnail(cacheKey, objectUrl)
           currentUrlRef.current = objectUrl
           setUrl(objectUrl)
         } else {
           currentUrlRef.current = null
           setUrl(null)
         }
-        // Revoke the outgoing URL only after the new one has taken its place.
-        if (previousUrl) URL.revokeObjectURL(previousUrl)
-        return undefined
-      })
-      .catch(() => {
+        if (previousUrl && previousUrl !== cached) URL.revokeObjectURL(previousUrl)
+      } catch {
         if (active) setUrl(null)
-      })
+      }
+    })
+
     return () => {
       active = false
     }
-  }, [editor, nodeId, size, contentVersion])
-
-  useEffect(
-    () => () => {
-      if (currentUrlRef.current) URL.revokeObjectURL(currentUrlRef.current)
-    },
-    []
-  )
+  }, [editor, nodeId, size, contentVersion, isVisible])
 
   return (
     <div
+      ref={containerRef}
       data-slot="asset-thumbnail"
       className={`flex shrink-0 items-center justify-center overflow-hidden rounded bg-canvas/60 ${
         isGrid ? 'size-24' : 'size-10'
@@ -231,6 +299,10 @@ export default function AssetsPanel() {
         if (node.type === 'COMPONENT_SET') return true
         const parent = node.parentId ? editor.graph.getNode(node.parentId) : null
         return parent?.type !== 'COMPONENT_SET'
+      })
+      .filter((node) => {
+        const page = findAssetPage(node, editor.graph)
+        return !page?.internalOnly
       })
       .map((node) => {
         const defaultVariant =

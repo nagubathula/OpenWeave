@@ -5,10 +5,10 @@ import { requestRenameSelection } from '@/app/editor/selection/rename-dialog'
 
 export function createSelectionMenuActions(store: EditorStore) {
   return {
-    copy: () => void executeClipboardCommand(store, 'copy'),
-    cut: () => void executeClipboardCommand(store, 'cut'),
-    paste: () => void executeClipboardCommand(store, 'paste'),
-    'paste-to-replace': () => void pasteClipboardToReplace(store),
+    copy: () => void executeClipboardCommand(store, 'copy').catch(() => {}),
+    cut: () => void executeClipboardCommand(store, 'cut').catch(() => {}),
+    paste: () => void executeClipboardCommand(store, 'paste').catch(() => {}),
+    'paste-to-replace': () => void pasteClipboardToReplace(store).catch(() => {}),
     'selection.rename': () => requestRenameSelection(store)
   }
 }

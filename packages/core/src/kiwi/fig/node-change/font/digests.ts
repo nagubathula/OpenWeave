@@ -1,4 +1,4 @@
-import type { SceneGraph } from '@openweave/scene-graph'
+import type { SceneGraph, SceneNode } from '@openweave/scene-graph'
 
 import { fontManager, weightToStyle } from '#core/text/fonts'
 
@@ -23,9 +23,13 @@ async function getFontDigest(family: string, style: string): Promise<Uint8Array 
   return digest
 }
 
-export async function buildFontDigestMap(graph: SceneGraph): Promise<Map<string, Uint8Array>> {
+export async function buildFontDigestMap(
+  graph: SceneGraph,
+  scopeNodes?: Iterable<SceneNode>
+): Promise<Map<string, Uint8Array>> {
   const fontKeys = new Set<string>()
-  for (const node of graph.getAllNodes()) {
+  const nodes = scopeNodes ?? graph.getAllNodes()
+  for (const node of nodes) {
     if (node.type !== 'TEXT') continue
     const baseStyle = weightToStyle(node.fontWeight, node.italic)
     fontKeys.add(`${node.fontFamily}|${baseStyle}`)

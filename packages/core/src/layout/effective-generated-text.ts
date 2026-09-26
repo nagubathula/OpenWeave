@@ -173,7 +173,10 @@ function stretchChildrenToEffectiveWidth(
 
 function collectPostorder(graph: SceneGraph, rootId: string): SceneNode[] {
   const result: SceneNode[] = []
+  const visited = new Set<string>()
   const visit = (nodeId: string): void => {
+    if (visited.has(nodeId)) return
+    visited.add(nodeId)
     const node = graph.getNode(nodeId)
     if (!node) return
     for (const childId of node.childIds) visit(childId)

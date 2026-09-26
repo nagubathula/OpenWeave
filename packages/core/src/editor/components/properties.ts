@@ -146,6 +146,8 @@ function updatePropertyTarget(
     swapComponentId
   ) {
     ctx.graph.swapInstanceComponent(target.node.id, swapComponentId)
+    const componentName = ctx.graph.getNode(swapComponentId)?.name
+    if (componentName) ctx.graph.updateNode(target.node.id, { name: componentName })
   }
 }
 

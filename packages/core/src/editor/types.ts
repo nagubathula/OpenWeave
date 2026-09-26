@@ -128,6 +128,7 @@ export interface EditorEvents extends SceneGraphEvents {
   'tool:changed': (tool: Tool, previousTool: Tool) => void
   'page:changed': (pageId: string, previousPageId: string) => void
   'clipboard:images-missing': (resolution: ClipboardImageResolution) => void
+  'clipboard:paste-failed': (payload: { reason: 'too-large' | 'parse-error' }) => void
   'viewport:changed': (
     viewport: { panX: number; panY: number; zoom: number },
     previous: { panX: number; panY: number; zoom: number }

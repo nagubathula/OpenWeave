@@ -71,6 +71,8 @@ export const dialogMessageDefaults = {
   clipboardImagesFetchFailed: params(
     'Failed to fetch {count} images from Figma. Check that the source file is accessible and try again.'
   ),
+  clipboardPasteTooLarge:
+    'The copied content is too large to paste. Try selecting fewer frames.',
   enable: 'Enable',
   disable: 'Disable',
   fallbackPacks: 'Fallback packs',

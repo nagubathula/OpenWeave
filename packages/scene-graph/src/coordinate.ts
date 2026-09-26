@@ -5,8 +5,11 @@ import type { Vector } from './primitives'
 export function getWorldMatrix(node: SceneNode, graph: SceneGraph): Mat3 {
   const chain: SceneNode[] = []
   let current: SceneNode | undefined = node
+  const visited = new Set<string>()
 
   while (current) {
+    if (visited.has(current.id)) break
+    visited.add(current.id)
     chain.unshift(current)
     if (!current.parentId) break
     current = graph.getNode(current.parentId)

@@ -18,7 +18,7 @@ export function createTextClipboardActions({
     const editor = store.textEditor
     if (!editor) return
     const text = editor.getSelectedText()
-    if (text) void navigator.clipboard.writeText(text)
+    if (text) void navigator.clipboard.writeText(text).catch(() => {})
   }
 
   function handleCut(node: SceneNode | null) {
@@ -26,7 +26,7 @@ export function createTextClipboardActions({
     if (!editor || !node) return
     const text = editor.getSelectedText()
     if (text) {
-      void navigator.clipboard.writeText(text)
+      void navigator.clipboard.writeText(text).catch(() => {})
       deleteText(node, false)
       resetBlink()
     }

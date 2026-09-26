@@ -10,5 +10,7 @@ export function stringToGuid(str: string): GUID {
     return { sessionID: Number.parseInt(match[1], 10), localID: Number.parseInt(match[2], 10) }
   }
   const [session, local] = str.split(':')
-  return { sessionID: Number.parseInt(session, 10), localID: Number.parseInt(local, 10) }
+  const s = Number.parseInt(session, 10)
+  const l = Number.parseInt(local, 10)
+  return { sessionID: Number.isFinite(s) ? s : 0, localID: Number.isFinite(l) ? l : 0 }
 }

@@ -3,17 +3,21 @@ import { inflateSync, deflateSync } from 'fflate'
 import { populateAndApplyOverrides } from '@openweave/fig/instance-overrides'
 import type { InstanceNodeChange } from '@openweave/fig/instance-overrides'
 import {
+  applyStyleRefsToFields,
+  isComponentSet,
   nodeChangeToProps,
+  setVariableColorResolver,
   shouldImportTextAsAutoSize,
   sortChildren
 } from '@openweave/fig/node-change'
 import { initCodec, getCompiledSchema, getSchemaBytes } from '@openweave/kiwi/fig/codec'
-import type { NodeChange as KiwiNodeChange } from '@openweave/kiwi/fig/codec'
+import type { GUID, NodeChange as KiwiNodeChange } from '@openweave/kiwi/fig/codec'
 import { decodeBinarySchema, compileSchema, ByteBuffer } from '@openweave/kiwi/schema-runtime'
 import type { SceneGraph, SceneNode } from '@openweave/scene-graph'
 
 import { decodeBase64, decodeBase64Text, encodeBase64, encodeBase64Text } from './bytes'
 import { shapeTextForClipboard } from './canvas/text/clipboard'
+import { collectReferencedVariables } from './clipboard/openweave'
 import {
   sceneNodeToKiwi,
   buildFigKiwi,
@@ -23,6 +27,15 @@ import {
   makeCanvasNodeChange,
   buildFontDigestMap
 } from './kiwi/fig/node-change/serialize'
+import {
+  appendVariableNodeChanges,
+  assignVariableGuids,
+  buildAssetRefMap,
+  buildVariableColorResolver,
+  importCollections,
+  importVariableBindings,
+  importVariableEntries
+} from './kiwi/fig/variables'
 import { randomInt } from './random'
 import { buildDerivedTextDataV4 } from './text/derived-text/clipboard'
 
@@ -36,14 +49,46 @@ export async function prefetchFigmaSchema(): Promise<void> {
   await initCodec()
 }
 
+/**
+ * Maximum allowed size of the base64-encoded Figma clipboard binary.
+ * ~67 MB base64 corresponds to ~50 MB of raw binary.  A normal single-frame
+ * copy is well under 5 MB; slides with many components routinely exceed this.
+ */
+export const MAX_FIGMA_CLIPBOARD_B64_BYTES = 67_000_000
+
+/**
+ * Maximum allowed number of Kiwi node changes in a pasted Figma clipboard.
+ * Exceeding this limit indicates a presentation-sized selection that would
+ * exhaust the JS heap during clone/override resolution.
+ */
+export const MAX_FIGMA_CLIPBOARD_NODES = 30_000
+
 // --- Paste from Figma ---
 
 export async function parseFigmaClipboard(
   html: string
-): Promise<{ nodes: KiwiNodeChange[]; meta: FigmaClipboardMeta; blobs: Uint8Array[] } | null> {
+): Promise<{ nodes: KiwiNodeChange[]; meta: FigmaClipboardMeta; blobs: Uint8Array[] } | 'too-large' | null> {
+  // Guard BEFORE regex: the Figma clipboard HTML is ~200 bytes of wrapper + the full base64
+  // payload. Running match() on a multi-hundred-MB string is itself enough to OOM the
+  // WebView renderer. Reject here before allocating any regex match objects.
+  if (html.length > MAX_FIGMA_CLIPBOARD_B64_BYTES + 1000) {
+    console.warn(
+      `[clipboard] Figma paste rejected: HTML too large (${html.length} chars > ${MAX_FIGMA_CLIPBOARD_B64_BYTES} limit)`
+    )
+    return 'too-large'
+  }
+
   const metaMatch = html.match(/\(figmeta\)(.*?)\(\/figmeta\)/)
   const bufMatch = html.match(/\(figma\)(.*?)\(\/figma\)/s)
   if (!metaMatch || !bufMatch) return null
+
+  if (bufMatch[1].length > MAX_FIGMA_CLIPBOARD_B64_BYTES) {
+    console.warn(
+      `[clipboard] Figma paste rejected: payload too large ` +
+        `(${bufMatch[1].length} chars > ${MAX_FIGMA_CLIPBOARD_B64_BYTES} limit)`
+    )
+    return 'too-large'
+  }
 
   const meta: FigmaClipboardMeta = JSON.parse(decodeBase64Text(metaMatch[1]))
   const binary = decodeBase64(bufMatch[1])
@@ -61,15 +106,25 @@ export async function parseFigmaClipboard(
       blobs?: Array<{ bytes: Uint8Array | Record<string, number> }>
     }
 
+    const nodeChanges = msg.nodeChanges ?? []
+    if (nodeChanges.length > MAX_FIGMA_CLIPBOARD_NODES) {
+      console.warn(
+        `[clipboard] Figma paste rejected: too many nodes ` +
+          `(${nodeChanges.length} > ${MAX_FIGMA_CLIPBOARD_NODES} limit)`
+      )
+      return 'too-large'
+    }
+
     const blobs: Uint8Array[] = (msg.blobs ?? []).map((b) =>
       b.bytes instanceof Uint8Array ? b.bytes : new Uint8Array(Object.values(b.bytes))
     )
 
-    return { nodes: msg.nodeChanges ?? [], meta, blobs }
+    return { nodes: nodeChanges, meta, blobs }
   } catch {
     return null
   }
 }
+
 
 const NON_VISUAL_TYPES = new Set([
   'DOCUMENT',
@@ -222,6 +277,37 @@ function detachOrphanedInstances(created: Map<string, string>, graph: SceneGraph
   }
 }
 
+function isFigmaComponentSet(
+  nc: KiwiNodeChange,
+  figmaId: string,
+  parentMap: Map<string, string>,
+  guidMap: Map<string, KiwiNodeChange>
+): boolean {
+  if (nc.type !== 'FRAME' && nc.type !== 'COMPONENT_SET') return false
+  if (isComponentSet(nc)) return true
+  for (const [childId, pid] of parentMap) {
+    if (pid === figmaId) {
+      const childType = guidMap.get(childId)?.type
+      if (childType === 'SYMBOL' || childType === 'COMPONENT') {
+        return true
+      }
+    }
+  }
+  return false
+}
+
+function getOrCreateInternalPage(graph: SceneGraph): string {
+  const existing = graph.getPages(true).find((p) => p.internalOnly)
+  if (existing) return existing.id
+  const page = graph.createNode('CANVAS', graph.rootId, {
+    name: 'Internal Only Canvas',
+    internalOnly: true,
+    width: 0,
+    height: 0
+  })
+  return page.id
+}
+
 export function importClipboardNodes(
   nodeChanges: KiwiNodeChange[],
   graph: SceneGraph,
@@ -231,68 +317,187 @@ export function importClipboardNodes(
   blobs: Uint8Array[] = []
 ): string[] {
   const { guidMap, parentMap } = buildClipboardMaps(nodeChanges)
-  const { internalCanvasIds, internalFigmaIds } = findInternalNodeIds(guidMap, parentMap)
-  const { topLevel, internalTopLevel } = classifyTopLevelNodes(
-    guidMap,
-    parentMap,
-    internalCanvasIds
-  )
+  for (const nc of guidMap.values()) {
+    applyStyleRefsToFields(guidMap, nc)
+  }
+  const assetRefs = buildAssetRefMap(guidMap)
+  setVariableColorResolver(buildVariableColorResolver(guidMap, assetRefs))
 
-  const created = new Map<string, string>()
-  const createdIds: string[] = []
+  try {
+    importCollections(guidMap, graph)
+    importVariableEntries(guidMap, parentMap, graph, assetRefs)
 
-  function createNode(figmaId: string, ourParentId: string) {
-    if (created.has(figmaId)) return
-    const nc = guidMap.get(figmaId)
-    if (!nc) return
+    const { internalCanvasIds, internalFigmaIds } = findInternalNodeIds(guidMap, parentMap)
+    const { topLevel, internalTopLevel } = classifyTopLevelNodes(
+      guidMap,
+      parentMap,
+      internalCanvasIds
+    )
 
-    const { nodeType, ...props } = nodeChangeToProps(nc, blobs)
-    if (nodeType === 'DOCUMENT' || nodeType === 'VARIABLE') return
-    if (shouldImportTextAsAutoSize(nc, guidMap.get(parentMap.get(figmaId) ?? ''))) {
-      props.textAutoResize = 'WIDTH_AND_HEIGHT'
-    }
+    const created = new Map<string, string>()
+    const createdIds: string[] = []
 
-    if (ourParentId === targetParentId) {
-      props.x = (props.x ?? 0) + offsetX
-      props.y = (props.y ?? 0) + offsetY
-    }
+    const effectiveTopLevel = topLevel.length > 0 ? topLevel : [...internalTopLevel]
+    const effectiveInternalTopLevel = topLevel.length > 0 ? internalTopLevel : []
 
-    const node = graph.createNode(nodeType, ourParentId, props)
+    function createNode(figmaId: string, ourParentId: string) {
+      if (created.has(figmaId)) return
+      const nc = guidMap.get(figmaId)
+      if (!nc) return
 
-    created.set(figmaId, node.id)
-    if (ourParentId === targetParentId && !internalFigmaIds.has(figmaId)) createdIds.push(node.id)
+      const { nodeType: rawNodeType, ...props } = nodeChangeToProps(nc, blobs)
+      let nodeType = rawNodeType
+      if (nodeType === 'DOCUMENT' || nodeType === 'VARIABLE' || nc.type === 'VARIABLE_SET') return
 
-    const children: string[] = []
-    for (const [childId, pid] of parentMap) {
-      if (pid === figmaId && !NON_VISUAL_TYPES.has(guidMap.get(childId)?.type ?? '')) {
-        children.push(childId)
+      if (nodeType === 'FRAME' && isFigmaComponentSet(nc, figmaId, parentMap, guidMap)) {
+        nodeType = 'COMPONENT_SET'
+      }
+
+      if (shouldImportTextAsAutoSize(nc, guidMap.get(parentMap.get(figmaId) ?? ''))) {
+        props.textAutoResize = 'WIDTH_AND_HEIGHT'
+      }
+
+      if (ourParentId === targetParentId) {
+        props.x = (props.x ?? 0) + offsetX
+        props.y = (props.y ?? 0) + offsetY
+      }
+
+      const node = graph.createNode(nodeType, ourParentId, props)
+
+      created.set(figmaId, node.id)
+      if (ourParentId === targetParentId && !internalFigmaIds.has(figmaId)) {
+        createdIds.push(node.id)
+      }
+
+      const children: string[] = []
+      for (const [childId, pid] of parentMap) {
+        if (pid === figmaId && !NON_VISUAL_TYPES.has(guidMap.get(childId)?.type ?? '')) {
+          children.push(childId)
+        }
+      }
+      sortChildren(children, nc, guidMap)
+      for (const childId of children) {
+        createNode(childId, node.id)
       }
     }
-    sortChildren(children, nc, guidMap)
-    for (const childId of children) {
-      createNode(childId, node.id)
+
+    // 1. Promote top-level instances referencing standalone internal symbols to COMPONENT
+    for (const id of effectiveTopLevel) {
+      const nc = guidMap.get(id)
+      if (nc?.type !== 'INSTANCE') continue
+
+      const symGuid = nc.symbolData?.symbolID
+      const symFigmaId = symGuid ? `${symGuid.sessionID}:${symGuid.localID}` : null
+      if (!symFigmaId || !guidMap.has(symFigmaId)) continue
+
+      const symNc = guidMap.get(symFigmaId)
+      if (!symNc || symNc.type !== 'SYMBOL') continue
+
+      const symParentId = parentMap.get(symFigmaId)
+      const symParentNc = symParentId ? guidMap.get(symParentId) : null
+      const isInsideComponentSet =
+        symParentId && symParentNc
+          ? isFigmaComponentSet(symParentNc, symParentId, parentMap, guidMap)
+          : false
+
+      const instanceNc = nc as InstanceNodeChange
+      const hasOverrides = (instanceNc.symbolData?.symbolOverrides?.length ?? 0) > 0
+
+      if (
+        !isInsideComponentSet &&
+        internalFigmaIds.has(symFigmaId) &&
+        !hasOverrides &&
+        !created.has(symFigmaId)
+      ) {
+        const { nodeType: _t, ...symProps } = nodeChangeToProps(symNc, blobs)
+        const instanceProps = nodeChangeToProps(nc, blobs)
+
+        symProps.x = (instanceProps.x ?? 0) + offsetX
+        symProps.y = (instanceProps.y ?? 0) + offsetY
+        if (
+          instanceProps.width !== undefined &&
+          Number.isFinite(instanceProps.width) &&
+          instanceProps.width > 0
+        ) {
+          symProps.width = instanceProps.width
+        }
+        if (
+          instanceProps.height !== undefined &&
+          Number.isFinite(instanceProps.height) &&
+          instanceProps.height > 0
+        ) {
+          symProps.height = instanceProps.height
+        }
+        if (instanceProps.rotation !== undefined) symProps.rotation = instanceProps.rotation
+        symProps.name = nc.name ?? symNc.name ?? 'Component'
+
+        if (shouldImportTextAsAutoSize(symNc, guidMap.get(parentMap.get(symFigmaId) ?? ''))) {
+          symProps.textAutoResize = 'WIDTH_AND_HEIGHT'
+        }
+
+        if (!symProps.figmaDerivedLayout && symProps.width && symProps.height) {
+          symProps.figmaDerivedLayout = {
+            x: symProps.x,
+            y: symProps.y,
+            width: symProps.width,
+            height: symProps.height
+          }
+        }
+
+        const compNode = graph.createNode('COMPONENT', targetParentId, {
+          ...symProps,
+          componentId: ''
+        })
+        created.set(symFigmaId, compNode.id)
+        created.set(id, compNode.id)
+        createdIds.push(compNode.id)
+
+        const children: string[] = []
+        for (const [childId, pid] of parentMap) {
+          if (pid === symFigmaId && !NON_VISUAL_TYPES.has(guidMap.get(childId)?.type ?? '')) {
+            children.push(childId)
+          }
+        }
+        sortChildren(children, symNc, guidMap)
+        for (const childId of children) {
+          createNode(childId, compNode.id)
+        }
+      }
     }
+
+    // 2. Create remaining internal nodes on an internalOnly page (NOT deleted!)
+    let internalPageId: string | null = null
+    for (const id of effectiveInternalTopLevel) {
+      if (created.has(id)) continue
+      if (!internalPageId) {
+        internalPageId = getOrCreateInternalPage(graph)
+      }
+      createNode(id, internalPageId)
+    }
+
+    // 3. Create top-level nodes on targetParentId
+    for (const id of effectiveTopLevel) {
+      createNode(id, targetParentId)
+    }
+
+    remapComponentIds(created, graph)
+    importVariableBindings(guidMap, created, graph)
+
+    const pasteRootIds = [...createdIds, ...(internalPageId ? [internalPageId] : [])]
+    populateAndApplyOverrides(
+      graph,
+      guidMap as Map<string, InstanceNodeChange>,
+      created,
+      blobs,
+      pasteRootIds
+    )
+
+    detachOrphanedInstances(created, graph)
+
+    return createdIds
+  } finally {
+    setVariableColorResolver(null)
   }
-
-  for (const id of internalTopLevel) {
-    createNode(id, targetParentId)
-  }
-  for (const id of topLevel) {
-    createNode(id, targetParentId)
-  }
-
-  remapComponentIds(created, graph)
-
-  populateAndApplyOverrides(graph, guidMap as Map<string, InstanceNodeChange>, created, blobs)
-
-  for (const figmaId of internalTopLevel) {
-    const ourId = created.get(figmaId)
-    if (ourId) graph.deleteNode(ourId)
-  }
-
-  detachOrphanedInstances(created, graph)
-
-  return createdIds
 }
 
 export async function buildFigmaClipboardHTML(
@@ -301,7 +506,54 @@ export async function buildFigmaClipboardHTML(
 ): Promise<string | null> {
   const compiled = getCompiledSchema()
   const schemaDeflated = deflateSync(getSchemaBytes())
-  const fontDigestMap = await buildFontDigestMap(graph)
+
+  const exportedNodeIds = new Set(nodes.map((n) => n.id))
+  const referencedComponentIds = new Set<string>()
+  const visitedForComponents = new Set<string>()
+
+  const findReferencedComponents = (node: SceneNode) => {
+    if (visitedForComponents.has(node.id)) return
+    visitedForComponents.add(node.id)
+
+    if (node.type === 'INSTANCE' && node.componentId && !exportedNodeIds.has(node.componentId)) {
+      if (!referencedComponentIds.has(node.componentId)) {
+        referencedComponentIds.add(node.componentId)
+        const comp = graph.getNode(node.componentId)
+        if (comp) findReferencedComponents(comp)
+      }
+    }
+    for (const childId of node.childIds) {
+      const child = graph.getNode(childId)
+      if (child) findReferencedComponents(child)
+    }
+  }
+  for (const node of nodes) findReferencedComponents(node)
+
+  const referencedComponents: SceneNode[] = []
+  for (const compId of referencedComponentIds) {
+    const comp = graph.getNode(compId)
+    if (comp) referencedComponents.push(comp)
+  }
+
+  const exportedTextNodes: SceneNode[] = []
+  const visitedTextNodes = new Set<string>()
+  const collectTextNodes = (node: SceneNode) => {
+    if (visitedTextNodes.has(node.id)) return
+    visitedTextNodes.add(node.id)
+    if (node.type === 'TEXT') exportedTextNodes.push(node)
+    if (node.type === 'INSTANCE') return
+    for (const childId of node.childIds) {
+      const child = graph.getNode(childId)
+      if (child) collectTextNodes(child)
+    }
+  }
+  for (const node of nodes) collectTextNodes(node)
+  for (const comp of referencedComponents) collectTextNodes(comp)
+
+  const fontDigestMap = await buildFontDigestMap(graph, exportedTextNodes)
+
+  const allExportedNodes = [...nodes, ...referencedComponents]
+  const { variableCollections } = collectReferencedVariables(allExportedNodes, graph)
 
   const docGuid = { sessionID: 0, localID: 0 }
   const canvasGuid = { sessionID: 0, localID: 1 }
@@ -312,18 +564,34 @@ export async function buildFigmaClipboardHTML(
     makeCanvasNodeChange(canvasGuid, docGuid, '!', 'Page 1')
   ]
 
-  const exportedTextNodes: SceneNode[] = []
-  const collectTextNodes = (node: SceneNode) => {
-    if (node.type === 'TEXT') exportedTextNodes.push(node)
-    for (const childId of node.childIds) {
-      const child = graph.getNode(childId)
-      if (child) collectTextNodes(child)
-    }
+  const varIdToGuid = new Map<string, GUID>()
+  const modeIdToGuid = new Map<string, GUID>()
+  const assignedGuidValues = new Set<string>()
+  const nodeSourceGuidValues = new Set<string>()
+  const nodeIdToGuid = new Map<string, GUID>()
+
+  if (variableCollections.length > 0) {
+    assignVariableGuids(
+      graph,
+      localIdCounter,
+      varIdToGuid,
+      modeIdToGuid,
+      assignedGuidValues,
+      nodeSourceGuidValues,
+      variableCollections
+    )
+    appendVariableNodeChanges(
+      graph,
+      nodeChanges,
+      canvasGuid,
+      varIdToGuid,
+      modeIdToGuid,
+      variableCollections
+    )
   }
 
   const blobs: Uint8Array[] = []
   for (let i = 0; i < nodes.length; i++) {
-    collectTextNodes(nodes[i])
     nodeChanges.push(
       ...sceneNodeToKiwi(
         nodes[i],
@@ -332,28 +600,63 @@ export async function buildFigmaClipboardHTML(
         localIdCounter,
         graph,
         blobs,
+        nodeIdToGuid,
+        fontDigestMap,
+        varIdToGuid,
         undefined,
-        fontDigestMap
+        undefined,
+        assignedGuidValues,
+        undefined,
+        modeIdToGuid
       )
     )
   }
 
+  if (referencedComponents.length > 0) {
+    const internalCanvasGuid = { sessionID: 0, localID: 2 }
+    const internalCanvasNc = makeCanvasNodeChange(internalCanvasGuid, docGuid, '"', 'Internal')
+    internalCanvasNc.internalOnly = true
+    internalCanvasNc.pageType = 'DESIGN'
+    nodeChanges.push(internalCanvasNc)
+
+    let compIdx = 0
+    for (const comp of referencedComponents) {
+      nodeChanges.push(
+        ...sceneNodeToKiwi(
+          comp,
+          internalCanvasGuid,
+          compIdx++,
+          localIdCounter,
+          graph,
+          blobs,
+          nodeIdToGuid,
+          fontDigestMap,
+          varIdToGuid,
+          undefined,
+          undefined,
+          assignedGuidValues,
+          undefined,
+          modeIdToGuid
+        )
+      )
+    }
+  }
+
   const textNodeQueue = [...exportedTextNodes]
-  await Promise.all(
-    nodeChanges.map(async (change) => {
-      if (change.type !== 'TEXT') return
-      const source = textNodeQueue.shift()
-      if (!source) return
-      change.textAutoResize = 'NONE'
-      change.textUserLayoutVersion = 5
-      change.lineHeight = {
-        value: source.lineHeight ?? 100,
-        units: source.lineHeight ? 'PIXELS' : 'PERCENT'
-      }
-      const shaped = await shapeTextForClipboard(source).catch(() => null)
-      change.derivedTextData = await buildDerivedTextDataV4(source, fontDigestMap, shaped, blobs)
-    })
-  )
+  for (const change of nodeChanges) {
+    if (change.type !== 'TEXT') continue
+    const source = textNodeQueue.shift()
+    if (!source) continue
+    change.textAutoResize = 'NONE'
+    change.textUserLayoutVersion = 5
+    change.lineHeight = {
+      value: source.lineHeight ?? 100,
+      units: source.lineHeight ? 'PIXELS' : 'PERCENT'
+    }
+    const shaped =
+      exportedTextNodes.length <= 10 ? await shapeTextForClipboard(source).catch(() => null) : null
+    change.derivedTextData = await buildDerivedTextDataV4(source, fontDigestMap, shaped, blobs)
+  }
 
   const msg: Record<string, unknown> = {
     type: 'NODE_CHANGES',
@@ -388,6 +691,7 @@ export async function buildFigmaClipboardHTML(
 
 export {
   buildOpenWeaveClipboardHTML,
+  collectReferencedVariables,
   parseOpenWeaveClipboard,
   type OpenWeaveClipboardData,
   type TextPictureBuilder

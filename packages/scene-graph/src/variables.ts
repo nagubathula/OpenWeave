@@ -119,7 +119,10 @@ export function getNodeVariableModeId(
   collectionId: string
 ): string {
   let node = graph.nodes.get(nodeId)
+  const visited = new Set<string>()
   while (node) {
+    if (visited.has(node.id)) break
+    visited.add(node.id)
     const modeId = node.variableModes[collectionId]
     if (modeId) return modeId
     node = node.parentId ? graph.nodes.get(node.parentId) : undefined
@@ -192,7 +195,7 @@ export function resolveVariable(
   modeId?: string,
   visited?: Set<string>
 ): VariableValue | undefined {
-  if (visited?.has(variableId)) return undefined
+  if (visited && (visited.has(variableId) || visited.size > 10)) return undefined
   const variable = graph.variables.get(variableId)
   if (!variable) return undefined
   const collection = graph.variableCollections.get(variable.collectionId)
@@ -422,7 +425,10 @@ function markBoundVariablesOverrideOnInstance(graph: SceneGraph, nodeId: string)
   // Otherwise walk up to find an INSTANCE parent and set the child-key override
   // (syncChildren checks `${instChild.id}:${key}` format)
   let current = node
+  const visited = new Set<string>()
   while (current.parentId) {
+    if (visited.has(current.parentId)) break
+    visited.add(current.parentId)
     const parent = graph.nodes.get(current.parentId)
     if (!parent) break
     if (parent.type === 'INSTANCE') {

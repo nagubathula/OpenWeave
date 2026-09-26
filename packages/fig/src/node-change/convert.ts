@@ -692,7 +692,7 @@ export function nodeChangeToProps(
       extractShaderConfig(nc) ?? (nodeType === 'SHADER' ? { ...DEFAULT_SHADER_CONFIG } : undefined),
     motionTracks: extractMotionTracks(nc),
     clipsContent: nc.frameMaskDisabled === false && nc.resizeToFit !== true,
-    componentId: extractSymbolId(nc),
+    componentId: nodeType === 'INSTANCE' ? extractSymbolId(nc) : '',
     componentPropertyDefinitions: extractComponentPropertyDefs(nc),
     componentPropertyReferences: extractComponentPropertyRefs(nc),
     componentPropertyAssignments: extractComponentPropertyAssignments(nc),
@@ -925,7 +925,15 @@ function extractComponentMetadata(nc: NodeChange): ComponentMetadataProps {
   }
 }
 
-function isComponentSet(nc: NodeChange): boolean {
+export function isComponentSet(nc: NodeChange): boolean {
+  if (nc.isStateGroup === true) return true
+  if (
+    Array.isArray(nc.stateGroupPropertyValueOrders) &&
+    nc.stateGroupPropertyValueOrders.length > 0
+  ) {
+    return true
+  }
+  if (Array.isArray(nc.variantPropSpecs) && nc.variantPropSpecs.length > 0) return true
   const defs = nc.componentPropDefs as Array<{ type?: string }> | undefined
   if (!defs?.length) return false
   return defs.some((d) => d.type === 'VARIANT')

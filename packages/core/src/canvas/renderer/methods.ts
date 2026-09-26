@@ -188,9 +188,10 @@ const rendererMethods: ThisType<SkiaRenderer> = {
     nodeId: string,
     overlays: RenderOverlays,
     parentAbsX?: number,
-    parentAbsY?: number
+    parentAbsY?: number,
+    visited?: Set<string>
   ): void {
-    SceneRender.renderNode(this, canvas, graph, nodeId, overlays, parentAbsX, parentAbsY)
+    SceneRender.renderNode(this, canvas, graph, nodeId, overlays, parentAbsX, parentAbsY, visited)
   },
 
   renderSection(canvas: Canvas, node: SceneNode, graph: SceneGraph): void {

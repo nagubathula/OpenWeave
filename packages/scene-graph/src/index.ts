@@ -262,7 +262,10 @@ export class SceneGraph {
 
   isDescendant(childId: string, ancestorId: string): boolean {
     let current = this.nodes.get(childId)
+    const visited = new Set<string>()
     while (current) {
+      if (visited.has(current.id)) return false
+      visited.add(current.id)
       if (current.id === ancestorId) return true
       current = current.parentId ? this.nodes.get(current.parentId) : undefined
     }
@@ -523,7 +526,9 @@ export class SceneGraph {
     this.emitter.emit('node:reordered', childId, parentId, index)
   }
 
-  deleteNode(id: string): void {
+  deleteNode(id: string, visited: Set<string> = new Set()): void {
+    if (visited.has(id)) return
+    visited.add(id)
     const node = this.nodes.get(id)
     if (!node || id === this.rootId) return
 
@@ -534,14 +539,15 @@ export class SceneGraph {
       }
     }
 
-    for (const childId of Array.from(node.childIds)) {
-      this.deleteNode(childId)
-    }
-
     if (node.type === 'INSTANCE' && node.componentId) {
       this.instanceIndex.get(node.componentId)?.delete(id)
     }
     this.nodes.delete(id)
+
+    for (const childId of Array.from(node.childIds)) {
+      this.deleteNode(childId, visited)
+    }
+
     this.emitter.emit('node:deleted', id)
   }
 

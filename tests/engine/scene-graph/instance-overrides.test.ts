@@ -263,4 +263,61 @@ describe('instance swap overrides', () => {
     expect(iconChildren.length).toBe(1)
     expect(iconChildren[0].name).toBe('VectorB')
   })
+
+  test('syncInstances does not duplicate nested instances on repeated sync', () => {
+    const graph = importNodeChanges(swapOverrideFixture())
+    const page = expectDefined(
+      graph.getPages().find((p) => p.name === 'Page1'),
+      'Page1'
+    )
+    const button = graph.getChildren(page.id)[0]
+    expect(graph.getChildren(button.id).length).toBe(1)
+
+    const internalPage = expectDefined(
+      graph.getPages(true).find((p) => p.name === 'InternalPage'),
+      'InternalPage'
+    )
+    const buttonComp = expectDefined(
+      graph.getChildren(internalPage.id).find((n) => n.name === 'Button'),
+      'Button component'
+    )
+
+    // Run syncInstances multiple times
+    graph.syncInstances(buttonComp.id)
+    graph.syncInstances(buttonComp.id)
+    graph.syncInstances(buttonComp.id)
+
+    expect(graph.getChildren(button.id).length).toBe(1)
+  })
+
+  test('syncInstances does not duplicate unprovenanced children', () => {
+    const graph = importNodeChanges(swapOverrideFixture())
+    const page = expectDefined(
+      graph.getPages().find((p) => p.name === 'Page1'),
+      'Page1'
+    )
+
+    const comp = graph.createNode('COMPONENT', page.id, { name: 'ParentComp' })
+    graph.createNode('FRAME', comp.id, { name: 'Header' })
+    graph.createNode('TEXT', comp.id, { name: 'Title', text: 'Hello' })
+    graph.createNode('RECTANGLE', comp.id, { name: 'Background' })
+
+    const inst = graph.createNode('INSTANCE', page.id, {
+      name: 'ParentInst',
+      componentId: comp.id
+    })
+    // Simulate imported children without componentId
+    graph.createNode('FRAME', inst.id, { name: 'Header' })
+    graph.createNode('TEXT', inst.id, { name: 'Title', text: 'Hello' })
+    graph.createNode('RECTANGLE', inst.id, { name: 'Background' })
+
+    expect(graph.getChildren(inst.id).length).toBe(3)
+
+    // Multiple sync calls should match existing children and never duplicate
+    graph.syncInstances(comp.id)
+    graph.syncInstances(comp.id)
+    graph.syncInstances(comp.id)
+
+    expect(graph.getChildren(inst.id).length).toBe(3)
+  })
 })

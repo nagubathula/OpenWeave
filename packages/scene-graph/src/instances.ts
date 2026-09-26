@@ -98,24 +98,108 @@ function copyProp(
   }
 }
 
+function hasAncestorOrCycle(graph: SceneGraph, nodeId: string, targetId: string): boolean {
+  let curr = graph.nodes.get(nodeId)
+  const visited = new Set<string>()
+  while (curr?.parentId) {
+    if (visited.has(curr.parentId)) return true
+    visited.add(curr.parentId)
+    if (curr.parentId === targetId) return true
+    curr = graph.nodes.get(curr.parentId)
+  }
+  return false
+}
+
+function wouldCreateCycleInClone(
+  graph: SceneGraph,
+  destParentId: string,
+  componentId: string
+): boolean {
+  let curr = graph.nodes.get(destParentId)
+  const visited = new Set<string>()
+  while (curr) {
+    if (visited.has(curr.id)) return true
+    visited.add(curr.id)
+    if (curr.id === componentId) return true
+    if (curr.type === 'INSTANCE' && curr.componentId === componentId) return true
+    if (!curr.parentId) break
+    curr = graph.nodes.get(curr.parentId)
+  }
+  return false
+}
+
 function cloneChildrenWithMapping(
   graph: SceneGraph,
   sourceParentId: string,
   destParentId: string,
-  mode: NodeCloneMode = 'deep'
+  mode: NodeCloneMode = 'deep',
+  depth = 0,
+  visited = new Set<string>()
 ): void {
+  if (
+    depth > 12 ||
+    visited.has(sourceParentId) ||
+    sourceParentId === destParentId ||
+    hasAncestorOrCycle(graph, destParentId, sourceParentId)
+  ) {
+    return
+  }
+  const nextVisited = new Set(visited)
+  nextVisited.add(sourceParentId)
   const sourceParent = graph.nodes.get(sourceParentId)
   if (!sourceParent) return
 
   for (const childId of sourceParent.childIds) {
+    if (
+      nextVisited.has(childId) ||
+      childId === destParentId ||
+      hasAncestorOrCycle(graph, destParentId, childId)
+    ) {
+      continue
+    }
     const src = graph.nodes.get(childId)
     if (!src) continue
 
-    const clone = graph.createNode(src.type, destParentId, cloneNodeProps(src, childId, mode))
+    if (
+      src.type === 'INSTANCE' &&
+      src.componentId &&
+      wouldCreateCycleInClone(graph, destParentId, src.componentId)
+    ) {
+      continue
+    }
+
+    const cloneProps =
+      src.type === 'INSTANCE'
+        ? { ...cloneNodeProps(src, src.componentId, mode) }
+        : cloneNodeProps(src, childId, mode)
+
+    const clone = graph.createNode(src.type, destParentId, cloneProps)
+    if (src.type === 'INSTANCE') {
+      const destParent = graph.nodes.get(destParentId)
+      if (destParent) {
+        destParent.overrides[`${clone.id}:sourceComponentId`] = childId
+      }
+    }
 
     if (src.childIds.length > 0) {
-      cloneChildrenWithMapping(graph, childId, clone.id, mode)
+      cloneChildrenWithMapping(graph, childId, clone.id, mode, depth + 1, nextVisited)
     }
+  }
+}
+
+function bindInstanceChildProvenance(
+  instChildMap: Map<string, SceneNode>,
+  usedInstChildIds: Set<string>,
+  overrides: Record<string, unknown>,
+  compChildId: string,
+  child: SceneNode
+): void {
+  instChildMap.set(compChildId, child)
+  usedInstChildIds.add(child.id)
+  if (child.type === 'INSTANCE') {
+    overrides[`${child.id}:sourceComponentId`] = compChildId
+  } else {
+    child.componentId = compChildId
   }
 }
 
@@ -123,34 +207,114 @@ function syncChildren(
   graph: SceneGraph,
   compParentId: string,
   instParentId: string,
-  overrides: Record<string, unknown>
+  overrides: Record<string, unknown>,
+  depth = 0,
+  visited = new Set<string>()
 ): void {
+  if (
+    depth > 12 ||
+    visited.has(instParentId) ||
+    compParentId === instParentId ||
+    hasAncestorOrCycle(graph, instParentId, compParentId)
+  ) {
+    return
+  }
+  visited.add(instParentId)
+
   const compParent = graph.nodes.get(compParentId)
   const instParent = graph.nodes.get(instParentId)
   if (!compParent || !instParent) return
 
   const instChildMap = new Map<string, SceneNode>()
-  for (const childId of instParent.childIds) {
-    const child = graph.nodes.get(childId)
-    if (!child) continue
-    const sourceComponentId = overrides[`${child.id}:sourceComponentId`]
-    const mappedComponentId =
-      typeof sourceComponentId === 'string' ? sourceComponentId : child.componentId
-    if (mappedComponentId) instChildMap.set(mappedComponentId, child)
+  const usedInstChildIds = new Set<string>()
+
+  // 1. Match direct provenance (child.componentId === compChildId or sourceComponentId === compChildId)
+  for (const compChildId of compParent.childIds) {
+    for (const childId of instParent.childIds) {
+      if (usedInstChildIds.has(childId)) continue
+      const child = graph.nodes.get(childId)
+      if (!child) continue
+      const sourceComponentId = overrides[`${child.id}:sourceComponentId`]
+      if (
+        sourceComponentId === compChildId ||
+        (child.type !== 'INSTANCE' && child.componentId === compChildId)
+      ) {
+        instChildMap.set(compChildId, child)
+        usedInstChildIds.add(childId)
+        break
+      }
+    }
   }
 
+  // 2. Match stable Figma overrideKey
+  for (const compChildId of compParent.childIds) {
+    if (instChildMap.has(compChildId)) continue
+    const compChild = graph.nodes.get(compChildId)
+    if (!compChild?.overrideKey) continue
+
+    for (const childId of instParent.childIds) {
+      if (usedInstChildIds.has(childId)) continue
+      const child = graph.nodes.get(childId)
+      if (child?.overrideKey && child.overrideKey === compChild.overrideKey) {
+        bindInstanceChildProvenance(instChildMap, usedInstChildIds, overrides, compChildId, child)
+        break
+      }
+    }
+  }
+
+  // 3. Positional / structural matching for remaining unmapped children
+  for (let i = 0; i < compParent.childIds.length; i++) {
+    const compChildId = compParent.childIds[i]
+    if (instChildMap.has(compChildId)) continue
+    const compChild = graph.nodes.get(compChildId)
+    if (!compChild) continue
+
+    if (i < instParent.childIds.length) {
+      const candidate = graph.nodes.get(instParent.childIds[i])
+      if (candidate && !usedInstChildIds.has(candidate.id) && candidate.type === compChild.type) {
+        bindInstanceChildProvenance(
+          instChildMap,
+          usedInstChildIds,
+          overrides,
+          compChildId,
+          candidate
+        )
+        continue
+      }
+    }
+
+    for (const childId of instParent.childIds) {
+      if (usedInstChildIds.has(childId)) continue
+      const child = graph.nodes.get(childId)
+      if (child && child.type === compChild.type && child.name === compChild.name) {
+        bindInstanceChildProvenance(instChildMap, usedInstChildIds, overrides, compChildId, child)
+        break
+      }
+    }
+  }
+
+  // 4. Clone truly new children from compParent
   for (const compChildId of compParent.childIds) {
     if (!instChildMap.has(compChildId)) {
       const src = graph.nodes.get(compChildId)
       if (!src) continue
-      const clone = graph.createNode(src.type, instParentId, cloneNodeProps(src, compChildId))
+      const cloneProps =
+        src.type === 'INSTANCE'
+          ? { ...cloneNodeProps(src, src.componentId) }
+          : cloneNodeProps(src, compChildId)
+      const clone = graph.createNode(src.type, instParentId, cloneProps)
+      if (src.type === 'INSTANCE') {
+        overrides[`${clone.id}:sourceComponentId`] = compChildId
+      }
       if (src.childIds.length > 0) {
-        cloneChildrenWithMapping(graph, compChildId, clone.id)
+        cloneChildrenWithMapping(graph, compChildId, clone.id, 'deep', depth + 1, visited)
       }
       instChildMap.set(compChildId, clone)
+      usedInstChildIds.add(clone.id)
     }
   }
 
+  // 5. Sync props and recurse into children
   for (const compChildId of compParent.childIds) {
     const compChild = graph.nodes.get(compChildId)
     const instChild = instChildMap.get(compChildId)
@@ -169,10 +333,11 @@ function syncChildren(
     }
 
     if (compChild.childIds.length > 0 && !(`${instChild.id}:componentId` in overrides)) {
-      syncChildren(graph, compChildId, instChild.id, overrides)
+      syncChildren(graph, compChildId, instChild.id, overrides, depth + 1, visited)
     }
   }
 
+  // 6. Sort instance children to match component child order
   const compChildOrder = compParent.childIds
   instParent.childIds.sort((a, b) => {
     const nodeA = graph.nodes.get(a)

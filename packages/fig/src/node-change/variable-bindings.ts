@@ -94,6 +94,13 @@ export function resolvedNumericBindingUpdate(
   field: string,
   value: number
 ): Partial<SceneNode> | undefined {
+  if (!Number.isFinite(value)) return undefined
   if (field === 'opacity') return { opacity: Math.max(0, Math.min(1, value / 100)) }
+  if (
+    (field === 'width' || field === 'height' || field === 'minWidth' || field === 'minHeight') &&
+    value <= 0
+  ) {
+    return undefined
+  }
   return NUMERIC_BINDING_FIELDS.has(field) ? { [field]: value } : undefined
 }

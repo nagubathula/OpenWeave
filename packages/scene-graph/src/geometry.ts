@@ -351,8 +351,11 @@ function collectDescendantVisualBounds(
   nodeId: string,
   getNode: (id: string) => VisualBoundsNode | undefined,
   getAbsolutePosition: (id: string) => Vector,
-  clip: VisualBounds | null = null
+  clip: VisualBounds | null = null,
+  visited: Set<string> = new Set()
 ): VisualBounds | null {
+  if (visited.has(nodeId)) return null
+  visited.add(nodeId)
   const node = getNode(nodeId)
   if (!node?.visible) return null
 
@@ -377,7 +380,7 @@ function collectDescendantVisualBounds(
   for (const childId of node.childIds ?? []) {
     bounds = unionVisualBounds(
       bounds,
-      collectDescendantVisualBounds(childId, getNode, getAbsolutePosition, childClip)
+      collectDescendantVisualBounds(childId, getNode, getAbsolutePosition, childClip, visited)
     )
   }
 

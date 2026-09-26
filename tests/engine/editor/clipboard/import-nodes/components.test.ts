@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'bun:test'
 
-import { importClipboardNodes } from '@openweave/core'
+import { computeAllLayouts, importClipboardNodes } from '@openweave/core'
 import type { NodeChange } from '@openweave/core'
 
 import { getNodeOrThrow } from '#tests/helpers/assert'
@@ -126,7 +126,7 @@ describe('importClipboardNodes: components', () => {
     expect(instanceChildren[0].type).toBe('VECTOR')
   })
 
-  it('internal canvas components populate instances but are not pasted', () => {
+  it('promotes top-level instance backed by internal canvas component to COMPONENT', () => {
     const { graph, pageId } = createClipboardGraph()
 
     const nodeChanges = [
@@ -176,21 +176,150 @@ describe('importClipboardNodes: components', () => {
     const created = importClipboardNodes(nodeChanges, graph, pageId)
     expect(created).toHaveLength(1)
 
-    const instance = getNodeOrThrow(graph, created[0])
-    expect(instance.type).toBe('INSTANCE')
-    expect(instance.name).toBe('Icon')
+    const component = getNodeOrThrow(graph, created[0])
+    expect(component.type).toBe('COMPONENT')
+    expect(component.name).toBe('Icon')
+    expect(component.x).toBe(50)
+    expect(component.y).toBe(50)
 
-    const children = graph.getChildren(instance.id)
+    const children = graph.getChildren(component.id)
     expect(children).toHaveLength(1)
     expect(children[0].name).toBe('Path')
     expect(children[0].type).toBe('VECTOR')
 
-    // Component should NOT exist as a visible node
-    for (const node of graph.getAllNodes()) {
-      if (node.type === 'COMPONENT' && node.name === 'Icon') {
-        throw new Error('Internal component should not be pasted as visible node')
+    // Component exists on the target page
+    expect(component.parentId).toBe(pageId)
+  })
+
+  it('preserves internal canvas component when referenced by nested instance inside a frame', () => {
+    const { graph, pageId } = createClipboardGraph()
+
+    const nodeChanges = [
+      { guid: { sessionID: 0, localID: 0 }, type: 'DOCUMENT', name: 'Doc' },
+      {
+        guid: { sessionID: 0, localID: 1 },
+        parentIndex: { guid: { sessionID: 0, localID: 0 }, position: '!' },
+        type: 'CANVAS',
+        name: 'Page 1'
+      },
+      {
+        guid: { sessionID: 99, localID: 2 },
+        parentIndex: { guid: { sessionID: 0, localID: 0 }, position: '"' },
+        type: 'CANVAS',
+        name: 'Internal Only Canvas',
+        internalOnly: true
+      },
+      {
+        guid: { sessionID: 1, localID: 10 },
+        parentIndex: { guid: { sessionID: 99, localID: 2 }, position: '!' },
+        type: 'SYMBOL',
+        name: 'Button',
+        size: { x: 100, y: 40 },
+        transform: { m00: 1, m01: 0, m02: 0, m10: 0, m11: 1, m12: 0 }
+      },
+      {
+        guid: { sessionID: 1, localID: 11 },
+        parentIndex: { guid: { sessionID: 1, localID: 10 }, position: '!' },
+        type: 'TEXT',
+        name: 'Label',
+        size: { x: 60, y: 20 },
+        transform: { m00: 1, m01: 0, m02: 0, m10: 0, m11: 1, m12: 0 },
+        textData: { characters: 'Click' }
+      },
+      // Top-level frame containing the instance
+      {
+        guid: { sessionID: 2, localID: 20 },
+        parentIndex: { guid: { sessionID: 0, localID: 1 }, position: '!' },
+        type: 'FRAME',
+        name: 'Card',
+        size: { x: 300, y: 200 },
+        transform: { m00: 1, m01: 0, m02: 0, m10: 0, m11: 1, m12: 0 }
+      },
+      {
+        guid: { sessionID: 2, localID: 21 },
+        parentIndex: { guid: { sessionID: 2, localID: 20 }, position: '!' },
+        type: 'INSTANCE',
+        name: 'Button',
+        size: { x: 100, y: 40 },
+        transform: { m00: 1, m01: 0, m02: 20, m10: 0, m11: 1, m12: 20 },
+        symbolData: { symbolID: { sessionID: 1, localID: 10 } }
       }
-    }
+    ] as NodeChange[]
+
+    const created = importClipboardNodes(nodeChanges, graph, pageId)
+    expect(created).toHaveLength(1)
+
+    const card = getNodeOrThrow(graph, created[0])
+    expect(card.type).toBe('FRAME')
+    expect(card.name).toBe('Card')
+
+    const cardChildren = graph.getChildren(card.id)
+    expect(cardChildren).toHaveLength(1)
+    const instance = cardChildren[0]
+    expect(instance.type).toBe('INSTANCE')
+
+    // Master component exists in graph on the internal canvas and is referenced by instance
+    expect(instance.componentId).toBeTruthy()
+    const masterComp = getNodeOrThrow(graph, instance.componentId ?? '')
+    expect(masterComp.type).toBe('COMPONENT')
+    expect(masterComp.name).toBe('Button')
+    expect(masterComp.parentId).not.toBe(pageId)
+
+    const internalPage = graph.getNode(masterComp.parentId ?? '')
+    expect(internalPage?.internalOnly).toBe(true)
+  })
+
+  it('imports COMPONENT_SET with variant SYMBOLs from FRAME with isStateGroup', () => {
+    const { graph, pageId } = createClipboardGraph()
+
+    const nodeChanges = [
+      { guid: { sessionID: 0, localID: 0 }, type: 'DOCUMENT', name: 'Doc' },
+      {
+        guid: { sessionID: 0, localID: 1 },
+        parentIndex: { guid: { sessionID: 0, localID: 0 }, position: '!' },
+        type: 'CANVAS',
+        name: 'Page 1'
+      },
+      {
+        guid: { sessionID: 1, localID: 10 },
+        parentIndex: { guid: { sessionID: 0, localID: 1 }, position: '!' },
+        type: 'FRAME',
+        name: 'Button Set',
+        size: { x: 200, y: 100 },
+        transform: { m00: 1, m01: 0, m02: 0, m10: 0, m11: 1, m12: 0 },
+        isStateGroup: true
+      },
+      {
+        guid: { sessionID: 1, localID: 11 },
+        parentIndex: { guid: { sessionID: 1, localID: 10 }, position: '!' },
+        type: 'SYMBOL',
+        name: 'Size=Small',
+        size: { x: 80, y: 32 },
+        transform: { m00: 1, m01: 0, m02: 10, m10: 0, m11: 1, m12: 10 }
+      },
+      {
+        guid: { sessionID: 1, localID: 12 },
+        parentIndex: { guid: { sessionID: 1, localID: 10 }, position: '"' },
+        type: 'SYMBOL',
+        name: 'Size=Large',
+        size: { x: 100, y: 40 },
+        transform: { m00: 1, m01: 0, m02: 10, m10: 0, m11: 1, m12: 50 }
+      }
+    ] as NodeChange[]
+
+    const created = importClipboardNodes(nodeChanges, graph, pageId)
+    expect(created).toHaveLength(1)
+
+    const compSet = getNodeOrThrow(graph, created[0])
+    expect(compSet.type).toBe('COMPONENT_SET')
+    expect(compSet.name).toBe('Button Set')
+
+    const variants = graph.getChildren(compSet.id)
+    expect(variants).toHaveLength(2)
+    expect(variants[0].type).toBe('COMPONENT')
+    expect(variants[0].name).toBe('Size=Small')
+    expect(variants[1].type).toBe('COMPONENT')
+    expect(variants[1].name).toBe('Size=Large')
   })
 
   it('detaches orphaned instances to FRAME when component is missing', () => {
@@ -311,5 +440,169 @@ describe('importClipboardNodes: components', () => {
     const children = graph.getChildren(instance.id)
     expect(children).toHaveLength(1)
     expect(children[0].text).toBe('25')
+  })
+
+  it('ensures promoted COMPONENT has empty componentId', () => {
+    const { graph, pageId } = createClipboardGraph()
+
+    const nodeChanges = [
+      { guid: { sessionID: 0, localID: 0 }, type: 'DOCUMENT', name: 'Doc' },
+      {
+        guid: { sessionID: 0, localID: 1 },
+        parentIndex: { guid: { sessionID: 0, localID: 0 }, position: '!' },
+        type: 'CANVAS',
+        name: 'Page'
+      },
+      {
+        guid: { sessionID: 99, localID: 2 },
+        parentIndex: { guid: { sessionID: 0, localID: 0 }, position: '"' },
+        type: 'CANVAS',
+        name: 'Internal Only Canvas',
+        internalOnly: true
+      },
+      {
+        guid: { sessionID: 1, localID: 10 },
+        parentIndex: { guid: { sessionID: 99, localID: 2 }, position: '!' },
+        type: 'SYMBOL',
+        name: 'Button',
+        size: { x: 100, y: 40 },
+        transform: { m00: 1, m01: 0, m02: 0, m10: 0, m11: 1, m12: 0 }
+      },
+      {
+        guid: { sessionID: 2, localID: 20 },
+        parentIndex: { guid: { sessionID: 0, localID: 1 }, position: '!' },
+        type: 'INSTANCE',
+        name: 'Button',
+        size: { x: 100, y: 40 },
+        transform: { m00: 1, m01: 0, m02: 0, m10: 0, m11: 1, m12: 0 },
+        symbolData: {
+          symbolID: { sessionID: 1, localID: 10 }
+        }
+      }
+    ] as NodeChange[]
+
+    const created = importClipboardNodes(nodeChanges, graph, pageId)
+    expect(created).toHaveLength(1)
+
+    const component = getNodeOrThrow(graph, created[0])
+    expect(component.type).toBe('COMPONENT')
+    expect(component.componentId).toBe('')
+  })
+
+  it('prevents recursive component cycle from causing infinite loop', () => {
+    const { graph, pageId } = createClipboardGraph()
+
+    // Component A contains an instance of Component A (self-recursive)
+    const nodeChanges = [
+      { guid: { sessionID: 0, localID: 0 }, type: 'DOCUMENT', name: 'Doc' },
+      {
+        guid: { sessionID: 0, localID: 1 },
+        parentIndex: { guid: { sessionID: 0, localID: 0 }, position: '!' },
+        type: 'CANVAS',
+        name: 'Page'
+      },
+      {
+        guid: { sessionID: 1, localID: 10 },
+        parentIndex: { guid: { sessionID: 0, localID: 1 }, position: '!' },
+        type: 'SYMBOL',
+        name: 'RecursiveComp',
+        size: { x: 100, y: 100 },
+        transform: { m00: 1, m01: 0, m02: 0, m10: 0, m11: 1, m12: 0 }
+      },
+      // Instance inside Component A pointing to Component A
+      {
+        guid: { sessionID: 1, localID: 11 },
+        parentIndex: { guid: { sessionID: 1, localID: 10 }, position: '!' },
+        type: 'INSTANCE',
+        name: 'InnerRecursiveInstance',
+        size: { x: 50, y: 50 },
+        transform: { m00: 1, m01: 0, m02: 0, m10: 0, m11: 1, m12: 0 },
+        symbolData: {
+          symbolID: { sessionID: 1, localID: 10 }
+        }
+      },
+      // Top-level instance of Component A
+      {
+        guid: { sessionID: 2, localID: 20 },
+        parentIndex: { guid: { sessionID: 0, localID: 1 }, position: '"' },
+        type: 'INSTANCE',
+        name: 'TopInstance',
+        size: { x: 100, y: 100 },
+        transform: { m00: 1, m01: 0, m02: 200, m10: 0, m11: 1, m12: 0 },
+        symbolData: {
+          symbolID: { sessionID: 1, localID: 10 }
+        }
+      }
+    ] as NodeChange[]
+
+    // Should complete without hanging, throwing, or memory exhaustion
+    const created = importClipboardNodes(nodeChanges, graph, pageId)
+    expect(created.length).toBeGreaterThanOrEqual(1)
+  })
+
+  it('preserves imported component layout and finite dimensions across computeAllLayouts', () => {
+    const { graph, pageId } = createClipboardGraph()
+
+    const nodeChanges = [
+      { guid: { sessionID: 0, localID: 0 }, type: 'DOCUMENT', name: 'Doc' },
+      {
+        guid: { sessionID: 0, localID: 1 },
+        parentIndex: { guid: { sessionID: 0, localID: 0 }, position: '!' },
+        type: 'CANVAS',
+        name: 'Page'
+      },
+      {
+        guid: { sessionID: 0, localID: 2 },
+        parentIndex: { guid: { sessionID: 0, localID: 0 }, position: '"' },
+        type: 'CANVAS',
+        name: 'Internal Only Canvas',
+        internalOnly: true
+      },
+      {
+        guid: { sessionID: 1, localID: 10 },
+        parentIndex: { guid: { sessionID: 0, localID: 2 }, position: '!' },
+        type: 'SYMBOL',
+        name: 'Card',
+        size: { x: 264, y: 120 },
+        stackMode: 'VERTICAL',
+        stackPrimarySizing: 'HUG',
+        stackCounterSizing: 'FIXED',
+        transform: { m00: 1, m01: 0, m02: 0, m10: 0, m11: 1, m12: 0 }
+      },
+      {
+        guid: { sessionID: 1, localID: 11 },
+        parentIndex: { guid: { sessionID: 1, localID: 10 }, position: '!' },
+        type: 'ROUNDED_RECTANGLE',
+        name: 'Header',
+        size: { x: 264, y: 40 },
+        transform: { m00: 1, m01: 0, m02: 0, m10: 0, m11: 1, m12: 0 }
+      },
+      {
+        guid: { sessionID: 2, localID: 20 },
+        parentIndex: { guid: { sessionID: 0, localID: 1 }, position: '!' },
+        type: 'INSTANCE',
+        name: 'Card Instance',
+        size: { x: 264, y: 120 },
+        transform: { m00: 1, m01: 0, m02: 50, m10: 0, m11: 1, m12: 50 },
+        symbolData: {
+          symbolID: { sessionID: 1, localID: 10 }
+        }
+      }
+    ] as NodeChange[]
+
+    const created = importClipboardNodes(nodeChanges, graph, pageId)
+    expect(created.length).toBe(1)
+
+    const compNode = getNodeOrThrow(graph, created[0])
+    expect(compNode.type).toBe('COMPONENT')
+    expect(compNode.width).toBe(264)
+    expect(compNode.height).toBe(120)
+
+    // Recomputing layouts should NOT collapse width to 0 or explode height
+    computeAllLayouts(graph, pageId)
+
+    const afterLayout = getNodeOrThrow(graph, created[0])
+    expect(afterLayout.width).toBe(264)
+    expect(afterLayout.height).toBe(120)
   })
 })

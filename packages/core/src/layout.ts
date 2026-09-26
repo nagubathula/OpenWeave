@@ -83,7 +83,10 @@ function computeLayoutsBottomUp(graph: SceneGraph, nodeId: string, visited: Set<
 }
 
 function preservesImportedInstanceLayout(node: SceneNode): boolean {
-  return node.type === 'INSTANCE' && node.source.format === 'fig'
+  return (
+    (node.type === 'INSTANCE' || node.type === 'COMPONENT' || node.type === 'COMPONENT_SET') &&
+    node.source.format === 'fig'
+  )
 }
 
 function buildYogaTree(

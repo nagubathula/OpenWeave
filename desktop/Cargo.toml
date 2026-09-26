@@ -36,6 +36,10 @@ tauri-plugin-process = "2"
 tauri-plugin-clipboard-manager = "2"
 keyring = "4.1.5"
 tiny_http = "0.12"
+# Used for CF_HTML clipboard reading (tauri-plugin-clipboard-manager only exposes CF_UNICODETEXT)
+arboard = { version = "3", default-features = false }
+# Used to check clipboard format availability (is_format_avail) for size detection
+clipboard-win = { version = "5", default-features = false }
 
 [target.'cfg(any(target_os = "macos", windows, target_os = "linux"))'.dependencies]
 tauri-plugin-single-instance = "2"

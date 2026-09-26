@@ -25,15 +25,20 @@ function preservesImportedHugCrossSize(
 function applyFrameSize(graph: SceneGraph, frame: SceneNode, yogaNode: YogaNode): void {
   if (frame.layoutMode === 'GRID') {
     if (frame.gridTemplateRows.length === 0) {
-      graph.updateNode(frame.id, { height: yogaNode.getComputedHeight() })
+      const gridH = yogaNode.getComputedHeight()
+      graph.updateNode(frame.id, {
+        height: Number.isFinite(gridH) && gridH > 0 ? gridH : frame.height
+      })
     }
     return
   }
 
   if (frame.primaryAxisSizing !== 'HUG' && frame.counterAxisSizing !== 'HUG') return
 
-  const computedW = yogaNode.getComputedWidth()
-  const computedH = yogaNode.getComputedHeight()
+  const rawW = yogaNode.getComputedWidth()
+  const rawH = yogaNode.getComputedHeight()
+  const computedW = Number.isFinite(rawW) && rawW > 0 ? rawW : frame.width
+  const computedH = Number.isFinite(rawH) && rawH > 0 ? rawH : frame.height
   const updates: Partial<SceneNode> = {}
 
   const derived = frame.figmaDerivedLayout
@@ -68,6 +73,7 @@ function computedChildPosition(
 ): number {
   if (preservesImportedGeometry) return child[axis]
   const computed = axis === 'x' ? yogaChild.getComputedLeft() : yogaChild.getComputedTop()
+  if (!Number.isFinite(computed)) return child[axis]
   if (child.type === 'INSTANCE') return computed
   return child.figmaDerivedLayout?.[axis] ?? computed
 }
@@ -91,11 +97,17 @@ function computedChildSize(
   if (preservesImportedFrameGeometry || preservesStaleImportedTextSize(child, axis)) {
     return child[axis]
   }
-  const computed = axis === 'width' ? yogaChild.getComputedWidth() : yogaChild.getComputedHeight()
+  const rawComputed =
+    axis === 'width' ? yogaChild.getComputedWidth() : yogaChild.getComputedHeight()
+  const validComputed = Number.isFinite(rawComputed) && rawComputed > 0 ? rawComputed : child[axis]
   if (child.type === 'TEXT' && child.source.format === 'fig') {
-    return computed > 0 ? computed : child[axis]
+    return rawComputed > 0 ? rawComputed : child[axis]
   }
-  return child.figmaDerivedLayout?.[axis] ?? computed
+  const derived = child.figmaDerivedLayout?.[axis]
+  if (derived !== undefined && Number.isFinite(derived) && derived > 0) return derived
+  return child.source.format === 'fig' && (!Number.isFinite(rawComputed) || rawComputed <= 0)
+    ? child[axis]
+    : validComputed
 }
 
 function updateChildFromYoga(graph: SceneGraph, child: SceneNode, yogaChild: YogaNode): void {
@@ -117,7 +129,10 @@ function updateChildFromYoga(graph: SceneGraph, child: SceneNode, yogaChild: Yog
 }
 
 function preservesImportedInstanceInternals(child: SceneNode): boolean {
-  return child.type === 'INSTANCE' && child.source.format === 'fig'
+  return (
+    (child.type === 'INSTANCE' || child.type === 'COMPONENT' || child.type === 'COMPONENT_SET') &&
+    child.source.format === 'fig'
+  )
 }
 
 function recomputeGridChild(

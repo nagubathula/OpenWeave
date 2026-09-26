@@ -33,10 +33,11 @@ function hitTestOpaqueContainer(
   py: number,
   child: SceneNode,
   childId: string,
-  deep: boolean
+  deep: boolean,
+  visited: Set<string>
 ): SceneNode | null {
   if (!containsPoint(px, py, child, graph)) return null
-  const childHit = hitTestChildren(graph, px, py, childId, deep)
+  const childHit = hitTestChildren(graph, px, py, childId, deep, visited)
   if (childHit) return child
   if (hasVisibleFillOrStroke(child)) return child
   return null
@@ -47,17 +48,18 @@ function hitTestTransparentContainer(
   py: number,
   child: SceneNode,
   childId: string,
-  deep: boolean
+  deep: boolean,
+  visited: Set<string>
 ): SceneNode | null {
   if (child.type === 'GROUP') {
     if (!containsPoint(px, py, child, graph)) return null
 
-    if (deep) return hitTestChildren(graph, px, py, childId, deep) ?? child
+    if (deep) return hitTestChildren(graph, px, py, childId, deep, visited) ?? child
 
     return child
   }
 
-  const childHit = hitTestChildren(graph, px, py, childId, deep)
+  const childHit = hitTestChildren(graph, px, py, childId, deep, visited)
   if (childHit) {
     if (child.locked) return child
     return childHit
@@ -72,8 +74,11 @@ function hitTestChildren(
   px: number,
   py: number,
   parentId: string,
-  deep = false
+  deep = false,
+  visited: Set<string> = new Set()
 ): SceneNode | null {
+  if (visited.has(parentId)) return null
+  visited.add(parentId)
   const parent = graph.nodes.get(parentId)
   if (!parent) return null
 
@@ -87,12 +92,12 @@ function hitTestChildren(
     if (!child || child.internalOnly || !child.visible) continue
     if (CONTAINER_TYPES.has(child.type)) {
       if (OPAQUE_CONTAINER_TYPES.has(child.type) && !deep) {
-        const hit = hitTestOpaqueContainer(graph, px, py, child, childId, deep)
+        const hit = hitTestOpaqueContainer(graph, px, py, child, childId, deep, visited)
         if (hit) return hit
         continue
       }
 
-      const hit = hitTestTransparentContainer(graph, px, py, child, childId, deep)
+      const hit = hitTestTransparentContainer(graph, px, py, child, childId, deep, visited)
       if (hit) return hit
       continue
     }

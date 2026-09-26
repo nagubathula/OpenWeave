@@ -35,7 +35,9 @@ function withoutStaticSelectionCommands(entries: readonly MenuEntry[]): MenuEntr
 
 function runAsync(action: () => Promise<void>) {
   return () => {
-    void action()
+    void action().catch((err) => {
+      console.warn('Canvas menu action failed', err)
+    })
   }
 }
 

@@ -22,6 +22,32 @@ function collectSubtreeIds(graph: SceneGraph, rootIds: Iterable<string>): Set<st
   return result
 }
 
+export const MAX_INSTANCE_DEPTH = 12
+
+export function wouldCreateComponentCycle(
+  graph: SceneGraph,
+  nodeId: string,
+  componentId: string
+): boolean {
+  if (nodeId === componentId) return true
+  let curr = graph.getNode(nodeId)
+  let instanceDepth = 0
+  const visitedAncestors = new Set<string>([nodeId])
+  while (curr?.parentId) {
+    if (visitedAncestors.has(curr.parentId)) return true
+    visitedAncestors.add(curr.parentId)
+    curr = graph.getNode(curr.parentId)
+    if (!curr) break
+    if (curr.id === componentId) return true
+    if (curr.type === 'INSTANCE') {
+      instanceDepth++
+      if (instanceDepth > MAX_INSTANCE_DEPTH) return true
+      if (curr.componentId === componentId) return true
+    }
+  }
+  return false
+}
+
 export function populateInstances(
   graph: SceneGraph,
   rootIds?: Iterable<string>
@@ -32,6 +58,7 @@ export function populateInstances(
     const node = graph.getNode(nodeId)
     if (node?.type !== 'INSTANCE' || !node.componentId || node.childIds.length > 0) return
     if (visiting.has(nodeId)) return
+    if (wouldCreateComponentCycle(graph, nodeId, node.componentId)) return
     visiting.add(nodeId)
 
     const comp = graph.getNode(node.componentId)
@@ -53,7 +80,8 @@ export function populateInstances(
   }
 
   if (!rootIds) {
-    for (const node of graph.nodes.values()) {
+    const candidateNodes = Array.from(graph.nodes.values())
+    for (const node of candidateNodes) {
       if (node.type === 'INSTANCE' && node.componentId && node.childIds.length === 0) {
         ensurePopulated(node.id)
       }

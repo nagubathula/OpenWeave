@@ -200,4 +200,36 @@ describe('raster export', () => {
       surface.delete()
     }
   })
+
+  test('clamps runaway dimensions to MAX_RASTER_SURFACE_DIMENSION', async () => {
+    const graph = new SceneGraph()
+    const page = graph.getPages()[0]
+    const rect = graph.createNode('RECTANGLE', page.id, {
+      x: 0,
+      y: 0,
+      width: 500,
+      height: 500,
+      fills: [{ type: 'SOLID', color: { r: 1, g: 0, b: 0, a: 1 }, opacity: 1, visible: true }]
+    })
+
+    const surface = expectDefined(ck.MakeSurface(1, 1), 'surface')
+    const renderer = new SkiaRenderer(ck, surface)
+
+    try {
+      // Scale 100 on 500x500 would request 50,000 x 50,000 px (10 GB) without safety cap
+      const png = expectDefined(
+        renderNodesToImage(ck, renderer, graph, page.id, [rect.id], {
+          scale: 100,
+          format: 'PNG'
+        }),
+        'clamped png'
+      )
+      const image = expectDefined(ck.MakeImageFromEncoded(png), 'image')
+      expect(image.width()).toBeLessThanOrEqual(4096)
+      expect(image.height()).toBeLessThanOrEqual(4096)
+      image.delete()
+    } finally {
+      surface.delete()
+    }
+  })
 })

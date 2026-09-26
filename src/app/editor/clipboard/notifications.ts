@@ -26,5 +26,17 @@ export function notifyClipboardImageResolution({
 }
 
 export function bindClipboardNotifications(editor: Editor) {
-  return editor.onEditorEvent('clipboard:images-missing', notifyClipboardImageResolution)
+  const unbindImages = editor.onEditorEvent(
+    'clipboard:images-missing',
+    notifyClipboardImageResolution
+  )
+  const unbindPasteFailed = editor.onEditorEvent('clipboard:paste-failed', ({ reason }) => {
+    if (reason === 'too-large') {
+      toast.warning(dialogMessages.get().clipboardPasteTooLarge)
+    }
+  })
+  return () => {
+    unbindImages()
+    unbindPasteFailed()
+  }
 }

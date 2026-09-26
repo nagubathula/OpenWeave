@@ -134,7 +134,8 @@ function renderChildIds(
   childIds: string[],
   overlays: RenderOverlays,
   absX: number,
-  absY: number
+  absY: number,
+  visited: Set<string>
 ): void {
   renderMaskedChildIds(
     r,
@@ -144,7 +145,7 @@ function renderChildIds(
       const child = graph.getNode(childId)
       return child?.visible && child.isMask ? child.maskType : null
     },
-    (childId) => r.renderNode(canvas, graph, childId, overlays, absX, absY),
+    (childId) => r.renderNode(canvas, graph, childId, overlays, absX, absY, visited),
     (childId) => {
       const child = graph.getNode(childId)
       if (child) renderMaskNodeContent(r, canvas, graph, child, childId, overlays)
@@ -164,7 +165,8 @@ function renderChildren(
   node: SceneNode,
   overlays: RenderOverlays,
   absX: number,
-  absY: number
+  absY: number,
+  visited: Set<string>
 ): void {
   if (node.type === 'BOOLEAN_OPERATION') return
   const isClippableContainer =
@@ -180,12 +182,31 @@ function renderChildren(
     } else {
       canvas.clipRect(r.ck.LTRBRect(0, 0, node.width, node.height), r.ck.ClipOp.Intersect, true)
     }
-    renderChildIds(r, canvas, graph, node.childIds, overlays, absX, absY)
+    renderChildIds(r, canvas, graph, node.childIds, overlays, absX, absY, visited)
     canvas.restore()
   } else {
-    renderChildIds(r, canvas, graph, node.childIds, overlays, absX, absY)
+    renderChildIds(r, canvas, graph, node.childIds, overlays, absX, absY, visited)
   }
 }
+
+const MAX_LAYER_DIMENSION = 4096
+
+function clampLayerBounds(
+  ck: SkiaRenderer['ck'],
+  left: number,
+  top: number,
+  right: number,
+  bottom: number
+) {
+  const l = Number.isFinite(left) ? left : 0
+  const t = Number.isFinite(top) ? top : 0
+  const rawR = Number.isFinite(right) ? right : l + 100
+  const rawB = Number.isFinite(bottom) ? bottom : t + 100
+  const r = Math.min(l + MAX_LAYER_DIMENSION, Math.max(l + 1, rawR))
+  const b = Math.min(t + MAX_LAYER_DIMENSION, Math.max(t + 1, rawB))
+  return ck.LTRBRect(l, t, r, b)
+}
+
 export function renderNode(
   r: SkiaRenderer,
   canvas: Canvas,
@@ -193,8 +214,11 @@ export function renderNode(
   nodeId: string,
   overlays: RenderOverlays,
   parentAbsX = 0,
-  parentAbsY = 0
+  parentAbsY = 0,
+  visited: Set<string> = new Set()
 ): void {
+  if (visited.has(nodeId)) return
+  visited.add(nodeId)
   const node = graph.getNode(nodeId)
   if (
     !node ||
@@ -230,13 +254,14 @@ export function renderNode(
       (id) => graph.getAbsolutePosition(id)
     )
     const layerBounds = bounds
-      ? r.ck.LTRBRect(
+      ? clampLayerBounds(
+          r.ck,
           bounds.minX - absX,
           bounds.minY - absY,
           bounds.maxX - absX,
           bounds.maxY - absY
         )
-      : r.ck.LTRBRect(0, 0, node.width, node.height)
+      : clampLayerBounds(r.ck, 0, 0, node.width, node.height)
     r.opacityPaint.setAlphaf(node.opacity)
     r.opacityPaint.setBlendMode(figmaBlendModeToSkia(r.ck, node.blendMode))
     canvas.saveLayer(r.opacityPaint, layerBounds)
@@ -252,17 +277,23 @@ export function renderNode(
     r.effectLayerPaint.setBlendMode(r.ck.BlendMode.SrcOver)
 
     r.effectLayerPaint.setImageFilter(r.getCachedBlur(layerBlur.radius / 2))
-    const blurPadding = layerBlur.radius * 2
+    const blurPadding = Math.min(layerBlur.radius * 2, 200)
     canvas.saveLayer(
       r.effectLayerPaint,
-      r.ck.LTRBRect(-blurPadding, -blurPadding, node.width + blurPadding, node.height + blurPadding)
+      clampLayerBounds(
+        r.ck,
+        -blurPadding,
+        -blurPadding,
+        node.width + blurPadding,
+        node.height + blurPadding
+      )
     )
   }
 
   applyNodeTransforms(r, canvas, node, nodeId, overlays)
   renderNodeContent(r, canvas, graph, node, nodeId, overlays)
   drawLayoutGrids(r, canvas, node)
-  renderChildren(r, canvas, graph, node, overlays, absX, absY)
+  renderChildren(r, canvas, graph, node, overlays, absX, absY, visited)
 
   if (layerBlur) {
     canvas.restore()
@@ -684,7 +715,7 @@ function drawGradientText(r: SkiaRenderer, canvas: Canvas, node: SceneNode): boo
     r.effectLayerPaint.setImageFilter(null)
     r.effectLayerPaint.setColorFilter(null)
     r.effectLayerPaint.setBlendMode(r.ck.BlendMode.SrcOver)
-    const bounds = r.ck.LTRBRect(0, paragraphY, node.width, paragraphY + node.height)
+    const bounds = clampLayerBounds(r.ck, 0, paragraphY, node.width, paragraphY + node.height)
     canvas.saveLayer(r.effectLayerPaint, bounds)
     canvas.drawParagraph(paragraph, 0, paragraphY)
 

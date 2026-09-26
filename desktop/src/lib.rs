@@ -1,3 +1,4 @@
+mod clipboard;
 mod credentials;
 mod fig_container;
 mod fonts;
@@ -8,6 +9,7 @@ mod share_tunnel;
 #[cfg(target_os = "macos")]
 mod window;
 
+use clipboard::read_clipboard_html_limited;
 use credentials::{
     credential_read, credential_remove, credential_status, credential_store_availability,
     credential_write,
@@ -137,6 +139,7 @@ pub fn run() {
             list_system_fonts,
             load_system_font,
             proxy_http_request,
+            read_clipboard_html_limited,
             share_tunnel_status,
             start_share_tunnel,
             stop_share_tunnel,

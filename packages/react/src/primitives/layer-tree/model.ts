@@ -20,17 +20,21 @@ export interface LayerTreeModel {
 
 export function buildLayerTreeModel(graph: SceneGraph, parentId: string): LayerTreeModel {
   const byId = new Map<string, LayerNode>()
+  const visited = new Set<string>()
 
-  const buildChildren = (id: string): LayerNode[] => {
+  const buildChildren = (id: string, depth = 0): LayerNode[] => {
+    if (depth > 20 || visited.has(id)) return []
+    visited.add(id)
     const parent = graph.getNode(id)
     if (!parent) return []
     const children: LayerNode[] = []
     for (const childId of parent.childIds) {
+      if (visited.has(childId)) continue
       const sceneNode = graph.getNode(childId)
       if (!sceneNode || sceneNode.internalOnly) continue
       const node = nodeToLayerNode(sceneNode)
       byId.set(node.id, node)
-      if (sceneNode.childIds.length > 0) node.children = buildChildren(node.id)
+      if (sceneNode.childIds.length > 0) node.children = buildChildren(node.id, depth + 1)
       children.push(node)
     }
     return children
@@ -41,8 +45,11 @@ export function buildLayerTreeModel(graph: SceneGraph, parentId: string): LayerT
 
 export function indexLayerNodes(items: readonly LayerNode[]): Map<string, LayerNode> {
   const byId = new Map<string, LayerNode>()
+  const visited = new Set<string>()
   const visit = (nodes: readonly LayerNode[]) => {
     for (const node of nodes) {
+      if (visited.has(node.id)) continue
+      visited.add(node.id)
       byId.set(node.id, node)
       if (node.children) visit(node.children)
     }

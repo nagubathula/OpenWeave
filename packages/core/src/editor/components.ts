@@ -30,17 +30,36 @@ export function createComponentActions(ctx: EditorContext) {
 
       if (node.type === 'COMPONENT') return
 
-      if (node.type === 'FRAME' || node.type === 'GROUP') {
-        ctx.graph.updateNode(node.id, { type: 'COMPONENT' })
-        ctx.setSelectedIds(new Set([node.id]))
+      if (node.type === 'FRAME' || node.type === 'GROUP' || node.type === 'INSTANCE') {
+        const isInstance = node.type === 'INSTANCE'
+        const prevComponentId = isInstance ? node.componentId : null
+        const prevOverrides = isInstance ? structuredClone(node.overrides) : null
+
+        const applyConvert = () => {
+          if (isInstance) ctx.graph.detachInstance(node.id)
+          ctx.graph.updateNode(node.id, { type: 'COMPONENT' })
+          ctx.setSelectedIds(new Set([node.id]))
+        }
+
+        applyConvert()
         ctx.undo.push({
           label: 'Create component',
-          forward: () => {
-            ctx.graph.updateNode(node.id, { type: 'COMPONENT' })
-            ctx.setSelectedIds(new Set([node.id]))
-          },
+          forward: applyConvert,
           inverse: () => {
-            ctx.graph.updateNode(node.id, { type: prevType })
+            if (isInstance) {
+              ctx.graph.updateNode(node.id, {
+                type: 'INSTANCE',
+                componentId: prevComponentId,
+                overrides: prevOverrides ?? {}
+              })
+              if (prevComponentId) {
+                const instances = ctx.graph.instanceIndex.get(prevComponentId) ?? new Set()
+                instances.add(node.id)
+                ctx.graph.instanceIndex.set(prevComponentId, instances)
+              }
+            } else {
+              ctx.graph.updateNode(node.id, { type: prevType })
+            }
             ctx.setSelectedIds(prevSelection)
           }
         })

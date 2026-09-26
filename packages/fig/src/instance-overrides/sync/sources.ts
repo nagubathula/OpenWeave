@@ -74,10 +74,14 @@ export function indexCloneSubtree(
 ): void {
   const nodeIds: string[] = []
   const queue = [rootId]
+  const visited = new Set<string>()
   let index = 0
   while (index < queue.length) {
-    const node = graph.getNode(queue[index])
+    const id = queue[index]
     index++
+    if (!id || visited.has(id)) continue
+    visited.add(id)
+    const node = graph.getNode(id)
     if (!node) continue
     nodeIds.push(node.id)
     queue.push(...node.childIds)
@@ -91,7 +95,10 @@ export function snapshotChildSources(graph: SceneGraph, parentId: string): Child
   const parent = graph.getNode(parentId)
   if (!parent) return result
 
+  const visited = new Set<string>()
   const visit = (nodeId: string, path: number[]) => {
+    if (visited.has(nodeId)) return
+    visited.add(nodeId)
     const node = graph.getNode(nodeId)
     if (!node) return
     result.push({ id: node.id, path, type: node.type })

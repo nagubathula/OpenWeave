@@ -250,7 +250,19 @@ function cachedSubtreePicture(
     (id) => graph.getNode(id),
     (id) => graph.getAbsolutePosition(id)
   )
-  if (!bounds) return null
+  if (
+    !bounds ||
+    !Number.isFinite(bounds.minX) ||
+    !Number.isFinite(bounds.minY) ||
+    !Number.isFinite(bounds.maxX) ||
+    !Number.isFinite(bounds.maxY) ||
+    bounds.maxX <= bounds.minX ||
+    bounds.maxY <= bounds.minY ||
+    bounds.maxX - bounds.minX > 100_000 ||
+    bounds.maxY - bounds.minY > 100_000
+  ) {
+    return null
+  }
 
   const recorder = new r.ck.PictureRecorder()
   const recCanvas = recorder.beginRecording(

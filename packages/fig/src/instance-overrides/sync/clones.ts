@@ -1,6 +1,7 @@
 import type { SceneGraph, SceneNode } from '@openweave/scene-graph'
 
 import type { ProtectionMap } from '../patches'
+import { wouldCreateComponentCycle } from '../populate'
 import { overrideCandidates } from '../utils'
 import { cloneInstanceUpdate } from './clone-update'
 import { syncNodeProps } from './fields'
@@ -17,6 +18,13 @@ export function recloneChildren(
 ): void {
   const srcChild = graph.getNode(srcChildId)
   if (!srcChild) return
+  if (
+    srcChild.type === 'INSTANCE' &&
+    srcChild.componentId &&
+    wouldCreateComponentCycle(graph, tgtNode.id, srcChild.componentId)
+  ) {
+    return
+  }
   const effectiveCloneSources = cloneSources ?? buildClonesMap(graph, activeNodeIds)
 
   const previousSources = snapshotChildSources(graph, tgtNode.id)
@@ -48,8 +56,12 @@ export function syncChildrenDeep(
   skip?: Set<string>,
   protections?: ProtectionMap,
   cloneSources?: Map<string, string[]>,
-  activeNodeIds?: Set<string>
+  activeNodeIds?: Set<string>,
+  depth = 0,
+  visited = new Set<string>()
 ): void {
+  if (depth > 12 || visited.has(targetId)) return
+  visited.add(targetId)
   const src = graph.getNode(sourceId)
   const tgt = graph.getNode(targetId)
   if (!src || !tgt) return
@@ -83,7 +95,9 @@ export function syncChildrenDeep(
       skip,
       protections,
       effectiveCloneSources,
-      activeNodeIds
+      activeNodeIds,
+      depth + 1,
+      visited
     )
   }
 }
@@ -94,7 +108,7 @@ export function buildClonesMap(
 ): Map<string, string[]> {
   const clonesOf = new Map<string, string[]>()
   for (const node of overrideCandidates(graph, activeNodeIds)) {
-    if (!node.componentId) continue
+    if (!node.componentId || node.componentId === node.id) continue
     let arr = clonesOf.get(node.componentId)
     if (!arr) {
       arr = []

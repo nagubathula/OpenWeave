@@ -98,6 +98,9 @@ function shouldTrimAlphaBounds(
   )
 }
 
+export const MAX_RASTER_SURFACE_DIMENSION = 4096
+export const MAX_RASTER_PIXELS = 4096 * 4096
+
 function renderToSurface(
   ck: CanvasKit,
   renderer: SkiaRenderer,
@@ -110,9 +113,13 @@ function renderToSurface(
   setup: (canvas: Canvas) => void,
   trimTransparent = false
 ): Uint8Array | null {
-  const renderScale = 2
+  const renderScale =
+    width * 2 <= MAX_RASTER_SURFACE_DIMENSION && height * 2 <= MAX_RASTER_SURFACE_DIMENSION ? 2 : 1
   const renderWidth = width * renderScale
   const renderHeight = height * renderScale
+  if (renderWidth * renderHeight > MAX_RASTER_PIXELS || width * height > MAX_RASTER_PIXELS) {
+    return null
+  }
   const pixels = ck.Malloc(Uint8Array, renderWidth * renderHeight * 4)
   const surface = ck.MakeRasterDirectSurface(
     {
@@ -263,8 +270,20 @@ export function renderNodesToImage(
   const contentH = bounds.maxY - bounds.minY
   if (contentW <= 0 || contentH <= 0) return null
 
-  const pixelW = Math.ceil(contentW * options.scale)
-  const pixelH = Math.ceil(contentH * options.scale)
+  const maxRequestedDim = Math.max(contentW * options.scale, contentH * options.scale)
+  const effectiveScale =
+    maxRequestedDim > MAX_RASTER_SURFACE_DIMENSION
+      ? (options.scale * MAX_RASTER_SURFACE_DIMENSION) / maxRequestedDim
+      : options.scale
+
+  const pixelW = Math.max(
+    1,
+    Math.min(Math.ceil(contentW * effectiveScale), MAX_RASTER_SURFACE_DIMENSION)
+  )
+  const pixelH = Math.max(
+    1,
+    Math.min(Math.ceil(contentH * effectiveScale), MAX_RASTER_SURFACE_DIMENSION)
+  )
   if (pixelW <= 0 || pixelH <= 0) return null
 
   const extracted = extractExportGraph(graph, { scope: 'selection', nodeIds })
@@ -290,7 +309,7 @@ export function renderNodesToImage(
     quality,
     (canvas) => {
       canvas.clear(ck.TRANSPARENT)
-      canvas.scale(options.scale, options.scale)
+      canvas.scale(effectiveScale, effectiveScale)
       canvas.translate(-bounds.minX, -bounds.minY)
     },
     options.trimTransparent

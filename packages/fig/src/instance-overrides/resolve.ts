@@ -3,6 +3,7 @@ import type { GUID } from '@openweave/kiwi/fig/codec'
 import { copyInstanceComponentProps, type SceneNode } from '@openweave/scene-graph'
 import { copyStrokes } from '@openweave/scene-graph/copy'
 
+import { wouldCreateComponentCycle } from './populate'
 import {
   indexCloneSubtree,
   remapRepopulatedChildSources,
@@ -246,7 +247,10 @@ function findNodeBySourceSiblingIndex(
   let candidates = cache.get(cacheKey)
   if (!candidates) {
     candidates = []
+    const visited = new Set<string>()
     const collect = (id: string) => {
+      if (visited.has(id)) return
+      visited.add(id)
       const node = ctx.graph.getNode(id)
       if (!node) return
       if (node.componentId) {
@@ -270,8 +274,11 @@ function findNodeBySourceSiblingIndex(
 export function findNodeByComponentId(
   ctx: OverrideContext,
   parentId: string,
-  componentId: string
+  componentId: string,
+  visited: Set<string> = new Set()
 ): string | null {
+  if (visited.has(parentId)) return null
+  visited.add(parentId)
   let cache = componentFindCache.get(ctx)
   if (!cache) {
     cache = new Map()
@@ -315,7 +322,7 @@ export function findNodeByComponentId(
   }
 
   for (const childId of parent.childIds) {
-    const deep = findNodeByComponentId(ctx, childId, componentId)
+    const deep = findNodeByComponentId(ctx, childId, componentId, visited)
     if (deep) {
       cache.set(cacheKey, deep)
       return deep
@@ -363,6 +370,8 @@ export function resolveOverrideTarget(
 
   let currentId = instanceId
   const path: string[] = []
+  const visitedSteps = new Set<string>()
+  let singleChildSkips = 0
   for (let index = 0; index < guids.length; index++) {
     const key = guidToString(guids[index])
     path.push(key)
@@ -389,8 +398,14 @@ export function resolveOverrideTarget(
     }
 
     const parent = ctx.graph.getNode(currentId)
-    if (parent?.childIds.length === 1) {
+    if (
+      parent?.childIds.length === 1 &&
+      !visitedSteps.has(parent.childIds[0]) &&
+      singleChildSkips < 5
+    ) {
       currentId = parent.childIds[0]
+      visitedSteps.add(currentId)
+      singleChildSkips++
       index--
       path.pop()
       continue
@@ -411,7 +426,10 @@ function collectStyledStrokeDescendants(
   nodeId: string
 ): SceneNode['strokes'][] {
   const result: SceneNode['strokes'][] = []
+  const visited = new Set<string>()
   const visit = (id: string) => {
+    if (visited.has(id)) return
+    visited.add(id)
     const node = ctx.graph.getNode(id)
     if (!node) return
     if (node.strokes.length > 0) result.push(copyStrokes(node.strokes))
@@ -427,7 +445,10 @@ function applyStrokeDescendants(
   strokes: SceneNode['strokes'][]
 ): void {
   let index = 0
+  const visited = new Set<string>()
   const visit = (id: string) => {
+    if (visited.has(id)) return
+    visited.add(id)
     const node = ctx.graph.getNode(id)
     if (!node) return
     if (node.strokes.length > 0) {
@@ -463,7 +484,7 @@ function swappedRootProps(node: SceneNode, component: SceneNode): Partial<SceneN
 
 export function repopulateInstance(ctx: OverrideContext, nodeId: string, compId: string): void {
   const node = ctx.graph.getNode(nodeId)
-  if (node?.type !== 'INSTANCE') return
+  if (node?.type !== 'INSTANCE' || wouldCreateComponentCycle(ctx.graph, nodeId, compId)) return
 
   const previousStrokes = collectStyledStrokeDescendants(ctx, nodeId)
   const previousSources = snapshotChildSources(ctx.graph, nodeId)

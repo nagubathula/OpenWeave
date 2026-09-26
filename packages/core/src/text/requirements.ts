@@ -5,27 +5,39 @@ import { transformTextCase } from '#core/text/case'
 import { cjkFallbackScriptForLanguage, type FontFallbackScript } from '#core/text/fallbacks'
 import { weightToStyle } from '#core/text/font-style'
 
+function forEachSubtreeNode(
+  graph: SceneGraph,
+  nodeIds: readonly string[],
+  callback: (node: SceneNode) => void
+): void {
+  const visited = new Set<string>()
+  const walk = (nodeId: string) => {
+    if (visited.has(nodeId)) return
+    visited.add(nodeId)
+    const node = graph.getNode(nodeId)
+    if (!node) return
+    callback(node)
+    for (const childId of node.childIds) walk(childId)
+  }
+  for (const id of nodeIds) walk(id)
+}
+
 export function collectGraphFontKeys(
   graph: SceneGraph,
   nodeIds: readonly string[]
 ): Array<[string, string]> {
   const fontKeys = new Set<string>()
-  const collect = (nodeId: string) => {
-    const node = graph.getNode(nodeId)
-    if (!node) return
-    if (node.type === 'TEXT') {
-      const family = node.fontFamily || DEFAULT_FONT_FAMILY
-      fontKeys.add(`${family}\0${weightToStyle(node.fontWeight || 400, node.italic)}`)
-      for (const run of node.styleRuns) {
-        const runFamily = run.style.fontFamily ?? family
-        const weight = run.style.fontWeight ?? node.fontWeight
-        const italic = run.style.italic ?? node.italic
-        fontKeys.add(`${runFamily}\0${weightToStyle(weight, italic)}`)
-      }
+  forEachSubtreeNode(graph, nodeIds, (node) => {
+    if (node.type !== 'TEXT') return
+    const family = node.fontFamily || DEFAULT_FONT_FAMILY
+    fontKeys.add(`${family}\0${weightToStyle(node.fontWeight || 400, node.italic)}`)
+    for (const run of node.styleRuns) {
+      const runFamily = run.style.fontFamily ?? family
+      const weight = run.style.fontWeight ?? node.fontWeight
+      const italic = run.style.italic ?? node.italic
+      fontKeys.add(`${runFamily}\0${weightToStyle(weight, italic)}`)
     }
-    for (const childId of node.childIds) collect(childId)
-  }
-  for (const nodeId of nodeIds) collect(nodeId)
+  })
   return Array.from(fontKeys, (key) => key.split('\0') as [string, string])
 }
 
@@ -58,9 +70,7 @@ export function collectGraphFontRequirements(
   const characters = new Set<string>()
   const nodes: SceneNode[] = []
   const scripts = new Set<FontFallbackScript>()
-  const collect = (nodeId: string) => {
-    const node = graph.getNode(nodeId)
-    if (!node) return
+  forEachSubtreeNode(graph, nodeIds, (node) => {
     nodes.push(node)
     if (node.type === 'TEXT') {
       let index = 0
@@ -71,8 +81,6 @@ export function collectGraphFontRequirements(
         index += character.length
       }
     }
-    for (const childId of node.childIds) collect(childId)
-  }
-  for (const nodeId of nodeIds) collect(nodeId)
+  })
   return { characters: Array.from(characters).join(''), nodes, scripts: Array.from(scripts) }
 }

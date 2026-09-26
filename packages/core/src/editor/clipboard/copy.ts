@@ -8,11 +8,16 @@ export function createClipboardCopyActions(ctx: EditorContext) {
     if (selectedNodes.length === 0) return
 
     const names = selectedNodes.map((n) => n.name).join('\n')
-    clipboardData.setData('text/html', buildOpenWeaveClipboardHTML(selectedNodes, ctx.graph))
+    const openWeaveHtml = buildOpenWeaveClipboardHTML(selectedNodes, ctx.graph)
+    clipboardData.setData('text/html', openWeaveHtml)
     clipboardData.setData('text/plain', names)
 
-    const html = await buildFigmaClipboardHTML(selectedNodes, ctx.graph)
-    if (html) clipboardData.setData('text/html', html)
+    try {
+      const html = await buildFigmaClipboardHTML(selectedNodes, ctx.graph)
+      if (html) clipboardData.setData('text/html', `${openWeaveHtml}\n${html}`)
+    } catch (err) {
+      console.warn('Failed to build Figma clipboard HTML:', err)
+    }
   }
 
   return { writeCopyData }
