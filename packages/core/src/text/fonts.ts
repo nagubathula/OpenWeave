@@ -30,11 +30,42 @@ type FindLocalFontOptions = { allowVariable?: boolean }
 
 const BUNDLED_FONTS: Record<string, string> = {
   'Inter|Regular': '/Inter-Regular.ttf',
+  'Inter|regular': '/Inter-Regular.ttf',
+  'Inter|Normal': '/Inter-Regular.ttf',
   'Inter|Medium': '/Inter-Medium.ttf',
+  'Inter|medium': '/Inter-Medium.ttf',
   'Inter|SemiBold': '/Inter-SemiBold.ttf',
+  'Inter|Semibold': '/Inter-SemiBold.ttf',
+  'Inter|semibold': '/Inter-SemiBold.ttf',
   'Inter|Bold': '/Inter-Bold.ttf',
+  'Inter|bold': '/Inter-Bold.ttf',
   'Inter|ExtraBold': '/Inter-ExtraBold.ttf',
+  'Inter|Extrabold': '/Inter-ExtraBold.ttf',
+  'Inter|extrabold': '/Inter-ExtraBold.ttf',
   'Noto Naskh Arabic|Regular': '/NotoNaskhArabic-Regular.ttf'
+}
+
+const SYSTEM_FONT_FALLBACKS: Record<string, string> = {
+  'SF Pro': 'Inter',
+  'SF Pro Text': 'Inter',
+  'SF Pro Display': 'Inter',
+  'SF Pro Rounded': 'Inter',
+  'SF Compact': 'Inter',
+  'SF Compact Text': 'Inter',
+  'SF Compact Display': 'Inter',
+  'SF UI Text': 'Inter',
+  'SF UI Display': 'Inter',
+  'San Francisco': 'Inter',
+  'Apple System': 'Inter',
+  '-apple-system': 'Inter',
+  'BlinkMacSystemFont': 'Inter'
+}
+
+export function getKnownFontFallbackFamily(family: string): string | null {
+  const trimmed = family.trim()
+  if (SYSTEM_FONT_FALLBACKS[trimmed]) return SYSTEM_FONT_FALLBACKS[trimmed]
+  const normalized = normalizeFontFamily(trimmed).trim()
+  return SYSTEM_FONT_FALLBACKS[normalized] ?? null
 }
 
 export class FontManager {
@@ -304,11 +335,23 @@ export class FontManager {
         : loaded
     }
 
-    return (
+    const direct =
       (await this.loadLocalFont(family, style)) ??
       (await this.loadCachedFont(family, style, characters)) ??
       (await this.loadRemoteFont(family, style, characters))
-    )
+    if (direct) return direct
+
+    // Fallback for system fonts unavailable on the host (e.g. Apple SF Pro on Windows/Linux)
+    const fallbackFamily = getKnownFontFallbackFamily(family)
+    if (fallbackFamily && fallbackFamily !== family) {
+      const fallbackBuffer = await this.loadFont(fallbackFamily, style, characters)
+      if (fallbackBuffer) {
+        this.registerAndCache(family, style, fallbackBuffer)
+        return fallbackBuffer
+      }
+    }
+
+    return null
   }
 
   async ensureNodeFont(family: string, weight: number): Promise<void> {

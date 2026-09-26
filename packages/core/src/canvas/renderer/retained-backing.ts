@@ -9,11 +9,11 @@ import { clearSubtreePictureCache } from '#core/canvas/renderer/state'
 import type { RenderLayer } from './pipeline'
 
 const now = typeof performance !== 'undefined' ? () => performance.now() : () => 0
-const SCENE_BACKING_SCALE = 3
-// Upper bound on backing pixels (~128MB RGBA). Oversized offscreen targets can
+const SCENE_BACKING_SCALE = 2
+// Upper bound on backing pixels (~48MB RGBA). Oversized offscreen targets can
 // exhaust VRAM or exceed driver limits, resetting the GL device mid-flush
-// (surfacing as "Shader compilation error" spam from Skia).
-const SCENE_BACKING_MAX_PIXELS = 32_000_000
+// (surfacing as "Shader compilation error" spam from Skia or GPU driver crash).
+const SCENE_BACKING_MAX_PIXELS = 12_000_000
 const FRAME_BUDGET_60HZ_MS = 1000 / 60
 const MIN_SCENE_BACKING_IDLE_FRAMES = 2
 const MAX_SCENE_BACKING_IDLE_FRAMES = 18

@@ -7,7 +7,7 @@ fn main() {
         if std::env::var_os("WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS").is_none() {
             std::env::set_var(
                 "WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS",
-                "--js-flags=--max-old-space-size=8192",
+                "--disable-gpu-watchdog --use-angle=d3d11 --disable-gpu-rasterization",
             );
         }
     }
