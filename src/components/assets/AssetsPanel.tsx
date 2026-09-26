@@ -130,15 +130,24 @@ function enqueueThumbnailRender(task: ThumbnailTask) {
   drainThumbnailQueue()
 }
 
-function drainThumbnailQueue() {
-  while (activeThumbnailRenders < MAX_CONCURRENT_THUMBNAIL_RENDERS && thumbnailTaskQueue.length > 0) {
-    const nextTask = thumbnailTaskQueue.shift()
-    if (!nextTask) break
-    activeThumbnailRenders++
-    nextTask().finally(() => {
+function runThumbnailTask(task: () => Promise<void>) {
+  activeThumbnailRenders++
+  void task()
+    .catch(() => {})
+    .finally(() => {
       activeThumbnailRenders--
       drainThumbnailQueue()
     })
+}
+
+function drainThumbnailQueue() {
+  while (
+    activeThumbnailRenders < MAX_CONCURRENT_THUMBNAIL_RENDERS &&
+    thumbnailTaskQueue.length > 0
+  ) {
+    const nextTask = thumbnailTaskQueue.shift()
+    if (!nextTask) break
+    runThumbnailTask(nextTask)
   }
 }
 

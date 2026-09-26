@@ -59,72 +59,68 @@ export default function PositionSection() {
             <div
               role="toolbar"
               aria-label="Position"
-              className="mb-1.5 flex items-center justify-between"
+              className="mb-2 flex items-center justify-between rounded-lg bg-panel-field/30 p-0.5 border border-border/40"
             >
-              <div className="flex gap-0.5">
-                <IconButton
-                  label="Align left"
-                  size="md"
-                  onClick={() => handleAlign(actions.align, 'horizontal', 'min')}
-                >
-                  <AlignStartVertical className="size-3.5" />
-                </IconButton>
-                <IconButton
-                  label="Align horizontal centers"
-                  size="md"
-                  onClick={() => handleAlign(actions.align, 'horizontal', 'center')}
-                >
-                  <AlignCenterVertical className="size-3.5" />
-                </IconButton>
-                <IconButton
-                  label="Align right"
-                  size="md"
-                  onClick={() => handleAlign(actions.align, 'horizontal', 'max')}
-                >
-                  <AlignEndVertical className="size-3.5" />
-                </IconButton>
-              </div>
-              <div className="flex gap-0.5">
-                <IconButton
-                  label="Align top"
-                  size="md"
-                  onClick={() => handleAlign(actions.align, 'vertical', 'min')}
-                >
-                  <AlignStartHorizontal className="size-3.5" />
-                </IconButton>
-                <IconButton
-                  label="Align vertical centers"
-                  size="md"
-                  onClick={() => handleAlign(actions.align, 'vertical', 'center')}
-                >
-                  <AlignCenterHorizontal className="size-3.5" />
-                </IconButton>
-                <IconButton
-                  label="Align bottom"
-                  size="md"
-                  onClick={() => handleAlign(actions.align, 'vertical', 'max')}
-                >
-                  <AlignEndHorizontal className="size-3.5" />
-                </IconButton>
-              </div>
-              <div className="flex gap-0.5">
-                <IconButton
-                  label="Distribute horizontal spacing"
-                  size="md"
-                  disabled={!canDistribute}
-                  onClick={() => actions.distribute('horizontal')}
-                >
-                  <AlignHorizontalSpaceBetween className="size-3.5" />
-                </IconButton>
-                <IconButton
-                  label="Distribute vertical spacing"
-                  size="md"
-                  disabled={!canDistribute}
-                  onClick={() => actions.distribute('vertical')}
-                >
-                  <AlignVerticalSpaceBetween className="size-3.5" />
-                </IconButton>
-              </div>
+              <IconButton
+                label="Align left"
+                size="sm"
+                onClick={() => handleAlign(actions.align, 'horizontal', 'min')}
+              >
+                <AlignStartVertical className="size-3.5" />
+              </IconButton>
+              <IconButton
+                label="Align horizontal centers"
+                size="sm"
+                onClick={() => handleAlign(actions.align, 'horizontal', 'center')}
+              >
+                <AlignCenterVertical className="size-3.5" />
+              </IconButton>
+              <IconButton
+                label="Align right"
+                size="sm"
+                onClick={() => handleAlign(actions.align, 'horizontal', 'max')}
+              >
+                <AlignEndVertical className="size-3.5" />
+              </IconButton>
+              <div className="h-3.5 w-px bg-border/50" />
+              <IconButton
+                label="Align top"
+                size="sm"
+                onClick={() => handleAlign(actions.align, 'vertical', 'min')}
+              >
+                <AlignStartHorizontal className="size-3.5" />
+              </IconButton>
+              <IconButton
+                label="Align vertical centers"
+                size="sm"
+                onClick={() => handleAlign(actions.align, 'vertical', 'center')}
+              >
+                <AlignCenterHorizontal className="size-3.5" />
+              </IconButton>
+              <IconButton
+                label="Align bottom"
+                size="sm"
+                onClick={() => handleAlign(actions.align, 'vertical', 'max')}
+              >
+                <AlignEndHorizontal className="size-3.5" />
+              </IconButton>
+              <div className="h-3.5 w-px bg-border/50" />
+              <IconButton
+                label="Distribute horizontal spacing"
+                size="sm"
+                disabled={!canDistribute}
+                onClick={() => actions.distribute('horizontal')}
+              >
+                <AlignHorizontalSpaceBetween className="size-3.5" />
+              </IconButton>
+              <IconButton
+                label="Distribute vertical spacing"
+                size="sm"
+                disabled={!canDistribute}
+                onClick={() => actions.distribute('vertical')}
+              >
+                <AlignVerticalSpaceBetween className="size-3.5" />
+              </IconButton>
             </div>
 
             <PanelGrid columns={2}>

@@ -67,7 +67,9 @@ export const MAX_FIGMA_CLIPBOARD_NODES = 30_000
 
 export async function parseFigmaClipboard(
   html: string
-): Promise<{ nodes: KiwiNodeChange[]; meta: FigmaClipboardMeta; blobs: Uint8Array[] } | 'too-large' | null> {
+): Promise<
+  { nodes: KiwiNodeChange[]; meta: FigmaClipboardMeta; blobs: Uint8Array[] } | 'too-large' | null
+> {
   // Guard BEFORE regex: the Figma clipboard HTML is ~200 bytes of wrapper + the full base64
   // payload. Running match() on a multi-hundred-MB string is itself enough to OOM the
   // WebView renderer. Reject here before allocating any regex match objects.
@@ -124,7 +126,6 @@ export async function parseFigmaClipboard(
     return null
   }
 }
-
 
 const NON_VISUAL_TYPES = new Set([
   'DOCUMENT',

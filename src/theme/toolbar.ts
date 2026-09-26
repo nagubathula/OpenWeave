@@ -1,11 +1,11 @@
 const toolbarTheme = {
   slots: {
     button:
-      'flex size-8 cursor-pointer items-center justify-center rounded-md border-none bg-transparent text-[#cecece] transition-colors outline-none focus-visible:ring-1 focus-visible:ring-accent',
+      'flex size-8 cursor-pointer items-center justify-center rounded-lg border-none bg-transparent text-[#cecece] transition-all outline-none focus-visible:ring-1 focus-visible:ring-accent active:scale-95',
     icon: 'size-[18px]',
-    flyoutGroup: 'flex items-center rounded-md',
+    flyoutGroup: 'flex items-center rounded-lg',
     flyoutTrigger:
-      'flex h-8 w-4 cursor-pointer items-center justify-center border-none bg-transparent p-0 text-[#9a9a9a] outline-none data-[state=open]:text-white focus-visible:ring-1 focus-visible:ring-accent',
+      'flex h-8 w-3.5 cursor-pointer items-center justify-center border-none bg-transparent p-0 text-[#9a9a9a] outline-none data-[state=open]:text-white focus-visible:ring-1 focus-visible:ring-accent',
     flyoutTriggerIcon: 'size-3',
     flyoutContent: '',
     flyoutItem: '',
@@ -16,13 +16,13 @@ const toolbarTheme = {
       'flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-full border border-border bg-panel text-muted shadow-sm outline-none select-none focus-visible:ring-1 focus-visible:ring-accent disabled:pointer-events-none',
     navigationIcon: 'size-3.5',
     action:
-      'flex size-8 cursor-pointer items-center justify-center rounded-md border-none bg-transparent text-[#cecece] transition-colors outline-none select-none active:bg-white/15 focus-visible:ring-1 focus-visible:ring-accent',
+      'flex size-8 cursor-pointer items-center justify-center rounded-lg border-none bg-transparent text-[#cecece] transition-all outline-none select-none active:bg-white/15 focus-visible:ring-1 focus-visible:ring-accent',
     actionIcon: 'size-[18px]'
   },
   variants: {
     active: {
       true: {
-        button: 'bg-accent text-white'
+        button: 'bg-accent text-white shadow-sm font-semibold'
       },
       false: {}
     },

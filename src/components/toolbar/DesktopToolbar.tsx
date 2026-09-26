@@ -61,7 +61,7 @@ export default function DesktopToolbar({
       <div className="absolute bottom-3 left-1/2 z-20 flex -translate-x-1/2 items-center transition-all duration-300">
         <div
           data-test-id="toolbar"
-          className="flex items-center gap-1 rounded-full bg-panel px-2 py-1.5 shadow-[0_8px_30px_rgb(0_0_0/0.45)] border border-primary/20"
+          className="flex items-center gap-1 rounded-2xl border border-white/10 bg-[#242424]/90 px-2 py-1.5 shadow-[0_12px_32px_rgba(0,0,0,0.5)] backdrop-blur-md"
         >
           <div className="flex items-center gap-0.5">
             <Tip label={`${toolLabels.SELECT} (V)`}>
@@ -120,7 +120,7 @@ export default function DesktopToolbar({
       <div className="absolute bottom-3 left-1/2 z-20 flex -translate-x-1/2 items-center transition-all duration-300">
         <div
           data-test-id="crop-toolbar"
-          className="flex items-center gap-2 rounded-full bg-panel px-3 py-1.5 shadow-[0_8px_30px_rgb(0_0_0/0.45)] border border-primary/20 text-xs"
+          className="flex items-center gap-2 rounded-2xl border border-white/10 bg-[#242424]/90 px-3 py-1.5 text-xs shadow-[0_12px_32px_rgba(0,0,0,0.5)] backdrop-blur-md"
         >
           <span className="text-muted font-medium">Crop Image</span>
           <div className="h-4 w-px bg-border/60" />
@@ -156,7 +156,7 @@ export default function DesktopToolbar({
     <div className="absolute bottom-3 left-1/2 z-20 flex -translate-x-1/2 items-center transition-all duration-300">
       <div
         data-test-id="toolbar"
-        className="flex items-center gap-0.5 rounded-full bg-panel px-1.5 py-1.5 shadow-[0_8px_30px_rgb(0_0_0/0.45)]"
+        className="flex items-center gap-0.5 rounded-2xl border border-white/10 bg-[#242424]/90 px-1.5 py-1.5 shadow-[0_12px_32px_rgba(0,0,0,0.5)] backdrop-blur-md"
       >
         {tools.map((tool) => {
           if (tool.flyout && tool.flyout.length > 1) {

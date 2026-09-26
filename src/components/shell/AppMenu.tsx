@@ -1,6 +1,6 @@
 import { useStore } from '@nanostores/react'
 import * as Menubar from '@radix-ui/react-menubar'
-import { Check, ChevronRight, Settings, PanelLeft } from 'lucide-react'
+import { Check, ChevronRight, Settings, PanelLeft, ChevronDown } from 'lucide-react'
 /* eslint-disable openweave/no-hardcoded-tip-labels */
 import React, { useState, useRef, useEffect, useReducer } from 'react'
 
@@ -146,7 +146,7 @@ export default function AppMenu() {
           <input
             ref={inputRef}
             data-test-id="app-document-name-input"
-            className="min-w-0 flex-1 rounded border border-accent bg-input px-1 py-0.5 text-xs text-surface outline-none"
+            className="min-w-0 flex-1 rounded border border-accent bg-input px-1.5 py-0.5 text-xs text-surface outline-none"
             defaultValue={documentName}
             onBlur={(e) => commitRename(e.target.value)}
             onKeyDown={(e) => {
@@ -158,13 +158,17 @@ export default function AppMenu() {
             }}
           />
         ) : (
-          <span
-            data-test-id="app-document-name"
-            className="min-w-0 flex-1 cursor-default truncate rounded px-1 py-0.5 text-xs text-surface hover:bg-hover"
-            onDoubleClick={() => setIsEditing(true)}
-          >
-            {documentName || 'Untitled'}
-          </span>
+          <div className="flex min-w-0 flex-1 flex-col">
+            <div
+              data-test-id="app-document-name"
+              className="flex cursor-pointer items-center gap-1 truncate rounded px-1 py-0.5 text-xs font-semibold text-surface transition-colors hover:bg-hover"
+              onClick={() => setIsEditing(true)}
+            >
+              <span className="truncate">{documentName || 'Untitled'}</span>
+              <ChevronDown className="size-3 shrink-0 text-muted" />
+            </div>
+            <span className="px-1 text-[10px] leading-tight text-muted">Drafts</span>
+          </div>
         )}
         <Tip label="Settings" side="bottom">
           <button

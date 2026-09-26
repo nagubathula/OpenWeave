@@ -1,7 +1,7 @@
 import type { EditorStore } from '@/app/editor/active-store'
 import { readClipboardHtml } from '@/app/editor/clipboard/system'
-import { isTauri } from '@/app/tauri/env'
 import { toast } from '@/app/shell/ui'
+import { isTauri } from '@/app/tauri/env'
 
 export async function pasteClipboardToReplace(store: EditorStore) {
   try {

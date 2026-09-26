@@ -58,7 +58,7 @@ const SYSTEM_FONT_FALLBACKS: Record<string, string> = {
   'San Francisco': 'Inter',
   'Apple System': 'Inter',
   '-apple-system': 'Inter',
-  'BlinkMacSystemFont': 'Inter'
+  BlinkMacSystemFont: 'Inter'
 }
 
 export function getKnownFontFallbackFamily(family: string): string | null {

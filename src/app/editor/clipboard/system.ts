@@ -1,10 +1,7 @@
 import type { Vector } from '@openweave/scene-graph/primitives'
 
 import type { EditorStore } from '@/app/editor/active-store'
-import {
-  readTauriClipboardHtmlLimited,
-  writeTauriClipboardHtml
-} from '@/app/tauri/clipboard'
+import { readTauriClipboardHtmlLimited, writeTauriClipboardHtml } from '@/app/tauri/clipboard'
 import { isTauri } from '@/app/tauri/env'
 
 function createTransfer() {
@@ -43,7 +40,14 @@ export async function pasteFromTauriClipboard(store: EditorStore, cursorPos?: Ve
   if (!isTauri()) return false
   try {
     const text = await readTauriClipboardHtmlLimited()
-    console.log('[OW-PASTE] Rust returned:', text === null ? 'null' : text === '__OW_CLIPBOARD_TOO_LARGE__' ? 'TOO_LARGE' : `string(${text.length})`)
+    console.log(
+      '[OW-PASTE] Rust returned:',
+      text === null
+        ? 'null'
+        : text === '__OW_CLIPBOARD_TOO_LARGE__'
+          ? 'TOO_LARGE'
+          : `string(${text.length})`
+    )
     if (!text) return false
     // Rust signalled the payload is too large before passing bytes to JS.
     if (text === '__OW_CLIPBOARD_TOO_LARGE__') {

@@ -20,15 +20,14 @@ import { useMenu } from '@/app/shell/menu/use'
 import { activeTabId, getActiveStore } from '@/app/tabs'
 import { isTauri } from '@/app/tauri/env'
 import AcpPermissionDialog from '@/components/chat/AcpPermissionDialog'
-import CollabPanel from '@/components/collab-panel/CollabPanel'
 import CommandPalette from '@/components/command-palette/CommandPalette'
-import DevModeToggle from '@/components/dev-mode/DevModeToggle'
 import EditorCanvas from '@/components/editor-canvas/EditorCanvas'
 import HomeScreen from '@/components/home/HomeScreen'
 import LayersPanel from '@/components/layers-panel/LayersPanel'
 import MobileDrawer from '@/components/mobile-drawer/MobileDrawer'
 import MobileHud from '@/components/mobile-hud/MobileHud'
 import PropertiesPanel from '@/components/properties-panel/PropertiesPanel'
+import TopRightHeader from '@/components/properties-panel/TopRightHeader'
 import SafariBanner from '@/components/safari-banner/SafariBanner'
 import RenameSelectionDialog from '@/components/selection/RenameSelectionDialog'
 import AppToast from '@/components/shell/AppToast'
@@ -244,6 +243,28 @@ export function EditorLayout() {
                   <div className="relative flex flex-col flex-1 min-h-0 min-w-0 size-full">
                     <EditorCanvas key={currentTabId} />
                     <Toolbar />
+                    <div className="absolute bottom-3 right-3 z-20">
+                      {/* oxlint-disable-next-line openweave/no-hardcoded-tip-labels */}
+                      <Tip label="Help & Shortcuts (?)" side="left">
+                        <button
+                          type="button"
+                          data-test-id="canvas-help-button"
+                          aria-label="Help & Shortcuts"
+                          className="flex size-7 cursor-pointer items-center justify-center rounded-full border border-white/10 bg-[#242424]/90 text-muted shadow-md backdrop-blur-md transition-all hover:bg-hover hover:text-surface active:scale-95"
+                          onClick={() => {
+                            window.dispatchEvent(
+                              new KeyboardEvent('keydown', {
+                                key: 'k',
+                                metaKey: true,
+                                bubbles: true
+                              })
+                            )
+                          }}
+                        >
+                          <span className="text-xs font-semibold">?</span>
+                        </button>
+                      </Tip>
+                    </div>
                   </div>
                 </div>
               </Panel>
@@ -261,10 +282,7 @@ export function EditorLayout() {
                 className="bg-panel/50 border-l border-border/50"
               >
                 <div className="flex h-full flex-col">
-                  <div className="flex shrink-0 items-center justify-between gap-2 border-b border-border px-2 py-1.5">
-                    <DevModeToggle />
-                    <CollabPanel />
-                  </div>
+                  <TopRightHeader />
                   <PropertiesPanel />
                 </div>
               </Panel>

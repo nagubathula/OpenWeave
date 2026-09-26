@@ -7,7 +7,6 @@ import { useAIChat, type PropertiesTab } from '@/app/ai/chat/use'
 import { useEditorStore } from '@/app/editor/active-store'
 import ChatPanel from '@/components/chat/ChatPanel'
 import DevPanel from '@/components/dev-mode/DevPanel'
-import ZoomDropdown from '@/components/editor/ZoomDropdown'
 import CodePanel from '@/components/properties/CodePanel'
 import DesignPanel from '@/components/properties/DesignPanel'
 import MotionPanel from '@/components/properties/MotionPanel'
@@ -93,12 +92,6 @@ export default function PropertiesPanel() {
             <Sparkles className="size-3" />
             AI
           </Tabs.Trigger>
-
-          {activeTab === 'design' && (
-            <div className="ml-auto pr-2">
-              <ZoomDropdown />
-            </div>
-          )}
         </Tabs.List>
 
         <Tabs.Content value="design" className="flex min-h-0 flex-1 flex-col">
