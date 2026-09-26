@@ -8,7 +8,7 @@ const nextConfig = {
   output: 'export',
   distDir: 'dist',
   reactStrictMode: false,
-  allowedDevOrigins: ['*.ngrok-free.dev', '*.ngrok-free.app', '*.ngrok.app', '*.ngrok.io', 'localhost'],
+  allowedDevOrigins: ['*.ngrok-free.dev', '*.ngrok-free.app', '*.ngrok.app', '*.ngrok.io', 'localhost', '127.0.0.1'],
   serverExternalPackages: ['@acemir/cssom', 'parse5', 'canvaskit-wasm'],
   images: {
     unoptimized: true
