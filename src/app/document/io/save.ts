@@ -46,10 +46,36 @@ export function createSaveActions({
   })
 
   async function saveFigFile() {
-    const filePath = getFilePath()
+    let filePath = getFilePath()
     const fileHandle = getFileHandle()
     const storageBinding = getStorageBinding()
     const downloadName = getDownloadName()
+
+    if (IS_TAURI && filePath && !storageBinding) {
+      const currentName = documentNameFromFigPath(filePath)
+      const targetName = state.documentName.trim()
+      if (targetName && currentName !== targetName) {
+        try {
+          const { dirname, join } = await import('@tauri-apps/api/path')
+          const { exists, rename } = await import('@tauri-apps/plugin-fs')
+          const dir = await dirname(filePath)
+          const safeName = targetName.replace(/[\\/]/g, '-') || 'Untitled'
+          const newPath = await join(dir, `${safeName}.fig`)
+          if (newPath !== filePath) {
+            if (await exists(filePath)) {
+              await rename(filePath, newPath)
+            }
+            setFilePath(newPath)
+            filePath = newPath
+            setSourceIdentity({ handle: null, path: newPath })
+            startWatchingFile()
+          }
+        } catch (e) {
+          console.warn('Failed to rename file on disk:', e)
+        }
+      }
+    }
+
     if (storageBinding || filePath || fileHandle) {
       const wrote = await writeFile(await buildFigFile())
       if (wrote && !storageBinding) {

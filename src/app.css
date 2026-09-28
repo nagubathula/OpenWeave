@@ -29,20 +29,20 @@
 }
 
 @theme {
-  --color-panel: #2a2a2a;
-  --color-panel-secondary: #242424;
-  --color-panel-field: #383838;
-  --color-panel-field-hover: #404040;
+  --color-panel: #222222;
+  --color-panel-secondary: #1a1a1a;
+  --color-panel-field: #2c2c2c;
+  --color-panel-field-hover: #333333;
   --color-panel-focus: #0c8ce9;
   --color-panel-selected: #0c8ce9;
   --color-panel-selected-muted: #1e3a5f;
-  --color-canvas: #1e1e1e;
-  --color-border: #383838;
-  --color-hover: #333333;
+  --color-canvas: #161616;
+  --color-border: #333333;
+  --color-hover: #2b2b2b;
   --color-accent: #0c8ce9;
-  --color-surface: #f0f0f0;
-  --color-muted: #888888;
-  --color-input: #1e1e1e;
+  --color-surface: #f3f3f3;
+  --color-muted: #8e8e8e;
+  --color-input: #1a1a1a;
   --color-component: #9747ff;
   --color-warning-bg: rgb(245 158 11 / 0.1);
   --color-warning-border: rgb(245 158 11 / 0.3);

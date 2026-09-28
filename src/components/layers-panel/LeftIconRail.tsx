@@ -43,7 +43,9 @@ export default function LeftIconRail({ activeTab, onSelectTab }: LeftIconRailPro
             className="flex size-7 cursor-pointer items-center justify-center rounded-lg transition-transform hover:scale-105 active:scale-95"
             onClick={() => openHome()}
           >
-            <img src="/favicon-32.png" className="size-4" alt="OpenWeave" />
+            <div className="flex size-6 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 text-white shadow-xs">
+              <Layers className="size-3.5" />
+            </div>
           </button>
         </Tip>
 

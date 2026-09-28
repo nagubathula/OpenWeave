@@ -1,6 +1,6 @@
 import { useStore } from '@nanostores/react'
 import * as Menubar from '@radix-ui/react-menubar'
-import { Check, ChevronRight, Settings, PanelLeft, ChevronDown } from 'lucide-react'
+import { Check, ChevronRight, Settings, PanelLeft, ChevronDown, Layers } from 'lucide-react'
 /* eslint-disable openweave/no-hardcoded-tip-labels */
 import React, { useState, useRef, useEffect, useReducer } from 'react'
 
@@ -70,37 +70,42 @@ function MenuEntryItems({ items, cls }: { items: MenuEntry[]; cls: ReturnType<ty
   )
 }
 
-/** The File/Edit/View/Object/Text/Arrange strip shown in browser (non-Tauri) mode. */
-function AppMenubar() {
+function AppMenuDropdown() {
   const { topMenus } = useAppMenu()
-  // Recompute checked/disabled state from the stores each time a menu opens.
   const [, forceRender] = useReducer((n: number): number => n + 1, 0)
   const menuCls = useMenuUI()
-  const mainMenuCls = useMenuUI({ content: 'min-w-52' })
+  const mainMenuCls = useMenuUI({ content: 'min-w-44 z-50' })
+  const subCls = useMenuUI({ content: 'min-w-44 z-50' })
 
   return (
-    <div className="flex items-center px-1 pb-1">
-      <Menubar.Root
-        className="scrollbar-none flex items-center gap-0.5 overflow-x-auto"
-        onValueChange={() => forceRender()}
-      >
-        {topMenus.map((menu) => (
-          <Menubar.Menu key={menu.label}>
-            <Menubar.Trigger
-              data-test-id={`menubar-${menu.label.toLowerCase()}`}
-              className="flex cursor-pointer items-center rounded px-2 py-1 text-[11px] text-surface/80 transition-colors select-none hover:bg-hover hover:text-surface data-[state=open]:bg-hover data-[state=open]:text-surface"
-            >
-              {menu.label}
-            </Menubar.Trigger>
-            <Menubar.Portal>
-              <Menubar.Content sideOffset={4} align="start" className={mainMenuCls.content}>
-                <MenuEntryItems items={menu.items} cls={menuCls} />
-              </Menubar.Content>
-            </Menubar.Portal>
-          </Menubar.Menu>
-        ))}
-      </Menubar.Root>
-    </div>
+    <Menubar.Root onValueChange={() => forceRender()} className="inline-flex">
+      <Menubar.Menu>
+        <Menubar.Trigger
+          data-test-id="menubar-main-trigger"
+          aria-label="Document options"
+          className="flex size-4 cursor-pointer items-center justify-center rounded text-muted transition-colors hover:bg-hover hover:text-surface data-[state=open]:bg-hover data-[state=open]:text-surface outline-none"
+        >
+          <ChevronDown className="size-3" />
+        </Menubar.Trigger>
+        <Menubar.Portal>
+          <Menubar.Content sideOffset={4} align="start" className={mainMenuCls.content}>
+            {topMenus.map((menu) => (
+              <Menubar.Sub key={menu.label}>
+                <Menubar.SubTrigger className={menuCls.item}>
+                  <span className="flex-1">{menu.label}</span>
+                  <ChevronRight className="size-3 text-muted" />
+                </Menubar.SubTrigger>
+                <Menubar.Portal>
+                  <Menubar.SubContent sideOffset={4} className={subCls.content}>
+                    <MenuEntryItems items={menu.items} cls={menuCls} />
+                  </Menubar.SubContent>
+                </Menubar.Portal>
+              </Menubar.Sub>
+            ))}
+          </Menubar.Content>
+        </Menubar.Portal>
+      </Menubar.Menu>
+    </Menubar.Root>
   )
 }
 
@@ -121,10 +126,17 @@ export default function AppMenu() {
     }
   }, [isEditing])
 
-  const commitRename = (name: string) => {
+  useEffect(() => {
+    if (IS_TAURI && documentName && documentName !== 'Untitled') {
+      void store.saveFigFile?.()
+    }
+  }, [documentName, store])
+
+  const commitRename = async (name: string) => {
     const trimmed = name.trim()
     if (trimmed) {
       store.state.documentName = trimmed
+      await store.saveFigFile?.()
     }
     setIsEditing(false)
   }
@@ -139,7 +151,12 @@ export default function AppMenu() {
             className="flex size-5 shrink-0 cursor-pointer items-center justify-center rounded transition-opacity hover:opacity-80 outline-none"
             onClick={() => openHome()}
           >
-            <img data-test-id="app-logo" src="/favicon-32.png" className="size-4" alt="OpenWeave" />
+            <div
+              data-test-id="app-logo"
+              className="flex size-4.5 items-center justify-center rounded-md bg-gradient-to-br from-indigo-500 to-purple-600 text-white shadow-xs"
+            >
+              <Layers className="size-3" />
+            </div>
           </button>
         </Tip>
         {isEditing ? (
@@ -159,13 +176,15 @@ export default function AppMenu() {
           />
         ) : (
           <div className="flex min-w-0 flex-1 flex-col">
-            <div
-              data-test-id="app-document-name"
-              className="flex cursor-pointer items-center gap-1 truncate rounded px-1 py-0.5 text-xs font-semibold text-surface transition-colors hover:bg-hover"
-              onClick={() => setIsEditing(true)}
-            >
-              <span className="truncate">{documentName || 'Untitled'}</span>
-              <ChevronDown className="size-3 shrink-0 text-muted" />
+            <div className="flex items-center gap-0.5 min-w-0">
+              <span
+                data-test-id="app-document-name"
+                className="cursor-pointer truncate rounded px-1 py-0.5 text-xs font-semibold text-surface transition-colors hover:bg-hover"
+                onClick={() => setIsEditing(true)}
+              >
+                {documentName || 'Untitled'}
+              </span>
+              <AppMenuDropdown />
             </div>
             <span className="px-1 text-[10px] leading-tight text-muted">Drafts</span>
           </div>
@@ -193,7 +212,6 @@ export default function AppMenu() {
           </button>
         </Tip>
       </div>
-      {!IS_TAURI && <AppMenubar />}
       <SettingsDialog
         open={settingsOpen}
         onClose={() => {

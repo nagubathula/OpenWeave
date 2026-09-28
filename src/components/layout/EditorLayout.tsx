@@ -1,5 +1,5 @@
 import { useStore } from '@nanostores/react'
-import { Sidebar } from 'lucide-react'
+import { Sidebar, Layers } from 'lucide-react'
 import React, { useEffect, useState, useRef, useCallback } from 'react'
 import { Panel, Group, Separator } from 'react-resizable-panels'
 import { useEventListener } from 'usehooks-ts'
@@ -47,7 +47,9 @@ function CollapsedChrome() {
 
   return (
     <div className="absolute top-7 left-7 z-10 flex items-center gap-2 rounded-lg border border-border bg-panel px-2 py-1 shadow-sm">
-      <img src="/favicon-32.png" className="size-4" alt="OpenWeave" />
+      <div className="flex size-4 items-center justify-center rounded bg-gradient-to-br from-indigo-500 to-purple-600 text-white shadow-xs">
+        <Layers className="size-2.5" />
+      </div>
       <span data-test-id="editor-document-name" className="text-xs text-surface">
         {name}
       </span>
@@ -208,7 +210,7 @@ export function EditorLayout() {
           <div className="flex flex-1 flex-col min-h-0 min-w-0 overflow-hidden">
             <Group
               orientation="horizontal"
-              className="flex-1 min-h-0"
+              className="flex-1 min-h-0 bg-canvas p-2 gap-2"
               defaultLayout={(() => {
                 const [layers, canvas, properties] = loadEditorLayout()
                 return { layers, canvas, properties }
@@ -223,20 +225,20 @@ export function EditorLayout() {
                 defaultSize="20%"
                 minSize="15%"
                 maxSize="40%"
-                className="bg-panel/50 border-r border-border/50"
+                className="overflow-hidden rounded-2xl border border-white/10 bg-panel shadow-[0_8px_32px_rgba(0,0,0,0.4)]"
               >
                 <LayersPanel />
               </Panel>
 
               <Separator
                 data-test-id="left-splitter-handle"
-                className="w-1 bg-border/50 hover:bg-accent hover:w-2 transition-all"
+                className="w-1 cursor-col-resize rounded-full bg-transparent hover:bg-accent/60 hover:w-1.5 transition-all"
               />
 
               <Panel
                 id="canvas"
                 minSize="30%"
-                className="overflow-hidden"
+                className="overflow-hidden rounded-2xl border border-white/5 bg-[#141414] shadow-inner"
                 style={{ overflow: 'hidden' }}
               >
                 <div className="relative flex h-full flex-col overflow-hidden">
@@ -271,7 +273,7 @@ export function EditorLayout() {
 
               <Separator
                 data-test-id="right-splitter-handle"
-                className="w-1 bg-border/50 hover:bg-accent hover:w-2 transition-all"
+                className="w-1 cursor-col-resize rounded-full bg-transparent hover:bg-accent/60 hover:w-1.5 transition-all"
               />
 
               <Panel
@@ -279,7 +281,7 @@ export function EditorLayout() {
                 defaultSize="20%"
                 minSize="15%"
                 maxSize="40%"
-                className="bg-panel/50 border-l border-border/50"
+                className="overflow-hidden rounded-2xl border border-white/10 bg-panel shadow-[0_8px_32px_rgba(0,0,0,0.4)]"
               >
                 <div className="flex h-full flex-col">
                   <TopRightHeader />

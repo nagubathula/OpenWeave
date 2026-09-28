@@ -1,3 +1,4 @@
+/* eslint-disable openweave/no-hardcoded-tip-labels */
 import * as ContextMenu from '@radix-ui/react-context-menu'
 import {
   BookOpen,

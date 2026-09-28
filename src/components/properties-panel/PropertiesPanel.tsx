@@ -37,7 +37,7 @@ export default function PropertiesPanel() {
   return (
     <aside
       data-test-id="properties-panel"
-      className="flex min-w-0 flex-1 flex-col overflow-hidden border-l border-border bg-panel w-full"
+      className="flex min-w-0 flex-1 flex-col overflow-hidden bg-panel w-full"
       style={{ contain: 'paint layout style' }}
     >
       <Tabs.Root

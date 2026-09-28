@@ -17,7 +17,7 @@ export default function LayersPanel() {
   return (
     <aside
       data-test-id="layers-panel"
-      className="flex min-w-0 flex-1 overflow-hidden border-r border-border bg-panel h-full"
+      className="flex min-w-0 flex-1 overflow-hidden bg-panel h-full"
       style={{ contain: 'paint layout style' }}
     >
       <LeftIconRail activeTab={activeTab} onSelectTab={setActiveTab} />
