@@ -44,7 +44,7 @@ export function downloadBlob(data: Uint8Array, filename: string, mime: string) {
   document.body.appendChild(a)
   a.click()
   setTimeout(() => {
-    document.body.removeChild(a)
+    document?.body?.removeChild?.(a)
     URL.revokeObjectURL(url)
   }, 100)
 }

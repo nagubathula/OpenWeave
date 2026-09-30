@@ -85,15 +85,21 @@ export function createViewportActions(ctx: EditorContext) {
     const centerY = (-ctx.state.panY + viewH / 2) / ctx.state.zoom
 
     const previous = currentViewport()
-    ctx.state.zoom = Math.max(0.02, Math.min(256, level))
-    ctx.state.panX = viewW / 2 - centerX
-    ctx.state.panY = viewH / 2 - centerY
+    const newZoom = Math.max(0.02, Math.min(256, level))
+    ctx.state.zoom = newZoom
+    ctx.state.panX = viewW / 2 - centerX * newZoom
+    ctx.state.panY = viewH / 2 - centerY * newZoom
     ctx.requestRepaint()
     emitViewportChanged(previous)
   }
 
   function zoomTo100() {
     zoomToLevel(1)
+  }
+
+  function zoomToPhysical(screenPpi: number, targetDpi = 96) {
+    if (screenPpi <= 0) return
+    zoomToLevel(screenPpi / targetDpi)
   }
 
   function zoomToSelection() {
@@ -150,8 +156,10 @@ export function createViewportActions(ctx: EditorContext) {
     zoomToFit,
     zoomTo100,
     zoomToLevel,
+    zoomToPhysical,
     zoomToSelection,
     zoomToNode,
-    setDevMode
+    setDevMode,
+    getViewportSize: () => ctx.getViewportSize()
   }
 }

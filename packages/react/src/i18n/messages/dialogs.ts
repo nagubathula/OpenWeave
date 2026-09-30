@@ -260,7 +260,22 @@ export const dialogMessageDefaults = {
   addVariableColorDescription: 'Solid color token',
   addVariableNumberDescription: 'Numeric value',
   addVariableTextDescription: 'Text value',
-  addVariableBooleanDescription: 'True / false toggle'
+  addVariableBooleanDescription: 'True / false toggle',
+  displayScaleTitle: 'Display Scale Calibration',
+  displayScaleDescription:
+    'Calibrate your screen to view designs at their true real-world physical size.',
+  creditCardCalibration: 'Credit Card Calibration',
+  creditCardInstruction:
+    'Hold any standard credit card, debit card, or ID against your screen, then adjust the slider until the outline matches your physical card.',
+  standardCardDimensions: 'Standard card: 85.60 × 53.98 mm (3.37" × 2.13")',
+  cardWidthLabel: 'Card width',
+  screenDensityLabel: 'Screen density',
+  pixelsPerInch: 'PPI',
+  zoomForRealSizeLabel: 'Zoom for 1:1 physical size',
+  zoomForMobileLabel: 'Zoom for mobile screen',
+  displayPresetsTitle: 'Display presets',
+  saveAndZoomRealSize: 'Save & Zoom to Real Size',
+  resetToDefault: 'Reset to default'
 } as const
 
 export const dialogMessages = i18n('dialogs', dialogMessageDefaults)

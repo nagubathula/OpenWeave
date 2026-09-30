@@ -238,5 +238,18 @@
   "addVariableColorDescription": "Einfarbiger Token",
   "addVariableNumberDescription": "Numerischer Wert",
   "addVariableTextDescription": "Textwert",
-  "addVariableBooleanDescription": "Wahr/Falsch-Umschalter"
+  "addVariableBooleanDescription": "Wahr/Falsch-Umschalter",
+  "displayScaleTitle": "Bildschirmmaßstab-Kalibrierung",
+  "displayScaleDescription": "Kalibrieren Sie Ihren Bildschirm, um Designs in ihrer echten physischen Größe zu betrachten.",
+  "creditCardCalibration": "Kreditkarten-Kalibrierung",
+  "creditCardInstruction": "Halten Sie eine beliebige Standard-Kreditkarte, Debitkarte oder einen Ausweis an den Bildschirm und passen Sie den Schieberegler an, bis der Umriss genau zu Ihrer physischen Karte passt.",
+  "standardCardDimensions": "Standardkarte: 85,60 × 53,98 mm (3,37\" × 2,13\")",
+  "cardWidthLabel": "Kartenbreite",
+  "screenDensityLabel": "Pixeldichte",
+  "pixelsPerInch": "PPI",
+  "zoomForRealSizeLabel": "Zoom für 1:1 physische Größe",
+  "zoomForMobileLabel": "Zoom für Smartphone-Display",
+  "displayPresetsTitle": "Display-Voreinstellungen",
+  "saveAndZoomRealSize": "Speichern & auf reale Größe zoomen",
+  "resetToDefault": "Auf Standard zurücksetzen"
 }

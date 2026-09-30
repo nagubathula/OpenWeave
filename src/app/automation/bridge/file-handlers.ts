@@ -6,7 +6,7 @@ import {
 import { resolveBrowserFileURL } from '@/app/document/io/browser'
 import { openFileFromPath } from '@/app/shell/menu/use'
 import { createTab, getActiveStore, openFileInNewTab } from '@/app/tabs'
-import { isTauri } from '@/app/tauri/env'
+import { isDesktop, isTauri } from '@/app/tauri/env'
 
 export async function handleSaveFile(target: AutomationTarget, args: unknown): Promise<unknown> {
   const store = target.store
@@ -21,14 +21,14 @@ export async function handleSaveFile(target: AutomationTarget, args: unknown): P
 }
 
 export async function ensureTauriParentDirectory(path: string): Promise<void> {
-  if (!isTauri()) return
-  const [{ dirname }, { mkdir }] = await Promise.all([
-    import('@tauri-apps/api/path'),
-    import('@tauri-apps/plugin-fs')
-  ])
-  const dir = await dirname(path)
-  if (dir === path) return
-  await mkdir(dir, { recursive: true })
+  if (!isDesktop() && !isTauri()) return
+  if (typeof window !== 'undefined' && (window as any).electron?.fs) {
+    const electron = (window as any).electron
+    const lastSlash = Math.max(path.lastIndexOf('/'), path.lastIndexOf('\\'))
+    if (lastSlash <= 0) return
+    const dir = path.slice(0, lastSlash)
+    await electron.fs.mkdir(dir, { recursive: true }).catch(() => {})
+  }
 }
 
 export async function handleNewDocument(
@@ -50,7 +50,7 @@ export async function handleNewDocument(
 export async function handleOpenFile(_target: AutomationTarget, args: unknown): Promise<unknown> {
   const path = (args as { path?: string }).path
   if (!path) throw new Error('Missing "path" in args')
-  if (isTauri()) {
+  if (isDesktop() || isTauri()) {
     await openFileFromPath(path)
   } else {
     const resourceURL = resolveBrowserFileURL(path)

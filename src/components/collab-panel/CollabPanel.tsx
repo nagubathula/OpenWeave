@@ -1,8 +1,7 @@
 import { useStore } from '@nanostores/react'
 import * as Popover from '@radix-ui/react-popover'
-import { Check, Copy, Globe, Share2, Users } from 'lucide-react'
+import { Check, Copy, Globe, Lock, Share2, Users } from 'lucide-react'
 import { atom } from 'nanostores'
-import { useRouter } from 'next/navigation'
 import React, { createContext, useContext, useEffect, useRef, useState } from 'react'
 import { tv } from 'tailwind-variants'
 
@@ -11,6 +10,7 @@ import { useI18n } from '@openweave/react'
 
 import {
   getTunnelShareUrl,
+  setCustomTunnelUrl,
   shareTunnelState,
   startShareTunnel,
   stopShareTunnel,
@@ -32,7 +32,7 @@ import {
 } from '@/components/ui/dialog'
 import { usePopoverUI } from '@/components/ui/popover'
 import Tip from '@/components/ui/Tip'
-import { getShareUrl, IS_TAURI } from '@/constants'
+import { getShareUrl } from '@/constants'
 import collaborationTheme from '@/theme/collaboration'
 
 /**
@@ -64,7 +64,6 @@ function extractRoomId(input: string): string {
 }
 
 function useCollabPanelState() {
-  const router = useRouter()
   const collab = useCollabInjected()
   const { dialogs } = useI18n()
 
@@ -76,6 +75,9 @@ function useCollabPanelState() {
 
   const [joinInput, setJoinInput] = useState('')
   const [nameDraft, setNameDraft] = useState(collab?.state.get().localName ?? '')
+  const [passwordDraft, setPasswordDraft] = useState('')
+  const [joinPassword, setJoinPassword] = useState('')
+  const [isRoomPasswordProtected, setIsRoomPasswordProtected] = useState(false)
   const [pendingRoomId, setPendingRoomId] = useState<string | null>(null)
   const [popoverOpen, setPopoverOpen] = useState(false)
   const [joinDialogOpen, setJoinDialogOpen] = useState(false)
@@ -84,8 +86,12 @@ function useCollabPanelState() {
 
   // Pending room from the URL (?room=...): auto-open the join dialog.
   useEffect(() => {
-    const roomId = new URLSearchParams(window.location.search).get('room')
+    if (typeof window === 'undefined') return
+    const params = new URLSearchParams(window.location.search)
+    const roomId = params.get('room')
+    const hasPwd = params.has('pwd') || params.get('protected') === '1'
     setPendingRoomId(roomId)
+    setIsRoomPasswordProtected(hasPwd)
     if (roomId && !collab?.state.get().connected) setJoinDialogOpen(true)
   }, [collab])
 
@@ -103,13 +109,16 @@ function useCollabPanelState() {
 
   // A tunnel started before a webview reload keeps running in the backend.
   useEffect(() => {
-    if (IS_TAURI) void syncShareTunnelStatus()
+    void syncShareTunnelStatus()
   }, [])
 
-  const shareUrl = state.roomId ? getShareUrl(state.roomId) : ''
+  const isProtected = state.isProtected ?? Boolean(passwordDraft.trim())
+  const shareUrl = state.roomId ? getShareUrl(state.roomId, isProtected) : ''
   const tunnelShareUrl =
-    tunnel.status === 'active' && state.roomId ? getTunnelShareUrl(tunnel.url, state.roomId) : ''
-  const isJoining = !!pendingRoomId && !state.connected
+    tunnel.status === 'active' && state.roomId
+      ? getTunnelShareUrl(tunnel.url, state.roomId, isProtected)
+      : ''
+  const isJoining = Boolean(pendingRoomId) && !state.connected
 
   const copy = (text: string) => {
     void navigator.clipboard.writeText(text)
@@ -127,15 +136,15 @@ function useCollabPanelState() {
   const copyTunnelLink = () => {
     if (!tunnelShareUrl) return
     copy(tunnelShareUrl)
-    toast.info(dialogs.linkCopiedToClipboard)
+    toast.info('Public ngrok link copied to clipboard!')
   }
 
   const shareViaNgrok = async () => {
     const roomId = state.roomId
     const url = await startShareTunnel()
     if (url && roomId) {
-      copy(getTunnelShareUrl(url, roomId))
-      toast.info(dialogs.linkCopiedToClipboard)
+      copy(getTunnelShareUrl(url, roomId, isProtected))
+      toast.info('Public ngrok link copied to clipboard!')
     }
   }
 
@@ -146,24 +155,39 @@ function useCollabPanelState() {
   const share = () => {
     if (!collab || !nameDraft.trim()) return
     collab.setLocalName(nameDraft.trim())
-    const roomId = collab.shareCurrentDoc()
-    router.push(`/share?room=${roomId}`)
-    copy(getShareUrl(roomId))
-    toast.info(dialogs.linkCopiedToClipboard)
-    setPopoverOpen(false)
+    const pwd = passwordDraft.trim() || undefined
+    const roomId = collab.shareCurrentDoc(pwd)
+    const localUrl = getShareUrl(roomId, Boolean(pwd))
+    if (typeof window !== 'undefined') {
+      window.history.replaceState(null, '', localUrl)
+    }
+    const activeTunnel = tunnel.status === 'active' ? tunnel.url : null
+    if (activeTunnel) {
+      const publicUrl = getTunnelShareUrl(activeTunnel, roomId, Boolean(pwd))
+      copy(publicUrl)
+      toast.info('Public ngrok link copied to clipboard!')
+    } else {
+      copy(localUrl)
+      toast.info(dialogs.linkCopiedToClipboard)
+    }
   }
 
-  // Shares the doc and tunnels it through ngrok in one step. The popover stays
-  // open: it switches to the connected view, which shows tunnel progress, the
-  // public link, or the error with a setup hint.
+  // Shares the doc and tunnels it through ngrok in one step.
   const shareAndTunnel = async () => {
     if (!collab || !nameDraft.trim()) return
     collab.setLocalName(nameDraft.trim())
-    const roomId = collab.shareCurrentDoc()
-    router.push(`/share?room=${roomId}`)
+    const pwd = passwordDraft.trim() || undefined
+    const roomId = collab.shareCurrentDoc(pwd)
+    const localUrl = getShareUrl(roomId, Boolean(pwd))
+    if (typeof window !== 'undefined') {
+      window.history.replaceState(null, '', localUrl)
+    }
     const url = await startShareTunnel()
     if (url) {
-      copy(getTunnelShareUrl(url, roomId))
+      copy(getTunnelShareUrl(url, roomId, Boolean(pwd)))
+      toast.info('Public ngrok link copied to clipboard!')
+    } else {
+      copy(localUrl)
       toast.info(dialogs.linkCopiedToClipboard)
     }
   }
@@ -173,8 +197,12 @@ function useCollabPanelState() {
     const roomId = pendingRoomId || extractRoomId(joinInput)
     if (!roomId || !nameDraft.trim()) return
     collab.setLocalName(nameDraft.trim())
-    collab.connect(roomId)
-    router.push(`/share?room=${roomId}`)
+    const pwd = joinPassword.trim() || undefined
+    collab.connect(roomId, pwd)
+    const url = getShareUrl(roomId, Boolean(pwd || isRoomPasswordProtected))
+    if (typeof window !== 'undefined') {
+      window.history.replaceState(null, '', url)
+    }
     setPopoverOpen(false)
     setJoinDialogOpen(false)
   }
@@ -183,9 +211,14 @@ function useCollabPanelState() {
     if (!collab) return
     collab.disconnect()
     void stopShareTunnel()
+    setPasswordDraft('')
+    setJoinPassword('')
+    setIsRoomPasswordProtected(false)
     setPopoverOpen(false)
     setJoinDialogOpen(false)
-    router.push('/')
+    if (typeof window !== 'undefined') {
+      window.history.replaceState(null, '', '/')
+    }
   }
 
   const toggleFollowPeer = (clientId: number) => {
@@ -199,6 +232,12 @@ function useCollabPanelState() {
     setJoinInput,
     nameDraft,
     setNameDraft,
+    passwordDraft,
+    setPasswordDraft,
+    joinPassword,
+    setJoinPassword,
+    isRoomPasswordProtected,
+    setIsRoomPasswordProtected,
     popoverOpen,
     setPopoverOpen,
     joinDialogOpen,
@@ -214,6 +253,7 @@ function useCollabPanelState() {
     copyTunnelLink,
     shareViaNgrok,
     stopNgrok,
+    setCustomTunnelUrl,
     share,
     shareAndTunnel,
     join: joinRoom,
@@ -285,110 +325,193 @@ function CollabAvatarStack() {
 
 function NgrokShareSection() {
   const collab = usePanel()
-  if (!IS_TAURI) return null
-
-  if (collab.tunnel.status === 'active' && collab.tunnelShareUrl) {
-    return (
-      <>
-        <div className="mb-1 text-xs font-medium text-surface">
-          {collab.dialogs.ngrokPublicLink}
-        </div>
-        <div className="mb-1 flex items-center gap-1.5">
-          <AppInput
-            value={collab.tunnelShareUrl}
-            readOnly
-            data-test-id="collab-ngrok-link"
-            className="min-w-0 flex-1"
-            onFocus={(event) => event.currentTarget.select()}
-          />
-          <button
-            type="button"
-            data-test-id="collab-ngrok-copy-link"
-            className="flex h-7 cursor-pointer items-center gap-1 rounded border-none bg-accent px-2 text-xs text-white hover:bg-accent/90"
-            onClick={collab.copyTunnelLink}
-          >
-            <Copy className="size-3" />
-            {collab.dialogs.copy}
-          </button>
-        </div>
-        <button
-          type="button"
-          data-test-id="collab-ngrok-stop"
-          className="mb-3 cursor-pointer border-none bg-transparent p-0 text-[11px] text-muted hover:text-surface"
-          onClick={collab.stopNgrok}
-        >
-          {collab.dialogs.ngrokStopTunnel}
-        </button>
-      </>
-    )
-  }
+  const [customInput, setCustomInput] = useState('')
+  const [showCustomInput, setShowCustomInput] = useState(false)
 
   return (
-    <>
+    <div className="mb-3 rounded border border-dashed border-border p-2">
+      <div className="mb-1.5 flex items-center justify-between text-[11px] font-medium text-surface">
+        <span className="flex items-center gap-1">
+          <Globe className="size-3 text-muted" />
+          <span>Public Sharing (ngrok)</span>
+        </span>
+      </div>
       <button
         type="button"
         data-test-id="collab-ngrok-share"
-        className="mb-1 flex h-7 w-full cursor-pointer items-center justify-center gap-1.5 rounded border border-border bg-transparent text-xs text-surface hover:bg-hover disabled:opacity-50"
+        className="mb-1.5 flex h-7 w-full cursor-pointer items-center justify-center gap-1.5 rounded border border-border bg-transparent text-xs text-surface hover:bg-hover disabled:opacity-50"
         disabled={collab.tunnel.status === 'starting'}
         onClick={() => void collab.shareViaNgrok()}
       >
         <Globe className="size-3.5" />
         {collab.tunnel.status === 'starting'
           ? collab.dialogs.ngrokStarting
-          : collab.dialogs.shareViaNgrok}
+          : 'Detect or Start Tunnel'}
       </button>
-      {collab.tunnel.status === 'error' ? (
-        <div className="mb-3 text-[11px] text-muted" data-test-id="collab-ngrok-error">
-          <div className="text-red-500">
-            {collab.dialogs.ngrokFailed({ error: collab.tunnel.error })}
-          </div>
-          <div className="mt-1">{collab.dialogs.ngrokSetupHint}</div>
+
+      {collab.tunnel.status === 'error' && (
+        <div className="mb-2 text-[10px] text-red-400" data-test-id="collab-ngrok-error">
+          {collab.tunnel.error}
+        </div>
+      )}
+
+      {showCustomInput ? (
+        <div className="mt-1 flex items-center gap-1">
+          <AppInput
+            placeholder="https://xyz.ngrok-free.dev"
+            value={customInput}
+            className="min-w-0 flex-1 text-xs"
+            onChange={(e) => setCustomInput(e.target.value)}
+          />
           <button
             type="button"
-            data-test-id="collab-ngrok-stop"
-            className="mt-2 flex h-6 cursor-pointer items-center justify-center rounded border border-border bg-transparent px-2 text-[11px] text-muted hover:bg-hover hover:text-surface"
-            onClick={collab.stopNgrok}
+            className="h-7 cursor-pointer rounded bg-accent px-2 text-xs text-white"
+            onClick={() => {
+              if (customInput.trim()) {
+                collab.setCustomTunnelUrl(customInput)
+                setShowCustomInput(false)
+              }
+            }}
           >
-            {collab.dialogs.ngrokStopTunnel}
+            Set
           </button>
         </div>
       ) : (
-        <div className="mb-3 text-[11px] text-muted">{collab.dialogs.ngrokHint}</div>
+        <button
+          type="button"
+          className="cursor-pointer border-none bg-transparent p-0 text-[10px] text-accent underline hover:opacity-80"
+          onClick={() => {
+            setShowCustomInput(true)
+            setCustomInput('https://smoked-puritan-swarm.ngrok-free.dev')
+          }}
+        >
+          Or enter public ngrok URL manually
+        </button>
       )}
-    </>
+    </div>
   )
 }
 
 function ConnectedRoom() {
   const collab = usePanel()
+  const [showLocal, setShowLocal] = useState(false)
+  const isTunnelActive = collab.tunnel.status === 'active' && Boolean(collab.tunnelShareUrl)
+
   return (
     <>
-      <div className="mb-3 text-xs font-medium text-surface">{collab.dialogs.roomLink}</div>
-      <div className="mb-3 flex items-center gap-1.5">
-        <AppInput
-          value={collab.shareUrl}
-          readOnly
-          data-test-id="collab-room-link"
-          className="min-w-0 flex-1"
-          onFocus={(event) => event.currentTarget.select()}
-        />
-        <button
-          type="button"
-          data-test-id="collab-copy-link"
-          className="flex h-7 cursor-pointer items-center gap-1 rounded border-none bg-accent px-2 text-xs text-white hover:bg-accent/90"
-          onClick={collab.copyLink}
-        >
-          {collab.copied ? <Check className="size-3" /> : <Copy className="size-3" />}
-          {collab.copied ? collab.dialogs.copied : collab.dialogs.copy}
-        </button>
-      </div>
+      {isTunnelActive ? (
+        <>
+          <div className="mb-1.5 flex items-center justify-between text-xs font-medium text-surface">
+            <span className="flex items-center gap-1.5 font-semibold text-accent">
+              <Globe className="size-3.5" />
+              <span>Public Link (ngrok)</span>
+            </span>
+            {collab.state.isProtected && (
+              <span className="flex items-center gap-1 rounded bg-accent/20 px-1.5 py-0.5 text-[10px] font-medium text-accent">
+                <Lock className="size-2.5" />
+                Protected
+              </span>
+            )}
+          </div>
+          <div className="mb-2 flex items-center gap-1.5">
+            <AppInput
+              value={collab.tunnelShareUrl}
+              readOnly
+              data-test-id="collab-ngrok-link"
+              className="min-w-0 flex-1 text-xs"
+              onFocus={(event) => event.currentTarget.select()}
+            />
+            <button
+              type="button"
+              data-test-id="collab-copy-link"
+              className="flex h-7 cursor-pointer items-center gap-1 rounded border-none bg-accent px-2 text-xs font-medium text-white hover:bg-accent/90"
+              onClick={collab.copyTunnelLink}
+            >
+              {collab.copied ? <Check className="size-3" /> : <Copy className="size-3" />}
+              {collab.copied ? collab.dialogs.copied : collab.dialogs.copy}
+            </button>
+          </div>
 
-      <NgrokShareSection />
+          <div className="mb-3 flex items-center justify-between text-[11px] text-muted">
+            <button
+              type="button"
+              className="cursor-pointer border-none bg-transparent p-0 text-[11px] text-muted underline hover:text-surface"
+              onClick={() => setShowLocal(!showLocal)}
+            >
+              {showLocal ? 'Hide local URL' : 'Show local URL (127.0.0.1)'}
+            </button>
+            <button
+              type="button"
+              data-test-id="collab-ngrok-stop"
+              className="cursor-pointer border-none bg-transparent p-0 text-[11px] text-red-400 hover:text-red-300"
+              onClick={collab.stopNgrok}
+            >
+              Stop ngrok
+            </button>
+          </div>
 
-      <div className="mb-2 text-xs font-medium text-surface">
-        {collab.peers.length === 0
-          ? collab.dialogs.roomOccupantSingular
-          : collab.dialogs.roomOccupantsPlural({ count: String(collab.peers.length + 1) })}
+          {showLocal && (
+            <div className="mb-3 rounded border border-border bg-subtle p-2">
+              <div className="mb-1 text-[11px] font-medium text-muted">Local Link</div>
+              <div className="flex items-center gap-1.5">
+                <AppInput
+                  value={collab.shareUrl}
+                  readOnly
+                  data-test-id="collab-room-link"
+                  className="min-w-0 flex-1 text-xs"
+                  onFocus={(event) => event.currentTarget.select()}
+                />
+                <button
+                  type="button"
+                  data-test-id="collab-copy-local-link"
+                  className="flex h-7 cursor-pointer items-center gap-1 rounded border border-border bg-transparent px-2 text-xs text-surface hover:bg-hover"
+                  onClick={collab.copyLink}
+                >
+                  <Copy className="size-3" />
+                </button>
+              </div>
+            </div>
+          )}
+        </>
+      ) : (
+        <>
+          <div className="mb-1.5 flex items-center justify-between text-xs font-medium text-surface">
+            <span>{collab.dialogs.roomLink} (Local)</span>
+            {collab.state.isProtected && (
+              <span className="flex items-center gap-1 rounded bg-accent/20 px-1.5 py-0.5 text-[10px] font-medium text-accent">
+                <Lock className="size-2.5" />
+                Protected
+              </span>
+            )}
+          </div>
+          <div className="mb-2 flex items-center gap-1.5">
+            <AppInput
+              value={collab.shareUrl}
+              readOnly
+              data-test-id="collab-room-link"
+              className="min-w-0 flex-1 text-xs"
+              onFocus={(event) => event.currentTarget.select()}
+            />
+            <button
+              type="button"
+              data-test-id="collab-copy-link"
+              className="flex h-7 cursor-pointer items-center gap-1 rounded border-none bg-accent px-2 text-xs font-medium text-white hover:bg-accent/90"
+              onClick={collab.copyLink}
+            >
+              {collab.copied ? <Check className="size-3" /> : <Copy className="size-3" />}
+              {collab.copied ? collab.dialogs.copied : collab.dialogs.copy}
+            </button>
+          </div>
+
+          <NgrokShareSection />
+        </>
+      )}
+
+      <div className="mb-2.5 flex items-center justify-between text-xs text-muted">
+        <span>Occupants</span>
+        <span className="font-medium text-surface">
+          {collab.peers.length === 0 ? 'Just you' : `${collab.peers.length + 1} connected`}
+        </span>
       </div>
 
       <button
@@ -405,59 +528,57 @@ function ConnectedRoom() {
 
 function ShareOrJoinRoom() {
   const collab = usePanel()
+  const isTunnelActive = collab.tunnel.status === 'active'
+
   return (
     <>
-      <div className="mb-3">
+      <div className="mb-2.5">
         <label className="mb-1 block text-xs text-muted">{collab.dialogs.yourName}</label>
         <AppInput
           value={collab.nameDraft}
           data-test-id="collab-name-input"
           placeholder={collab.dialogs.enterYourName}
           onChange={(event) => collab.setNameDraft(event.target.value)}
-          onEnter={collab.share}
+          onEnter={() => void collab.share()}
         />
       </div>
 
-      {IS_TAURI ? (
-        // Standalone (Tauri) build: the ngrok tunnel is the primary share
-        // path — no hosted web app required. The hosted link stays available
-        // as a secondary option.
-        <>
-          <button
-            type="button"
-            data-test-id="collab-share-ngrok"
-            className="mb-2 flex h-8 w-full cursor-pointer items-center justify-center gap-1.5 rounded border-none bg-accent text-xs font-medium text-white hover:bg-accent/90 disabled:opacity-50"
-            disabled={!collab.nameDraft.trim() || collab.tunnel.status === 'starting'}
-            onClick={() => void collab.shareAndTunnel()}
-          >
-            <Globe className="size-3.5" />
-            {collab.tunnel.status === 'starting'
-              ? collab.dialogs.ngrokStarting
-              : collab.dialogs.shareViaNgrok}
-          </button>
-          <button
-            type="button"
-            data-test-id="collab-share-file"
-            className="mb-3 flex h-8 w-full cursor-pointer items-center justify-center gap-1.5 rounded border border-border bg-transparent text-xs font-medium text-surface hover:bg-hover disabled:opacity-50"
-            disabled={!collab.nameDraft.trim()}
-            onClick={collab.share}
-          >
-            <Share2 className="size-3.5" />
-            {collab.dialogs.shareThisFile}
-          </button>
-        </>
-      ) : (
-        <button
-          type="button"
-          data-test-id="collab-share-file"
-          className="mb-3 flex h-8 w-full cursor-pointer items-center justify-center gap-1.5 rounded border-none bg-accent text-xs font-medium text-white hover:bg-accent/90 disabled:opacity-50"
-          disabled={!collab.nameDraft.trim()}
-          onClick={collab.share}
-        >
-          <Share2 className="size-3.5" />
-          {collab.dialogs.shareThisFile}
-        </button>
-      )}
+      <div className="mb-3">
+        <label className="mb-1 flex items-center gap-1 text-xs text-muted">
+          <Lock className="size-3" />
+          Password (optional)
+        </label>
+        <AppInput
+          type="password"
+          value={collab.passwordDraft}
+          data-test-id="collab-password-input"
+          placeholder="Leave blank for open access"
+          onChange={(event) => collab.setPasswordDraft(event.target.value)}
+          onEnter={() => void collab.share()}
+        />
+      </div>
+
+      <button
+        type="button"
+        data-test-id="collab-share-file"
+        className="mb-2 flex h-8 w-full cursor-pointer items-center justify-center gap-1.5 rounded border-none bg-accent text-xs font-medium text-white hover:bg-accent/90 disabled:opacity-50"
+        disabled={!collab.nameDraft.trim() || collab.tunnel.status === 'starting'}
+        onClick={() => void (isTunnelActive ? collab.share() : collab.shareAndTunnel())}
+      >
+        <Globe className="size-3.5" />
+        {isTunnelActive ? 'Share with Public ngrok Link' : 'Share via ngrok tunnel'}
+      </button>
+
+      <button
+        type="button"
+        data-test-id="collab-share-local"
+        className="mb-3 flex h-7 w-full cursor-pointer items-center justify-center gap-1.5 rounded border border-border bg-transparent text-xs text-muted hover:bg-hover hover:text-surface disabled:opacity-50"
+        disabled={!collab.nameDraft.trim()}
+        onClick={() => void collab.share()}
+      >
+        <Share2 className="size-3" />
+        Share locally only
+      </button>
 
       <div className="mb-2 flex items-center gap-2">
         <div className="h-px flex-1 bg-border" />
@@ -470,8 +591,14 @@ function ShareOrJoinRoom() {
           value={collab.joinInput}
           data-test-id="collab-join-input"
           placeholder={collab.dialogs.pasteRoomLinkOrId}
-          className="min-w-0 flex-1"
-          onChange={(event) => collab.setJoinInput(event.target.value)}
+          className="min-w-0 flex-1 text-xs"
+          onChange={(event) => {
+            const val = event.target.value
+            collab.setJoinInput(val)
+            if (val.includes('pwd=') || val.includes('protected=')) {
+              collab.setIsRoomPasswordProtected(true)
+            }
+          }}
           onEnter={collab.join}
         />
         <button
@@ -484,6 +611,20 @@ function ShareOrJoinRoom() {
           {collab.dialogs.join}
         </button>
       </div>
+
+      {collab.isRoomPasswordProtected && (
+        <div className="mt-2">
+          <AppInput
+            type="password"
+            value={collab.joinPassword}
+            data-test-id="collab-manual-password-input"
+            placeholder="Room password"
+            className="w-full text-xs"
+            onChange={(event) => collab.setJoinPassword(event.target.value)}
+            onEnter={collab.join}
+          />
+        </div>
+      )}
     </>
   )
 }
@@ -492,7 +633,7 @@ function ShareOrJoinRoom() {
 
 function CollabSharePopover() {
   const collab = usePanel()
-  const cls = usePopoverUI({ content: 'z-50 w-72 p-3' })
+  const cls = usePopoverUI({ content: 'z-50 w-80 p-3' })
   const connection = collab.state.connected ? 'connected' : collab.isJoining ? 'joining' : 'idle'
   const styles = collaboration({ connection })
 
@@ -576,6 +717,21 @@ function JoinRoomDialog() {
               onChange={(event) => collab.setNameDraft(event.target.value)}
             />
           </div>
+          {(collab.isRoomPasswordProtected || collab.joinPassword) && (
+            <div>
+              <label className="mb-1.5 flex items-center gap-1 text-xs font-medium text-muted">
+                <Lock className="size-3" />
+                Room Password
+              </label>
+              <AppInput
+                type="password"
+                value={collab.joinPassword}
+                data-test-id="collab-join-password-input"
+                placeholder="Enter password to join"
+                onChange={(event) => collab.setJoinPassword(event.target.value)}
+              />
+            </div>
+          )}
         </AppDialogBody>
         <AppDialogFooter>
           <button

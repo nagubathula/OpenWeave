@@ -17,10 +17,6 @@ function entryName(id: string, suffix: string): string {
   return `${encodeURIComponent(id)}${suffix}`
 }
 
-function entryPath(id: string, suffix: string): string {
-  return `${STORAGE_DIR}/${entryName(id, suffix)}`
-}
-
 function documentIdFromEntryName(name: string): string | null {
   if (!name.endsWith(FIG_SUFFIX)) return null
   const encoded = name.slice(0, -FIG_SUFFIX.length)
@@ -32,9 +28,32 @@ function documentIdFromEntryName(name: string): string | null {
   }
 }
 
-async function fsApi() {
-  const fs = await import('@tauri-apps/plugin-fs')
-  return { fs, baseDir: fs.BaseDirectory.AppLocalData }
+function getElectron() {
+  if (typeof window !== 'undefined' && (window as any).electron) {
+    return (window as any).electron
+  }
+  return null
+}
+
+async function getStorageDir(): Promise<string> {
+  const electron = getElectron()
+  if (electron?.app?.getPath) {
+    const userData = await electron.app.getPath('userData')
+    if (electron.path?.join) {
+      return await electron.path.join(userData, 'storage', 'local', 'v1')
+    }
+    return `${userData}/storage/local/v1`
+  }
+  return STORAGE_DIR
+}
+
+async function entryPath(id: string, suffix: string): Promise<string> {
+  const dir = await getStorageDir()
+  const electron = getElectron()
+  if (electron?.path?.join) {
+    return await electron.path.join(dir, entryName(id, suffix))
+  }
+  return `${dir}/${entryName(id, suffix)}`
 }
 
 function reportComplete(
@@ -45,33 +64,39 @@ function reportComplete(
 }
 
 /**
- * Desktop (Tauri) backend of the local-device storage provider: documents are
+ * Desktop backend of the local-device storage provider: documents are
  * plain files under the app-data directory, so they persist independently of
  * any webview or browser profile state.
  */
 export function createFsLocalDeviceStorageAdapter(): StorageAdapter {
   async function ensureDir() {
-    const api = await fsApi()
-    await api.fs.mkdir(STORAGE_DIR, { baseDir: api.baseDir, recursive: true })
-    return api
+    const electron = getElectron()
+    if (electron?.fs) {
+      const dir = await getStorageDir()
+      await electron.fs.mkdir(dir, { recursive: true })
+    }
   }
 
   async function readEntry(id: string, suffix: string): Promise<Uint8Array | null> {
-    const { fs, baseDir } = await fsApi()
+    const electron = getElectron()
+    if (!electron?.fs) return null
     try {
-      return await fs.readFile(entryPath(id, suffix), { baseDir })
+      const path = await entryPath(id, suffix)
+      return await electron.fs.readFile(path)
     } catch {
       return null
     }
   }
 
   async function listDocumentIds(): Promise<string[]> {
-    const { fs, baseDir } = await fsApi()
-    const entries = await fs.readDir(STORAGE_DIR, { baseDir }).catch(() => [])
+    const electron = getElectron()
+    if (!electron?.fs) return []
+    const dir = await getStorageDir()
+    const entries = await electron.fs.readDir(dir).catch(() => [])
     return entries
-      .filter((entry) => entry.isFile)
-      .map((entry) => documentIdFromEntryName(entry.name))
-      .filter((id): id is string => id !== null)
+      .filter((entry: any) => entry.isFile ?? !entry.isDirectory)
+      .map((entry: any) => documentIdFromEntryName(entry.name))
+      .filter((id: any): id is string => id !== null)
   }
 
   return {
@@ -86,9 +111,7 @@ export function createFsLocalDeviceStorageAdapter(): StorageAdapter {
           }`
         }
       }
-      const dir = await import('@tauri-apps/api/path')
-        .then((path) => path.appLocalDataDir())
-        .catch(() => null)
+      const dir = await getStorageDir()
       return {
         ok: true,
         message: dir
@@ -124,12 +147,15 @@ export function createFsLocalDeviceStorageAdapter(): StorageAdapter {
     },
 
     async putDocument(id, bytes, metadata, onProgress) {
-      const { fs, baseDir } = await ensureDir()
-      await fs.writeFile(entryPath(id, FIG_SUFFIX), bytes, { baseDir })
-      await fs.writeFile(
-        entryPath(id, META_SUFFIX),
-        new TextEncoder().encode(encodeStoredMetadata(metadata)),
-        { baseDir }
+      await ensureDir()
+      const electron = getElectron()
+      if (!electron?.fs) throw new Error('Desktop filesystem unavailable')
+      const figPath = await entryPath(id, FIG_SUFFIX)
+      const metaPath = await entryPath(id, META_SUFFIX)
+      await electron.fs.writeFile(figPath, bytes)
+      await electron.fs.writeFile(
+        metaPath,
+        new TextEncoder().encode(encodeStoredMetadata(metadata))
       )
       reportComplete(onProgress, bytes.byteLength)
     },
@@ -139,35 +165,48 @@ export function createFsLocalDeviceStorageAdapter(): StorageAdapter {
     },
 
     async deleteDocument(id) {
-      const { fs, baseDir } = await fsApi()
+      const electron = getElectron()
+      if (!electron?.fs) return
       for (const suffix of [FIG_SUFFIX, META_SUFFIX, THUMB_SUFFIX]) {
-        const path = entryPath(id, suffix)
-        if (await fs.exists(path, { baseDir })) await fs.remove(path, { baseDir })
+        const path = await entryPath(id, suffix)
+        if (await electron.fs.exists(path)) await electron.fs.remove(path)
       }
     },
 
     async getUsage() {
-      const { fs, baseDir } = await fsApi()
-      const entries = await fs.readDir(STORAGE_DIR, { baseDir }).catch(() => [])
-      const files = entries.filter((entry) => entry.isFile)
+      const electron = getElectron()
+      if (!electron?.fs) {
+        return { bytesUsed: 0, objectCount: 0, documentCount: 0 }
+      }
+      const dir = await getStorageDir()
+      const entries = await electron.fs.readDir(dir).catch(() => [])
+      const files = entries.filter((entry: any) => entry.isFile ?? !entry.isDirectory)
       const sizes = await Promise.all(
-        files.map((entry) =>
-          fs
-            .stat(`${STORAGE_DIR}/${entry.name}`, { baseDir })
-            .then((info) => info.size)
+        files.map(async (entry: any) => {
+          const filePath = electron.path?.join
+            ? await electron.path.join(dir, entry.name)
+            : `${dir}/${entry.name}`
+          return electron.fs
+            .stat(filePath)
+            .then((info: any) => info?.size ?? 0)
             .catch(() => 0)
-        )
+        })
       )
       return {
-        bytesUsed: sizes.reduce((total, size) => total + size, 0),
+        bytesUsed: sizes.reduce((total: number, size: number) => total + size, 0),
         objectCount: files.length,
-        documentCount: files.filter((entry) => documentIdFromEntryName(entry.name) !== null).length
+        documentCount: files.filter((entry: any) => documentIdFromEntryName(entry.name) !== null)
+          .length
       } satisfies StorageUsage
     },
 
     async putThumbnail(id, bytes) {
-      const { fs, baseDir } = await ensureDir()
-      await fs.writeFile(entryPath(id, THUMB_SUFFIX), bytes, { baseDir })
+      await ensureDir()
+      const electron = getElectron()
+      if (electron?.fs) {
+        const thumbPath = await entryPath(id, THUMB_SUFFIX)
+        await electron.fs.writeFile(thumbPath, bytes)
+      }
     },
 
     async getThumbnail(id) {

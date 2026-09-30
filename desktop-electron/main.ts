@@ -1,4 +1,5 @@
 import { app, BrowserWindow, dialog, ipcMain, Menu, shell, clipboard } from 'electron'
+import { spawn, type ChildProcess } from 'node:child_process'
 import * as fs from 'node:fs'
 import * as path from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -35,6 +36,7 @@ if (!gotTheLock) {
       const files = collectFileArgs(commandLine)
       if (files.length > 0) {
         pendingOpenFiles.push(...files)
+        mainWindow.webContents.send('open-associated-files')
         mainWindow.webContents.send('__tauri_event__', {
           eventName: 'open-associated-files',
           payload: null
@@ -227,6 +229,140 @@ function registerIpcHandlers() {
     return fs.existsSync(filePath)
   })
 
+  ipcMain.handle('fs:rename', async (_event, oldPath: string, newPath: string) => {
+    await fs.promises.rename(oldPath, newPath)
+    return true
+  })
+
+  ipcMain.handle('fs:mkdir', async (_event, dirPath: string, options?: { recursive?: boolean }) => {
+    await fs.promises.mkdir(dirPath, { recursive: options?.recursive ?? true })
+    return true
+  })
+
+  ipcMain.handle('fs:remove', async (_event, targetPath: string, options?: { recursive?: boolean }) => {
+    await fs.promises.rm(targetPath, { recursive: options?.recursive ?? false, force: true })
+    return true
+  })
+
+  ipcMain.handle('fs:stat', async (_event, targetPath: string) => {
+    const stats = await fs.promises.stat(targetPath)
+    return {
+      isFile: stats.isFile(),
+      isDirectory: stats.isDirectory(),
+      isSymlink: stats.isSymbolicLink(),
+      size: stats.size,
+      mtime: stats.mtime ? stats.mtime.getTime() : null,
+      atime: stats.atime ? stats.atime.getTime() : null,
+      birthtime: stats.birthtime ? stats.birthtime.getTime() : null,
+      readonly: false
+    }
+  })
+
+  ipcMain.handle('fs:readDir', async (_event, targetPath: string) => {
+    const entries = await fs.promises.readdir(targetPath, { withFileTypes: true })
+    return entries.map((e) => ({
+      name: e.name,
+      isFile: e.isFile(),
+      isDirectory: e.isDirectory(),
+      isSymlink: e.isSymbolicLink()
+    }))
+  })
+
+  // System Directory Resolution
+  ipcMain.handle('path:resolveDirectory', (_event, directory: number) => {
+    switch (directory) {
+      case 6: // Document
+        return app.getPath('documents')
+      case 7: // Download
+        return app.getPath('downloads')
+      case 8: // Picture
+        return app.getPath('pictures')
+      case 10: // Video
+        return app.getPath('videos')
+      case 12: // Temp
+        return app.getPath('temp')
+      case 13: // AppConfig
+      case 14: // AppData
+      case 15: // AppLocalData
+        return path.join(app.getPath('appData'), 'openweave')
+      case 16: // AppCache
+        return app.getPath('cache')
+      case 17: // AppLog
+        return app.getPath('logs')
+      case 18: // Desktop
+        return app.getPath('desktop')
+      case 21: // Home
+      default:
+        return app.getPath('home')
+    }
+  })
+
+  ipcMain.handle('path:join', (_event, paths: string[]) => {
+    const validPaths = (paths || []).filter((p: unknown) => typeof p === 'string')
+    return path.join(...validPaths)
+  })
+
+  ipcMain.handle('app:getPath', (_event, name: any) => {
+    return app.getPath(name)
+  })
+
+  ipcMain.handle('app:takePendingOpenFiles', () => {
+    const files = [...pendingOpenFiles]
+    pendingOpenFiles.length = 0
+    return files.map((filePath) => ({ path: filePath }))
+  })
+
+  // Child process management
+  const runningProcesses = new Map<number, ChildProcess>()
+  let nextProcessId = 1
+
+  ipcMain.handle(
+    'process:spawn',
+    (_event, options: { command: string; args?: string[]; env?: Record<string, string>; cwd?: string }) => {
+      const procId = nextProcessId++
+      try {
+        const child = spawn(options.command, options.args || [], {
+          cwd: options.cwd || undefined,
+          env: { ...process.env, ...options.env },
+          shell: process.platform === 'win32'
+        })
+        runningProcesses.set(procId, child)
+
+        child.stdout?.on('data', (data: Buffer) => {
+          mainWindow?.webContents.send(`process:stdout:${procId}`, Array.from(data))
+        })
+        child.stderr?.on('data', (data: Buffer) => {
+          mainWindow?.webContents.send(`process:stderr:${procId}`, data.toString('utf-8'))
+        })
+        child.on('close', (code) => {
+          runningProcesses.delete(procId)
+          mainWindow?.webContents.send(`process:close:${procId}`, code)
+        })
+        child.on('error', (err) => {
+          mainWindow?.webContents.send(`process:stderr:${procId}`, err.message)
+        })
+        return { procId, pid: child.pid }
+      } catch (err: any) {
+        return { error: err.message }
+      }
+    }
+  )
+
+  ipcMain.handle('process:write', (_event, procId: number, data: number[]) => {
+    const child = runningProcesses.get(procId)
+    if (child && child.stdin && !child.stdin.destroyed) {
+      child.stdin.write(Buffer.from(data))
+    }
+  })
+
+  ipcMain.handle('process:kill', (_event, procId: number) => {
+    const child = runningProcesses.get(procId)
+    if (child) {
+      child.kill()
+      runningProcesses.delete(procId)
+    }
+  })
+
   // Dialogs
   ipcMain.handle('dialog:showOpenDialog', async (_event, options: any) => {
     if (!mainWindow) return null
@@ -276,6 +412,150 @@ function registerIpcHandlers() {
   // Shell
   ipcMain.handle('shell:openExternal', (_event, url: string) => shell.openExternal(url))
   ipcMain.handle('shell:openPath', (_event, filePath: string) => shell.openPath(filePath))
+  ipcMain.handle('shell:trashItem', async (_event, filePath: string) => {
+    try {
+      await shell.trashItem(filePath)
+      return true
+    } catch (err) {
+      console.warn('[Electron] shell.trashItem failed, falling back to fs.unlink:', err)
+      await fs.promises.unlink(filePath).catch(() => {})
+      return false
+    }
+  })
+
+  // Collab Ngrok Tunnel
+  ipcMain.handle('collab:startShareTunnel', async () => {
+    if (activeTunnel?.url) return { url: activeTunnel.url }
+    const existing = await queryLocalNgrokTunnel()
+    if (existing) {
+      activeTunnel = { url: existing }
+      return { url: existing }
+    }
+
+    const port = process.env.PORT || '1420'
+    let exePath = process.platform === 'win32' ? 'ngrok.exe' : 'ngrok'
+    if (process.platform === 'win32' && process.env.LOCALAPPDATA) {
+      const winApps = path.join(process.env.LOCALAPPDATA, 'Microsoft', 'WindowsApps', 'ngrok.exe')
+      if (fs.existsSync(winApps)) {
+        exePath = winApps
+      }
+    }
+
+    return new Promise<{ url: string }>((resolve, reject) => {
+      let resolved = false
+      const timeout = setTimeout(() => {
+        if (!resolved) {
+          resolved = true
+          reject(new Error('Timed out waiting for ngrok tunnel to start'))
+        }
+      }, 15000)
+
+      let child: ChildProcess
+      try {
+        child = spawn(
+          exePath,
+          ['http', port, '--log', 'stdout', '--log-format', 'json'],
+          {
+            shell: process.platform === 'win32',
+            stdio: ['ignore', 'pipe', 'pipe']
+          }
+        )
+      } catch (err) {
+        clearTimeout(timeout)
+        return reject(err)
+      }
+
+      const checkUrl = (url: string) => {
+        if (!resolved) {
+          resolved = true
+          clearTimeout(timeout)
+          activeTunnel = { url, child }
+          resolve({ url })
+        }
+      }
+
+      const pollTimer = setInterval(async () => {
+        if (resolved) {
+          clearInterval(pollTimer)
+          return
+        }
+        const u = await queryLocalNgrokTunnel()
+        if (u) {
+          clearInterval(pollTimer)
+          checkUrl(u)
+        }
+      }, 500)
+
+      child.stdout?.on('data', (data: Buffer) => {
+        const text = data.toString()
+        const lines = text.split('\n')
+        for (const line of lines) {
+          if (!line.trim()) continue
+          try {
+            const entry = JSON.parse(line)
+            if (entry.url && typeof entry.url === 'string') {
+              checkUrl(entry.url)
+            }
+            if (entry.lvl === 'eror' || entry.lvl === 'crit') {
+              if (entry.err && typeof entry.err === 'string' && entry.err.includes('already online')) {
+                void queryLocalNgrokTunnel().then((existingUrl) => {
+                  if (existingUrl) checkUrl(existingUrl)
+                })
+              }
+            }
+          } catch {}
+        }
+      })
+
+      child.on('error', (err) => {
+        clearInterval(pollTimer)
+        clearTimeout(timeout)
+        if (!resolved) {
+          resolved = true
+          reject(err)
+        }
+      })
+
+      child.on('exit', () => {
+        if (activeTunnel?.child === child) {
+          activeTunnel = null
+        }
+      })
+    })
+  })
+
+  ipcMain.handle('collab:stopShareTunnel', () => {
+    if (activeTunnel?.child) {
+      activeTunnel.child.kill()
+    }
+    activeTunnel = null
+  })
+
+  ipcMain.handle('collab:shareTunnelStatus', async () => {
+    if (activeTunnel?.url) return activeTunnel.url
+    const u = await queryLocalNgrokTunnel()
+    if (u) {
+      activeTunnel = { url: u }
+      return u
+    }
+    return null
+  })
+}
+
+let activeTunnel: { url: string; child?: ChildProcess } | null = null
+
+async function queryLocalNgrokTunnel(): Promise<string | null> {
+  try {
+    const res = await fetch('http://127.0.0.1:4040/api/tunnels', {
+      signal: AbortSignal.timeout(1000)
+    })
+    if (!res.ok) return null
+    const data = (await res.json()) as { tunnels?: Array<{ public_url?: string }> }
+    const tunnel = data.tunnels?.find((t) => t.public_url?.startsWith('https://')) ?? data.tunnels?.[0]
+    return tunnel?.public_url ?? null
+  } catch {
+    return null
+  }
 }
 
 async function createWindow() {
@@ -317,6 +597,7 @@ async function createWindow() {
   // Send pending files once page is ready
   mainWindow.webContents.on('did-finish-load', () => {
     if (pendingOpenFiles.length > 0) {
+      mainWindow?.webContents.send('open-associated-files')
       mainWindow?.webContents.send('__tauri_event__', {
         eventName: 'open-associated-files',
         payload: null

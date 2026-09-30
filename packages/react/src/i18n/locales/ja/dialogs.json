@@ -238,5 +238,18 @@
   "addVariableColorDescription": "単色トークン",
   "addVariableNumberDescription": "数値",
   "addVariableTextDescription": "テキスト値",
-  "addVariableBooleanDescription": "真偽の切り替え"
+  "addVariableBooleanDescription": "真偽の切り替え",
+  "displayScaleTitle": "ディスプレイ比率の調整",
+  "displayScaleDescription": "画面を調整して、デザインを実寸大の物理サイズで表示します。",
+  "creditCardCalibration": "クレジットカードによる調整",
+  "creditCardInstruction": "標準のクレジットカード、デビットカード、または身分証を画面にあて、輪郭がカードとぴったり重なるようにスライダーを調整してください。",
+  "standardCardDimensions": "標準カード規格: 85.60 × 53.98 mm (3.37\" × 2.13\")",
+  "cardWidthLabel": "カードの幅",
+  "screenDensityLabel": "画面ピクセル密度",
+  "pixelsPerInch": "PPI",
+  "zoomForRealSizeLabel": "1:1 実寸大のズーム率",
+  "zoomForMobileLabel": "モバイル画面用のズーム率",
+  "displayPresetsTitle": "ディスプレイのプリセット",
+  "saveAndZoomRealSize": "保存して実寸大にズーム",
+  "resetToDefault": "デフォルトに戻す"
 }

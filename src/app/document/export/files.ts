@@ -131,16 +131,23 @@ export function createExportTargetActions(editor: Editor, state: EditorState, io
 }
 
 export async function chooseTauriExportPath(fileName: string, format: string, ext: string) {
-  const { save } = await import('@tauri-apps/plugin-dialog')
-  return save({
-    defaultPath: fileName,
-    filters: [{ name: format, extensions: [ext.slice(1)] }]
-  })
+  const electron =
+    typeof window !== 'undefined' ? (window as any).electron || (window as any).electronAPI : null
+  if (electron?.dialog?.showSaveDialog) {
+    return electron.dialog.showSaveDialog({
+      defaultPath: fileName,
+      filters: [{ name: format, extensions: [ext.replace(/^\./, '')] }]
+    })
+  }
+  return null
 }
 
 export async function writeTauriExportFile(path: string, data: Uint8Array) {
-  const { writeFile: tauriWrite } = await import('@tauri-apps/plugin-fs')
-  await tauriWrite(path, data)
+  const electron =
+    typeof window !== 'undefined' ? (window as any).electron || (window as any).electronAPI : null
+  if (electron?.fs?.writeFile) {
+    await electron.fs.writeFile(path, data)
+  }
 }
 
 export async function saveExportedFile(

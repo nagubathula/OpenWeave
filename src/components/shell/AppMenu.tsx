@@ -1,6 +1,6 @@
 import { useStore } from '@nanostores/react'
 import * as Menubar from '@radix-ui/react-menubar'
-import { Check, ChevronRight, Settings, PanelLeft, ChevronDown, Layers } from 'lucide-react'
+import { Check, ChevronRight, Settings, PanelLeft, ChevronDown } from 'lucide-react'
 /* eslint-disable openweave/no-hardcoded-tip-labels */
 import React, { useState, useRef, useEffect, useReducer } from 'react'
 
@@ -8,15 +8,14 @@ import type { MenuEntry } from '@openweave/react'
 
 import { useEditorStore } from '@/app/editor/active-store'
 import { useEditorState } from '@/app/editor/session/use-editor-state'
-import { openHome } from '@/app/home/store'
 import { openSettingsDialog, settingsDialogOpen } from '@/app/settings/dialog'
 import { useAppMenu } from '@/app/shell/menu/app-menu'
 import { isMenuAction, isMenuCheckbox } from '@/app/shell/menu/entry'
+import { isTauri } from '@/app/tauri/env'
 import { SettingsDialog } from '@/components/settings/SettingsDialog'
 import AppShortcutText from '@/components/ui/AppShortcutText'
 import { useMenuUI } from '@/components/ui/menu'
 import Tip from '@/components/ui/Tip'
-import { IS_TAURI } from '@/constants'
 
 function MenuEntryItems({ items, cls }: { items: MenuEntry[]; cls: ReturnType<typeof useMenuUI> }) {
   const subCls = useMenuUI({ content: 'min-w-44' })
@@ -127,7 +126,7 @@ export default function AppMenu() {
   }, [isEditing])
 
   useEffect(() => {
-    if (IS_TAURI && documentName && documentName !== 'Untitled') {
+    if (isTauri() && documentName && documentName !== 'Untitled') {
       void store.saveFigFile?.()
     }
   }, [documentName, store])
@@ -144,21 +143,6 @@ export default function AppMenu() {
   return (
     <div className="shrink-0 border-b border-border">
       <div className="flex items-center gap-2 px-2 py-1.5">
-        <Tip label="Back to files (Home)" side="bottom">
-          <button
-            type="button"
-            data-test-id="app-logo-home"
-            className="flex size-5 shrink-0 cursor-pointer items-center justify-center rounded transition-opacity hover:opacity-80 outline-none"
-            onClick={() => openHome()}
-          >
-            <div
-              data-test-id="app-logo"
-              className="flex size-4.5 items-center justify-center rounded-md bg-gradient-to-br from-indigo-500 to-purple-600 text-white shadow-xs"
-            >
-              <Layers className="size-3" />
-            </div>
-          </button>
-        </Tip>
         {isEditing ? (
           <input
             ref={inputRef}

@@ -201,9 +201,6 @@ const noPrototypeOrGeneratedImports = createImportRule(
     if (resolved.startsWith('scratch/')) {
       return 'Committed code must not import scratch prototypes.'
     }
-    if (resolved.startsWith('desktop/generated/')) {
-      return 'Do not import generated desktop artifacts from TypeScript/app code.'
-    }
     if (
       resolved.startsWith('packages/core/src/kiwi/schema-runtime/') &&
       resolved !== 'packages/core/src/kiwi/schema-runtime/index.ts' &&

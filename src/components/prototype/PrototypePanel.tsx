@@ -352,8 +352,15 @@ export default function PrototypePanel() {
                       onUpdate={(patch) => updateReaction(index, patch)}
                       onRemove={() => removeReaction(index)}
                     >
-                      <button
-                        type="button"
+                      <div
+                        role="button"
+                        tabIndex={0}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault()
+                            setActiveReactionIndex(activeReactionIndex === index ? null : index)
+                          }
+                        }}
                         className={`group w-full flex flex-col gap-1 rounded-lg border p-2 text-left transition-all cursor-pointer ${
                           activeReactionIndex === index
                             ? 'border-accent bg-accent/10 shadow-xs'
@@ -394,7 +401,7 @@ export default function PrototypePanel() {
                             {transitionLabel}
                           </span>
                         </div>
-                      </button>
+                      </div>
                     </InteractionDetailsPopover>
                   </div>
                 )

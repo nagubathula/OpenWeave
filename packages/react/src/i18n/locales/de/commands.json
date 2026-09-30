@@ -40,5 +40,9 @@
   "distributeHorizontal": "Horizontalen Abstand verteilen",
   "distributeVertical": "Vertikalen Abstand verteilen",
   "selectInverse": "Auswahl umkehren",
-  "sendBackward": "Nach hinten"
+  "sendBackward": "Nach hinten",
+  "zoomToRealSize": "Auf tatsächliche Größe zoomen",
+  "zoomToRealMobile": "Auf reale Smartphone-Größe zoomen",
+  "calibrateDisplayScale": "Bildschirmmaßstab kalibrieren…",
+  "insertCreditCardReference": "Kreditkarten-Maßstabsreferenz einfügen"
 }

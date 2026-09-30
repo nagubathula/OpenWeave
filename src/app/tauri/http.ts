@@ -68,7 +68,10 @@ export async function tauriFetch(
 ): Promise<Response> {
   const request = new Request(input, init)
   request.signal.throwIfAborted()
-  const { invoke } = await import('@tauri-apps/api/core')
+  const invoke = typeof window !== 'undefined' ? (window as any).__TAURI_INTERNALS__?.invoke : null
+  if (!invoke) {
+    return fetch(request)
+  }
   const payload: ProxyHttpRequest = {
     url: request.url,
     method: request.method,
@@ -80,7 +83,7 @@ export async function tauriFetch(
   }
   request.signal.throwIfAborted()
   const response = await withAbortSignal(
-    invoke<ProxyHttpResponse>('proxy_http_request', { request: payload }),
+    invoke('proxy_http_request', { request: payload }) as Promise<ProxyHttpResponse>,
     request.signal
   )
   const proxiedResponse = new Response(new Uint8Array(response.body), {

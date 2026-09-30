@@ -40,5 +40,9 @@
   "distributeHorizontal": "Распределить интервалы по горизонтали",
   "distributeVertical": "Распределить интервалы по вертикали",
   "selectInverse": "Инвертировать выделение",
-  "sendBackward": "Переместить назад"
+  "sendBackward": "Переместить назад",
+  "zoomToRealSize": "Масштаб до реального размера",
+  "zoomToRealMobile": "Масштаб до реального экрана смартфона",
+  "calibrateDisplayScale": "Калибровать масштаб экрана…",
+  "insertCreditCardReference": "Вставить кредитную карту для ориентира масштаба"
 }

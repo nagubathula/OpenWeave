@@ -1,5 +1,4 @@
 import { useStore } from '@nanostores/react'
-import { Maximize2, Minus, Plus } from 'lucide-react'
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { useEventListener } from 'usehooks-ts'
 
@@ -23,11 +22,11 @@ import {
 } from '@/app/motion/store'
 import type { AnimatableProperty } from '@/app/motion/types'
 import { HEADER_WIDTH } from '@/components/timeline/constants'
+import Controls from '@/components/timeline/Controls'
 import EmptyState from '@/components/timeline/EmptyState'
 import Playhead from '@/components/timeline/Playhead'
 import Ruler from '@/components/timeline/Ruler'
 import TrackList from '@/components/timeline/TrackList'
-import Tip from '@/components/ui/Tip'
 
 const MIN_TIMELINE_HEIGHT = 180
 
@@ -295,79 +294,14 @@ export default function AnimationTimeline() {
         <div className="h-0.5 w-8 rounded-full bg-border group-hover:bg-accent transition-colors" />
       </div>
 
-      {/* Docked Zoom Controls in top-right header overlay */}
-      <div
-        className="absolute top-1 right-3 z-30 flex items-center gap-1.5 h-6 px-2 py-0.5 rounded-full border border-border bg-panel shadow-xs select-none"
-        onPointerDown={(e) => e.stopPropagation()}
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Zoom to fit button */}
-        {/* oxlint-disable-next-line openweave/no-hardcoded-tip-labels */}
-        <Tip label="Zoom to fit (Shift+1)">
-          <button
-            type="button"
-            data-test-id="timeline-zoom-fit"
-            aria-label="Zoom to fit"
-            className="size-3.5 flex items-center justify-center text-muted hover:text-surface transition-colors cursor-pointer"
-            onClick={handleZoomToFit}
-          >
-            <Maximize2 className="size-2.5" />
-          </button>
-        </Tip>
-
-        <div className="h-3 w-px bg-border/80" />
-
-        {/* Zoom out button */}
-        {/* oxlint-disable-next-line openweave/no-hardcoded-tip-labels */}
-        <Tip label="Zoom out (-)">
-          <button
-            type="button"
-            data-test-id="timeline-zoom-out"
-            aria-label="Zoom out"
-            className="size-3.5 flex items-center justify-center text-muted hover:text-surface transition-colors cursor-pointer"
-            onClick={() => applyAnchoredZoom(zoom - 0.2)}
-          >
-            <Minus className="size-2.5" />
-          </button>
-        </Tip>
-
-        {/* Smooth zoom slider */}
-        <input
-          type="range"
-          min={0.2}
-          max={2.5}
-          step={0.01}
-          value={zoom}
-          data-test-id="timeline-zoom-slider"
-          aria-label="Timeline zoom"
-          className="h-1 w-16 cursor-pointer appearance-none rounded-full bg-panel-field accent-accent outline-none [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:size-2.5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-accent [&::-webkit-slider-thumb]:shadow-xs [&::-webkit-slider-thumb]:hover:scale-125 [&::-webkit-slider-thumb]:transition-transform [&::-moz-range-thumb]:size-2.5 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-accent [&::-moz-range-thumb]:border-none"
-          onChange={(e) => applyAnchoredZoom(parseFloat(e.target.value))}
-          onDoubleClick={handleZoomToFit}
-        />
-
-        {/* Zoom in button */}
-        {/* oxlint-disable-next-line openweave/no-hardcoded-tip-labels */}
-        <Tip label="Zoom in (+)">
-          <button
-            type="button"
-            data-test-id="timeline-zoom-in"
-            aria-label="Zoom in"
-            className="size-3.5 flex items-center justify-center text-muted hover:text-surface transition-colors cursor-pointer"
-            onClick={() => applyAnchoredZoom(zoom + 0.2)}
-          >
-            <Plus className="size-2.5" />
-          </button>
-        </Tip>
-      </div>
-
-      {/* Upper scrollable tracks & ruler area */}
+      {/* Main scrollable tracks & ruler area */}
       <div
         ref={scrollContainerRef}
         className="relative flex-1 min-h-0 overflow-x-auto overflow-y-auto scrollbar-thin"
         onScroll={handleScroll}
       >
-        <div className="relative min-w-full min-h-full">
-          {/* Top ruler with integrated playback and zoom controls */}
+        <div className="relative min-w-full min-h-full flex flex-col">
+          {/* Top ruler with clean time markings and transport header */}
           <Ruler
             durationMs={durationMs}
             zoom={zoom}
@@ -376,27 +310,20 @@ export default function AnimationTimeline() {
             onClose={handleClose}
           />
 
-          {/* Layer and property tracks */}
-          <TrackList durationMs={durationMs} zoom={zoom} onSeek={seek} />
+          {/* Layer and property tracks or embedded contextual empty state */}
+          {hasTracks ? (
+            <TrackList durationMs={durationMs} zoom={zoom} onSeek={seek} />
+          ) : (
+            showEmpty && <EmptyState onDismiss={() => setEmptyDismissed(true)} />
+          )}
 
           {/* Scrubber Playhead */}
           <Playhead durationMs={durationMs} zoom={zoom} onSeek={seek} />
-
-          {/* Empty state when no animation tracks exist */}
-          {showEmpty && <EmptyState onDismiss={() => setEmptyDismissed(true)} />}
         </div>
       </div>
 
-      {/* Floating help button at bottom right (matching Figma Motion reference) */}
-      <div className="absolute bottom-3 right-4 z-20 flex items-center pointer-events-auto">
-        <button
-          type="button"
-          aria-label="Help and resources"
-          className="flex h-6 w-6 items-center justify-center rounded-full bg-panel-field text-surface/70 hover:text-surface hover:bg-hover border border-border text-xs font-semibold shadow transition-colors cursor-pointer"
-        >
-          ?
-        </button>
-      </div>
+      {/* Unified bottom controls toolbar */}
+      <Controls onClose={handleClose} onZoomToFit={handleZoomToFit} />
     </div>
   )
 }

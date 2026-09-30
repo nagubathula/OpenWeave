@@ -61,5 +61,9 @@
   "multiplayerCursors": "Multiplayer-Cursor",
   "renameSelection": "Auswahl umbenennen…",
   "rulers": "Lineale",
-  "settings": "Einstellungen…"
+  "settings": "Einstellungen…",
+  "zoomRealSize": "Tatsächliche Größe",
+  "zoomRealMobile": "Reale Smartphone-Größe",
+  "calibrateScale": "Bildschirmmaßstab kalibrieren…",
+  "insertCreditCard": "Kreditkarten-Referenz einfügen"
 }

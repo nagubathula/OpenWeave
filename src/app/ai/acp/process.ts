@@ -1,10 +1,12 @@
 import { decodeTauriStderr } from '@/app/shell/ui'
 import { resolvePlatformCommand } from '@/app/tauri/command'
 
-export type TauriChild = {
+export type DesktopChild = {
   write(data: number[]): Promise<void>
   kill(): Promise<void>
 }
+
+export type TauriChild = DesktopChild
 
 type AcpProcessOptions = {
   command: string
@@ -21,47 +23,46 @@ export async function spawnAcpProcess({
   destroying,
   onUnexpectedClose
 }: AcpProcessOptions) {
-  const { Command } = await import('@tauri-apps/plugin-shell')
+  const electron = typeof window !== 'undefined' ? (window as any).electron : null
+  if (!electron?.process?.spawn) {
+    throw new Error('Process spawning is only supported in desktop environment.')
+  }
+
   const resolved = resolvePlatformCommand(commandName, args)
-  const command = Command.create(resolved.command, resolved.args, {
-    encoding: 'raw',
-    env: {}
-  })
 
   const stdoutChunks: Uint8Array[] = []
   let stdoutResolver: ((chunk: Uint8Array | null) => void) | null = null
   let stdoutClosed = false
   let stdoutClosedError: Error | null = null
 
-  command.stdout.on('data', (raw: Uint8Array | number[]) => {
-    const chunk = raw instanceof Uint8Array ? raw : new Uint8Array(raw)
-    if (stdoutResolver) {
-      const resolve = stdoutResolver
-      stdoutResolver = null
-      resolve(chunk)
-    } else {
-      stdoutChunks.push(chunk)
+  const child = await electron.process.spawn({
+    command: resolved.command,
+    args: resolved.args,
+    onStdout: (chunk: Uint8Array) => {
+      if (stdoutResolver) {
+        const resolve = stdoutResolver
+        stdoutResolver = null
+        resolve(chunk)
+      } else {
+        stdoutChunks.push(chunk)
+      }
+    },
+    onStderr: (raw: string) => {
+      console.error(`[ACP ${logId}]`, decodeTauriStderr(raw))
+    },
+    onClose: () => {
+      stdoutClosed = true
+      stdoutClosedError = destroying() ? null : new Error('Agent process exited unexpectedly.')
+      if (stdoutResolver) {
+        const resolve = stdoutResolver
+        stdoutResolver = null
+        resolve(null)
+      }
+      if (!destroying()) {
+        onUnexpectedClose()
+      }
     }
   })
-
-  command.stderr.on('data', (raw: Uint8Array | number[] | string) => {
-    console.error(`[ACP ${logId}]`, decodeTauriStderr(raw))
-  })
-
-  command.on('close', () => {
-    stdoutClosed = true
-    stdoutClosedError = destroying() ? null : new Error('Agent process exited unexpectedly.')
-    if (stdoutResolver) {
-      const resolve = stdoutResolver
-      stdoutResolver = null
-      resolve(null)
-    }
-    if (!destroying()) {
-      onUnexpectedClose()
-    }
-  })
-
-  const child = await command.spawn()
 
   const output = new ReadableStream<Uint8Array>({
     async pull(controller) {

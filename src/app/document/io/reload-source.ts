@@ -14,11 +14,14 @@ export async function readReloadSource({
   fileHandle
 }: ReloadSourceOptions) {
   if (filePath && isTauri()) {
-    const { readFile: tauriRead } = await import('@tauri-apps/plugin-fs')
-    const bytes = await tauriRead(filePath)
-    const blob = new Blob([bytes])
-    const file = new File([blob], `${documentName}.fig`)
-    return readFigFile(file, { populate: 'first-page' })
+    const electron =
+      typeof window !== 'undefined' ? (window as any).electron || (window as any).electronAPI : null
+    if (electron?.fs?.readFile) {
+      const bytes = await electron.fs.readFile(filePath)
+      const blob = new Blob([bytes])
+      const file = new File([blob], `${documentName}.fig`)
+      return readFigFile(file, { populate: 'first-page' })
+    }
   }
 
   if (fileHandle) {

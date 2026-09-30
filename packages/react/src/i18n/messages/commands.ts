@@ -42,7 +42,11 @@ export const commandMessageDefaults = {
   setOpacity: 'Set opacity',
   zoomTo100: 'Zoom to 100%',
   zoomToFit: 'Zoom to fit',
-  zoomToSelection: 'Zoom to selection'
+  zoomToSelection: 'Zoom to selection',
+  zoomToRealSize: 'Zoom to real size',
+  zoomToRealMobile: 'Zoom to real mobile size',
+  calibrateDisplayScale: 'Calibrate display scale…',
+  insertCreditCardReference: 'Insert credit card scale reference'
 } as const
 
 export const commandMessages = i18n('commands', commandMessageDefaults)

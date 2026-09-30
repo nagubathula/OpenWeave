@@ -48,8 +48,11 @@ export async function createACPTransport(providerID: AIProviderID) {
   if (!agentDef) throw new Error(`Unknown ACP agent: ${agentId}`)
 
   const { ACPChatTransport } = await import('@/app/ai/acp/transport')
-  const { homeDir } = await import('@tauri-apps/api/path')
-  return new ACPChatTransport({ agentDef, cwd: await homeDir() })
+  let cwd = ''
+  if (typeof window !== 'undefined' && (window as any).electron?.app?.getPath) {
+    cwd = (await (window as any).electron.app.getPath('home')) || ''
+  }
+  return new ACPChatTransport({ agentDef, cwd })
 }
 
 export function createToolLoopTransport({

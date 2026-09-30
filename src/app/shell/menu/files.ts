@@ -28,19 +28,27 @@ if (IS_BROWSER && 'window' in globalThis) {
 }
 
 export async function readTauriDesignFile(path: string): Promise<File> {
-  const { readFile } = await import('@tauri-apps/plugin-fs')
-  const bytes = await readFile(path)
-  const name = path.split(/[/\\]/).pop() ?? 'file.fig'
-  return new File([bytes], name)
+  const electron =
+    typeof window !== 'undefined' ? (window as any).electron || (window as any).electronAPI : null
+  if (electron?.fs?.readFile) {
+    const bytes = await electron.fs.readFile(path)
+    const name = path.split(/[/\\]/).pop() ?? 'file.fig'
+    return new File([bytes], name)
+  }
+  throw new Error('Electron fs not available')
 }
 
 export async function chooseTauriOpenPath(): Promise<string | null> {
-  const { open } = await import('@tauri-apps/plugin-dialog')
-  const path = await open({
-    filters: [{ name: 'Design file', extensions: ['fig', 'pen', 'html', 'htm', 'xhtml'] }],
-    multiple: false
-  })
-  return typeof path === 'string' ? path : null
+  const electron =
+    typeof window !== 'undefined' ? (window as any).electron || (window as any).electronAPI : null
+  if (electron?.dialog?.showOpenDialog) {
+    const paths = await electron.dialog.showOpenDialog({
+      filters: [{ name: 'Design file', extensions: ['fig', 'pen', 'html', 'htm', 'xhtml'] }],
+      multiple: false
+    })
+    return Array.isArray(paths) ? (paths[0] ?? null) : typeof paths === 'string' ? paths : null
+  }
+  return null
 }
 
 export async function openFileFromPath(path: string) {

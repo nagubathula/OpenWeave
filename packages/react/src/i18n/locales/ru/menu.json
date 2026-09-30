@@ -61,5 +61,9 @@
   "multiplayerCursors": "Курсоры участников",
   "renameSelection": "Переименовать выделение…",
   "rulers": "Линейки",
-  "settings": "Настройки…"
+  "settings": "Настройки…",
+  "zoomRealSize": "Реальный размер",
+  "zoomRealMobile": "Реальный размер смартфона",
+  "calibrateScale": "Калибровать масштаб экрана…",
+  "insertCreditCard": "Вставить кредитную карту"
 }

@@ -238,5 +238,18 @@
   "addVariableColorDescription": "Jeton de couleur unie",
   "addVariableNumberDescription": "Valeur numérique",
   "addVariableTextDescription": "Valeur texte",
-  "addVariableBooleanDescription": "Bascule vrai/faux"
+  "addVariableBooleanDescription": "Bascule vrai/faux",
+  "displayScaleTitle": "Étalonnage de l'échelle d'affichage",
+  "displayScaleDescription": "Étalonnez votre écran pour afficher vos designs à leur taille physique réelle.",
+  "creditCardCalibration": "Étalonnage par carte bancaire",
+  "creditCardInstruction": "Placez une carte bancaire ou une carte d'identité standard contre l'écran, puis ajustez le curseur jusqu'à ce que le contour corresponde exactement à votre carte physique.",
+  "standardCardDimensions": "Carte standard : 85,60 × 53,98 mm (3,37\" × 2,13\")",
+  "cardWidthLabel": "Largeur de la carte",
+  "screenDensityLabel": "Densité d'écran",
+  "pixelsPerInch": "PPI",
+  "zoomForRealSizeLabel": "Zoom pour taille physique 1:1",
+  "zoomForMobileLabel": "Zoom pour écran mobile",
+  "displayPresetsTitle": "Préréglages d'affichage",
+  "saveAndZoomRealSize": "Enregistrer et zoomer en taille réelle",
+  "resetToDefault": "Rétablir les valeurs par défaut"
 }

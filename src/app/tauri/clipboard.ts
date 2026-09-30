@@ -1,35 +1,47 @@
-import { invoke } from '@tauri-apps/api/core'
-import { readText, writeHtml, writeText } from '@tauri-apps/plugin-clipboard-manager'
+import { isElectron } from '@/app/tauri/env'
 
-import { isTauri } from '@/app/tauri/env'
+function getElectron() {
+  if (typeof window === 'undefined') return null
+  return (window as any).electron || (window as any).electronAPI || null
+}
 
 export async function writeTauriClipboardHtml(html: string, plainText: string) {
-  if (!isTauri()) return false
-  await writeHtml(html, plainText)
-  return true
+  if (!isElectron()) return false
+  const electron = getElectron()
+  if (electron?.clipboard?.writeHtml) {
+    await electron.clipboard.writeHtml(html, plainText)
+    return true
+  }
+  return false
 }
 
 export async function writeTauriClipboardText(text: string) {
-  if (!isTauri()) return false
-  await writeText(text)
-  return true
+  if (!isElectron()) return false
+  const electron = getElectron()
+  if (electron?.clipboard?.writeText) {
+    await electron.clipboard.writeText(text)
+    return true
+  }
+  return false
 }
 
 export async function readTauriClipboardText() {
-  if (!isTauri()) return null
-  return readText()
+  if (!isElectron()) return null
+  const electron = getElectron()
+  if (electron?.clipboard?.readText) {
+    return electron.clipboard.readText()
+  }
+  return null
 }
 
 /**
- * Read clipboard text via Rust, which checks the payload size before passing
- * bytes to JS. Avoids allocating a massive JS string that would OOM the WebView.
- *
- * Returns:
- *  - `null`                       — not a design clipboard or nothing to paste
- *  - `'__OW_CLIPBOARD_TOO_LARGE__'` — payload too large (show toast, don't paste)
- *  - the clipboard text           — safe to process
+ * Read clipboard HTML via Electron.
  */
 export async function readTauriClipboardHtmlLimited(): Promise<string | null> {
-  if (!isTauri()) return null
-  return invoke<string | null>('read_clipboard_html_limited')
+  if (!isElectron()) return null
+  const electron = getElectron()
+  if (electron?.clipboard?.readHtml) {
+    return electron.clipboard.readHtml()
+  }
+  return null
 }

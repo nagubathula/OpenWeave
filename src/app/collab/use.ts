@@ -46,6 +46,23 @@ export function useCollab(storeOrGetter: EditorStore | (() => EditorStore)) {
     getYimages: () => runtime.yimages,
     setSuppressYjsEvents: (value) => {
       runtime.suppressYjsEvents = value
+    },
+    onRemoteNodeDeleted: (node, restore) => {
+      import('@/app/shell/ui')
+        .then(({ toast }) => {
+          toast.action(
+            `"${node.name || 'Layer'}" was deleted by a collaborator`,
+            {
+              label: 'Restore',
+              onClick: () => {
+                restore()
+                toast.info(`Restored "${node.name || 'Layer'}"`)
+              }
+            },
+            8000
+          )
+        })
+        .catch(() => {})
     }
   })
   const { connect, disconnect } = createCollabConnectionActions({
@@ -60,9 +77,9 @@ export function useCollab(storeOrGetter: EditorStore | (() => EditorStore)) {
     resetFollow
   })
 
-  function shareCurrentDoc(): string {
+  function shareCurrentDoc(password?: string): string {
     const roomId = generateRoomId()
-    connect(roomId)
+    connect(roomId, password)
     syncAllNodesToYjs()
     return roomId
   }

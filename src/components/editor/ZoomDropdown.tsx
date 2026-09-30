@@ -1,10 +1,19 @@
+import { useStore } from '@nanostores/react'
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
-import { Check } from 'lucide-react'
+import { Check, CreditCard } from 'lucide-react'
 import React, { useRef, useState } from 'react'
 
 import { useI18n } from '@openweave/react'
 
 import { getActiveEditorStore } from '@/app/editor/active-store'
+import {
+  detectMobileFrameDimensions,
+  displayScaleSettings,
+  insertCreditCardReference,
+  openDisplayScaleDialog,
+  zoomForDevice,
+  zoomForPhysical
+} from '@/app/editor/display-scale'
 import { useEditorState } from '@/app/editor/session/use-editor-state'
 
 /**
@@ -33,9 +42,21 @@ export default function ZoomDropdown() {
   const zoom = useEditorState((s) => s.zoom, 1)
   useEditorState((s) => s.showRulers, true)
   useEditorState((s) => s.showRemoteCursors, true)
+  const selectedIds = useEditorState((s) => s.selectedIds, new Set<string>())
 
   const store = getActiveEditorStore()
+  const scaleSettings = useStore(displayScaleSettings)
   const zoomPercent = Math.round(zoom * 100)
+
+  const selectedId = [...selectedIds][0]
+  const selectedNode = selectedId ? store.graph.getNode(selectedId) : null
+  const detectedMobile = detectMobileFrameDimensions(selectedNode)
+  const physicalZoom = zoomForPhysical(scaleSettings.screenPpi)
+  const mobileZoom = zoomForDevice(
+    scaleSettings.screenPpi,
+    selectedNode ? Math.min(selectedNode.width, selectedNode.height) : 393,
+    detectedMobile.physicalWidthMm
+  )
 
   const startEditing = () => {
     setInputValue(String(zoomPercent))
@@ -134,6 +155,55 @@ export default function ZoomDropdown() {
               <span className="flex-1">{preset.label}</span>
             </DropdownMenu.Item>
           ))}
+
+          <DropdownMenu.Separator className="my-1 h-px bg-border" />
+
+          <DropdownMenu.Item
+            className={itemCls}
+            onSelect={() => store.zoomToPhysical(scaleSettings.screenPpi)}
+          >
+            {Math.abs(store.state.zoom - physicalZoom) < 0.005 && (
+              <Check className="absolute left-2 size-3.5" />
+            )}
+            <span className="flex-1">{commands.zoomToRealSize}</span>
+            <div className="flex items-center gap-1.5">
+              <span className="rounded bg-input/50 px-1 font-mono text-[9px] text-muted">F12</span>
+              <span className="text-[10px] text-muted font-mono">
+                {Math.round(physicalZoom * 100)}%
+              </span>
+            </div>
+          </DropdownMenu.Item>
+
+          <DropdownMenu.Item
+            className={itemCls}
+            onSelect={() => {
+              if (selectedNode) {
+                store.zoomToLevel(mobileZoom)
+              } else {
+                store.zoomToLevel(zoomForDevice(scaleSettings.screenPpi, 393, 64.6))
+              }
+            }}
+          >
+            {Math.abs(store.state.zoom - mobileZoom) < 0.005 && (
+              <Check className="absolute left-2 size-3.5" />
+            )}
+            <span className="flex-1">{commands.zoomToRealMobile}</span>
+            <span className="text-[10px] text-muted font-mono">
+              {Math.round(mobileZoom * 100)}%
+            </span>
+          </DropdownMenu.Item>
+
+          <DropdownMenu.Separator className="my-1 h-px bg-border" />
+
+          <DropdownMenu.Item className={itemCls} onSelect={() => openDisplayScaleDialog()}>
+            <CreditCard className="absolute left-2 size-3.5 text-accent" />
+            <span className="flex-1">{commands.calibrateDisplayScale}</span>
+            <span className="text-[10px] text-muted font-mono">{scaleSettings.screenPpi} PPI</span>
+          </DropdownMenu.Item>
+
+          <DropdownMenu.Item className={itemCls} onSelect={() => insertCreditCardReference(store)}>
+            <span className="flex-1">{commands.insertCreditCardReference}</span>
+          </DropdownMenu.Item>
 
           <DropdownMenu.Separator className="my-1 h-px bg-border" />
 

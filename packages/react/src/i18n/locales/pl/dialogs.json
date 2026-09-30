@@ -238,5 +238,18 @@
   "addVariableColorDescription": "Token koloru jednolitego",
   "addVariableNumberDescription": "Wartość liczbowa",
   "addVariableTextDescription": "Wartość tekstowa",
-  "addVariableBooleanDescription": "Przełącznik prawda/fałsz"
+  "addVariableBooleanDescription": "Przełącznik prawda/fałsz",
+  "displayScaleTitle": "Kalibracja skali wyświetlacza",
+  "displayScaleDescription": "Skalibruj ekran, aby wyświetlać projekty w ich rzeczywistych wymiarach fizycznych.",
+  "creditCardCalibration": "Kalibracja kartą płatniczą",
+  "creditCardInstruction": "Przyłóż standardową kartę płatniczą lub dowód osobisty do ekranu i przesuwaj suwak, aż obrys będzie idealnie pasował do karty.",
+  "standardCardDimensions": "Standardowa karta: 85,60 × 53,98 mm (3,37\" × 2,13\")",
+  "cardWidthLabel": "Szerokość karty",
+  "screenDensityLabel": "Gęstość ekranu",
+  "pixelsPerInch": "PPI",
+  "zoomForRealSizeLabel": "Zoom dla skali fizycznej 1:1",
+  "zoomForMobileLabel": "Zoom dla ekranu telefonu",
+  "displayPresetsTitle": "Profile wyświetlacza",
+  "saveAndZoomRealSize": "Zapisz i powiększ do rozmiaru rzeczywistego",
+  "resetToDefault": "Przywróć domyślne"
 }

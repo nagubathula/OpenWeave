@@ -7,17 +7,32 @@ export async function watchTauriFile(
   getLastWriteTime: () => number,
   reloadFromDisk: () => void
 ) {
-  const { watch: tauriWatch } = await import('@tauri-apps/plugin-fs')
-  const unwatch = await tauriWatch(
-    filePath,
-    (event) => {
-      if (typeof event.type !== 'object' || !('modify' in event.type)) return
-      if (Date.now() - getLastWriteTime() < RECENT_WRITE_MS) return
-      reloadFromDisk()
-    },
-    { delayMs: TAURI_WATCH_DELAY_MS }
-  )
-  return () => unwatch()
+  const electron =
+    typeof window !== 'undefined' ? (window as any).electron || (window as any).electronAPI : null
+  let lastMtime = 0
+  if (electron?.fs?.stat) {
+    try {
+      const stats = await electron.fs.stat(filePath)
+      lastMtime = stats?.mtimeMs || stats?.mtime || 0
+    } catch {
+      // ignore
+    }
+    const interval = setInterval(async () => {
+      try {
+        const stats = await electron.fs.stat(filePath)
+        const mtime = stats?.mtimeMs || stats?.mtime || 0
+        if (mtime > lastMtime) {
+          lastMtime = mtime
+          if (Date.now() - getLastWriteTime() < RECENT_WRITE_MS) return
+          reloadFromDisk()
+        }
+      } catch {
+        // ignore
+      }
+    }, TAURI_WATCH_DELAY_MS)
+    return () => clearInterval(interval)
+  }
+  return () => {}
 }
 
 export async function watchBrowserFile(

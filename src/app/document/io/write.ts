@@ -43,10 +43,12 @@ export function createDocumentWriter({
     const filePath = getFilePath()
     const fileHandle = getFileHandle()
     if (filePath && isTauri()) {
-      const { writeFile: tauriWrite } = await import('@tauri-apps/plugin-fs')
-      await tauriWrite(filePath, data)
-      setSavedVersion(state.sceneVersion)
-      return true
+      const electron = (window as any).electron || (window as any).electronAPI
+      if (electron?.fs?.writeFile) {
+        await electron.fs.writeFile(filePath, data)
+        setSavedVersion(state.sceneVersion)
+        return true
+      }
     }
     if (fileHandle) {
       const writable = await fileHandle.createWritable()

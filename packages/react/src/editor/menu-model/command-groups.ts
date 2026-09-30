@@ -9,7 +9,11 @@ export const EDIT_MENU_COMMAND_GROUPS = [
 export const VIEW_MENU_COMMANDS = [
   'view.zoom100',
   'view.zoomFit',
-  'view.zoomSelection'
+  'view.zoomSelection',
+  'view.zoomRealSize',
+  'view.zoomRealMobile',
+  'view.calibrateScale',
+  'view.insertCreditCard'
 ] satisfies ReadonlyArray<EditorCommandId>
 
 export const OBJECT_MENU_COMMAND_GROUPS = [

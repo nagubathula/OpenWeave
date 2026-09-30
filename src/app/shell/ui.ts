@@ -3,12 +3,19 @@ import type { ToastVariant } from '@/components/ui/toast'
 
 export type { ToastVariant } from '@/components/ui/toast'
 
+export interface ToastAction {
+  label: string
+  onClick: () => void
+}
+
 export interface Toast {
   id: number
   message: string
   variant: ToastVariant
   /** Number of times this message has been raised since it appeared. */
   count: number
+  action?: ToastAction
+  duration?: number
 }
 
 const TOAST_DURATION = 3000
@@ -39,6 +46,22 @@ function push(message: string, variant: ToastVariant) {
     return
   }
   currentToasts = [...currentToasts, { id: ++nextId, message, variant, count: 1 }]
+  if (currentToasts.length > TOAST_STACK_LIMIT) {
+    currentToasts = currentToasts.slice(currentToasts.length - TOAST_STACK_LIMIT)
+  }
+  notify()
+}
+
+function action(message: string, actionOpt: ToastAction, duration = 8000) {
+  const item: Toast = {
+    id: ++nextId,
+    message,
+    variant: 'default',
+    count: 1,
+    action: actionOpt,
+    duration
+  }
+  currentToasts = [...currentToasts, item]
   if (currentToasts.length > TOAST_STACK_LIMIT) {
     currentToasts = currentToasts.slice(currentToasts.length - TOAST_STACK_LIMIT)
   }
@@ -77,10 +100,22 @@ function setupGlobalErrorHandler() {
 }
 
 export const toast = {
+  action,
   info,
   warning,
   error,
   remove,
+  get toasts() {
+    return {
+      get value() {
+        return currentToasts
+      },
+      set value(v: Toast[]) {
+        currentToasts = v
+        notify()
+      }
+    }
+  },
   subscribe: (l: Listener) => {
     listeners.add(l)
     l(currentToasts)
@@ -93,11 +128,14 @@ export const toast = {
 
 export async function openExternalLink(url: string) {
   if (isTauri()) {
-    const { openUrl } = await import('@tauri-apps/plugin-opener')
-    await openUrl(url)
-  } else {
-    window.open(url, '_blank')
+    const electron =
+      typeof window !== 'undefined' ? (window as any).electron || (window as any).electronAPI : null
+    if (electron?.shell?.openExternal) {
+      await electron.shell.openExternal(url)
+      return
+    }
   }
+  window.open(url, '_blank')
 }
 export function initials(name: string): string {
   return (

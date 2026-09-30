@@ -14,6 +14,7 @@ export interface CollabState {
   peers: RemotePeer[]
   localName: string
   localColor: Color
+  isProtected?: boolean
 }
 
 export const DEFAULT_COLLAB_STATE: CollabState = {
@@ -21,5 +22,6 @@ export const DEFAULT_COLLAB_STATE: CollabState = {
   roomId: null,
   peers: [],
   localName: '',
-  localColor: { r: 0.5, g: 0.5, b: 0.5, a: 1 }
+  localColor: { r: 0.5, g: 0.5, b: 0.5, a: 1 },
+  isProtected: false
 }

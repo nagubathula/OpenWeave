@@ -1,5 +1,5 @@
 import * as Popover from '@radix-ui/react-popover'
-import React, { useCallback } from 'react'
+import React, { useCallback, useState } from 'react'
 
 import { colorToCSS, colorToHex, colorToHexRaw, parseColor } from '@openweave/core/color'
 import type { Color } from '@openweave/scene-graph/primitives'
@@ -33,6 +33,8 @@ export function ColorSwatchPopover({
   editable = false,
   okhcl = null
 }: ColorSwatchPopoverProps) {
+  const [open, setOpen] = useState(false)
+
   const onHexChange = useCallback(
     (raw: string) => {
       const value = raw.trim()
@@ -55,7 +57,12 @@ export function ColorSwatchPopover({
         className="z-50 rounded-lg border border-border bg-panel p-3 shadow-lg"
         onOpenAutoFocus={(e) => e.preventDefault()}
       >
-        <ColorPicker color={color} onChange={onChange} okhcl={okhcl} />
+        <ColorPicker
+          color={color}
+          onChange={onChange}
+          okhcl={okhcl}
+          onClose={() => setOpen(false)}
+        />
       </Popover.Content>
     </Popover.Portal>
   )
@@ -69,7 +76,7 @@ export function ColorSwatchPopover({
   if (editable) {
     return (
       <div className="flex flex-1 items-center gap-1.5">
-        <Popover.Root>
+        <Popover.Root open={open} onOpenChange={setOpen}>
           <Popover.Trigger asChild>
             <button
               type="button"
@@ -93,12 +100,12 @@ export function ColorSwatchPopover({
   }
 
   return (
-    <Popover.Root>
+    <Popover.Root open={open} onOpenChange={setOpen}>
       <Popover.Trigger asChild>
         <button
           type="button"
           aria-label="Edit color"
-          className="flex flex-1 items-center gap-2 text-left outline-none"
+          className="flex flex-1 items-center gap-2 text-left outline-none cursor-pointer"
         >
           <span className="size-4 rounded border border-border shrink-0" style={swatchStyle} />
           <span className="flex-1 text-[11px] truncate uppercase text-surface">

@@ -86,6 +86,7 @@ export function createEditorStoreModules(
     setStorageDocumentSource: documentIO.setStorageDocumentSource,
     setPlannedFilePath: documentIO.setPlannedFilePath,
     startWatchingCurrentFile: documentIO.startWatchingCurrentFile,
+    isDocumentDirty: documentIO.isDocumentDirty,
     dispose: documentIO.disposeDocumentIO,
     ...documentExport,
     ...mobileClipboard,

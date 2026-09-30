@@ -40,5 +40,9 @@
   "distributeHorizontal": "水平方向の間隔を均等に配置",
   "distributeVertical": "垂直方向の間隔を均等に配置",
   "selectInverse": "選択範囲を反転",
-  "sendBackward": "背面へ移動"
+  "sendBackward": "背面へ移動",
+  "zoomToRealSize": "実寸大にズーム",
+  "zoomToRealMobile": "実寸大モバイルにズーム",
+  "calibrateDisplayScale": "ディスプレイ比率を調整…",
+  "insertCreditCardReference": "クレジットカードの縮尺参照を挿入"
 }

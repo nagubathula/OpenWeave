@@ -40,5 +40,9 @@
   "distributeHorizontal": "Répartir l’espacement horizontal",
   "distributeVertical": "Répartir l’espacement vertical",
   "selectInverse": "Inverser la sélection",
-  "sendBackward": "Reculer"
+  "sendBackward": "Reculer",
+  "zoomToRealSize": "Zoom à la taille réelle",
+  "zoomToRealMobile": "Zoom à la taille mobile réelle",
+  "calibrateDisplayScale": "Étalonner l'échelle de l'écran…",
+  "insertCreditCardReference": "Insérer une carte de crédit comme référence d'échelle"
 }

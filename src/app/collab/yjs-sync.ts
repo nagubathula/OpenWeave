@@ -31,6 +31,7 @@ type YjsGraphSyncOptions = {
   getYnodes: () => YNodes | null
   getYimages: () => YImages | null
   setSuppressYjsEvents: (value: boolean) => void
+  onRemoteNodeDeleted?: (node: SceneNode, restore: () => void) => void
 }
 
 function logCollabSyncError(context: string, error: unknown) {
@@ -137,7 +138,8 @@ export function createYjsGraphSync({
   getYdoc,
   getYnodes,
   getYimages,
-  setSuppressYjsEvents
+  setSuppressYjsEvents,
+  onRemoteNodeDeleted
 }: YjsGraphSyncOptions) {
   function syncNodeToYjs(nodeId: string) {
     const store = getStore()
@@ -219,7 +221,22 @@ export function createYjsGraphSync({
             const ynode = ynodes.get(key)
             if (ynode) applyYnodeToGraph(key, ynode)
           } else if (change.action === 'delete') {
-            store.graph.deleteNode(key)
+            const existingNode = store.graph.getNode(key)
+            if (existingNode) {
+              const nodeSnapshot = structuredClone(existingNode)
+              store.graph.deleteNode(key)
+              onRemoteNodeDeleted?.(nodeSnapshot, () => {
+                store.graph.createNodeWithId(
+                  nodeSnapshot.id,
+                  nodeSnapshot.type,
+                  nodeSnapshot.parentId,
+                  nodeSnapshot
+                )
+                syncNodeToYjs(nodeSnapshot.id)
+              })
+            } else {
+              store.graph.deleteNode(key)
+            }
           }
         }
       } else if (event.target.parent === ynodes) {

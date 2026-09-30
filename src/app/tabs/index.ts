@@ -109,12 +109,39 @@ export function switchTab(tabId: string) {
   activateTab(tab)
 }
 
-export function closeTab(tabId: string) {
+export interface PendingCloseTabRequest {
+  tabId: string
+  name: string
+  path?: string | null
+}
+
+export const pendingCloseTabAtom = atom<PendingCloseTabRequest | null>(null)
+const recentlyClosedTabs: Array<{ path?: string | null; name: string }> = []
+const MAX_CLOSED_TABS_HISTORY = 10
+
+export function closeTab(tabId: string, options?: { force?: boolean }) {
   const tabs = tabsAtom.get()
   const idx = tabs.findIndex((t) => t.id === tabId)
   if (idx === -1) return
 
   const closingTab = tabs[idx]
+  if (!options?.force && closingTab.store.isDocumentDirty?.()) {
+    pendingCloseTabAtom.set({
+      tabId,
+      name: closingTab.store.state.documentName,
+      path: closingTab.store.getDocumentFilePath?.()
+    })
+    return
+  }
+
+  const filePath = closingTab.store.getDocumentFilePath?.()
+  if (filePath) {
+    recentlyClosedTabs.push({ path: filePath, name: closingTab.store.state.documentName })
+    if (recentlyClosedTabs.length > MAX_CLOSED_TABS_HISTORY) {
+      recentlyClosedTabs.shift()
+    }
+  }
+
   const wasActive = activeTabId.get() === tabId
   tabStateUnsubscribers.get(tabId)?.()
   tabStateUnsubscribers.delete(tabId)
@@ -134,6 +161,14 @@ export function closeTab(tabId: string) {
   }
 
   closingTab.store.dispose()
+}
+
+export async function reopenLastClosedTab(): Promise<boolean> {
+  const last = recentlyClosedTabs.pop()
+  if (!last?.path) return false
+  const { openFileFromPath } = await import('@/app/shell/menu/files')
+  await openFileFromPath(last.path)
+  return true
 }
 
 function yieldToUI(): Promise<void> {

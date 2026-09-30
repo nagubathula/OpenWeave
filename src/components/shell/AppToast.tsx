@@ -46,7 +46,10 @@ export default function AppToast() {
         <ToastPrimitive.Root
           key={t.id}
           duration={
-            t.variant === 'error' ? toastManager.ERROR_TOAST_DURATION : toastManager.TOAST_DURATION
+            t.duration ??
+            (t.variant === 'error'
+              ? toastManager.ERROR_TOAST_DURATION
+              : toastManager.TOAST_DURATION)
           }
           className={toastClass(t.variant)}
           onOpenChange={(open) => {
@@ -64,6 +67,20 @@ export default function AppToast() {
             {t.message}
             {t.count > 1 && <span className="ml-1.5 opacity-70">×{t.count}</span>}
           </ToastPrimitive.Description>
+
+          {t.action && (
+            <button
+              type="button"
+              data-test-id="toast-action"
+              className="ml-2 shrink-0 cursor-pointer rounded px-2 py-0.5 text-xs font-semibold bg-white/20 hover:bg-white/30 text-white transition-colors outline-none"
+              onClick={() => {
+                t.action.onClick()
+                toastManager.remove(t.id)
+              }}
+            >
+              {t.action.label}
+            </button>
+          )}
 
           {t.variant !== 'default' && (
             <Tip label={copiedId === t.id ? 'Copied!' : 'Copy to clipboard'}>

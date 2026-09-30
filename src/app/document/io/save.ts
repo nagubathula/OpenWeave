@@ -5,18 +5,21 @@ import { documentNameFromFigPath } from '@/app/document/io/names'
 import {
   chooseBrowserFigSaveHandle,
   chooseTauriFigSavePath,
-  defaultTauriFigSavePath
+  defaultTauriFigSavePath,
+  figBaseName
 } from '@/app/document/io/save-targets'
 import type { DocumentSourceAccess } from '@/app/document/io/types'
 import { createDocumentWriter } from '@/app/document/io/write'
-import { addRecentFile } from '@/app/home/recent-files'
-import { IS_TAURI } from '@/constants'
+import { addRecentFile, removeRecentFile } from '@/app/home/recent-files'
+import { toast } from '@/app/shell/ui'
+import { isTauri } from '@/app/tauri/env'
 
 type SaveDocumentState = EditorState & { documentName: string }
 
 type SaveActionsOptions = Omit<DocumentSourceAccess, 'getSavedVersion'> & {
   state: SaveDocumentState
   buildFigFile: () => Uint8Array | Promise<Uint8Array>
+  stopWatchingFile?: () => void
   startWatchingFile: () => void
 }
 
@@ -34,6 +37,7 @@ export function createSaveActions({
   setSourceIdentity,
   setSavedVersion,
   setLastWriteTime,
+  stopWatchingFile,
   startWatchingFile
 }: SaveActionsOptions) {
   const writeFile = createDocumentWriter({
@@ -51,27 +55,53 @@ export function createSaveActions({
     const storageBinding = getStorageBinding()
     const downloadName = getDownloadName()
 
-    if (IS_TAURI && filePath && !storageBinding) {
+    if (isTauri() && filePath && !storageBinding) {
       const currentName = documentNameFromFigPath(filePath)
       const targetName = state.documentName.trim()
       if (targetName && currentName !== targetName) {
         try {
-          const { dirname, join } = await import('@tauri-apps/api/path')
-          const { exists, rename } = await import('@tauri-apps/plugin-fs')
-          const dir = await dirname(filePath)
+          const electron = (window as any).electron || (window as any).electronAPI
+          const dir = electron?.path?.dirname
+            ? electron.path.dirname(filePath)
+            : filePath.slice(0, Math.max(filePath.lastIndexOf('/'), filePath.lastIndexOf('\\')))
           const safeName = targetName.replace(/[\\/]/g, '-') || 'Untitled'
-          const newPath = await join(dir, `${safeName}.fig`)
+          const join = electron?.path?.join
+            ? electron.path.join
+            : async (a: string, b: string) => `${a}/${b}`
+          let newPath = await join(dir, `${safeName}.fig`)
           if (newPath !== filePath) {
-            if (await exists(filePath)) {
-              await rename(filePath, newPath)
+            const exists = electron?.fs?.exists ? electron.fs.exists : async () => false
+            if (await exists(newPath)) {
+              for (let counter = 2; await exists(newPath); counter++) {
+                newPath = await join(dir, `${safeName} ${counter}.fig`)
+              }
             }
+            stopWatchingFile?.()
+            if (await exists(filePath)) {
+              if (electron?.fs?.rename) {
+                await electron.fs.rename(filePath, newPath)
+              }
+            }
+            const oldPath = filePath
             setFilePath(newPath)
             filePath = newPath
+            state.documentName = documentNameFromFigPath(newPath)
             setSourceIdentity({ handle: null, path: newPath })
+            removeRecentFile(oldPath)
+            addRecentFile({
+              id: newPath,
+              name: state.documentName,
+              path: newPath,
+              format: 'fig',
+              updatedAt: new Date().toISOString()
+            })
             startWatchingFile()
           }
         } catch (e) {
           console.warn('Failed to rename file on disk:', e)
+          toast.error(
+            `Failed to rename file on disk: ${e instanceof Error ? e.message : String(e)}`
+          )
         }
       }
     }
@@ -90,7 +120,7 @@ export function createSaveActions({
           })
         }
       }
-    } else if (IS_TAURI) {
+    } else if (isTauri()) {
       // First save of a new document goes straight to Documents/openweave
       // without a picker; only Save As asks where.
       const data = await buildFigFile()
@@ -124,28 +154,47 @@ export function createSaveActions({
   }
 
   async function saveFigFileAs() {
-    const data = await buildFigFile()
-
-    if (IS_TAURI) {
+    if (isTauri()) {
       const path = await chooseTauriFigSavePath(state.documentName)
       if (!path) return
+      const data = await buildFigFile()
       await persistTauriSave(path, data)
       return
     }
 
+    const suggestedName = state.documentName
+      ? `${figBaseName(state.documentName)}.fig`
+      : 'Untitled.fig'
+
     if (window.showSaveFilePicker) {
-      const handle = await chooseBrowserFigSaveHandle()
-      if (!handle) return
-      setStorageBinding(null)
-      setFileHandle(handle)
-      setFilePath(null)
-      state.documentName = documentNameFromFigPath(handle.name)
-      if (await writeFile(data)) setSourceIdentity({ handle, path: null })
-      startWatchingFile()
-      return
+      let handle: FileSystemFileHandle | null = null
+      try {
+        handle = await chooseBrowserFigSaveHandle(suggestedName)
+        // User deliberately cancelled the file picker
+        if (!handle) return
+      } catch (error) {
+        // If user activation was lost or showSaveFilePicker is not allowed in this context,
+        // catch NotAllowedError / SecurityError and fall back to prompt & downloadBlob below.
+        const errName = (error as Error)?.name
+        if (errName !== 'NotAllowedError' && errName !== 'SecurityError') {
+          throw error
+        }
+      }
+
+      if (handle) {
+        setStorageBinding(null)
+        setFileHandle(handle)
+        setFilePath(null)
+        state.documentName = documentNameFromFigPath(handle.name)
+        const data = await buildFigFile()
+        if (await writeFile(data)) setSourceIdentity({ handle, path: null })
+        startWatchingFile()
+        return
+      }
     }
 
-    const filename = prompt('Save as:', getDownloadName() ?? 'Untitled.fig')
+    const data = await buildFigFile()
+    const filename = prompt('Save as:', getDownloadName() ?? suggestedName)
     if (!filename) return
     setStorageBinding(null)
     setDownloadName(filename)

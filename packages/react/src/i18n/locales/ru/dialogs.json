@@ -238,5 +238,18 @@
   "addVariableColorDescription": "Токен сплошного цвета",
   "addVariableNumberDescription": "Числовое значение",
   "addVariableTextDescription": "Текстовое значение",
-  "addVariableBooleanDescription": "Переключатель истина/ложь"
+  "addVariableBooleanDescription": "Переключатель истина/ложь",
+  "displayScaleTitle": "Калибровка масштаба экрана",
+  "displayScaleDescription": "Откалибруйте экран для отображения макетов в реальном физическом размере.",
+  "creditCardCalibration": "Калибровка банковской картой",
+  "creditCardInstruction": "Приложите любую стандартную банковскую карту или удостоверение к экрану и отрегулируйте ползунок, пока контур не совпадет с вашей картой.",
+  "standardCardDimensions": "Стандартная карта: 85,60 × 53,98 мм (3,37\" × 2,13\")",
+  "cardWidthLabel": "Ширина карты",
+  "screenDensityLabel": "Плотность пикселей",
+  "pixelsPerInch": "PPI",
+  "zoomForRealSizeLabel": "Масштаб для физического размера 1:1",
+  "zoomForMobileLabel": "Масштаб для экрана смартфона",
+  "displayPresetsTitle": "Предустановки дисплея",
+  "saveAndZoomRealSize": "Сохранить и масштабировать в 1:1",
+  "resetToDefault": "Сбросить по умолчанию"
 }

@@ -72,11 +72,11 @@ export const WEB_APP_ORIGIN =
     ? process.env.NEXT_PUBLIC_APP_ORIGIN
     : 'http://localhost:1420'
 
-export function getShareUrl(roomId: string): string {
+export function getShareUrl(roomId: string, isProtected = false): string {
   const base = !IS_BROWSER || IS_TAURI ? WEB_APP_ORIGIN : window.location.origin
   // Query-param form: compatible with static export (`output: 'export'`), where
   // a /share/[roomId] path segment could never serve arbitrary room ids.
-  return `${base}/share?room=${roomId}`
+  return `${base}/share?room=${roomId}${isProtected ? '&pwd=1' : ''}`
 }
 
 export const PEER_COLORS: Color[] = [

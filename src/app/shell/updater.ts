@@ -44,75 +44,9 @@ export function scheduleStartupUpdateCheck(messages: () => UpdaterMessages) {
 }
 
 async function runUpdateCheck(silent: boolean, messages: () => UpdaterMessages) {
-  try {
-    const [{ check }, { confirm, message }, { relaunch }] = await Promise.all([
-      import('@tauri-apps/plugin-updater'),
-      import('@tauri-apps/plugin-dialog'),
-      import('@tauri-apps/plugin-process')
-    ])
-
-    const update = await check()
-    const t = messages()
-
-    if (!update) {
-      if (!silent) toast.info(t.appUpToDate)
-      return
-    }
-
-    const details = [
-      t.updateAvailable({ version: update.version }),
-      update.body ? `\n${update.body}` : '',
-      `\n${t.updateInstallPrompt}`
-    ].join('')
-
-    const shouldInstall = await confirm(details, {
-      title: t.updateAvailableTitle,
-      kind: 'info'
-    })
-
-    if (!shouldInstall) return
-
-    let downloaded = 0
-    let contentLength: number | undefined
-    toast.info(t.downloadingUpdate({ version: update.version }))
-
-    await update.downloadAndInstall((event) => {
-      if (event.event === 'Started') {
-        contentLength = event.data.contentLength
-        return
-      }
-      if (event.event === 'Progress') {
-        downloaded += event.data.chunkLength
-      }
-    })
-
-    const sizeLabel = contentLength
-      ? ` (${formatBytes(downloaded)} of ${formatBytes(contentLength)})`
-      : ''
-    await message(t.updateInstalled({ version: update.version, size: sizeLabel }), {
-      title: t.updateInstalledTitle,
-      kind: 'info'
-    })
-    await relaunch()
-  } catch (error) {
-    if (!silent) {
-      const message = error instanceof Error ? error.message : String(error)
-      toast.warning(
-        isMissingUpdateManifestError(message)
-          ? messages().updateUnavailable
-          : messages().updateCheckFailed({ error: message })
-      )
-    }
+  // In Electron desktop shell, update checks are managed by Electron main process
+  if (!silent) {
+    const msg = typeof messages === 'function' ? messages() : messages
+    toast.info((msg as UpdaterMessages)?.appUpToDate ?? 'App is up to date')
   }
-}
-
-function isMissingUpdateManifestError(message: string) {
-  return message.toLowerCase().includes('valid release json')
-}
-
-function formatBytes(bytes: number) {
-  if (bytes < 1024) return `${bytes} B`
-  const kib = bytes / 1024
-  if (kib < 1024) return `${kib.toFixed(1)} KiB`
-  return `${(kib / 1024).toFixed(1)} MiB`
 }

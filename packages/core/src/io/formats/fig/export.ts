@@ -12,7 +12,7 @@ import type { GUID } from '@openweave/scene-graph/primitives'
 
 import { decodeBase64 } from '#core/bytes'
 import type { SkiaRenderer } from '#core/canvas'
-import { CANVAS_BG_COLOR, IS_BROWSER, IS_TAURI } from '#core/constants'
+import { CANVAS_BG_COLOR, IS_BROWSER } from '#core/constants'
 import { renderThumbnail } from '#core/io/formats/raster'
 import { populateAllLazyFigImportRoots } from '#core/kiwi/fig/lazy-import'
 import {
@@ -62,7 +62,7 @@ async function renderFigThumbnail(
       THUMBNAIL_1X1
     )
   }
-  if (!renderHeadless || IS_BROWSER || IS_TAURI) return THUMBNAIL_1X1
+  if (!renderHeadless || IS_BROWSER) return THUMBNAIL_1X1
   const { headlessRenderThumbnail } = await import('#core/io/formats/raster')
   return (
     (await headlessRenderThumbnail(graph, pageId, THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT)) ??
@@ -396,20 +396,6 @@ export async function exportFigFile(
   const imageEntries = collectImageEntries(graph)
 
   const version = graph.figKiwiVersion ?? undefined
-
-  if (IS_TAURI) {
-    const { invoke } = await import('@tauri-apps/api/core')
-    return new Uint8Array(
-      await invoke<number[]>('build_fig_file', {
-        schemaDeflated: Array.from(schemaDeflated),
-        kiwiData: Array.from(kiwiData),
-        thumbnailPng: Array.from(thumbnailPng),
-        metaJson,
-        images: imageEntries.map((e) => ({ name: e.name, data: Array.from(e.data) })),
-        figKiwiVersion: version
-      })
-    )
-  }
 
   return compressFigData(schemaDeflated, kiwiData, thumbnailPng, metaJson, imageEntries, version)
 }

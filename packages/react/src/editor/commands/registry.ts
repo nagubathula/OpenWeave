@@ -124,6 +124,13 @@ export const EDITOR_COMMAND_METADATA = {
   'view.zoom100': { keybinding: '$mod+Digit0' },
   'view.zoomFit': { keybinding: ['$mod+Digit1', 'Shift+Digit1'] },
   'view.zoomSelection': { keybinding: ['$mod+Digit2', 'Shift+Digit2'] },
+  'view.zoomRealSize': {
+    shortcut: 'F12',
+    keybinding: ['F12', 'Alt+Digit0']
+  },
+  'view.zoomRealMobile': {},
+  'view.calibrateScale': {},
+  'view.insertCreditCard': {},
   'view.commandPalette': {
     shortcut: 'MOD+K',
     keybinding: ['$mod+KeyK', '$mod+Slash']

@@ -56,36 +56,151 @@ function applyAnchorTangent(
 
 type PenState = NonNullable<EditorContext['state']['penState']>
 
-/**
- * Catmull-Rom tangent (as a cubic-bezier control offset) at vertex `i`.
- * Open paths reflect the neighbor across each endpoint, which keeps a
- * two-point path perfectly straight; closed paths wrap cyclically.
- */
-function smoothTangentAt(vertices: PenState['vertices'], i: number, closed: boolean): Vector {
+interface VertexTangents {
+  incoming: Vector
+  outgoing: Vector
+}
+
+function solveCircumcircle(
+  origin: Vector,
+  p1: Vector,
+  p2: Vector
+): { ox: number; oy: number; r: number } | null {
+  const v1 = { x: p1.x - origin.x, y: p1.y - origin.y }
+  const v2 = { x: p2.x - origin.x, y: p2.y - origin.y }
+  const d1 = Math.hypot(v1.x, v1.y)
+  const d2 = Math.hypot(v2.x, v2.y)
+  if (d1 < 1e-6 || d2 < 1e-6) return null
+
+  const cross = v1.x * v2.y - v1.y * v2.x
+  if (Math.abs(cross) < 1e-4 * d1 * d2) return null
+
+  const d = 2 * cross
+  const ox = (d1 * d1 * v2.y - d2 * d2 * v1.y) / d
+  const oy = (d2 * d2 * v1.x - d1 * d1 * v2.x) / d
+  return { ox, oy, r: Math.hypot(ox, oy) }
+}
+
+function circularArcHandleLength(chordDist: number, radius: number): number {
+  const s = Math.min(1, chordDist / (2 * radius))
+  const theta = 2 * Math.asin(s)
+  return Math.max(
+    chordDist / 4,
+    Math.min(0.5523 * chordDist, (4 / 3) * Math.tan(theta / 4) * radius)
+  )
+}
+
+function circumcircleTangents(
+  origin: Vector,
+  neighbor: Vector,
+  other: Vector,
+  direction: Vector
+): { unit: Vector; radius: number } | null {
+  const circle = solveCircumcircle(origin, neighbor, other)
+  if (!circle) return null
+  let tx = -circle.oy / circle.r
+  let ty = circle.ox / circle.r
+  if (tx * direction.x + ty * direction.y < 0) {
+    tx = -tx
+    ty = -ty
+  }
+  return { unit: { x: tx, y: ty }, radius: circle.r }
+}
+
+function solveArcTangents(a: Vector, b: Vector, c: Vector): VertexTangents {
+  const d1 = Math.hypot(a.x - b.x, a.y - b.y)
+  const d2 = Math.hypot(c.x - b.x, c.y - b.y)
+  if (d1 < 1e-6 || d2 < 1e-6) {
+    return { incoming: { x: 0, y: 0 }, outgoing: { x: 0, y: 0 } }
+  }
+
+  const dir = { x: c.x - a.x, y: c.y - a.y }
+  const dirLen = Math.hypot(dir.x, dir.y)
+  if (dirLen < 1e-6) {
+    return { incoming: { x: 0, y: 0 }, outgoing: { x: 0, y: 0 } }
+  }
+
+  const fit = circumcircleTangents(b, a, c, dir)
+  if (!fit) {
+    const unitT = { x: dir.x / dirLen, y: dir.y / dirLen }
+    return {
+      incoming: { x: -unitT.x * (d1 / 3), y: -unitT.y * (d1 / 3) },
+      outgoing: { x: unitT.x * (d2 / 3), y: unitT.y * (d2 / 3) }
+    }
+  }
+
+  const l1 = circularArcHandleLength(d1, fit.radius)
+  const l2 = circularArcHandleLength(d2, fit.radius)
+
+  return {
+    incoming: { x: -fit.unit.x * l1, y: -fit.unit.y * l1 },
+    outgoing: { x: fit.unit.x * l2, y: fit.unit.y * l2 }
+  }
+}
+
+function solveEndpointArcTangent(anchor: Vector, neighbor: Vector, far: Vector): Vector {
+  const v = { x: neighbor.x - anchor.x, y: neighbor.y - anchor.y }
+  const d = Math.hypot(v.x, v.y)
+  if (d < 1e-6) return { x: 0, y: 0 }
+
+  const fit = circumcircleTangents(anchor, neighbor, far, v)
+  if (!fit) {
+    return { x: v.x / 3, y: v.y / 3 }
+  }
+
+  const l = circularArcHandleLength(d, fit.radius)
+  return { x: fit.unit.x * l, y: fit.unit.y * l }
+}
+
+function computeCurvatureTangents(
+  vertices: PenState['vertices'],
+  closed: boolean
+): VertexTangents[] {
   const n = vertices.length
-  const v = vertices[i]
-  const prev = closed
-    ? vertices[(i - 1 + n) % n]
-    : i > 0
-      ? vertices[i - 1]
-      : { x: 2 * v.x - vertices[1].x, y: 2 * v.y - vertices[1].y }
-  const next = closed
-    ? vertices[(i + 1) % n]
-    : i < n - 1
-      ? vertices[i + 1]
-      : { x: 2 * v.x - vertices[n - 2].x, y: 2 * v.y - vertices[n - 2].y }
-  return { x: (next.x - prev.x) / 6, y: (next.y - prev.y) / 6 }
+  if (n < 2) return []
+
+  const tangents: VertexTangents[] = []
+  if (n === 2 && !closed) {
+    tangents.push(
+      { incoming: { x: 0, y: 0 }, outgoing: { x: 0, y: 0 } },
+      { incoming: { x: 0, y: 0 }, outgoing: { x: 0, y: 0 } }
+    )
+  } else if (closed) {
+    for (let i = 0; i < n; i++) {
+      const prev = vertices[(i - 1 + n) % n]
+      const curr = vertices[i]
+      const next = vertices[(i + 1) % n]
+      tangents.push(solveArcTangents(prev, curr, next))
+    }
+  } else {
+    for (let i = 0; i < n; i++) {
+      if (i === 0) {
+        tangents.push({
+          incoming: { x: 0, y: 0 },
+          outgoing: solveEndpointArcTangent(vertices[0], vertices[1], vertices[2])
+        })
+      } else if (i === n - 1) {
+        tangents.push({
+          incoming: solveEndpointArcTangent(vertices[n - 1], vertices[n - 2], vertices[n - 3]),
+          outgoing: { x: 0, y: 0 }
+        })
+      } else {
+        tangents.push(solveArcTangents(vertices[i - 1], vertices[i], vertices[i + 1]))
+      }
+    }
+  }
+  return tangents
 }
 
 /** Recompute every segment's tangents so the path curves smoothly through all vertices. */
 function recomputeSmoothTangents(ps: PenState, closed: boolean): void {
   if (ps.vertices.length < 2) return
-  const tangents = ps.vertices.map((_, i) => smoothTangentAt(ps.vertices, i, closed))
+  const tangents = computeCurvatureTangents(ps.vertices, closed)
   for (const seg of ps.segments) {
     const ts = tangents[seg.start]
     const te = tangents[seg.end]
-    seg.tangentStart = { x: ts.x, y: ts.y }
-    seg.tangentEnd = { x: -te.x, y: -te.y }
+    if (ts) seg.tangentStart = { ...ts.outgoing }
+    if (te) seg.tangentEnd = { ...te.incoming }
   }
   const last = ps.vertices.length - 1
   for (let i = 0; i < ps.vertices.length; i++) {
@@ -150,14 +265,15 @@ export function createPenActions(ctx: EditorContext, createShape: CreateShape) {
   function penPreviewSmoothTangent(cx: number, cy: number) {
     const ps = ctx.state.penState
     if (!ps || !ps.curvature || ps.pendingClose || ps.vertices.length < 2) return
-    const last = ps.vertices.length - 1
-    const tangent = {
-      x: (cx - ps.vertices[last - 1].x) / 6,
-      y: (cy - ps.vertices[last - 1].y) / 6
-    }
+    const provisional = [...ps.vertices, { x: cx, y: cy }]
+    const tangents = computeCurvatureTangents(provisional, false)
+    const lastIdx = ps.vertices.length - 1
     const lastSeg = ps.segments[ps.segments.length - 1]
-    lastSeg.tangentEnd = { x: -tangent.x, y: -tangent.y }
-    ps.dragTangent = tangent
+    const vertexTangent = tangents[lastIdx]
+    if (lastSeg && vertexTangent) {
+      lastSeg.tangentEnd = { ...vertexTangent.incoming }
+    }
+    ps.dragTangent = vertexTangent ? { ...vertexTangent.outgoing } : null
     ctx.requestRepaint()
   }
 

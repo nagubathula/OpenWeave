@@ -79,6 +79,7 @@ export function createDocumentIOActions(
     openDOMFile,
     importDOMText,
     saveFigFile: sourceActions.saveFigFile,
-    saveFigFileAs: sourceActions.saveFigFileAs
+    saveFigFileAs: sourceActions.saveFigFileAs,
+    isDocumentDirty: sourceActions.isDocumentDirty
   }
 }

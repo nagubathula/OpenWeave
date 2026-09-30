@@ -40,5 +40,9 @@
   "distributeHorizontal": "水平等距分布",
   "distributeVertical": "垂直等距分布",
   "selectInverse": "反向选择",
-  "sendBackward": "下移一层"
+  "sendBackward": "下移一层",
+  "zoomToRealSize": "缩放到实际尺寸",
+  "zoomToRealMobile": "缩放到真实手机尺寸",
+  "calibrateDisplayScale": "校准屏幕比例…",
+  "insertCreditCardReference": "插入信用卡比例参照物"
 }

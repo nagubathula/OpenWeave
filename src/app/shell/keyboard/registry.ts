@@ -137,6 +137,13 @@ export function registerKeyboardShortcuts(options: KeyboardShortcutOptions) {
     },
     { id: 'new-tab', keys: ['$mod+N', '$mod+T'], run: ({ createTab }) => createTab() },
     {
+      id: 'reopen-tab',
+      keys: '$mod+Shift+T',
+      run: () => {
+        import('@/app/tabs').then((m) => m.reopenLastClosedTab()).catch(() => {})
+      }
+    },
+    {
       id: 'rename-selection',
       keys: appMenuTinykeysShortcut('selection.rename') ?? '$mod+R',
       run: ({ store }) => requestRenameSelection(store)
@@ -149,6 +156,10 @@ export function registerKeyboardShortcuts(options: KeyboardShortcutOptions) {
       'view.zoom100',
       'view.zoomFit',
       'view.zoomSelection',
+      'view.zoomRealSize',
+      'view.zoomRealMobile',
+      'view.calibrateScale',
+      'view.insertCreditCard',
       'selection.duplicate',
       'selection.selectAll',
       'selection.selectInverse'

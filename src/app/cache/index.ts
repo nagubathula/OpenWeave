@@ -1,14 +1,8 @@
-import { IS_TAURI } from '@openweave/core/constants'
-
 const APP_CACHE_DIR = 'cache/v1'
 const STORAGE_PREFIX = 'openweave:cache:v1:'
 
 const textEncoder = new TextEncoder()
 const textDecoder = new TextDecoder()
-
-function isTauriRuntime() {
-  return IS_TAURI || ('window' in globalThis && '__TAURI_INTERNALS__' in window)
-}
 
 function isStorageAvailable() {
   return 'window' in globalThis && !!window.localStorage
@@ -22,15 +16,43 @@ function storageKey(key: string) {
   return `${STORAGE_PREFIX}${key}`
 }
 
+interface ElectronFs {
+  readFile?: (path: string) => Promise<Uint8Array>
+  writeFile?: (path: string, data: Uint8Array) => Promise<void>
+  mkdir?: (path: string, options?: { recursive?: boolean }) => Promise<void>
+  remove?: (path: string, options?: { recursive?: boolean }) => Promise<void>
+}
+
+function getElectronFs(): ElectronFs | null {
+  if (typeof window === 'undefined') return null
+  const win = window as unknown as {
+    electron?: { fs?: ElectronFs }
+    electronAPI?: { fs?: ElectronFs }
+  }
+  return win.electron?.fs ?? win.electronAPI?.fs ?? null
+}
+
+async function writeElectronFile(filePath: string, data: Uint8Array): Promise<boolean> {
+  const fs = getElectronFs()
+  if (!fs?.writeFile) return false
+  try {
+    if (fs.mkdir) await fs.mkdir(APP_CACHE_DIR, { recursive: true })
+    await fs.writeFile(filePath, data)
+    return true
+  } catch (error) {
+    console.warn(`Cache write failed for "${filePath}":`, error)
+    return false
+  }
+}
+
 export async function readCacheText(key: string): Promise<string | null> {
-  if (isTauriRuntime()) {
+  const fs = getElectronFs()
+  if (fs?.readFile) {
     try {
-      const { BaseDirectory, readFile } = await import('@tauri-apps/plugin-fs')
-      return textDecoder.decode(
-        await readFile(cachePath(key), { baseDir: BaseDirectory.AppLocalData })
-      )
+      const data = await fs.readFile(cachePath(key))
+      return textDecoder.decode(data)
     } catch {
-      return null
+      // Fall through to localStorage
     }
   }
 
@@ -39,28 +61,19 @@ export async function readCacheText(key: string): Promise<string | null> {
 }
 
 export async function writeCacheText(key: string, value: string): Promise<void> {
-  if (isTauriRuntime()) {
-    const { BaseDirectory, mkdir, writeFile } = await import('@tauri-apps/plugin-fs')
-    await mkdir(APP_CACHE_DIR, { baseDir: BaseDirectory.AppLocalData, recursive: true })
-    await writeFile(cachePath(key), textEncoder.encode(value), {
-      baseDir: BaseDirectory.AppLocalData
-    })
-    return
-  }
-
-  if (!isStorageAvailable()) return
+  const written = await writeElectronFile(cachePath(key), textEncoder.encode(value))
+  if (written || !isStorageAvailable()) return
   window.localStorage.setItem(storageKey(key), value)
 }
 
 export async function removeCacheEntry(key: string): Promise<void> {
-  if (isTauriRuntime()) {
+  const fs = getElectronFs()
+  if (fs?.remove) {
     try {
-      const { BaseDirectory, remove } = await import('@tauri-apps/plugin-fs')
-      await remove(cachePath(key), { baseDir: BaseDirectory.AppLocalData })
+      await fs.remove(cachePath(key))
     } catch (error) {
       console.warn(`Cache delete skipped for "${key}":`, error)
     }
-    return
   }
 
   if (!isStorageAvailable()) return
@@ -68,34 +81,32 @@ export async function removeCacheEntry(key: string): Promise<void> {
 }
 
 export async function readCacheBytes(key: string): Promise<ArrayBuffer | null> {
-  if (!isTauriRuntime()) return null
-
-  try {
-    const { BaseDirectory, readFile } = await import('@tauri-apps/plugin-fs')
-    const data = await readFile(cachePath(key), { baseDir: BaseDirectory.AppLocalData })
-    return data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength)
-  } catch {
-    return null
+  const fs = getElectronFs()
+  if (fs?.readFile) {
+    try {
+      const data = await fs.readFile(cachePath(key))
+      const copy = new Uint8Array(data.byteLength)
+      copy.set(data)
+      return copy.buffer
+    } catch {
+      return null
+    }
   }
+  return null
 }
 
 export async function writeCacheBytes(key: string, value: ArrayBuffer): Promise<void> {
-  if (!isTauriRuntime()) return
-
-  const { BaseDirectory, mkdir, writeFile } = await import('@tauri-apps/plugin-fs')
-  await mkdir(APP_CACHE_DIR, { baseDir: BaseDirectory.AppLocalData, recursive: true })
-  await writeFile(cachePath(key), new Uint8Array(value), { baseDir: BaseDirectory.AppLocalData })
+  await writeElectronFile(cachePath(key), new Uint8Array(value))
 }
 
 export async function removeCachePrefix(prefix: string): Promise<void> {
-  if (isTauriRuntime()) {
+  const fs = getElectronFs()
+  if (fs?.remove) {
     try {
-      const { BaseDirectory, remove } = await import('@tauri-apps/plugin-fs')
-      await remove(cachePath(prefix), { baseDir: BaseDirectory.AppLocalData, recursive: true })
+      await fs.remove(cachePath(prefix), { recursive: true })
     } catch (error) {
       console.warn(`Cache prefix delete skipped for "${prefix}":`, error)
     }
-    return
   }
 
   if (!isStorageAvailable()) return

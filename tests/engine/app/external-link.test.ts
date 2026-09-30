@@ -41,15 +41,15 @@ describe('openExternalLink', () => {
     expect(mockOpen).toHaveBeenCalledWith('https://example.com/docs', '_blank')
   })
 
-  test('opens links through Tauri opener when running in Tauri', async () => {
-    await mockTauriIPC((cmd, args) => {
-      expect(cmd).toBe('plugin:opener|open_url')
-      expect(args).toEqual({ url: 'https://example.com/docs', with: undefined })
-      return null
-    })
+  test('opens links through Electron shell when running in desktop', async () => {
+    const openExternal = vi.fn().mockResolvedValue(undefined)
+    ;(globalThis.window as any).electron = {
+      shell: { openExternal }
+    }
 
     await openExternalLink('https://example.com/docs')
 
+    expect(openExternal).toHaveBeenCalledWith('https://example.com/docs')
     expect(mockOpen).not.toHaveBeenCalled()
   })
 })

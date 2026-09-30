@@ -69,7 +69,11 @@ export const menuMessageDefaults = {
   arrangeAlignMiddle: 'Align middle',
   arrangeAlignBottom: 'Align bottom',
   zoomIn: 'Zoom in',
-  zoomOut: 'Zoom out'
+  zoomOut: 'Zoom out',
+  zoomRealSize: 'Zoom to real size',
+  zoomRealMobile: 'Zoom to real mobile size',
+  calibrateScale: 'Calibrate display scale…',
+  insertCreditCard: 'Insert credit card scale reference'
 } as const
 
 export const menuMessages = i18n('menu', menuMessageDefaults)

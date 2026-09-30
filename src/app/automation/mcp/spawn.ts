@@ -4,7 +4,7 @@ import type { DiscoveryInfo } from '@openweave/mcp/discovery'
 
 import { decodeTauriStderr } from '@/app/shell/ui'
 import { resolvePlatformCommand } from '@/app/tauri/command'
-import { isTauri } from '@/app/tauri/env'
+import { isDesktop, isTauri } from '@/app/tauri/env'
 
 interface AutomationHealth {
   status: 'ok' | 'no_app'
@@ -37,10 +37,14 @@ let runtimeAutomationAuthToken: string | null = DEV_AUTOMATION_AUTH_TOKEN
  */
 async function readDiscoveryToken(discoveryPath: string): Promise<string | null> {
   try {
-    const { readTextFile } = await import('@tauri-apps/plugin-fs')
-    const raw = await readTextFile(discoveryPath)
-    const info = JSON.parse(raw) as DiscoveryInfo
-    return info.authToken ?? null
+    const electron = typeof window !== 'undefined' ? (window as any).electron : null
+    if (electron?.fs?.readFile) {
+      const bytes = await electron.fs.readFile(discoveryPath)
+      const raw = new TextDecoder().decode(bytes)
+      const info = JSON.parse(raw) as DiscoveryInfo
+      return info.authToken ?? null
+    }
+    return null
   } catch {
     return null
   }
@@ -49,8 +53,11 @@ async function readDiscoveryToken(discoveryPath: string): Promise<string | null>
 /** Check whether the discovery file exists on disk. */
 async function discoveryFileExists(discoveryPath: string): Promise<boolean> {
   try {
-    const { exists } = await import('@tauri-apps/plugin-fs')
-    return await exists(discoveryPath)
+    const electron = typeof window !== 'undefined' ? (window as any).electron : null
+    if (electron?.fs?.exists) {
+      return await electron.fs.exists(discoveryPath)
+    }
+    return false
   } catch {
     return false
   }
@@ -58,31 +65,25 @@ async function discoveryFileExists(discoveryPath: string): Promise<boolean> {
 
 /**
  * Computes the expected MCP discovery file path using the same platform
- * logic as the server's getDiscoveryPath(), but via Tauri APIs since we
- * run in the browser. This avoids trusting the unauthenticated /health
- * endpoint's discoveryPath field.
+ * logic as the server's getDiscoveryPath(), via desktop Electron APIs.
  */
 async function computeExpectedDiscoveryPath(): Promise<string> {
-  const { homeDir, join } = await import('@tauri-apps/api/path')
-  const home = await homeDir()
-  if (!home) throw new Error('homeDir() returned an empty string')
+  const electron = typeof window !== 'undefined' ? (window as any).electron : null
+  const home = (await electron?.app?.getPath?.('home')) ?? ''
+  if (!home) throw new Error('home path returned empty')
 
   const isMac = navigator.platform.includes('Mac')
   const isWindows = navigator.platform.includes('Win')
-  // Must match the server's getPlatformDir() in packages/mcp/src/transport/paths.ts.
-  // On Windows, LOCALAPPDATA usually equals <home>\AppData\Local, so this fallback
-  // matches the server's path in the common case. When it doesn't (custom
-  // LOCALAPPDATA), resolveDiscoveryPath() falls back to the /health endpoint.
+  const join = electron?.path?.join
+    ? electron.path.join
+    : async (...parts: string[]) => parts.join('/')
+
   if (isMac) {
     return join(home, 'Library', 'Application Support', 'OpenWeave', 'mcp.json')
   }
   if (isWindows) {
     return join(home, 'AppData', 'Local', 'OpenWeave', 'mcp.json')
   }
-  // Linux: $XDG_RUNTIME_DIR/openweave/mcp.json or ~/.openweave/mcp.json.
-  // In Tauri we don't have direct env access, so we use the home-directory
-  // fallback. The server may use XDG_RUNTIME_DIR if set — when the paths
-  // differ, resolveDiscoveryPath() falls back to the /health endpoint.
   return join(home, '.openweave', 'mcp.json')
 }
 
@@ -109,8 +110,8 @@ async function resolveDiscoveryPath(healthDiscoveryPath?: string): Promise<strin
       // Validate the server-reported path before accepting it. The /health
       // endpoint is unauthenticated, so we only accept paths within the
       // user's home directory ending in mcp.json.
-      const { homeDir } = await import('@tauri-apps/api/path')
-      const home = await homeDir()
+      const electron = typeof window !== 'undefined' ? (window as any).electron : null
+      const home = (await electron?.app?.getPath?.('home')) ?? ''
       const sep = home.includes('\\') ? '\\' : '/'
       const hasTraversal = healthDiscoveryPath.split(/[\\/]/).some((segment) => segment === '..')
       const isSafe =
@@ -213,7 +214,7 @@ export async function getAutomationAuthToken(): Promise<string | null> {
 }
 
 export async function spawnMCPIfNeeded(): Promise<AutomationServerHandle | null> {
-  if (import.meta.env.DEV || !isTauri()) {
+  if (import.meta.env.DEV || (!isDesktop() && !isTauri())) {
     return DEV_AUTOMATION_AUTH_TOKEN
       ? { disconnect: noop, authToken: DEV_AUTOMATION_AUTH_TOKEN }
       : null
@@ -240,37 +241,36 @@ export async function spawnMCPIfNeeded(): Promise<AutomationServerHandle | null>
   const authToken = randomHex(32)
   // Cache only after MCP startup is confirmed healthy.
 
-  const { Command } = await import('@tauri-apps/plugin-shell')
-  // Set OPENWEAVE_MCP_ROOT to the user's home directory so file-scoped
-  // tools (open_file, save_file, export_*) operate on paths inside ~,
-  // which is naturally writable and matches user expectations for "my files."
-  // The app bundle directory (Tauri executableDir) is read-only and would
-  // cause EACCES errors on every file write.
+  const electron = typeof window !== 'undefined' ? (window as any).electron : null
   const mcpRoot = await resolveTauriHomeDir()
   const resolved = resolvePlatformCommand('openweave-mcp-http')
-  const command = Command.create(resolved.command, resolved.args, {
+  let spawnedToken: string | null = null
+
+  if (!electron?.process?.spawn) {
+    throw new Error('Process spawning is only supported in desktop environment.')
+  }
+
+  const child = await electron.process.spawn({
+    command: resolved.command,
+    args: resolved.args,
     env: {
       PORT: String(AUTOMATION_HTTP_PORT),
       OPENWEAVE_MCP_AUTH_TOKEN: authToken,
       OPENWEAVE_MCP_CORS_ORIGIN: window.location.origin,
       OPENWEAVE_MCP_TCP: '1',
       OPENWEAVE_MCP_ROOT: mcpRoot
+    },
+    onStderr: (raw: string) => {
+      console.error('[MCP]', decodeTauriStderr(raw))
+    },
+    onClose: (code: number | null) => {
+      console.error(`[MCP] Server exited (code ${code ?? 'null'})`)
+      if (spawnedToken && runtimeAutomationAuthToken === spawnedToken) {
+        runtimeAutomationAuthToken = null
+      }
     }
   })
 
-  command.stderr.on('data', (raw: Uint8Array | number[] | string) => {
-    console.error('[MCP]', decodeTauriStderr(raw))
-  })
-
-  let spawnedToken: string | null = null
-  command.on('close', (data: { code: number | null }) => {
-    console.error(`[MCP] Server exited (code ${data.code ?? 'null'})`)
-    if (spawnedToken && runtimeAutomationAuthToken === spawnedToken) {
-      runtimeAutomationAuthToken = null
-    }
-  })
-
-  const child = await command.spawn()
   const health = await pollHealth(5, 1000)
 
   if (health) {
@@ -283,7 +283,7 @@ export async function spawnMCPIfNeeded(): Promise<AutomationServerHandle | null>
       runtimeAutomationAuthToken = token
       return {
         disconnect: () => {
-          void child.kill().catch((e) => {
+          void child.kill().catch((e: unknown) => {
             console.error('[MCP] Failed to kill server:', e)
           })
           if (runtimeAutomationAuthToken === token) {
@@ -312,18 +312,14 @@ export async function spawnMCPIfNeeded(): Promise<AutomationServerHandle | null>
 /**
  * Returns the user's home directory. Used as the default OPENWEAVE_MCP_ROOT
  * so file-scoped tools operate on paths inside ~, which is writable and
- * matches user expectations. Throws if the Tauri path plugin is unavailable
- * — this function is only invoked under !import.meta.env.DEV && isTauri(),
- * so the Tauri path plugin should always succeed. A silent fallback to '/'
- * would defeat path scoping in resolveSafePath, and process.cwd() is
- * unpredictable and may also be too broad.
+ * matches user expectations.
  */
 async function resolveTauriHomeDir(): Promise<string> {
   try {
-    const { homeDir } = await import('@tauri-apps/api/path')
-    const dir = await homeDir()
+    const electron = typeof window !== 'undefined' ? (window as any).electron : null
+    const dir = await electron?.app?.getPath?.('home')
     if (!dir) {
-      throw new Error('homeDir() returned an empty string')
+      throw new Error('home directory returned an empty string')
     }
     return dir
   } catch (e) {

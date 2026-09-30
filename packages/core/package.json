@@ -172,7 +172,6 @@
     "@openweave/kiwi": "workspace:*",
     "@openweave/pen": "workspace:*",
     "@openweave/scene-graph": "workspace:*",
-    "@tauri-apps/api": "^2",
     "@xmldom/xmldom": "^0.9.10",
     "acorn": "^8.16.0",
     "canvaskit-wasm": "^0.40.0",

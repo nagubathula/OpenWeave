@@ -129,6 +129,26 @@ export const APP_MENU_SCHEMA = [
         label: 'Zoom to Selection',
         command: 'view.zoomSelection'
       },
+      {
+        id: 'view.zoomRealSize',
+        label: 'Zoom to Real Size',
+        command: 'view.zoomRealSize'
+      },
+      {
+        id: 'view.zoomRealMobile',
+        label: 'Zoom to Real Mobile Size',
+        command: 'view.zoomRealMobile'
+      },
+      {
+        id: 'view.calibrateScale',
+        label: 'Calibrate Display Scale…',
+        command: 'view.calibrateScale'
+      },
+      {
+        id: 'view.insertCreditCard',
+        label: 'Insert Credit Card Reference',
+        command: 'view.insertCreditCard'
+      },
       { id: 'zoom-in', label: 'Zoom In', shortcut: 'MOD+=' },
       { id: 'zoom-out', label: 'Zoom Out', shortcut: 'MOD+-' },
       { type: 'separator' },

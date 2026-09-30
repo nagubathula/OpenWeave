@@ -61,5 +61,9 @@
   "multiplayerCursors": "Cursores multijugador",
   "renameSelection": "Renombrar selección…",
   "rulers": "Reglas",
-  "settings": "Ajustes…"
+  "settings": "Ajustes…",
+  "zoomRealSize": "Tamaño real",
+  "zoomRealMobile": "Tamaño móvil real",
+  "calibrateScale": "Calibrar escala de pantalla…",
+  "insertCreditCard": "Insertar referencia de tarjeta"
 }

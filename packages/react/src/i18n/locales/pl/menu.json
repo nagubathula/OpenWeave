@@ -61,5 +61,9 @@
   "multiplayerCursors": "Kursory wielu użytkowników",
   "renameSelection": "Zmień nazwę zaznaczenia…",
   "rulers": "Linijki",
-  "settings": "Ustawienia…"
+  "settings": "Ustawienia…",
+  "zoomRealSize": "Rzeczywisty rozmiar",
+  "zoomRealMobile": "Rzeczywisty rozmiar telefonu",
+  "calibrateScale": "Kalibruj skalę ekranu…",
+  "insertCreditCard": "Wstaw odniesienie karty"
 }

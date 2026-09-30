@@ -61,5 +61,9 @@
   "multiplayerCursors": "多人光标",
   "renameSelection": "重命名所选内容…",
   "rulers": "标尺",
-  "settings": "设置…"
+  "settings": "设置…",
+  "zoomRealSize": "实际尺寸",
+  "zoomRealMobile": "真实手机尺寸",
+  "calibrateScale": "校准屏幕比例…",
+  "insertCreditCard": "插入信用卡参照物"
 }

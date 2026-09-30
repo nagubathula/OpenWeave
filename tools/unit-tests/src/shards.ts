@@ -81,7 +81,13 @@ async function listTestFiles(paths: string[]): Promise<string[]> {
 
 async function listTestFilesInPath(path: string): Promise<string[]> {
   const absolutePath = resolve(REPO_ROOT, path)
-  const entries = await readdir(absolutePath, { withFileTypes: true })
+  let entries
+  try {
+    entries = await readdir(absolutePath, { withFileTypes: true })
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === 'ENOENT') return []
+    throw error
+  }
   const files = await Promise.all(
     entries.map(async (entry) => {
       const childPath = join(path, entry.name)

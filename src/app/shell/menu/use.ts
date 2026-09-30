@@ -49,9 +49,6 @@ export function useMenu() {
   useEffect(() => {
     if (!isTauri()) return
 
-    let unlisten: (() => void) | undefined
-    let cancelled = false
-
     const store = () => useEditorStore()
     const actions: Partial<Record<string, () => void>> = {
       new: () => createTab(),
@@ -88,23 +85,19 @@ export function useMenu() {
       ...createSharedEditorMenuActions((theme) => latest.current.setTheme(theme))
     }
 
-    void import('@tauri-apps/api/event').then(({ listen }) => {
-      return listen<string>('menu-event', (event) => {
-        if (COMMAND_MENU_IDS.has(event.payload as EditorCommandId)) {
-          latest.current.runCommand(event.payload as EditorCommandId)
-          return
-        }
-        actions[event.payload]?.()
-      }).then((fn) => {
-        if (cancelled) fn()
-        else unlisten = fn
-        return undefined
-      })
-    })
+    const handleMenuEvent = (e: Event) => {
+      const menuId = (e as CustomEvent<string>).detail
+      if (COMMAND_MENU_IDS.has(menuId as EditorCommandId)) {
+        latest.current.runCommand(menuId as EditorCommandId)
+        return
+      }
+      actions[menuId]?.()
+    }
+
+    window.addEventListener('openweave-menu-event', handleMenuEvent)
 
     return () => {
-      cancelled = true
-      unlisten?.()
+      window.removeEventListener('openweave-menu-event', handleMenuEvent)
     }
   }, [])
 }

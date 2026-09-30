@@ -134,6 +134,10 @@ export interface EditorEvents extends SceneGraphEvents {
     previous: { panX: number; panY: number; zoom: number }
   ) => void
   'command-palette:toggle': () => void
+  'scale-dialog:open': () => void
+  'zoom:real-size': () => void
+  'zoom:real-mobile': () => void
+  'scale-reference:insert': () => void
 }
 
 export type EditorEventName = keyof EditorEvents

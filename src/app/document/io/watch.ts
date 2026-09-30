@@ -1,5 +1,5 @@
 import { watchBrowserFile, watchTauriFile } from '@/app/document/io/watch-targets'
-import { IS_TAURI } from '@/constants'
+import { isTauri } from '@/app/tauri/env'
 
 type FileWatchOptions = {
   getFilePath: () => string | null
@@ -28,7 +28,7 @@ export function createFileWatcher({
     const filePath = getFilePath()
     const fileHandle = getFileHandle()
 
-    if (filePath && IS_TAURI) {
+    if (filePath && isTauri()) {
       unwatchFile = await watchTauriFile(filePath, getLastWriteTime, reloadFromDisk)
     } else if (fileHandle) {
       unwatchFile = await watchBrowserFile(

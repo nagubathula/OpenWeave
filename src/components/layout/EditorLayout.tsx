@@ -11,6 +11,13 @@ import { connectAutomation } from '@/app/automation/bridge/server'
 import { spawnMCPIfNeeded } from '@/app/automation/mcp/spawn'
 import { CollabProvider, useCollab } from '@/app/collab/use'
 import { getActiveEditorStore } from '@/app/editor/active-store'
+import {
+  detectMobileFrameDimensions,
+  displayScaleSettings,
+  insertCreditCardReference,
+  openDisplayScaleDialog,
+  zoomForDevice
+} from '@/app/editor/display-scale'
 import { useEditorState } from '@/app/editor/session/use-editor-state'
 import { closeHome, isHomeOpen } from '@/app/home/store'
 import { useAppKeyboard } from '@/app/shell/keyboard/use-app-keyboard'
@@ -18,10 +25,11 @@ import { loadEditorLayout, saveEditorLayout } from '@/app/shell/layout-storage'
 import { openFileFromPath } from '@/app/shell/menu/files'
 import { useMenu } from '@/app/shell/menu/use'
 import { activeTabId, getActiveStore } from '@/app/tabs'
-import { isTauri } from '@/app/tauri/env'
+import { isDesktop, isTauri } from '@/app/tauri/env'
 import AcpPermissionDialog from '@/components/chat/AcpPermissionDialog'
 import CommandPalette from '@/components/command-palette/CommandPalette'
 import EditorCanvas from '@/components/editor-canvas/EditorCanvas'
+import { DisplayScaleCalibrationDialog } from '@/components/editor/scale-calibration'
 import HomeScreen from '@/components/home/HomeScreen'
 import LayersPanel from '@/components/layers-panel/LayersPanel'
 import MobileDrawer from '@/components/mobile-drawer/MobileDrawer'
@@ -107,6 +115,34 @@ export function EditorLayout() {
     }
   }, [])
 
+  useEffect(() => {
+    const store = getActiveEditorStore()
+    const unsubs = [
+      store.onEditorEvent('scale-dialog:open', () => {
+        openDisplayScaleDialog()
+      }),
+      store.onEditorEvent('zoom:real-size', () => {
+        const ppi = displayScaleSettings.get().screenPpi
+        store.zoomToPhysical(ppi)
+      }),
+      store.onEditorEvent('zoom:real-mobile', () => {
+        const ppi = displayScaleSettings.get().screenPpi
+        const selectedId = [...store.state.selectedIds][0]
+        const selectedNode = selectedId ? store.graph.getNode(selectedId) : null
+        const detected = detectMobileFrameDimensions(selectedNode)
+        const frameW = selectedNode ? Math.min(selectedNode.width, selectedNode.height) : 393
+        const zoom = zoomForDevice(ppi, frameW, detected.physicalWidthMm)
+        store.zoomToLevel(zoom)
+      }),
+      store.onEditorEvent('scale-reference:insert', () => {
+        insertCreditCardReference(store)
+      })
+    ]
+    return () => {
+      unsubs.forEach((u) => u())
+    }
+  }, [])
+
   // Ported from src/views/EditorView.vue: block the browser's pinch/⌘-scroll zoom
   // so ctrl/meta + wheel drives the canvas zoom instead of the page.
   const onWheel = useCallback((e: WheelEvent) => {
@@ -127,10 +163,13 @@ export function EditorLayout() {
     let fileAssociationCleanup: (() => void) | null = null
 
     async function openPendingAssociatedFiles() {
-      const { invoke } = await import('@tauri-apps/api/core')
-      const files = await invoke<{ path: string }[]>('take_pending_open')
-      for (const file of files) {
-        await openFileFromPath(file.path)
+      if (typeof window !== 'undefined' && (window as any).electron?.app?.takePendingOpenFiles) {
+        const files = await (window as any).electron.app.takePendingOpenFiles()
+        for (const file of files) {
+          if (file?.path) {
+            await openFileFromPath(file.path)
+          }
+        }
       }
     }
 
@@ -150,16 +189,18 @@ export function EditorLayout() {
       }
 
       try {
-        if (!isTauri()) return
-        const { listen } = await import('@tauri-apps/api/event')
-        const unlisten = await listen('open-associated-files', () => {
+        if (!isDesktop() && !isTauri()) return
+        const onOpen = () => {
           void openPendingAssociatedFiles().catch((e) => console.error('[Open With]', e))
-        })
+        }
+        window.addEventListener('openweave-open-associated-files', onOpen)
         if (disposed) {
-          unlisten()
+          window.removeEventListener('openweave-open-associated-files', onOpen)
           return
         }
-        fileAssociationCleanup = unlisten
+        fileAssociationCleanup = () => {
+          window.removeEventListener('openweave-open-associated-files', onOpen)
+        }
         await openPendingAssociatedFiles()
       } catch (e) {
         console.error('[Open With]', e)
@@ -303,6 +344,7 @@ export function EditorLayout() {
         )}
 
         <StorageWorkspace />
+        <DisplayScaleCalibrationDialog />
       </div>
     </CollabProvider>
   )

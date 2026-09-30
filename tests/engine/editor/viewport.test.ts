@@ -117,4 +117,27 @@ describe('editor.zoomToNode', () => {
     editor.zoomToNode(frame.id)
     expect(viewportChangedFired).toBe(true)
   })
+
+  test('zoomToLevel centers around the middle of viewport', () => {
+    const { editor } = setup()
+    // Viewport size is 1000 x 800, center is (500, 400)
+    editor.state.panX = 0
+    editor.state.panY = 0
+    editor.state.zoom = 1
+
+    editor.zoomToLevel(2)
+
+    expect(editor.state.zoom).toBe(2)
+    // Canvas center (500, 400) should remain at screen center (500, 400)
+    // screenX = canvasX * zoom + panX => 500 = 500 * 2 + panX => panX = -500
+    expect(editor.state.panX).toBe(-500)
+    // 400 = 400 * 2 + panY => panY = -400
+    expect(editor.state.panY).toBe(-400)
+  })
+
+  test('zoomToPhysical calculates zoom ratio from screen PPI', () => {
+    const { editor } = setup()
+    editor.zoomToPhysical(144, 96)
+    expect(editor.state.zoom).toBe(1.5)
+  })
 })

@@ -40,5 +40,9 @@
   "distributeHorizontal": "Rozłóż odstępy w poziomie",
   "distributeVertical": "Rozłóż odstępy w pionie",
   "selectInverse": "Odwróć zaznaczenie",
-  "sendBackward": "Przesuń do tyłu"
+  "sendBackward": "Przesuń do tyłu",
+  "zoomToRealSize": "Zoom do rzeczywistego rozmiaru",
+  "zoomToRealMobile": "Zoom do rzeczywistego rozmiaru telefonu",
+  "calibrateDisplayScale": "Kalibruj skalę ekranu…",
+  "insertCreditCardReference": "Wstaw kartę płatniczą jako odniesienie skali"
 }

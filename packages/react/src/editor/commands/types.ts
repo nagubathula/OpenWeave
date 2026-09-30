@@ -42,6 +42,10 @@ export type EditorCommandId =
   | 'view.zoom100'
   | 'view.zoomFit'
   | 'view.zoomSelection'
+  | 'view.zoomRealSize'
+  | 'view.zoomRealMobile'
+  | 'view.calibrateScale'
+  | 'view.insertCreditCard'
   | 'view.commandPalette'
 
 export interface EditorCommand {

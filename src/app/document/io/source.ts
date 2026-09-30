@@ -64,6 +64,7 @@ export function createDocumentSourceActions({
     setSourceIdentity,
     setSavedVersion,
     setLastWriteTime,
+    stopWatchingFile,
     startWatchingFile: () => {
       void startWatchingFile()
     }
@@ -128,6 +129,10 @@ export function createDocumentSourceActions({
     disposeAutosave()
   }
 
+  function isDocumentDirty(): boolean {
+    return state.sceneVersion !== getSavedVersion() && editor.undo.canUndo
+  }
+
   return {
     setDocumentSource,
     setStorageDocumentSource,
@@ -136,6 +141,7 @@ export function createDocumentSourceActions({
     disposeDocumentIO,
     saveFigFile,
     saveFigFileAs,
-    getStorageBinding
+    getStorageBinding,
+    isDocumentDirty
   }
 }

@@ -30,17 +30,17 @@ export default function LayersPanel() {
         ) : (
           <Group orientation="vertical" className="flex-1 overflow-hidden">
             <Panel
-              defaultSize={30}
-              minSize={10}
-              maxSize={60}
+              defaultSize="30%"
+              minSize="10%"
+              maxSize="70%"
               className="flex flex-col overflow-hidden"
             >
               <PagesPanel />
             </Panel>
 
-            <Separator className="h-px w-full bg-border hover:h-1 transition-all" />
+            <Separator className="h-1 w-full cursor-row-resize bg-border hover:bg-accent/60 transition-colors" />
 
-            <Panel defaultSize={70} minSize={20} className="flex flex-col overflow-hidden">
+            <Panel defaultSize="70%" minSize="20%" className="flex flex-col overflow-hidden">
               <header
                 data-test-id="layers-header"
                 className="flex shrink-0 items-center justify-between px-3 py-2 text-[11px] font-semibold text-surface"

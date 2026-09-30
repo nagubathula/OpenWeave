@@ -40,5 +40,9 @@
   "distributeHorizontal": "Distribuir espacio horizontal",
   "distributeVertical": "Distribuir espacio vertical",
   "selectInverse": "Invertir selección",
-  "sendBackward": "Atrasar"
+  "sendBackward": "Atrasar",
+  "zoomToRealSize": "Zoom a tamaño real",
+  "zoomToRealMobile": "Zoom a tamaño móvil real",
+  "calibrateDisplayScale": "Calibrar escala de pantalla…",
+  "insertCreditCardReference": "Insertar referencia de escala de tarjeta de crédito"
 }

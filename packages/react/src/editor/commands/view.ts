@@ -7,10 +7,24 @@ export function createViewCommands({
   messages: t
 }: EditorCommandMapOptions): Pick<
   Record<
-    'view.zoom100' | 'view.zoomFit' | 'view.zoomSelection' | 'view.commandPalette',
+    | 'view.zoom100'
+    | 'view.zoomFit'
+    | 'view.zoomSelection'
+    | 'view.zoomRealSize'
+    | 'view.zoomRealMobile'
+    | 'view.calibrateScale'
+    | 'view.insertCreditCard'
+    | 'view.commandPalette',
     EditorCommand
   >,
-  'view.zoom100' | 'view.zoomFit' | 'view.zoomSelection' | 'view.commandPalette'
+  | 'view.zoom100'
+  | 'view.zoomFit'
+  | 'view.zoomSelection'
+  | 'view.zoomRealSize'
+  | 'view.zoomRealMobile'
+  | 'view.calibrateScale'
+  | 'view.insertCreditCard'
+  | 'view.commandPalette'
 > {
   return {
     'view.zoom100': {
@@ -36,6 +50,38 @@ export function createViewCommands({
       },
       enabled: capabilities.canZoomToSelection,
       run: () => editor.zoomToSelection()
+    },
+    'view.zoomRealSize': {
+      id: 'view.zoomRealSize',
+      get label() {
+        return t.value.zoomToRealSize
+      },
+      enabled: true,
+      run: () => editor.emitEditorEvent('zoom:real-size')
+    },
+    'view.zoomRealMobile': {
+      id: 'view.zoomRealMobile',
+      get label() {
+        return t.value.zoomToRealMobile
+      },
+      enabled: true,
+      run: () => editor.emitEditorEvent('zoom:real-mobile')
+    },
+    'view.calibrateScale': {
+      id: 'view.calibrateScale',
+      get label() {
+        return t.value.calibrateDisplayScale
+      },
+      enabled: true,
+      run: () => editor.emitEditorEvent('scale-dialog:open')
+    },
+    'view.insertCreditCard': {
+      id: 'view.insertCreditCard',
+      get label() {
+        return t.value.insertCreditCardReference
+      },
+      enabled: true,
+      run: () => editor.emitEditorEvent('scale-reference:insert')
     },
     'view.commandPalette': {
       id: 'view.commandPalette',

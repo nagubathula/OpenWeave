@@ -29,6 +29,7 @@ export type CollabRuntime = {
 
 type ConnectCollabSessionOptions = {
   roomId: string
+  password?: string
   runtime: CollabRuntime
   state: WritableAtom<CollabState>
   store: EditorStore
@@ -100,9 +101,10 @@ export function createCollabConnectionActions({
   syncNodeToYjs,
   resetFollow
 }: CollabConnectionActionsOptions) {
-  function connect(roomId: string) {
+  function connect(roomId: string, password?: string) {
     connectCollabSession({
       roomId,
+      password,
       runtime,
       state,
       store: getStore(),
@@ -149,6 +151,7 @@ export function watchAwarenessZoom(store: EditorStore, getAwareness: () => Aware
 
 export function connectCollabSession({
   roomId,
+  password,
   runtime,
   state,
   store,
@@ -161,8 +164,9 @@ export function connectCollabSession({
 }: ConnectCollabSessionOptions) {
   if (runtime.room) disconnect()
 
+  const isProtected = Boolean(password?.trim())
   runtime.connectedStore = store
-  state.set({ ...state.get(), roomId })
+  state.set({ ...state.get(), roomId, isProtected })
   runtime.ydoc = new Y.Doc()
   runtime.awareness = new awarenessProtocol.Awareness(runtime.ydoc)
   runtime.ynodes = runtime.ydoc.getMap('nodes')
@@ -187,6 +191,7 @@ export function connectCollabSession({
 
   const roomConnection = connectCollabRoom({
     roomId,
+    password,
     ydoc: runtime.ydoc,
     awareness: runtime.awareness,
     setConnected: () => {

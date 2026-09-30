@@ -1,5 +1,5 @@
 import * as Popover from '@radix-ui/react-popover'
-import React from 'react'
+import React, { useState } from 'react'
 
 import { colorToCSS } from '@openweave/core/color'
 import type { Color } from '@openweave/scene-graph/primitives'
@@ -33,8 +33,15 @@ export function PaintSwatchPopover({
   okhcl,
   dataTestId
 }: PaintSwatchPopoverProps) {
+  const [open, setOpen] = useState(false)
+
+  const handleOpenChange = (nextOpen: boolean) => {
+    setOpen(nextOpen)
+    onOpenChange?.(nextOpen)
+  }
+
   return (
-    <Popover.Root onOpenChange={onOpenChange}>
+    <Popover.Root open={open} onOpenChange={handleOpenChange}>
       <Popover.Trigger asChild>
         <button
           type="button"
@@ -58,7 +65,12 @@ export function PaintSwatchPopover({
             }
           }}
         >
-          <ColorPicker color={color} onChange={onChange} okhcl={okhcl} />
+          <ColorPicker
+            color={color}
+            onChange={onChange}
+            okhcl={okhcl}
+            onClose={() => handleOpenChange(false)}
+          />
         </Popover.Content>
       </Popover.Portal>
     </Popover.Root>

@@ -7,6 +7,7 @@ import { TRYSTERO_APP_ID } from '@/constants'
 
 type CollabRoomOptions = {
   roomId: string
+  password?: string
   ydoc: Y.Doc
   awareness: awarenessProtocol.Awareness
   setConnected: () => void
@@ -22,6 +23,7 @@ export type CollabRoomConnection = {
 
 export function connectCollabRoom({
   roomId,
+  password,
   ydoc,
   awareness,
   setConnected,
@@ -30,7 +32,8 @@ export function connectCollabRoom({
   const room = joinTrysteroRoom(
     {
       appId: TRYSTERO_APP_ID,
-      relayUrls: ['wss://broker.hivemq.com:8884/mqtt', 'wss://broker.emqx.io:8084/mqtt'],
+      password: password?.trim() || undefined,
+      relayUrls: ['wss://broker.hivemq.com:8884/mqtt', 'wss://test.mosquitto.org:8081/mqtt'],
       rtcConfig: {
         iceServers: [
           { urls: 'stun:stun.l.google.com:19302' },

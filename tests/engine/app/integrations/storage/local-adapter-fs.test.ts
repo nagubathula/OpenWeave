@@ -17,6 +17,54 @@ function mockFilesystem() {
     write(name: string, bytes: Uint8Array) {
       files.set(name, bytes)
     },
+    installElectron() {
+      const windowLike = (globalThis.window || {}) as any
+      windowLike.electron = {
+        app: {
+          getPath: async () => 'mock/app-local-data'
+        },
+        path: {
+          join: async (...parts: string[]) => parts.join('/')
+        },
+        fs: {
+          mkdir: async () => true,
+          readFile: async (p: string) => {
+            const name = p.split('/').pop() || ''
+            const bytes = files.get(name)
+            if (!bytes) throw new Error(`No such file: ${p}`)
+            return bytes
+          },
+          writeFile: async (p: string, data: Uint8Array) => {
+            const name = p.split('/').pop() || ''
+            files.set(name, data)
+            return true
+          },
+          exists: async (p: string) => {
+            const name = p.split('/').pop() || ''
+            return files.has(name)
+          },
+          remove: async (p: string) => {
+            const name = p.split('/').pop() || ''
+            files.delete(name)
+            return true
+          },
+          readDir: async () => {
+            return [...files.keys()].map((name) => ({
+              name,
+              isFile: true,
+              isDirectory: false
+            }))
+          },
+          stat: async (p: string) => {
+            const name = p.split('/').pop() || ''
+            const bytes = files.get(name)
+            if (!bytes) throw new Error(`No such file: ${p}`)
+            return { size: bytes.byteLength }
+          }
+        }
+      }
+      globalThis.window = windowLike
+    },
     handler(cmd: string, args: unknown, options?: unknown) {
       if (cmd === 'plugin:fs|mkdir') return null
       if (cmd === 'plugin:fs|write_file') {
@@ -71,6 +119,7 @@ afterEach(async () => {
 describe('local device storage adapter (Tauri filesystem backend)', () => {
   test('round-trips documents and thumbnails as files on disk', async () => {
     const disk = mockFilesystem()
+    disk.installElectron()
     await mockTauriIPC(disk.handler)
     const adapter = createFsLocalDeviceStorageAdapter()
 
@@ -116,6 +165,7 @@ describe('local device storage adapter (Tauri filesystem backend)', () => {
 
   test('lists a document without a metadata sidecar using fallbacks', async () => {
     const disk = mockFilesystem()
+    disk.installElectron()
     disk.write('orphan.fig', new Uint8Array([1]))
     await mockTauriIPC(disk.handler)
     const adapter = createFsLocalDeviceStorageAdapter()
@@ -134,6 +184,7 @@ describe('local device storage adapter (Tauri filesystem backend)', () => {
 
   test('deletes all sidecars and stays idempotent', async () => {
     const disk = mockFilesystem()
+    disk.installElectron()
     await mockTauriIPC(disk.handler)
     const adapter = createFsLocalDeviceStorageAdapter()
 

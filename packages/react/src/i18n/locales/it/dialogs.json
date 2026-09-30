@@ -238,5 +238,18 @@
   "addVariableColorDescription": "Token di colore pieno",
   "addVariableNumberDescription": "Valore numerico",
   "addVariableTextDescription": "Valore testo",
-  "addVariableBooleanDescription": "Interruttore vero/falso"
+  "addVariableBooleanDescription": "Interruttore vero/falso",
+  "displayScaleTitle": "Calibrazione scala display",
+  "displayScaleDescription": "Calibra lo schermo per visualizzare i progetti nelle dimensioni fisiche reali.",
+  "creditCardCalibration": "Calibrazione con carta di credito",
+  "creditCardInstruction": "Tieni una qualsiasi carta di credito, bancomat o documento d'identità contro lo schermo, quindi regola il cursore fino a far coincidere la sagoma con la carta fisica.",
+  "standardCardDimensions": "Carta standard: 85,60 × 53,98 mm (3,37\" × 2,13\")",
+  "cardWidthLabel": "Larghezza carta",
+  "screenDensityLabel": "Densità dello schermo",
+  "pixelsPerInch": "PPI",
+  "zoomForRealSizeLabel": "Zoom per dimensione fisica 1:1",
+  "zoomForMobileLabel": "Zoom per schermo mobile",
+  "displayPresetsTitle": "Predefiniti display",
+  "saveAndZoomRealSize": "Salva e applica zoom a dimensione reale",
+  "resetToDefault": "Ripristina impostazioni predefinite"
 }

@@ -238,5 +238,18 @@
   "addVariableColorDescription": "纯色令牌",
   "addVariableNumberDescription": "数值",
   "addVariableTextDescription": "文本值",
-  "addVariableBooleanDescription": "真/假切换"
+  "addVariableBooleanDescription": "真/假切换",
+  "displayScaleTitle": "屏幕缩放比例校准",
+  "displayScaleDescription": "校准显示器，以真实物理尺寸预览设计。",
+  "creditCardCalibration": "信用卡校准",
+  "creditCardInstruction": "将任何标准信用卡、银行卡或证件贴在屏幕上，然后调整滑块，直到轮廓与您的实体卡片完全吻合。",
+  "standardCardDimensions": "标准卡片尺寸：85.60 × 53.98 毫米 (3.37\" × 2.13\")",
+  "cardWidthLabel": "卡片宽度",
+  "screenDensityLabel": "屏幕像素密度",
+  "pixelsPerInch": "PPI",
+  "zoomForRealSizeLabel": "1:1 真实物理尺寸缩放比",
+  "zoomForMobileLabel": "手机屏幕实机缩放比",
+  "displayPresetsTitle": "显示器预设",
+  "saveAndZoomRealSize": "保存并缩放到实际尺寸",
+  "resetToDefault": "恢复默认设置"
 }

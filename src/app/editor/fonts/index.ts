@@ -80,18 +80,28 @@ interface TauriFontFamily {
 let tauriFontsCache: TauriFontFamily[] | null = null
 let tauriFontsPromise: Promise<TauriFontFamily[]> | null = null
 
+function getElectron() {
+  if (typeof window === 'undefined') return null
+  return (window as any).electron || (window as any).electronAPI || null
+}
+
 async function getTauriFonts(): Promise<TauriFontFamily[]> {
   if (tauriFontsCache) return tauriFontsCache
   if (!tauriFontsPromise) {
-    tauriFontsPromise = import('@tauri-apps/api/core')
-      .then(({ invoke }) => invoke<TauriFontFamily[]>('list_system_fonts'))
-      .then((fonts) => {
-        tauriFontsCache = fonts
-        return fonts
-      })
-      .catch(() => [])
+    const electron = getElectron()
+    if (electron?.fonts?.listFamilies) {
+      tauriFontsPromise = electron.fonts
+        .listFamilies()
+        .then((fonts: TauriFontFamily[]) => {
+          tauriFontsCache = fonts
+          return fonts
+        })
+        .catch(() => [])
+    } else {
+      tauriFontsPromise = Promise.resolve([])
+    }
   }
-  return tauriFontsPromise
+  return tauriFontsPromise ?? []
 }
 
 export function preloadFonts(): void {
@@ -221,8 +231,9 @@ function clearTextPictures(graph: SceneGraph, nodeIds: string[]): void {
 async function loadSystemFont(family: string, style = 'Regular'): Promise<ArrayBuffer | null> {
   if (!isTauri()) return null
   try {
-    const { invoke } = await import('@tauri-apps/api/core')
-    const data = await invoke<number[] | null>('load_system_font', { family, style })
+    const electron = getElectron()
+    if (!electron?.fonts?.loadFont) return null
+    const data = await electron.fonts.loadFont(family, style)
     if (!data?.length) return null
     return new Uint8Array(data).buffer
   } catch {

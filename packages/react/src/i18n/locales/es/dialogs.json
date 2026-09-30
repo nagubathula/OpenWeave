@@ -238,5 +238,18 @@
   "addVariableColorDescription": "Token de color sólido",
   "addVariableNumberDescription": "Valor numérico",
   "addVariableTextDescription": "Valor de texto",
-  "addVariableBooleanDescription": "Alternador verdadero/falso"
+  "addVariableBooleanDescription": "Alternador verdadero/falso",
+  "displayScaleTitle": "Calibración de escala de pantalla",
+  "displayScaleDescription": "Calibra tu pantalla para ver los diseños en su tamaño físico real.",
+  "creditCardCalibration": "Calibración con tarjeta de crédito",
+  "creditCardInstruction": "Sostenga cualquier tarjeta de crédito, débito o identificación estándar contra la pantalla y ajuste el deslizador hasta que coincida exactamente con su tarjeta física.",
+  "standardCardDimensions": "Tarjeta estándar: 85,60 × 53,98 mm (3,37\" × 2,13\")",
+  "cardWidthLabel": "Ancho de la tarjeta",
+  "screenDensityLabel": "Densidad de pantalla",
+  "pixelsPerInch": "PPI",
+  "zoomForRealSizeLabel": "Zoom para tamaño físico 1:1",
+  "zoomForMobileLabel": "Zoom para pantalla móvil",
+  "displayPresetsTitle": "Ajustes predefinidos de pantalla",
+  "saveAndZoomRealSize": "Guardar y hacer zoom a tamaño real",
+  "resetToDefault": "Restablecer a valores predeterminados"
 }

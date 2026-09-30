@@ -1,5 +1,3 @@
-import { invoke } from '@tauri-apps/api/core'
-
 import {
   CredentialStoreError,
   type CredentialErrorCode,
@@ -39,7 +37,12 @@ export class NativeCredentialStore implements CredentialStore {
 
   async #invoke<T>(command: string, args?: Record<string, unknown>): Promise<T> {
     try {
-      return await invoke<T>(command, args)
+      const invoke =
+        typeof window !== 'undefined' ? (window as any).__TAURI_INTERNALS__?.invoke : null
+      if (invoke) {
+        return (await invoke(command, args)) as T
+      }
+      return { available: false } as unknown as T
     } catch (error) {
       const nativeError = error as NativeCredentialError
       throw new CredentialStoreError(

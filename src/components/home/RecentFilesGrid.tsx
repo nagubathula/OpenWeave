@@ -1,10 +1,17 @@
 import { useStore } from '@nanostores/react'
+import * as AlertDialogPrimitive from '@radix-ui/react-alert-dialog'
 import { ExternalLink, FileText, FolderOpen, Plus, Trash2 } from 'lucide-react'
 import React, { useCallback, useEffect, useState } from 'react'
 
-import { getRecentFiles, recentFilesRevision, removeRecentFile } from '@/app/home/recent-files'
+import {
+  addRecentFile,
+  getRecentFiles,
+  recentFilesRevision,
+  removeRecentFile
+} from '@/app/home/recent-files'
 import { closeHome, homeSearchQuery, homeViewMode } from '@/app/home/store'
 import { HOME_TEMPLATES } from '@/app/home/templates'
+import type { StorageProviderID } from '@/app/integrations/storage/types'
 import { openFileDialog, openFileFromPath } from '@/app/shell/menu/files'
 import { toast } from '@/app/shell/ui'
 import { extractFigThumbnail } from '@/app/storage/fig-thumbnail'
@@ -18,7 +25,8 @@ import {
   openTemplateInTab,
   switchTab
 } from '@/app/tabs'
-import { isTauri } from '@/app/tauri/env'
+import { isDesktop, isTauri } from '@/app/tauri/env'
+import { AppAlertDialogRoot } from '@/components/ui/dialog'
 
 export interface RecentDocItem {
   id: string
@@ -81,10 +89,12 @@ function DocumentThumbnail({
           }
         }
 
-        if (path && isTauri() && format === 'fig') {
-          const { readFile } = await import('@tauri-apps/plugin-fs')
-          const fileBytes = await readFile(path)
-          if (!active) return
+        if (path && (isDesktop() || isTauri()) && format === 'fig') {
+          let fileBytes: Uint8Array | null = null
+          if (typeof window !== 'undefined' && (window as any).electron?.fs) {
+            fileBytes = await (window as any).electron.fs.readFile(path).catch(() => null)
+          }
+          if (!active || !fileBytes) return
           const thumbBytes = extractFigThumbnail(fileBytes)
           if (thumbBytes && thumbBytes.length > 0) {
             objectUrl = URL.createObjectURL(
@@ -258,55 +268,59 @@ export default function RecentFilesGrid({ onCountChange }: RecentFilesGridProps)
         // Storage might be offline in some web environments
       }
 
-      // 4. Collect files from default documents directory on Tauri
-      if (isTauri()) {
+      // 4. Collect files from default documents directory on Desktop
+      if (isDesktop() || isTauri()) {
         try {
           const { defaultTauriSaveDir } = await import('@/app/document/io/save-targets')
-          const { join } = await import('@tauri-apps/api/path')
-          const { readDir, stat } = await import('@tauri-apps/plugin-fs')
           const saveDir = await defaultTauriSaveDir()
-          const entries = await readDir(saveDir).catch(() => [])
-          for (const entry of entries) {
-            if (!entry.isFile || !entry.name.toLowerCase().endsWith('.fig')) continue
-            const fullPath = await join(saveDir, entry.name)
-            const docName = entry.name.replace(/\.[^.]+$/i, '')
+          const electron = typeof window !== 'undefined' ? (window as any).electron : null
+          if (electron?.fs && electron?.path) {
+            const entries = await electron.fs.readDir(saveDir).catch(() => [])
+            for (const entry of entries) {
+              const isFile = entry?.isFile ?? !entry?.isDirectory
+              const name = entry?.name
+              if (!isFile || typeof name !== 'string' || !name.toLowerCase().endsWith('.fig'))
+                continue
+              const fullPath = await electron.path.join(saveDir, name)
+              const docName = name.replace(/\.[^.]+$/i, '')
 
-            let existing = itemsMap.get(fullPath)
-            if (!existing) {
-              for (const val of itemsMap.values()) {
-                if (val.path === fullPath || val.name.toLowerCase() === docName.toLowerCase()) {
-                  existing = val
-                  break
+              let existing = itemsMap.get(fullPath)
+              if (!existing) {
+                for (const val of itemsMap.values()) {
+                  if (val.path === fullPath || val.name.toLowerCase() === docName.toLowerCase()) {
+                    existing = val
+                    break
+                  }
                 }
               }
-            }
 
-            const fileInfo = await stat(fullPath).catch(() => null)
-            const mtimeIso = fileInfo?.mtime
-              ? new Date(fileInfo.mtime).toISOString()
-              : new Date().toISOString()
+              const fileInfo = await electron.fs.stat(fullPath).catch(() => null)
+              const mtimeIso = fileInfo?.mtime
+                ? new Date(fileInfo.mtime).toISOString()
+                : new Date().toISOString()
 
-            if (existing) {
-              existing.path = fullPath
-              if (
-                !existing.updatedAt ||
-                new Date(mtimeIso).getTime() > new Date(existing.updatedAt).getTime()
-              ) {
-                existing.updatedAt = mtimeIso
+              if (existing) {
+                existing.path = fullPath
+                if (
+                  !existing.updatedAt ||
+                  new Date(mtimeIso).getTime() > new Date(existing.updatedAt).getTime()
+                ) {
+                  existing.updatedAt = mtimeIso
+                }
+              } else {
+                itemsMap.set(fullPath, {
+                  id: fullPath,
+                  name: docName,
+                  path: fullPath,
+                  format: 'fig',
+                  updatedAt: mtimeIso,
+                  isOpen: false
+                })
               }
-            } else {
-              itemsMap.set(fullPath, {
-                id: fullPath,
-                name: docName,
-                path: fullPath,
-                format: 'fig',
-                updatedAt: mtimeIso,
-                isOpen: false
-              })
             }
           }
         } catch {
-          // Tauri fs not available or directory unreadable
+          // Desktop fs not available or directory unreadable
         }
       }
 
@@ -389,22 +403,55 @@ export default function RecentFilesGrid({ onCountChange }: RecentFilesGridProps)
     }
   }
 
-  const handleDeleteDoc = async (e: React.MouseEvent, doc: RecentDocItem) => {
+  const [docToDelete, setDocToDelete] = useState<RecentDocItem | null>(null)
+
+  const onRequestDeleteDoc = (e: React.MouseEvent, doc: RecentDocItem) => {
     e.stopPropagation()
+    setDocToDelete(doc)
+  }
+
+  const executeDeleteDoc = async (doc: RecentDocItem) => {
     if (doc.tabId) {
-      closeTab(doc.tabId)
+      closeTab(doc.tabId, { force: true })
     }
+
+    const docBackup: RecentDocItem = { ...doc }
+    let figBytesBackup: Uint8Array | null = null
+    let thumbBytesBackup: Uint8Array | null = null
+    let providerIdBackup: StorageProviderID = 'local'
+
+    if (doc.storageId) {
+      try {
+        const store = getLocalCanvasStore()
+        const meta = await store.getMeta(doc.storageId)
+        if (meta) {
+          providerIdBackup = meta.providerId
+          figBytesBackup = await store.readFig(doc.storageId)
+          thumbBytesBackup = await store.readThumb(doc.storageId)
+        }
+      } catch {
+        // Continue
+      }
+    }
+
+    let movedToTrash = false
     if (doc.path) {
       removeRecentFile(doc.path)
-      if (isTauri()) {
+      if (isDesktop() || isTauri()) {
         try {
-          const { remove } = await import('@tauri-apps/plugin-fs')
-          await remove(doc.path)
+          if (typeof window !== 'undefined' && window.electron?.shell?.trashItem) {
+            movedToTrash = await window.electron.shell.trashItem(doc.path).catch(() => false)
+          } else if (typeof window !== 'undefined' && window.electron?.fs?.trashItem) {
+            movedToTrash = await window.electron.fs.trashItem(doc.path).catch(() => false)
+          } else if (typeof window !== 'undefined' && window.electron?.fs?.remove) {
+            await window.electron.fs.remove(doc.path).catch(() => false)
+          }
         } catch {
           // Ignore removal failure
         }
       }
     }
+
     removeRecentFile(doc.id)
     if (doc.templateId) {
       removeRecentFile(`template-${doc.templateId}`)
@@ -415,6 +462,7 @@ export default function RecentFilesGrid({ onCountChange }: RecentFilesGridProps)
     if (isTemplate) {
       removeRecentFile(doc.name)
     }
+
     if (doc.storageId) {
       try {
         const store = getLocalCanvasStore()
@@ -423,7 +471,47 @@ export default function RecentFilesGrid({ onCountChange }: RecentFilesGridProps)
         console.error('[Delete Doc]', err)
       }
     }
+
     await loadDocuments()
+
+    const msg = doc.path && movedToTrash ? `Moved "${doc.name}" to Trash` : `Removed "${doc.name}"`
+
+    toast.action(
+      msg,
+      {
+        label: 'Undo',
+        onClick: async () => {
+          try {
+            addRecentFile({
+              id: docBackup.id,
+              name: docBackup.name,
+              path: docBackup.path,
+              storageId: docBackup.storageId,
+              templateId: docBackup.templateId,
+              format: docBackup.format,
+              updatedAt: docBackup.updatedAt
+            })
+
+            if (docBackup.storageId && figBytesBackup) {
+              const store = getLocalCanvasStore()
+              await store.writeCanvas({
+                id: docBackup.storageId,
+                providerId: providerIdBackup,
+                name: docBackup.name,
+                figBytes: figBytesBackup,
+                thumbBytes: thumbBytesBackup
+              })
+            }
+            await loadDocuments()
+            toast.info(`Restored "${docBackup.name}"`)
+          } catch (err) {
+            console.error('Failed to restore document:', err)
+            toast.error('Failed to restore document')
+          }
+        }
+      },
+      10000
+    )
   }
 
   const handleOpenFromDisk = async () => {
@@ -520,7 +608,7 @@ export default function RecentFilesGrid({ onCountChange }: RecentFilesGridProps)
             <button
               type="button"
               aria-label="Delete document"
-              onClick={(e) => void handleDeleteDoc(e, doc)}
+              onClick={(e) => onRequestDeleteDoc(e, doc)}
               className="rounded p-1 text-muted opacity-0 transition-opacity group-hover:opacity-100 hover:bg-hover hover:text-red-400"
             >
               <Trash2 className="size-3.5" />
@@ -575,7 +663,7 @@ export default function RecentFilesGrid({ onCountChange }: RecentFilesGridProps)
             <button
               type="button"
               aria-label="Delete document"
-              onClick={(e) => void handleDeleteDoc(e, doc)}
+              onClick={(e) => onRequestDeleteDoc(e, doc)}
               className="rounded p-1 text-muted opacity-0 transition-opacity group-hover:opacity-100 hover:bg-hover hover:text-red-400"
             >
               <Trash2 className="size-3.5" />
@@ -583,6 +671,54 @@ export default function RecentFilesGrid({ onCountChange }: RecentFilesGridProps)
           </div>
         </div>
       ))}
+
+      {docToDelete && (
+        <AppAlertDialogRoot
+          open={Boolean(docToDelete)}
+          ui={{
+            overlay: 'z-50',
+            content: 'w-96 rounded-xl p-5 shadow-2xl border border-border bg-panel text-surface'
+          }}
+          data-test-id="delete-doc-confirm-dialog"
+          onEscapeKeyDown={() => setDocToDelete(null)}
+        >
+          <AlertDialogPrimitive.Title className="text-sm font-semibold text-surface">
+            Delete Document?
+          </AlertDialogPrimitive.Title>
+
+          <AlertDialogPrimitive.Description className="mt-2 text-xs text-muted leading-relaxed">
+            Are you sure you want to delete{' '}
+            <span className="font-semibold text-surface">{docToDelete.name}</span>?{' '}
+            {docToDelete.path
+              ? "This file will be moved to your computer's Trash / Recycle Bin."
+              : 'You can undo this deletion within 10 seconds.'}
+          </AlertDialogPrimitive.Description>
+
+          <div className="mt-5 flex items-center justify-end gap-2">
+            <AlertDialogPrimitive.Cancel
+              type="button"
+              data-test-id="delete-doc-cancel"
+              onClick={() => setDocToDelete(null)}
+              className="cursor-pointer rounded-md border border-border bg-transparent px-3 py-1.5 text-xs font-medium text-surface hover:bg-hover transition-colors outline-none"
+            >
+              Cancel
+            </AlertDialogPrimitive.Cancel>
+
+            <AlertDialogPrimitive.Action
+              type="button"
+              data-test-id="delete-doc-confirm"
+              onClick={() => {
+                const target = docToDelete
+                setDocToDelete(null)
+                if (target) void executeDeleteDoc(target)
+              }}
+              className="cursor-pointer rounded-md border border-destructive/30 bg-destructive/10 px-3 py-1.5 text-xs font-medium text-destructive hover:bg-destructive/20 transition-colors outline-none"
+            >
+              Delete
+            </AlertDialogPrimitive.Action>
+          </div>
+        </AppAlertDialogRoot>
+      )}
     </div>
   )
 }
