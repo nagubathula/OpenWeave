@@ -2,6 +2,8 @@
 
 Open-source design editor. Opens `.fig` and `.pen` design files, includes built-in AI, and ships as a programmable toolkit with a headless React SDK for building custom editors.
 
+> **Credit:** OpenWeave is a fork of [OpenPencil](https://github.com/open-pencil/open-pencil) by Danila Poyarkov, used under the MIT License. Its original copyright notice is kept in [LICENSE](LICENSE).
+
 > **Status:** Active development. Usable today, with some rough edges as features evolve.
 
 **[Try it online →](https://app.openweave.dev/demo)** · [Download](https://github.com/openweave/openweave/releases/latest) · [Documentation](https://openweave.dev) · [llms.txt](https://openweave.dev/llms.txt)
