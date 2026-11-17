@@ -10,6 +10,7 @@ import { resolveLanguageModelID } from '@/app/ai/chat/model'
 import SYSTEM_PROMPT from '@/app/ai/chat/system-prompt.md'
 import { createAIModelRuntime } from '@/app/ai/models'
 import { MAX_AGENT_STEPS, createAITools, recordStepUsage, resetRunSteps } from '@/app/ai/tools'
+import { getDesktopBridge } from '@/app/desktop/env'
 import type { getActiveEditorStore } from '@/app/editor/active-store'
 
 type EditorStore = ReturnType<typeof getActiveEditorStore>
@@ -48,10 +49,7 @@ export async function createACPTransport(providerID: AIProviderID) {
   if (!agentDef) throw new Error(`Unknown ACP agent: ${agentId}`)
 
   const { ACPChatTransport } = await import('@/app/ai/acp/transport')
-  let cwd = ''
-  if (typeof window !== 'undefined' && (window as any).electron?.app?.getPath) {
-    cwd = (await (window as any).electron.app.getPath('home')) || ''
-  }
+  const cwd = (await getDesktopBridge()?.app.getPath('home')) || ''
   return new ACPChatTransport({ agentDef, cwd })
 }
 

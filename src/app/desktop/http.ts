@@ -1,26 +1,7 @@
-interface ProxyHttpHeader {
-  name: string
-  value: string
-}
+import { getDesktopBridge } from '@/app/desktop/env'
+import type { DesktopHttpHeader } from '@/app/desktop/types'
 
-interface ProxyHttpRequest {
-  url: string
-  method?: string
-  headers?: ProxyHttpHeader[]
-  body?: number[]
-  max_response_bytes?: number
-  follow_redirects?: boolean
-  timeout_ms?: number
-}
-
-interface ProxyHttpResponse {
-  status: number
-  headers: ProxyHttpHeader[]
-  body: number[]
-  url: string
-}
-
-function headersToProxyHeaders(headers: Headers): ProxyHttpHeader[] {
+function headersToProxyHeaders(headers: Headers): DesktopHttpHeader[] {
   return [...headers.entries()].map(([name, value]) => ({ name, value }))
 }
 
@@ -60,7 +41,11 @@ export function withAbortSignal<T>(promise: Promise<T>, signal: AbortSignal): Pr
   })
 }
 
-export async function tauriFetch(
+/**
+ * `fetch` routed through the Electron main process, which is not subject to
+ * renderer CORS. Falls back to the renderer `fetch` in a plain browser.
+ */
+export async function desktopFetch(
   input: RequestInfo | URL,
   init?: RequestInit,
   maxResponseBytes?: number,
@@ -68,28 +53,29 @@ export async function tauriFetch(
 ): Promise<Response> {
   const request = new Request(input, init)
   request.signal.throwIfAborted()
-  const invoke = typeof window !== 'undefined' ? (window as any).__TAURI_INTERNALS__?.invoke : null
-  if (!invoke) {
-    return fetch(request)
-  }
-  const payload: ProxyHttpRequest = {
-    url: request.url,
-    method: request.method,
-    headers: headersToProxyHeaders(request.headers),
-    body: request.body == null ? undefined : [...new Uint8Array(await request.arrayBuffer())],
-    max_response_bytes: maxResponseBytes,
-    follow_redirects: request.redirect === 'follow',
-    timeout_ms: timeoutMs
-  }
+  const bridge = getDesktopBridge()
+  if (!bridge) return fetch(request)
+  const body = request.body == null ? undefined : new Uint8Array(await request.arrayBuffer())
   request.signal.throwIfAborted()
   const response = await withAbortSignal(
-    invoke('proxy_http_request', { request: payload }) as Promise<ProxyHttpResponse>,
+    bridge.http.request({
+      url: request.url,
+      method: request.method,
+      headers: headersToProxyHeaders(request.headers),
+      body,
+      maxResponseBytes,
+      followRedirects: request.redirect === 'follow',
+      timeoutMs
+    }),
     request.signal
   )
-  const proxiedResponse = new Response(new Uint8Array(response.body), {
-    status: response.status,
-    headers: response.headers.map(({ name, value }): [string, string] => [name, value])
-  })
+  const proxiedResponse = new Response(
+    response.status === 204 || response.status === 304 ? null : new Uint8Array(response.body),
+    {
+      status: response.status,
+      headers: response.headers.map(({ name, value }): [string, string] => [name, value])
+    }
+  )
   Object.defineProperty(proxiedResponse, 'url', { value: response.url })
   return proxiedResponse
 }

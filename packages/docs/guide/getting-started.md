@@ -32,7 +32,6 @@ This installs the latest signed release for macOS (Apple Silicon and Intel). The
 ### Prerequisites
 
 - [Bun](https://bun.sh/) (package manager and runtime)
-- [Rust](https://rustup.rs/) (for desktop app only)
 
 ## Installation
 
@@ -63,49 +62,20 @@ Opens the editor at `http://localhost:1420`.
 | `bun run docs:dev` | Documentation dev server |
 | `bun run docs:build` | Build documentation site |
 
-## Desktop App (Tauri)
+## Desktop App (Electron)
 
-The desktop app requires Rust and platform-specific prerequisites.
-
-### macOS
+The desktop app is an Electron shell around the same editor. No extra toolchain is needed beyond Bun.
 
 ```sh
-xcode-select --install
-cargo install tauri-cli --version "^2"
-bun run tauri dev
-```
-
-### Windows
-
-1. Install [Rust](https://rustup.rs/) with `stable-msvc` toolchain:
-   ```sh
-   rustup default stable-msvc
-   ```
-2. Install [Visual Studio Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/) with "Desktop development with C++" workload
-3. WebView2 is pre-installed on Windows 10 (1803+) and Windows 11
-4. Run:
-   ```sh
-   bun run tauri dev
-   ```
-
-### Linux
-
-Install system dependencies (Debian/Ubuntu):
-
-```sh
-sudo apt install libwebkit2gtk-4.1-dev build-essential curl wget file \
-  libxdo-dev libssl-dev libayatana-appindicator3-dev librsvg2-dev
-```
-
-Then:
-
-```sh
-bun run tauri dev
+bun run desktop:dev       # Electron against the Next dev server, with hot reload
+bun run desktop:preview   # Electron against the current dist/ static export
 ```
 
 ### Build for Distribution
 
 ```sh
-bun run tauri build                                    # Current platform
-bun run tauri build --target universal-apple-darwin    # macOS universal
+bun run desktop:build                      # Installers for the current platform
+bun run desktop:build --mac --win --linux  # Cross-target where the host supports it
 ```
+
+Installers are written to `desktop-electron/release/`. Builds are unsigned unless signing certificates are configured (see `CSC_LINK` in the electron-builder docs); macOS auto-update requires a signed build.

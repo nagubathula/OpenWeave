@@ -1,7 +1,7 @@
 import { generateText } from 'ai'
 
 import { createLanguageModel, resolveLanguageModelID, type ModelConfig } from '@/app/ai/chat/model'
-import { isTauri } from '@/app/tauri/env'
+import { isDesktop } from '@/app/desktop/env'
 
 export type ProviderConnectionTestResult =
   | { ok: true }
@@ -104,7 +104,7 @@ function classifyMessage(text: string): ProviderConnectionTestFailureReason | nu
     text.includes('networkerror') ||
     text.includes('load failed')
   ) {
-    return isTauri() ? 'network' : 'browser-network'
+    return isDesktop() ? 'network' : 'browser-network'
   }
   if (text.includes('connection') || text.includes('network') || text.includes('timeout')) {
     return 'network'

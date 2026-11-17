@@ -1,8 +1,8 @@
 import type { Vector } from '@openweave/scene-graph/primitives'
 
+import { readDesktopClipboardHtml, writeDesktopClipboardHtml } from '@/app/desktop/clipboard'
+import { isDesktop } from '@/app/desktop/env'
 import type { EditorStore } from '@/app/editor/active-store'
-import { readTauriClipboardHtmlLimited, writeTauriClipboardHtml } from '@/app/tauri/clipboard'
-import { isTauri } from '@/app/tauri/env'
 
 function createTransfer() {
   if (typeof DataTransfer === 'undefined') return null
@@ -23,25 +23,25 @@ async function captureTransferPayload(store: EditorStore) {
   return { html, plainText }
 }
 
-export async function copySelectionToTauriClipboard(store: EditorStore) {
-  if (!isTauri()) return false
+export async function copySelectionToDesktopClipboard(store: EditorStore) {
+  if (!isDesktop()) return false
   try {
     const payload = await captureTransferPayload(store)
     if (!payload) return false
-    await writeTauriClipboardHtml(payload.html || payload.plainText, payload.plainText)
+    await writeDesktopClipboardHtml(payload.html || payload.plainText, payload.plainText)
     return true
   } catch (error) {
-    console.warn('Tauri clipboard copy failed', error)
+    console.warn('Desktop clipboard copy failed', error)
     return false
   }
 }
 
-export async function pasteFromTauriClipboard(store: EditorStore, cursorPos?: Vector) {
-  if (!isTauri()) return false
+export async function pasteFromDesktopClipboard(store: EditorStore, cursorPos?: Vector) {
+  if (!isDesktop()) return false
   try {
-    const text = await readTauriClipboardHtmlLimited()
+    const text = await readDesktopClipboardHtml()
     console.log(
-      '[OW-PASTE] Rust returned:',
+      '[OW-PASTE] Desktop clipboard returned:',
       text === null
         ? 'null'
         : text === '__OW_CLIPBOARD_TOO_LARGE__'
@@ -49,7 +49,7 @@ export async function pasteFromTauriClipboard(store: EditorStore, cursorPos?: Ve
           : `string(${text.length})`
     )
     if (!text) return false
-    // Rust signalled the payload is too large before passing bytes to JS.
+    // The main process flagged the payload as too large before decoding it.
     if (text === '__OW_CLIPBOARD_TOO_LARGE__') {
       store.emitEditorEvent('clipboard:paste-failed', { reason: 'too-large' })
       return true
@@ -61,7 +61,7 @@ export async function pasteFromTauriClipboard(store: EditorStore, cursorPos?: Ve
     await store.pasteFromHTML(text, cursorPos)
     return true
   } catch (error) {
-    console.warn('Tauri clipboard paste failed', error)
+    console.warn('Desktop clipboard paste failed', error)
     return false
   }
 }
@@ -92,9 +92,9 @@ export async function copySelectionToBrowserClipboard(store: EditorStore): Promi
 }
 
 export async function readClipboardHtml(): Promise<string | null> {
-  if (isTauri()) {
+  if (isDesktop()) {
     try {
-      const text = await readTauriClipboardHtmlLimited()
+      const text = await readDesktopClipboardHtml()
       // Treat too-large sentinel as nothing available; caller handles the event separately.
       if (!text || text === '__OW_CLIPBOARD_TOO_LARGE__') return null
       return isDesignClipboardHtml(text) ? text : null
@@ -188,12 +188,12 @@ export async function executeClipboardCommand(
 ): Promise<boolean> {
   try {
     if (command === 'copy') {
-      if (await copySelectionToTauriClipboard(store)) return true
+      if (await copySelectionToDesktopClipboard(store)) return true
       if (await copySelectionToBrowserClipboard(store)) return true
     }
 
     if (command === 'cut') {
-      if (await copySelectionToTauriClipboard(store)) {
+      if (await copySelectionToDesktopClipboard(store)) {
         store.deleteSelected()
         return true
       }
@@ -204,10 +204,10 @@ export async function executeClipboardCommand(
     }
 
     if (command === 'paste') {
-      if (await pasteFromTauriClipboard(store)) return true
-      // Never call pasteFromBrowserClipboard in Tauri — navigator.clipboard.read()
+      if (await pasteFromDesktopClipboard(store)) return true
+      // Never call pasteFromBrowserClipboard on desktop — navigator.clipboard.read()
       // is blocked by WebView2 and shows the browser's native permission prompt.
-      if (!isTauri() && (await pasteFromBrowserClipboard(store))) return true
+      if (!isDesktop() && (await pasteFromBrowserClipboard(store))) return true
     }
 
     try {

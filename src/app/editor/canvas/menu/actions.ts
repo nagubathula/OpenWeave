@@ -1,12 +1,12 @@
 import { nodeToXPath } from '@openweave/core/xpath'
 
+import { writeDesktopClipboardText } from '@/app/desktop/clipboard'
+import { isDesktop } from '@/app/desktop/env'
 import type { EditorStore } from '@/app/editor/active-store'
 import { pasteClipboardToReplace } from '@/app/editor/clipboard/paste-to-replace'
 import { executeClipboardCommand } from '@/app/editor/clipboard/system'
 import { canVectorizeImageNode, vectorizeImageNode } from '@/app/editor/vectorize'
 import { toast } from '@/app/shell/ui'
-import { writeTauriClipboardText } from '@/app/tauri/clipboard'
-import { isTauri } from '@/app/tauri/env'
 
 function toArrayBuffer(data: Uint8Array): ArrayBuffer {
   const bytes = new Uint8Array(data.length)
@@ -44,8 +44,8 @@ export function createCanvasMenuActions(store: EditorStore, selectedIds: string[
   async function clipboardWrite(text: string | null, label: string) {
     if (!text) return
     try {
-      if (isTauri()) {
-        await writeTauriClipboardText(text)
+      if (isDesktop()) {
+        await writeDesktopClipboardText(text)
       } else {
         await navigator.clipboard.writeText(text)
       }

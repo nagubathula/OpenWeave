@@ -1,4 +1,4 @@
-import { isTauri } from '@/app/tauri/env'
+import { isDesktop } from '@/app/desktop/env'
 
 /** Avoid hung “Test connection” when CORS/network never resolves. */
 const STORAGE_FETCH_TIMEOUT_MS = 20_000
@@ -20,16 +20,16 @@ function withTimeoutSignal(init?: RequestInit): {
   }
 }
 
-/** Prefer Tauri HTTP bridge on desktop to avoid bucket CORS requirements. */
+/** Prefer the desktop HTTP bridge on desktop to avoid bucket CORS requirements. */
 export async function storageFetch(
   input: RequestInfo | URL,
   init?: RequestInit
 ): Promise<Response> {
   const { signal, cleanup } = withTimeoutSignal(init)
   try {
-    if (isTauri()) {
-      const { tauriFetch } = await import('@/app/tauri/http')
-      return await tauriFetch(input, { ...init, signal })
+    if (isDesktop()) {
+      const { desktopFetch } = await import('@/app/desktop/http')
+      return await desktopFetch(input, { ...init, signal })
     }
     // Request bodies are owned by the Request; re-wrap so we can attach a timeout signal.
     if (input instanceof Request) {

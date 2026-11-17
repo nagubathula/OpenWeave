@@ -32,7 +32,7 @@ Or download from the [releases page](https://github.com/openweave/openweave/rele
 - **React SDK for custom editors** — headless components and composables for embedding OpenWeave into other apps or building workflow-specific editing surfaces. [Read the SDK docs →](https://openweave.dev/programmable/sdk/)
 - **Real-time collaboration** — P2P via WebRTC, no server, no account. Cursors, presence, follow mode
 - **Auto layout & CSS Grid** — flex and grid layout via Yoga WASM, with gap, padding, alignment, track sizing
-- **~7 MB desktop app** — Tauri v2 for macOS, Windows, Linux. Also runs in the browser as a PWA
+- **Desktop app** — Electron for macOS, Windows, and Linux, with OS-keychain credential storage and auto-updates. Also runs in the browser as a PWA
 
 ## CLI
 
@@ -254,7 +254,7 @@ See the [roadmap](https://openweave.dev/development/roadmap) for product directi
 ```sh
 bun install
 bun run dev        # Dev server at localhost:1420
-bun run tauri dev  # Desktop app (requires Rust)
+bun run desktop:dev  # Electron desktop app
 ```
 
 ### Quality gates
@@ -281,7 +281,7 @@ packages/
   mcp/            @openweave/mcp — MCP server (stdio + HTTP)
   docs/           Documentation site (openweave.dev)
 src/              React app (editor shell, AI, collaboration, document I/O)
-desktop/          Tauri v2 desktop app (Rust + config)
+desktop-electron/ Electron desktop shell (main process, preload bridge, packaging)
 tests/            E2E, visual, engine, and integration tests
 ```
 
@@ -294,15 +294,14 @@ tests/            E2E, visual, engine, and integration tests
 | UI            | React/Next.js, Reka UI, Tailwind CSS 4                                                    |
 | File format   | Kiwi binary + Zstd + ZIP                                                          |
 | Collaboration | Trystero (WebRTC P2P) + Yjs (CRDT)                                                |
-| Desktop       | Tauri v2                                                                          |
+| Desktop       | Electron + electron-builder                                                       |
 | AI/MCP        | Multi-provider (Anthropic, OpenAI, Google AI, OpenRouter), MCP SDK, Hono          |
 
 ### Desktop builds
 
-Requires [Rust](https://rustup.rs/) and platform-specific prerequisites ([Tauri v2 guide](https://v2.tauri.app/start/prerequisites/)).
-
 ```sh
-bun run tauri build
+bun run desktop:build   # installers in desktop-electron/release/
+bun run desktop:preview # run Electron against the current dist/ export
 ```
 
 ## Acknowledgments

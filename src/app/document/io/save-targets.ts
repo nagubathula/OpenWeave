@@ -1,12 +1,13 @@
-/** Default save location for documents in the standalone (Tauri) app. */
+import { getDesktopBridge } from '@/app/desktop/env'
+/** Default save location for documents in the desktop app. */
 const DEFAULT_SAVE_DIR = 'openweave'
 
 function getElectron() {
   if (typeof window === 'undefined') return null
-  return (window as any).electron || (window as any).electronAPI || null
+  return getDesktopBridge()
 }
 
-export async function defaultTauriSaveDir(): Promise<string> {
+export async function defaultDesktopSaveDir(): Promise<string> {
   const electron = getElectron()
   if (electron?.app?.getPath) {
     const docDir = await electron.app.getPath('documents')
@@ -30,9 +31,9 @@ export function figBaseName(documentName: string): string {
  * <name>.fig, suffixed to stay unique so an existing file is never silently
  * overwritten. Only Save As opens a picker.
  */
-export async function defaultTauriFigSavePath(documentName: string): Promise<string> {
+export async function defaultDesktopFigSavePath(documentName: string): Promise<string> {
   const electron = getElectron()
-  const dir = await defaultTauriSaveDir()
+  const dir = await defaultDesktopSaveDir()
   const base = figBaseName(documentName)
   const join = electron?.path?.join
     ? electron.path.join
@@ -45,9 +46,9 @@ export async function defaultTauriFigSavePath(documentName: string): Promise<str
   return candidate
 }
 
-export async function chooseTauriFigSavePath(documentName = 'Untitled'): Promise<string | null> {
+export async function chooseDesktopFigSavePath(documentName = 'Untitled'): Promise<string | null> {
   const electron = getElectron()
-  const defaultPath = await defaultTauriFigSavePath(documentName).catch(
+  const defaultPath = await defaultDesktopFigSavePath(documentName).catch(
     () => `${figBaseName(documentName)}.fig`
   )
   if (electron?.dialog?.showSaveDialog) {

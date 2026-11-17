@@ -125,7 +125,7 @@ P2P via WebRTC — no server required. Share a link and edit together.
 
 ## Desktop & Web
 
-**Desktop** — Tauri v2, ~7 MB. macOS (signed & notarized), Windows, Linux. Native menus, offline, autosave.
+**Desktop** — Electron for macOS, Windows, and Linux. Native menus, file associations, OS-keychain credentials, auto-updates, offline, autosave.
 
 **Web** — runs at [app.openweave.dev](https://app.openweave.dev), installable as a PWA on mobile with touch-optimized UI.
 

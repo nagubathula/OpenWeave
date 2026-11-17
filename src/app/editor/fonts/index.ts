@@ -13,14 +13,14 @@ import {
 import { dialogMessages } from '@openweave/react'
 import type { SceneGraph } from '@openweave/scene-graph'
 
+import { getDesktopBridge, isDesktop } from '@/app/desktop/env'
+import { desktopFetch } from '@/app/desktop/http'
 import {
-  clearDownloadedFontCache as clearTauriDownloadedFontCache,
-  createTauriDownloadedFontCache,
-  downloadedFontCacheSummary as tauriDownloadedFontCacheSummary
+  clearDownloadedFontCache as clearDesktopDownloadedFontCache,
+  createDesktopDownloadedFontCache,
+  downloadedFontCacheSummary as desktopDownloadedFontCacheSummary
 } from '@/app/editor/fonts/cache'
 import { toast } from '@/app/shell/ui'
-import { isTauri } from '@/app/tauri/env'
-import { tauriFetch } from '@/app/tauri/http'
 
 if (typeof navigator !== 'undefined') {
   fontManager.setFallbackUserAgent(navigator.userAgent)
@@ -52,94 +52,94 @@ applyOnlineFontProviders()
 onlineFontsEnabled.listen(applyOnlineFontProviders)
 fontProviderSettings.listen(applyOnlineFontProviders)
 
-let tauriFontCacheConfigured = false
+let desktopFontCacheConfigured = false
 let webFontUnavailableToastShown = false
 
 function showWebFontUnavailableToast(): void {
-  if (webFontUnavailableToastShown || isTauri() || !onlineFontsEnabled.get()) return
+  if (webFontUnavailableToastShown || isDesktop() || !onlineFontsEnabled.get()) return
   if (!WEB_FONT_PROVIDER_IDS.some((provider) => fontProviderSettings.get()[provider])) return
   webFontUnavailableToastShown = true
   toast.warning(dialogMessages.get().webFontProvidersRequireDesktopApp)
 }
 
-function configureTauriFontCache() {
-  if (tauriFontCacheConfigured || !isTauri()) return
-  tauriFontCacheConfigured = true
-  fontManager.setDownloadedFontCache(createTauriDownloadedFontCache())
-  fontManager.setWebFontFetch(tauriFetch)
+function configureDesktopFontCache() {
+  if (desktopFontCacheConfigured || !isDesktop()) return
+  desktopFontCacheConfigured = true
+  fontManager.setDownloadedFontCache(createDesktopDownloadedFontCache())
+  fontManager.setWebFontFetch(desktopFetch)
   fontManager.setHostFontLoader(loadSystemFont)
 }
 
-configureTauriFontCache()
+configureDesktopFontCache()
 
-interface TauriFontFamily {
+interface SystemFontFamily {
   family: string
   styles: string[]
 }
 
-let tauriFontsCache: TauriFontFamily[] | null = null
-let tauriFontsPromise: Promise<TauriFontFamily[]> | null = null
+let systemFontsCache: SystemFontFamily[] | null = null
+let systemFontsPromise: Promise<SystemFontFamily[]> | null = null
 
 function getElectron() {
   if (typeof window === 'undefined') return null
-  return (window as any).electron || (window as any).electronAPI || null
+  return getDesktopBridge()
 }
 
-async function getTauriFonts(): Promise<TauriFontFamily[]> {
-  if (tauriFontsCache) return tauriFontsCache
-  if (!tauriFontsPromise) {
+async function getSystemFonts(): Promise<SystemFontFamily[]> {
+  if (systemFontsCache) return systemFontsCache
+  if (!systemFontsPromise) {
     const electron = getElectron()
     if (electron?.fonts?.listFamilies) {
-      tauriFontsPromise = electron.fonts
+      systemFontsPromise = electron.fonts
         .listFamilies()
-        .then((fonts: TauriFontFamily[]) => {
-          tauriFontsCache = fonts
+        .then((fonts: SystemFontFamily[]) => {
+          systemFontsCache = fonts
           return fonts
         })
         .catch(() => [])
     } else {
-      tauriFontsPromise = Promise.resolve([])
+      systemFontsPromise = Promise.resolve([])
     }
   }
-  return tauriFontsPromise ?? []
+  return systemFontsPromise ?? []
 }
 
 export function preloadFonts(): void {
-  configureTauriFontCache()
-  if (isTauri()) {
-    void getTauriFonts().then(registerFontFaces)
+  configureDesktopFontCache()
+  if (isDesktop()) {
+    void getSystemFonts().then(registerFontFaces)
     return
   }
   if (onlineFontsEnabled.get()) fontManager.preloadWebFontFamilies()
 }
 
 export function localFontAccessState(): LocalFontAccessState {
-  return isTauri() ? 'granted' : fontManager.localAccessState()
+  return isDesktop() ? 'granted' : fontManager.localAccessState()
 }
 
 export async function requestLocalFontAccess(): Promise<FontFamilyOption[]> {
-  if (isTauri()) return listFamilies()
+  if (isDesktop()) return listFamilies()
   await fontManager.requestLocalFontAccess()
   return listFamilies()
 }
 
 export async function downloadedFontCacheSummary() {
-  configureTauriFontCache()
-  if (!isTauri()) return { count: 0, byteLength: 0, updatedAt: null }
-  return tauriDownloadedFontCacheSummary()
+  configureDesktopFontCache()
+  if (!isDesktop()) return { count: 0, byteLength: 0, updatedAt: null }
+  return desktopDownloadedFontCacheSummary()
 }
 
 export async function clearDownloadedFontCache(): Promise<void> {
-  configureTauriFontCache()
-  if (!isTauri()) return
-  await clearTauriDownloadedFontCache()
+  configureDesktopFontCache()
+  if (!isDesktop()) return
+  await clearDesktopDownloadedFontCache()
 }
 
 export async function predownloadFallbackFonts() {
   return fontManager.ensureFallbackPack()
 }
 
-function registerFontFaces(fonts: TauriFontFamily[]): void {
+function registerFontFaces(fonts: SystemFontFamily[]): void {
   if (typeof document === 'undefined') return
   for (const { family } of fonts) {
     const face = new FontFace(family, `local("${family}")`)
@@ -148,10 +148,10 @@ function registerFontFaces(fonts: TauriFontFamily[]): void {
 }
 
 export async function listFamilies(): Promise<FontFamilyOption[]> {
-  configureTauriFontCache()
-  if (isTauri()) {
+  configureDesktopFontCache()
+  if (isDesktop()) {
     const [systemFonts, webFonts] = await Promise.all([
-      getTauriFonts(),
+      getSystemFonts(),
       fontManager.listFamilyOptions()
     ])
     const byFamily = new Map(webFonts.map((font) => [font.family, font]))
@@ -163,23 +163,23 @@ export async function listFamilies(): Promise<FontFamilyOption[]> {
   return fontManager.listFamilyOptions()
 }
 
-export async function listFonts(): Promise<TauriFontFamily[]> {
-  configureTauriFontCache()
-  if (isTauri()) {
-    return getTauriFonts()
+export async function listFonts(): Promise<SystemFontFamily[]> {
+  configureDesktopFontCache()
+  if (isDesktop()) {
+    return getSystemFonts()
   }
   return []
 }
 
 /**
  * Real face names available for a family ("Regular", "Semi Bold Italic", …),
- * from the system font list under Tauri. Empty when unknown (plain browser,
+ * from the desktop system font list. Empty when unknown (plain browser,
  * or a web-only family) — callers fall back to the generic weight list.
  */
 export async function listFamilyStyles(family: string): Promise<string[]> {
-  configureTauriFontCache()
-  if (!isTauri()) return []
-  const fonts = await getTauriFonts()
+  configureDesktopFontCache()
+  if (!isDesktop()) return []
+  const fonts = await getSystemFonts()
   const match =
     fonts.find((font) => font.family === family) ??
     fonts.find((font) => font.family.toLowerCase() === family.toLowerCase())
@@ -229,7 +229,7 @@ function clearTextPictures(graph: SceneGraph, nodeIds: string[]): void {
 }
 
 async function loadSystemFont(family: string, style = 'Regular'): Promise<ArrayBuffer | null> {
-  if (!isTauri()) return null
+  if (!isDesktop()) return null
   try {
     const electron = getElectron()
     if (!electron?.fonts?.loadFont) return null
@@ -246,7 +246,7 @@ export async function loadFont(
   style = 'Regular',
   characters = ''
 ): Promise<ArrayBuffer | null> {
-  configureTauriFontCache()
+  configureDesktopFontCache()
   const loaded = await fontManager.loadFont(family, style, characters)
   if (!loaded) showWebFontUnavailableToast()
   return loaded

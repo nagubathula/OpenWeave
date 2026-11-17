@@ -6,13 +6,13 @@ import { WEB_FONT_PROVIDER_IDS, WEB_FONT_PROVIDER_LABELS } from '@openweave/core
 import type { WebFontProviderId } from '@openweave/core/text'
 import { useI18n } from '@openweave/react'
 
-import { isTauri } from '@/app/tauri/env'
+import { isDesktop } from '@/app/desktop/env'
 import { useFontSettings } from '@/components/font-settings/use'
 import { useButtonUI } from '@/components/ui/button'
 import { usePopoverUI } from '@/components/ui/popover'
 import Tip from '@/components/ui/Tip'
 
-const showDownloadedFonts = isTauri()
+const showDownloadedFonts = isDesktop()
 
 /**
  * Popover for local/online font access and (desktop-only) downloaded font

@@ -1,12 +1,7 @@
-import { decodeTauriStderr } from '@/app/shell/ui'
-import { resolvePlatformCommand } from '@/app/tauri/command'
+import { getDesktopBridge } from '@/app/desktop/env'
+import { decodeProcessStderr } from '@/app/shell/ui'
 
-export type DesktopChild = {
-  write(data: number[]): Promise<void>
-  kill(): Promise<void>
-}
-
-export type TauriChild = DesktopChild
+export type { DesktopChildProcess as DesktopChild } from '@/app/desktop/types'
 
 type AcpProcessOptions = {
   command: string
@@ -23,21 +18,19 @@ export async function spawnAcpProcess({
   destroying,
   onUnexpectedClose
 }: AcpProcessOptions) {
-  const electron = typeof window !== 'undefined' ? (window as any).electron : null
-  if (!electron?.process?.spawn) {
+  const desktop = getDesktopBridge()
+  if (!desktop) {
     throw new Error('Process spawning is only supported in desktop environment.')
   }
-
-  const resolved = resolvePlatformCommand(commandName, args)
 
   const stdoutChunks: Uint8Array[] = []
   let stdoutResolver: ((chunk: Uint8Array | null) => void) | null = null
   let stdoutClosed = false
   let stdoutClosedError: Error | null = null
 
-  const child = await electron.process.spawn({
-    command: resolved.command,
-    args: resolved.args,
+  const child = await desktop.process.spawn({
+    command: commandName,
+    args,
     onStdout: (chunk: Uint8Array) => {
       if (stdoutResolver) {
         const resolve = stdoutResolver
@@ -48,7 +41,7 @@ export async function spawnAcpProcess({
       }
     },
     onStderr: (raw: string) => {
-      console.error(`[ACP ${logId}]`, decodeTauriStderr(raw))
+      console.error(`[ACP ${logId}]`, decodeProcessStderr(raw))
     },
     onClose: () => {
       stdoutClosed = true

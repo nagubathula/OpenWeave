@@ -4,7 +4,7 @@ import React, { useState } from 'react'
 
 import { closeHome, homeSection, homeViewMode } from '@/app/home/store'
 import { openFileDialog } from '@/app/shell/menu/files'
-import { createTab } from '@/app/tabs'
+import { openNewDesignTab } from '@/app/tabs'
 import LibrariesDialog from '@/components/assets/LibrariesDialog'
 
 import HomeSidebar from './HomeSidebar'
@@ -18,8 +18,7 @@ export default function HomeScreen() {
   const [librariesOpen, setLibrariesOpen] = useState(false)
 
   const handleNewDesignFile = () => {
-    createTab()
-    closeHome()
+    openNewDesignTab()
   }
 
   const sectionTitles: Record<string, string> = {

@@ -95,7 +95,7 @@ export default function TypographySection() {
   } = useTypography()
   const { panels } = useI18n()
 
-  // Real face names for the current family (Tauri system fonts); empty means
+  // Real face names for the current family (desktop system fonts); empty means
   // unknown and the dropdown falls back to the generic numeric weight list.
   const [familyStyles, setFamilyStyles] = React.useState<string[]>([])
   const [openTypeExpanded, setOpenTypeExpanded] = useState(false)

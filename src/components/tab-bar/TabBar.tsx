@@ -1,15 +1,39 @@
 import { useStore } from '@nanostores/react'
 import { File as FileIcon, Home, Plus, X } from 'lucide-react'
 import React from 'react'
+import { tv } from 'tailwind-variants'
 
+import { getDesktopBridge } from '@/app/desktop/env'
 import { closeHome, isHomeOpen, openHome } from '@/app/home/store'
-import { allTabs, closeTab, createTab, switchTab } from '@/app/tabs'
+import { allTabs, closeTab, createTab, openNewDesignTab, switchTab } from '@/app/tabs'
 import { CloseTabConfirmDialog } from '@/components/tab-bar/CloseTabConfirmDialog'
+import tabBarTheme from '@/theme/tab-bar'
 
-/** Multi-document tab strip with Figma-style Home navigation. */
+const tabBar = tv(tabBarTheme)
+
+function newDesign() {
+  // From Home, reuse the blank startup document; from a document, open another.
+  if (isHomeOpen.get()) {
+    openNewDesignTab()
+    return
+  }
+  createTab()
+}
+
+/**
+ * Multi-document tab strip with Figma-style Home navigation. In the desktop
+ * app it is always visible and acts as the window title bar.
+ */
 export default function TabBar() {
   const openTabs = useStore(allTabs)
   const homeActive = useStore(isHomeOpen)
+  const desktop = getDesktopBridge()
+  const chrome = desktop ? 'desktop' : 'browser'
+  const platform = desktop?.platform === 'darwin' ? 'darwin' : 'other'
+
+  if (!desktop && openTabs.length <= 1) return <CloseTabConfirmDialog />
+
+  const ui = tabBar({ chrome, platform, homeActive })
 
   const onMiddleClick = (e: React.MouseEvent, tabId: string) => {
     if (e.button === 1) {
@@ -23,34 +47,26 @@ export default function TabBar() {
     closeTab(tabId)
   }
 
-  const strip =
-    openTabs.length <= 1 ? null : (
-      <div
-        role="tablist"
-        data-test-id="tabbar"
-        className="scrollbar-none flex h-9 shrink-0 items-end overflow-x-auto border-b border-border bg-canvas select-none"
-      >
-        <div className="flex h-full items-end">
-          {/* Home Tab */}
+  return (
+    <>
+      <div role="tablist" data-test-id="tabbar" data-chrome={chrome} className={ui.root()}>
+        <div className={ui.list()}>
           <button
             type="button"
             role="tab"
             aria-selected={homeActive}
+            aria-label="Home"
             data-test-id="tabbar-home"
             onClick={() => openHome()}
-            className={
-              'group/home flex h-full cursor-pointer items-center gap-1.5 border-r border-border px-3 text-[11px] font-medium transition-colors outline-none select-none ' +
-              (homeActive
-                ? 'bg-panel text-surface'
-                : 'text-muted hover:bg-hover/50 hover:text-surface')
-            }
+            className={ui.home()}
           >
-            <Home className="size-3.5 shrink-0" />
-            <span>Home</span>
+            <Home className={ui.homeIcon()} />
+            <span className={ui.homeLabel()}>Home</span>
           </button>
 
           {openTabs.map((tab) => {
             const active = !homeActive && tab.isActive
+            const tabUI = tabBar({ chrome, platform, active })
             return (
               <div
                 key={tab.id}
@@ -63,13 +79,10 @@ export default function TabBar() {
                   switchTab(tab.id)
                 }}
                 onMouseDown={(e) => onMiddleClick(e, tab.id)}
-                className={
-                  'group/tab flex h-full max-w-48 min-w-0 cursor-pointer items-center gap-1.5 border-r border-border px-3 text-[11px] transition-colors outline-none select-none ' +
-                  (active ? 'bg-panel text-surface' : 'text-muted hover:text-surface')
-                }
+                className={tabUI.trigger()}
               >
-                <FileIcon className="size-3 shrink-0 opacity-50" />
-                <span className="min-w-0 flex-1 truncate">{tab.name}</span>
+                <FileIcon className={tabUI.icon()} />
+                <span className={tabUI.label()}>{tab.name}</span>
                 <button
                   type="button"
                   data-test-id="tabbar-close"
@@ -77,12 +90,9 @@ export default function TabBar() {
                   aria-label={`Close ${tab.name}`}
                   tabIndex={-1}
                   onClick={(e) => onClose(e, tab.id)}
-                  className={
-                    'flex size-4 shrink-0 cursor-pointer items-center justify-center rounded transition-opacity group-hover/tab:opacity-100 hover:bg-hover ' +
-                    (active ? 'opacity-100' : 'opacity-0')
-                  }
+                  className={tabUI.close()}
                 >
-                  <X className="size-3" />
+                  <X className={tabUI.closeIcon()} />
                 </button>
               </div>
             )
@@ -91,21 +101,14 @@ export default function TabBar() {
         <button
           type="button"
           data-test-id="tabbar-new"
-          aria-label="New tab"
-          onClick={() => {
-            closeHome()
-            createTab()
-          }}
-          className="flex size-9 shrink-0 cursor-pointer items-center justify-center text-muted transition-colors hover:text-surface"
+          aria-label="New design file"
+          onClick={newDesign}
+          className={ui.newAction()}
         >
-          <Plus className="size-3.5" />
+          <Plus className={ui.newIcon()} />
         </button>
+        <div aria-hidden className={ui.dragSpace()} />
       </div>
-    )
-
-  return (
-    <>
-      {strip}
       <CloseTabConfirmDialog />
     </>
   )

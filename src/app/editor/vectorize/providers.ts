@@ -1,7 +1,7 @@
 import { encodeBase64 } from '@openweave/core/bytes'
-import { IS_TAURI } from '@openweave/core/constants'
+import { IS_DESKTOP } from '@openweave/core/constants'
 
-import { tauriFetch } from '@/app/tauri/http'
+import { desktopFetch } from '@/app/desktop/http'
 
 import {
   VectorizeAuthError,
@@ -45,8 +45,8 @@ async function vectorizeFetch(
   const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS)
   try {
     const requestInit = { ...init, signal: controller.signal }
-    return await (IS_TAURI
-      ? tauriFetch(
+    return await (IS_DESKTOP
+      ? desktopFetch(
           input,
           requestInit,
           maxResponseBytes,

@@ -1,624 +1,434 @@
-import { app, BrowserWindow, dialog, ipcMain, Menu, shell, clipboard } from 'electron'
 import { spawn, type ChildProcess } from 'node:child_process'
 import * as fs from 'node:fs'
 import * as path from 'node:path'
-import { fileURLToPath } from 'node:url'
 
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = path.dirname(__filename)
+import {
+  app,
+  BrowserWindow,
+  dialog,
+  ipcMain,
+  Menu,
+  protocol,
+  safeStorage,
+  shell,
+  type IpcMainInvokeEvent,
+  type OpenDialogOptions
+} from 'electron'
+
+import type {
+  DesktopCredentialRef,
+  DesktopHttpRequest,
+  DesktopOpenDialogOptions,
+  DesktopSaveDialogOptions,
+  DesktopSpawnOptions
+} from '../src/app/desktop/types'
+import { APP_ORIGIN, APP_SCHEME, createAppProtocolHandler } from './app-assets'
+import {
+  readClipboardHtml,
+  readClipboardText,
+  writeClipboardHtml,
+  writeClipboardText
+} from './clipboard'
+import { DesktopCredentialStore, type CredentialCipher } from './credentials'
+import { listSystemFontFamilies, loadSystemFont } from './fonts'
+import { proxyHttpRequest } from './http-proxy'
+import { buildAppMenu } from './menu'
+import { shareTunnelStatus, startShareTunnel, stopShareTunnel } from './tunnel'
+import { checkForUpdate, downloadUpdate, installUpdateAndRestart } from './updater'
+
+const DOCUMENT_EXTENSIONS = new Set(['.fig', '.pen', '.html', '.htm', '.xhtml'])
+const DEV_URL = process.env.DEV_URL ?? null
+/**
+ * App root at runtime: the folder holding package.json for `electron .`, or the
+ * asar root when packaged. Never use `__dirname` here — Bun inlines it as the
+ * build machine's source path.
+ */
+const APP_ROOT = app.getAppPath()
+const DIST_ROOT = path.join(APP_ROOT, 'dist')
+const PRELOAD_PATH = path.join(APP_ROOT, 'desktop-electron', 'dist', 'preload.cjs')
+const ICON_PATH = path.join(APP_ROOT, 'desktop-electron', 'resources', 'icon.png')
+/** Native window controls over the 40px tab strip; colors match its dark surface. */
+const TITLE_BAR_OVERLAY = { color: '#2c2c2c', symbolColor: '#e5e5e5', height: 40 }
 
 let mainWindow: BrowserWindow | null = null
 const pendingOpenFiles: string[] = []
 
-// Parse file arguments from process.argv
+protocol.registerSchemesAsPrivileged([
+  {
+    scheme: APP_SCHEME,
+    privileges: {
+      standard: true,
+      secure: true,
+      supportFetchAPI: true,
+      corsEnabled: true,
+      stream: true,
+      allowServiceWorkers: true
+    }
+  }
+])
+
 function collectFileArgs(args: string[]): string[] {
   return args
-    .filter((arg) => !arg.startsWith('-') && !arg.includes('electron') && !arg.endsWith('.js') && !arg.endsWith('.ts'))
-    .filter((arg) => {
-      const ext = path.extname(arg).toLowerCase()
-      return ['.fig', '.pen', '.html', '.xhtml'].includes(ext) && fs.existsSync(arg)
-    })
+    .filter(
+      (arg) => !arg.startsWith('-') && DOCUMENT_EXTENSIONS.has(path.extname(arg).toLowerCase())
+    )
     .map((arg) => path.resolve(arg))
+    .filter((arg) => fs.existsSync(arg))
+}
+
+function queueOpenFiles(files: string[]) {
+  if (files.length === 0) return
+  pendingOpenFiles.push(...files)
+  mainWindow?.webContents.send('app:open-files')
 }
 
 pendingOpenFiles.push(...collectFileArgs(process.argv.slice(1)))
 
-// Second instance lock
-const gotTheLock = app.requestSingleInstanceLock()
-
-if (!gotTheLock) {
+if (!app.requestSingleInstanceLock()) {
   app.quit()
 } else {
   app.on('second-instance', (_event, commandLine) => {
-    if (mainWindow) {
-      if (mainWindow.isMinimized()) mainWindow.restore()
-      mainWindow.focus()
-      const files = collectFileArgs(commandLine)
-      if (files.length > 0) {
-        pendingOpenFiles.push(...files)
-        mainWindow.webContents.send('open-associated-files')
-        mainWindow.webContents.send('__tauri_event__', {
-          eventName: 'open-associated-files',
-          payload: null
-        })
-      }
-    }
+    if (!mainWindow) return
+    if (mainWindow.isMinimized()) mainWindow.restore()
+    mainWindow.focus()
+    queueOpenFiles(collectFileArgs(commandLine))
   })
 }
 
-function buildAppMenu(): Menu {
-  const isMac = process.platform === 'darwin'
-  const sendMenu = (id: string) => {
-    mainWindow?.webContents.send('menu-event', id)
-    mainWindow?.webContents.send('__tauri_event__', {
-      eventName: 'menu-event',
-      payload: id
-    })
-  }
+// macOS delivers Finder "Open With" and dock drops through this event.
+app.on('open-file', (event, filePath) => {
+  event.preventDefault()
+  queueOpenFiles(collectFileArgs([filePath]))
+})
 
-  const template: any[] = [
-    ...(isMac ? [{ role: 'appMenu' }] : []),
-    {
-      label: '&File',
-      submenu: [
-        { label: 'New', accelerator: 'CmdOrCtrl+N', click: () => sendMenu('new') },
-        { label: 'Open...', accelerator: 'CmdOrCtrl+O', click: () => sendMenu('open') },
-        { type: 'separator' },
-        { label: 'Save', accelerator: 'CmdOrCtrl+S', click: () => sendMenu('save') },
-        { label: 'Save As...', accelerator: 'CmdOrCtrl+Shift+S', click: () => sendMenu('save-as') },
-        { type: 'separator' },
-        { label: 'Export PNG...', accelerator: 'CmdOrCtrl+Shift+E', click: () => sendMenu('export-png') },
-        { label: 'Export SVG...', click: () => sendMenu('export-svg') },
-        { label: 'Export FIG...', click: () => sendMenu('export-fig') },
-        { type: 'separator' },
-        { label: 'Settings...', accelerator: 'CmdOrCtrl+,', click: () => sendMenu('settings') },
-        { type: 'separator' },
-        isMac ? { role: 'close' } : { role: 'quit' }
-      ]
-    },
-    {
-      label: '&Edit',
-      submenu: [
-        { label: 'Undo', accelerator: 'CmdOrCtrl+Z', click: () => sendMenu('undo') },
-        { label: 'Redo', accelerator: 'CmdOrCtrl+Shift+Z', click: () => sendMenu('redo') },
-        { type: 'separator' },
-        { label: 'Cut', accelerator: 'CmdOrCtrl+X', click: () => sendMenu('cut') },
-        { label: 'Copy', accelerator: 'CmdOrCtrl+C', click: () => sendMenu('copy') },
-        { label: 'Paste', accelerator: 'CmdOrCtrl+V', click: () => sendMenu('paste') },
-        { label: 'Select All', accelerator: 'CmdOrCtrl+A', click: () => sendMenu('select-all') },
-        { type: 'separator' },
-        { label: 'Delete', accelerator: 'Delete', click: () => sendMenu('delete') }
-      ]
-    },
-    {
-      label: '&View',
-      submenu: [
-        { label: 'Zoom In', accelerator: 'CmdOrCtrl+=', click: () => sendMenu('zoom-in') },
-        { label: 'Zoom Out', accelerator: 'CmdOrCtrl+-', click: () => sendMenu('zoom-out') },
-        { label: 'Zoom to 100%', accelerator: 'Shift+0', click: () => sendMenu('zoom-100') },
-        { label: 'Zoom to Fit', accelerator: 'Shift+1', click: () => sendMenu('zoom-fit') },
-        { type: 'separator' },
-        { role: 'reload' },
-        { role: 'forceReload' },
-        { role: 'toggleDevTools' },
-        { type: 'separator' },
-        { role: 'togglefullscreen' }
-      ]
-    },
-    {
-      label: '&Help',
-      submenu: [
-        {
-          label: 'Documentation',
-          click: () => shell.openExternal('https://openweave.dev')
-        },
-        {
-          label: 'GitHub Repository',
-          click: () => shell.openExternal('https://github.com/openweave/openweave')
-        }
-      ]
-    }
-  ]
-
-  return Menu.buildFromTemplate(template)
-}
-
-// System fonts scanner cache
-interface CachedFontFamily {
-  family: string
-  styles: string[]
-}
-let cachedFontFamilies: CachedFontFamily[] | null = null
-
-function getSystemFontDirs(): string[] {
-  if (process.platform === 'win32') {
-    const dirs = ['C:\\Windows\\Fonts']
-    const localAppData = process.env.LOCALAPPDATA
-    if (localAppData) {
-      dirs.push(path.join(localAppData, 'Microsoft', 'Windows', 'Fonts'))
-    }
-    return dirs
-  } else if (process.platform === 'darwin') {
-    const home = process.env.HOME || ''
-    return ['/System/Library/Fonts', '/Library/Fonts', path.join(home, 'Library/Fonts')]
-  } else {
-    const home = process.env.HOME || ''
-    return ['/usr/share/fonts', '/usr/local/share/fonts', path.join(home, '.fonts')]
-  }
-}
-
-async function enumerateSystemFonts(): Promise<CachedFontFamily[]> {
-  if (cachedFontFamilies) return cachedFontFamilies
-
-  const fontMap = new Map<string, Set<string>>()
-  const fontDirs = getSystemFontDirs()
-
-  for (const dir of fontDirs) {
-    if (!fs.existsSync(dir)) continue
-    try {
-      const files = await fs.promises.readdir(dir)
-      for (const file of files) {
-        const ext = path.extname(file).toLowerCase()
-        if (!['.ttf', '.otf', '.ttc'].includes(ext)) continue
-        // Basic font name parsing from filename
-        const baseName = path.basename(file, ext)
-        const parts = baseName.split(/[-_ ]/)
-        const family = parts[0] || baseName
-        const style = parts.slice(1).join(' ') || 'Regular'
-        if (!fontMap.has(family)) fontMap.set(family, new Set())
-        fontMap.get(family)?.add(style)
-      }
-    } catch {
-      // Ignore directory access errors
-    }
-  }
-
-  cachedFontFamilies = Array.from(fontMap.entries()).map(([family, styles]) => ({
-    family,
-    styles: Array.from(styles)
-  }))
-  return cachedFontFamilies
-}
-
-async function loadSystemFontBytes(family: string, style = 'Regular'): Promise<number[] | null> {
-  const fontDirs = getSystemFontDirs()
-  const searchTerms = [
-    `${family}-${style}`,
-    `${family}_${style}`,
-    `${family}${style}`,
-    family
-  ].map((s) => s.toLowerCase().replace(/[^a-z0-9]/g, ''))
-
-  for (const dir of fontDirs) {
-    if (!fs.existsSync(dir)) continue
-    try {
-      const files = await fs.promises.readdir(dir)
-      for (const file of files) {
-        const ext = path.extname(file).toLowerCase()
-        if (!['.ttf', '.otf'].includes(ext)) continue
-        const cleanFile = path.basename(file, ext).toLowerCase().replace(/[^a-z0-9]/g, '')
-        if (searchTerms.some((term) => cleanFile === term || cleanFile.startsWith(term))) {
-          const buffer = await fs.promises.readFile(path.join(dir, file))
-          return Array.from(new Uint8Array(buffer))
-        }
-      }
-    } catch {
-      // Ignore
-    }
-  }
-  return null
-}
-
-function registerIpcHandlers() {
-  ipcMain.handle('app:getPendingOpenFiles', () => {
-    return pendingOpenFiles.splice(0, pendingOpenFiles.length).map((p) => ({ path: p }))
-  })
-
-  // File System
-  ipcMain.handle('fs:readFile', async (_event, filePath: string) => {
-    return fs.promises.readFile(filePath)
-  })
-
-  ipcMain.handle('fs:writeFile', async (_event, filePath: string, data: Uint8Array | number[]) => {
-    const buf = Buffer.isBuffer(data) ? data : Buffer.from(data)
-    await fs.promises.writeFile(filePath, buf)
-    return true
-  })
-
-  ipcMain.handle('fs:exists', async (_event, filePath: string) => {
-    return fs.existsSync(filePath)
-  })
-
-  ipcMain.handle('fs:rename', async (_event, oldPath: string, newPath: string) => {
-    await fs.promises.rename(oldPath, newPath)
-    return true
-  })
-
-  ipcMain.handle('fs:mkdir', async (_event, dirPath: string, options?: { recursive?: boolean }) => {
-    await fs.promises.mkdir(dirPath, { recursive: options?.recursive ?? true })
-    return true
-  })
-
-  ipcMain.handle('fs:remove', async (_event, targetPath: string, options?: { recursive?: boolean }) => {
-    await fs.promises.rm(targetPath, { recursive: options?.recursive ?? false, force: true })
-    return true
-  })
-
-  ipcMain.handle('fs:stat', async (_event, targetPath: string) => {
-    const stats = await fs.promises.stat(targetPath)
-    return {
-      isFile: stats.isFile(),
-      isDirectory: stats.isDirectory(),
-      isSymlink: stats.isSymbolicLink(),
-      size: stats.size,
-      mtime: stats.mtime ? stats.mtime.getTime() : null,
-      atime: stats.atime ? stats.atime.getTime() : null,
-      birthtime: stats.birthtime ? stats.birthtime.getTime() : null,
-      readonly: false
-    }
-  })
-
-  ipcMain.handle('fs:readDir', async (_event, targetPath: string) => {
-    const entries = await fs.promises.readdir(targetPath, { withFileTypes: true })
-    return entries.map((e) => ({
-      name: e.name,
-      isFile: e.isFile(),
-      isDirectory: e.isDirectory(),
-      isSymlink: e.isSymbolicLink()
-    }))
-  })
-
-  // System Directory Resolution
-  ipcMain.handle('path:resolveDirectory', (_event, directory: number) => {
-    switch (directory) {
-      case 6: // Document
-        return app.getPath('documents')
-      case 7: // Download
-        return app.getPath('downloads')
-      case 8: // Picture
-        return app.getPath('pictures')
-      case 10: // Video
-        return app.getPath('videos')
-      case 12: // Temp
-        return app.getPath('temp')
-      case 13: // AppConfig
-      case 14: // AppData
-      case 15: // AppLocalData
-        return path.join(app.getPath('appData'), 'openweave')
-      case 16: // AppCache
-        return app.getPath('cache')
-      case 17: // AppLog
-        return app.getPath('logs')
-      case 18: // Desktop
-        return app.getPath('desktop')
-      case 21: // Home
-      default:
-        return app.getPath('home')
-    }
-  })
-
-  ipcMain.handle('path:join', (_event, paths: string[]) => {
-    const validPaths = (paths || []).filter((p: unknown) => typeof p === 'string')
-    return path.join(...validPaths)
-  })
-
-  ipcMain.handle('app:getPath', (_event, name: any) => {
-    return app.getPath(name)
-  })
-
-  ipcMain.handle('app:takePendingOpenFiles', () => {
-    const files = [...pendingOpenFiles]
-    pendingOpenFiles.length = 0
-    return files.map((filePath) => ({ path: filePath }))
-  })
-
-  // Child process management
-  const runningProcesses = new Map<number, ChildProcess>()
-  let nextProcessId = 1
-
-  ipcMain.handle(
-    'process:spawn',
-    (_event, options: { command: string; args?: string[]; env?: Record<string, string>; cwd?: string }) => {
-      const procId = nextProcessId++
-      try {
-        const child = spawn(options.command, options.args || [], {
-          cwd: options.cwd || undefined,
-          env: { ...process.env, ...options.env },
-          shell: process.platform === 'win32'
-        })
-        runningProcesses.set(procId, child)
-
-        child.stdout?.on('data', (data: Buffer) => {
-          mainWindow?.webContents.send(`process:stdout:${procId}`, Array.from(data))
-        })
-        child.stderr?.on('data', (data: Buffer) => {
-          mainWindow?.webContents.send(`process:stderr:${procId}`, data.toString('utf-8'))
-        })
-        child.on('close', (code) => {
-          runningProcesses.delete(procId)
-          mainWindow?.webContents.send(`process:close:${procId}`, code)
-        })
-        child.on('error', (err) => {
-          mainWindow?.webContents.send(`process:stderr:${procId}`, err.message)
-        })
-        return { procId, pid: child.pid }
-      } catch (err: any) {
-        return { error: err.message }
-      }
-    }
-  )
-
-  ipcMain.handle('process:write', (_event, procId: number, data: number[]) => {
-    const child = runningProcesses.get(procId)
-    if (child && child.stdin && !child.stdin.destroyed) {
-      child.stdin.write(Buffer.from(data))
-    }
-  })
-
-  ipcMain.handle('process:kill', (_event, procId: number) => {
-    const child = runningProcesses.get(procId)
-    if (child) {
-      child.kill()
-      runningProcesses.delete(procId)
-    }
-  })
-
-  // Dialogs
-  ipcMain.handle('dialog:showOpenDialog', async (_event, options: any) => {
-    if (!mainWindow) return null
-    const filters = options?.filters?.map((f: any) => ({
-      name: f.name || 'Files',
-      extensions: f.extensions || ['*']
-    })) || [{ name: 'Design Files', extensions: ['fig', 'pen', 'html', 'htm'] }]
-
-    const result = await dialog.showOpenDialog(mainWindow, {
-      title: options?.title || 'Open File',
-      filters,
-      properties: options?.multiple ? ['openFile', 'multiSelections'] : ['openFile']
-    })
-    if (result.canceled || result.filePaths.length === 0) return null
-    return result.filePaths
-  })
-
-  ipcMain.handle('dialog:showSaveDialog', async (_event, options: any) => {
-    if (!mainWindow) return null
-    const filters = options?.filters?.map((f: any) => ({
-      name: f.name || 'Files',
-      extensions: f.extensions || ['*']
-    })) || [{ name: 'Figma File', extensions: ['fig'] }]
-
-    const result = await dialog.showSaveDialog(mainWindow, {
-      title: options?.title || 'Save File',
-      defaultPath: options?.defaultPath,
-      filters
-    })
-    return result.canceled ? null : result.filePath
-  })
-
-  // Clipboard
-  ipcMain.handle('clipboard:readText', () => clipboard.readText())
-  ipcMain.handle('clipboard:writeText', (_event, text: string) => clipboard.writeText(text))
-  ipcMain.handle('clipboard:readHtml', () => clipboard.readHTML() || null)
-  ipcMain.handle('clipboard:writeHtml', (_event, html: string, altText?: string) => {
-    clipboard.write({ html, text: altText || '' })
-  })
-
-  // Fonts
-  ipcMain.handle('fonts:listFamilies', () => enumerateSystemFonts())
-  ipcMain.handle('fonts:loadFont', (_event, family: string, style?: string) =>
-    loadSystemFontBytes(family, style)
-  )
-
-  // Shell
-  ipcMain.handle('shell:openExternal', (_event, url: string) => shell.openExternal(url))
-  ipcMain.handle('shell:openPath', (_event, filePath: string) => shell.openPath(filePath))
-  ipcMain.handle('shell:trashItem', async (_event, filePath: string) => {
-    try {
-      await shell.trashItem(filePath)
-      return true
-    } catch (err) {
-      console.warn('[Electron] shell.trashItem failed, falling back to fs.unlink:', err)
-      await fs.promises.unlink(filePath).catch(() => {})
-      return false
-    }
-  })
-
-  // Collab Ngrok Tunnel
-  ipcMain.handle('collab:startShareTunnel', async () => {
-    if (activeTunnel?.url) return { url: activeTunnel.url }
-    const existing = await queryLocalNgrokTunnel()
-    if (existing) {
-      activeTunnel = { url: existing }
-      return { url: existing }
-    }
-
-    const port = process.env.PORT || '1420'
-    let exePath = process.platform === 'win32' ? 'ngrok.exe' : 'ngrok'
-    if (process.platform === 'win32' && process.env.LOCALAPPDATA) {
-      const winApps = path.join(process.env.LOCALAPPDATA, 'Microsoft', 'WindowsApps', 'ngrok.exe')
-      if (fs.existsSync(winApps)) {
-        exePath = winApps
-      }
-    }
-
-    return new Promise<{ url: string }>((resolve, reject) => {
-      let resolved = false
-      const timeout = setTimeout(() => {
-        if (!resolved) {
-          resolved = true
-          reject(new Error('Timed out waiting for ngrok tunnel to start'))
-        }
-      }, 15000)
-
-      let child: ChildProcess
-      try {
-        child = spawn(
-          exePath,
-          ['http', port, '--log', 'stdout', '--log-format', 'json'],
-          {
-            shell: process.platform === 'win32',
-            stdio: ['ignore', 'pipe', 'pipe']
-          }
-        )
-      } catch (err) {
-        clearTimeout(timeout)
-        return reject(err)
-      }
-
-      const checkUrl = (url: string) => {
-        if (!resolved) {
-          resolved = true
-          clearTimeout(timeout)
-          activeTunnel = { url, child }
-          resolve({ url })
-        }
-      }
-
-      const pollTimer = setInterval(async () => {
-        if (resolved) {
-          clearInterval(pollTimer)
-          return
-        }
-        const u = await queryLocalNgrokTunnel()
-        if (u) {
-          clearInterval(pollTimer)
-          checkUrl(u)
-        }
-      }, 500)
-
-      child.stdout?.on('data', (data: Buffer) => {
-        const text = data.toString()
-        const lines = text.split('\n')
-        for (const line of lines) {
-          if (!line.trim()) continue
-          try {
-            const entry = JSON.parse(line)
-            if (entry.url && typeof entry.url === 'string') {
-              checkUrl(entry.url)
-            }
-            if (entry.lvl === 'eror' || entry.lvl === 'crit') {
-              if (entry.err && typeof entry.err === 'string' && entry.err.includes('already online')) {
-                void queryLocalNgrokTunnel().then((existingUrl) => {
-                  if (existingUrl) checkUrl(existingUrl)
-                })
-              }
-            }
-          } catch {}
-        }
-      })
-
-      child.on('error', (err) => {
-        clearInterval(pollTimer)
-        clearTimeout(timeout)
-        if (!resolved) {
-          resolved = true
-          reject(err)
-        }
-      })
-
-      child.on('exit', () => {
-        if (activeTunnel?.child === child) {
-          activeTunnel = null
-        }
-      })
-    })
-  })
-
-  ipcMain.handle('collab:stopShareTunnel', () => {
-    if (activeTunnel?.child) {
-      activeTunnel.child.kill()
-    }
-    activeTunnel = null
-  })
-
-  ipcMain.handle('collab:shareTunnelStatus', async () => {
-    if (activeTunnel?.url) return activeTunnel.url
-    const u = await queryLocalNgrokTunnel()
-    if (u) {
-      activeTunnel = { url: u }
-      return u
-    }
-    return null
-  })
-}
-
-let activeTunnel: { url: string; child?: ChildProcess } | null = null
-
-async function queryLocalNgrokTunnel(): Promise<string | null> {
+/**
+ * `scheme://host[:port]` for any URL. `URL.origin` is the string "null" for
+ * custom schemes such as `app:`, so it cannot be used to compare origins.
+ */
+function originOf(url: string): string | null {
   try {
-    const res = await fetch('http://127.0.0.1:4040/api/tunnels', {
-      signal: AbortSignal.timeout(1000)
-    })
-    if (!res.ok) return null
-    const data = (await res.json()) as { tunnels?: Array<{ public_url?: string }> }
-    const tunnel = data.tunnels?.find((t) => t.public_url?.startsWith('https://')) ?? data.tunnels?.[0]
-    return tunnel?.public_url ?? null
+    const parsed = new URL(url)
+    return `${parsed.protocol}//${parsed.host}`
   } catch {
     return null
   }
 }
 
-async function createWindow() {
-  const isDev = process.env.NODE_ENV !== 'production' && !app.isPackaged
+/** The renderer origin this build trusts with privileged IPC. */
+function trustedOrigin(): string {
+  return originOf(DEV_URL ?? APP_ORIGIN) ?? APP_ORIGIN
+}
 
-  mainWindow = new BrowserWindow({
-    width: 1280,
-    height: 800,
-    title: 'OpenWeave',
-    icon: path.join(__dirname, '..', 'public', 'favicon.ico'),
-    backgroundColor: '#1e1e1e',
-    webPreferences: {
-      preload: path.join(__dirname, 'preload.cjs'),
-      contextIsolation: true,
-      nodeIntegration: false,
-      sandbox: false
-    }
-  })
-
-  Menu.setApplicationMenu(buildAppMenu())
-
-  const devUrl = process.env.DEV_URL || 'http://127.0.0.1:1420'
-
-  if (isDev) {
-    await mainWindow.loadURL(devUrl)
-  } else {
-    const indexPath = path.join(__dirname, '..', 'dist', 'index.html')
-    if (fs.existsSync(indexPath)) {
-      await mainWindow.loadFile(indexPath)
-    } else {
-      await mainWindow.loadURL(devUrl)
-    }
+function assertTrustedSender(event: IpcMainInvokeEvent) {
+  const frame = event.senderFrame
+  if (!frame || event.sender !== mainWindow?.webContents || frame.parent) {
+    throw new Error('Untrusted IPC sender')
   }
+  if (originOf(frame.url) !== trustedOrigin()) throw new Error('Untrusted IPC origin')
+}
 
-  mainWindow.on('closed', () => {
-    mainWindow = null
+function handle<Args extends unknown[], Result>(
+  channel: string,
+  listener: (...args: Args) => Result | Promise<Result>
+) {
+  ipcMain.handle(channel, (event, ...args) => {
+    assertTrustedSender(event)
+    return listener(...(args as Args))
   })
+}
 
-  // Send pending files once page is ready
-  mainWindow.webContents.on('did-finish-load', () => {
-    if (pendingOpenFiles.length > 0) {
-      mainWindow?.webContents.send('open-associated-files')
-      mainWindow?.webContents.send('__tauri_event__', {
-        eventName: 'open-associated-files',
-        payload: null
-      })
+function createCredentialStore() {
+  const cipher: CredentialCipher = {
+    isAvailable: () =>
+      safeStorage.isEncryptionAvailable() &&
+      !(process.platform === 'linux' && safeStorage.getSelectedStorageBackend() === 'basic_text'),
+    isLocked: () => false,
+    encrypt: (plainText) => safeStorage.encryptString(plainText),
+    decrypt: (cipherText) => safeStorage.decryptString(cipherText)
+  }
+  const file = path.join(app.getPath('userData'), 'credentials.v1.json')
+  return new DesktopCredentialStore(cipher, {
+    read: async () => {
+      try {
+        return await fs.promises.readFile(file, 'utf8')
+      } catch (error) {
+        if ((error as NodeJS.ErrnoException).code === 'ENOENT') return null
+        throw error
+      }
+    },
+    write: async (contents) => {
+      const temp = `${file}.${process.pid}.tmp`
+      await fs.promises.writeFile(temp, contents, { mode: 0o600 })
+      await fs.promises.rename(temp, file)
     }
   })
 }
 
-app.whenReady().then(async () => {
+function normalizeFilters(
+  filters: DesktopOpenDialogOptions['filters'],
+  fallback: OpenDialogOptions['filters']
+) {
+  return (
+    filters?.map((f) => ({
+      name: f.name || 'Files',
+      extensions: f.extensions?.length ? f.extensions : ['*']
+    })) ?? fallback
+  )
+}
+
+function registerProcessHandlers() {
+  const running = new Map<number, ChildProcess>()
+  let nextId = 1
+
+  handle(
+    'process:spawn',
+    (options: Omit<DesktopSpawnOptions, 'onStdout' | 'onStderr' | 'onClose'>) => {
+      const id = nextId++
+      // `shell` on Windows lets npm `.cmd` shims (claude-agent-acp, openweave-mcp-http) resolve.
+      const child = spawn(options.command, options.args ?? [], {
+        cwd: options.cwd || undefined,
+        env: { ...process.env, ...options.env },
+        shell: process.platform === 'win32',
+        windowsHide: true
+      })
+      running.set(id, child)
+      const send = (channel: string, payload: unknown) => {
+        if (mainWindow && !mainWindow.isDestroyed())
+          mainWindow.webContents.send(`${channel}:${id}`, payload)
+      }
+      child.stdout?.on('data', (data: Buffer) => send('process:stdout', new Uint8Array(data)))
+      child.stderr?.on('data', (data: Buffer) => send('process:stderr', data.toString('utf8')))
+      child.on('error', (error) => send('process:stderr', error.message))
+      child.on('close', (code) => {
+        running.delete(id)
+        send('process:close', code)
+      })
+      return { id, pid: child.pid }
+    }
+  )
+
+  handle('process:write', (id: number, data: Uint8Array) => {
+    const child = running.get(id)
+    if (child?.stdin && !child.stdin.destroyed) child.stdin.write(Buffer.from(data))
+  })
+
+  handle('process:kill', (id: number) => {
+    running.get(id)?.kill()
+    running.delete(id)
+  })
+
+  app.on('before-quit', () => {
+    for (const child of running.values()) child.kill()
+    running.clear()
+    stopShareTunnel()
+  })
+}
+
+function registerIpcHandlers() {
+  const credentials = createCredentialStore()
+
+  handle('app:takePendingOpenFiles', () => pendingOpenFiles.splice(0).map((p) => ({ path: p })))
+  handle(
+    'app:getPath',
+    (name: 'home' | 'appData' | 'userData' | 'documents' | 'downloads' | 'temp') =>
+      app.getPath(name)
+  )
+
+  handle('fs:readFile', (filePath: string) => fs.promises.readFile(filePath))
+  handle('fs:writeFile', async (filePath: string, data: Uint8Array) => {
+    await fs.promises.writeFile(filePath, data)
+    return true
+  })
+  handle('fs:exists', (filePath: string) => fs.existsSync(filePath))
+  handle('fs:rename', async (oldPath: string, newPath: string) => {
+    await fs.promises.rename(oldPath, newPath)
+    return true
+  })
+  handle('fs:mkdir', async (dirPath: string, options?: { recursive?: boolean }) => {
+    await fs.promises.mkdir(dirPath, { recursive: options?.recursive ?? true })
+    return true
+  })
+  handle('fs:remove', async (targetPath: string, options?: { recursive?: boolean }) => {
+    await fs.promises.rm(targetPath, { recursive: options?.recursive ?? false, force: true })
+    return true
+  })
+  handle('fs:stat', async (targetPath: string) => {
+    const stats = await fs.promises.lstat(targetPath)
+    return {
+      isFile: stats.isFile(),
+      isDirectory: stats.isDirectory(),
+      isSymlink: stats.isSymbolicLink(),
+      size: stats.size,
+      mtime: stats.mtimeMs,
+      atime: stats.atimeMs,
+      birthtime: stats.birthtimeMs,
+      readonly: (stats.mode & 0o200) === 0
+    }
+  })
+  handle('fs:readDir', async (targetPath: string) =>
+    (await fs.promises.readdir(targetPath, { withFileTypes: true })).map((entry) => ({
+      name: entry.name,
+      isFile: entry.isFile(),
+      isDirectory: entry.isDirectory(),
+      isSymlink: entry.isSymbolicLink()
+    }))
+  )
+  handle('path:join', (paths: unknown[]) =>
+    path.join(...paths.filter((p): p is string => typeof p === 'string'))
+  )
+
+  handle('dialog:showOpenDialog', async (options?: DesktopOpenDialogOptions) => {
+    if (!mainWindow) return null
+    const result = await dialog.showOpenDialog(mainWindow, {
+      title: options?.title || 'Open File',
+      filters: normalizeFilters(options?.filters, [
+        { name: 'Design Files', extensions: ['fig', 'pen', 'html', 'htm'] }
+      ]),
+      properties: options?.multiple ? ['openFile', 'multiSelections'] : ['openFile']
+    })
+    return result.canceled || result.filePaths.length === 0 ? null : result.filePaths
+  })
+  handle('dialog:showSaveDialog', async (options?: DesktopSaveDialogOptions) => {
+    if (!mainWindow) return null
+    const result = await dialog.showSaveDialog(mainWindow, {
+      title: options?.title || 'Save File',
+      defaultPath: options?.defaultPath,
+      filters: normalizeFilters(options?.filters, [{ name: 'Figma File', extensions: ['fig'] }])
+    })
+    return result.canceled ? null : (result.filePath ?? null)
+  })
+
+  handle('clipboard:readText', readClipboardText)
+  handle('clipboard:writeText', (text: string) => writeClipboardText(text))
+  handle('clipboard:readHtml', readClipboardHtml)
+  handle('clipboard:writeHtml', (html: string, altText?: string) =>
+    writeClipboardHtml(html, altText)
+  )
+
+  handle('fonts:listFamilies', listSystemFontFamilies)
+  handle('fonts:loadFont', (family: string, style?: string) => loadSystemFont(family, style))
+
+  handle('shell:openExternal', (url: string) => {
+    const protocolName = new URL(url).protocol
+    if (!['http:', 'https:', 'mailto:'].includes(protocolName)) {
+      throw new Error(`Refusing to open ${protocolName} URL`)
+    }
+    return shell.openExternal(url)
+  })
+  handle('shell:openPath', (filePath: string) => shell.openPath(filePath))
+  handle('shell:trashItem', async (filePath: string) => {
+    try {
+      await shell.trashItem(filePath)
+      return true
+    } catch {
+      return false
+    }
+  })
+
+  handle('collab:startShareTunnel', () =>
+    startShareTunnel({
+      devPort: DEV_URL ? Number(new URL(DEV_URL).port || 80) : null,
+      distRoot: DIST_ROOT
+    })
+  )
+  handle('collab:stopShareTunnel', stopShareTunnel)
+  handle('collab:shareTunnelStatus', shareTunnelStatus)
+
+  handle('credentials:availability', () => credentials.availability())
+  handle('credentials:status', (reference: DesktopCredentialRef) => credentials.status(reference))
+  handle('credentials:read', (reference: DesktopCredentialRef) => credentials.read(reference))
+  handle('credentials:write', (reference: DesktopCredentialRef, value: string) =>
+    credentials.write(reference, value)
+  )
+  handle('credentials:remove', (reference: DesktopCredentialRef) => credentials.remove(reference))
+
+  handle('http:request', (request: DesktopHttpRequest) => proxyHttpRequest(request))
+
+  handle('updater:check', checkForUpdate)
+  handle('updater:download', downloadUpdate)
+  handle('updater:install', installUpdateAndRestart)
+
+  handle('devtools:toggle', () => mainWindow?.webContents.toggleDevTools())
+
+  registerProcessHandlers()
+}
+
+function isAppUrl(url: string): boolean {
+  return originOf(url) === trustedOrigin()
+}
+
+async function createWindow() {
+  mainWindow = new BrowserWindow({
+    width: 1280,
+    height: 800,
+    title: 'OpenWeave',
+    icon: ICON_PATH,
+    backgroundColor: '#1e1e1e',
+    // Figma-style chrome: the renderer's tab strip is the title bar
+    // (`src/components/tab-bar/TabBar.tsx`). macOS keeps its traffic lights;
+    // Windows/Linux keep native min/max/close drawn over the strip.
+    titleBarStyle: 'hidden',
+    ...(process.platform === 'darwin'
+      ? { trafficLightPosition: { x: 14, y: 13 } }
+      : { titleBarOverlay: TITLE_BAR_OVERLAY }),
+    webPreferences: {
+      preload: PRELOAD_PATH,
+      contextIsolation: true,
+      nodeIntegration: false,
+      // The preload uses `node:path`; renderer code still has no Node access.
+      sandbox: false
+    }
+  })
+
+  // Keep the window on the app origin; hand other links to the system browser.
+  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+    if (/^https?:/.test(url)) void shell.openExternal(url)
+    return { action: 'deny' }
+  })
+  mainWindow.webContents.on('will-navigate', (event, url) => {
+    if (isAppUrl(url)) return
+    event.preventDefault()
+    if (/^https?:/.test(url)) void shell.openExternal(url)
+  })
+  mainWindow.webContents.on('did-finish-load', () => {
+    if (pendingOpenFiles.length > 0) mainWindow?.webContents.send('app:open-files')
+  })
+  mainWindow.on('closed', () => {
+    mainWindow = null
+  })
+
+  await mainWindow.loadURL(DEV_URL ?? `${APP_ORIGIN}/`)
+}
+
+async function start() {
+  if (!DEV_URL) {
+    if (!fs.existsSync(path.join(DIST_ROOT, 'index.html'))) {
+      dialog.showErrorBox(
+        'OpenWeave',
+        `The app bundle is missing (${DIST_ROOT}). Run \`bun run build\` first.`
+      )
+      app.quit()
+      return
+    }
+    protocol.handle(APP_SCHEME, createAppProtocolHandler(DIST_ROOT))
+  }
   registerIpcHandlers()
+  Menu.setApplicationMenu(buildAppMenu(() => mainWindow))
   await createWindow()
 
   app.on('activate', () => {
-    if (BrowserWindow.getAllWindows().length === 0) {
-      createWindow()
-    }
+    if (BrowserWindow.getAllWindows().length === 0) void createWindow()
   })
-})
+}
+
+app
+  .whenReady()
+  .then(start)
+  .catch((error: unknown) => {
+    dialog.showErrorBox('OpenWeave failed to start', String(error))
+    app.quit()
+  })
 
 app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') {
-    app.quit()
-  }
+  if (process.platform !== 'darwin') app.quit()
 })

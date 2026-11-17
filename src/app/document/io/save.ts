@@ -1,18 +1,18 @@
 import type { EditorState } from '@openweave/core/editor'
 
+import { getDesktopBridge, isDesktop } from '@/app/desktop/env'
 import { downloadBlob } from '@/app/document/io/browser'
 import { documentNameFromFigPath } from '@/app/document/io/names'
 import {
   chooseBrowserFigSaveHandle,
-  chooseTauriFigSavePath,
-  defaultTauriFigSavePath,
+  chooseDesktopFigSavePath,
+  defaultDesktopFigSavePath,
   figBaseName
 } from '@/app/document/io/save-targets'
 import type { DocumentSourceAccess } from '@/app/document/io/types'
 import { createDocumentWriter } from '@/app/document/io/write'
 import { addRecentFile, removeRecentFile } from '@/app/home/recent-files'
 import { toast } from '@/app/shell/ui'
-import { isTauri } from '@/app/tauri/env'
 
 type SaveDocumentState = EditorState & { documentName: string }
 
@@ -55,12 +55,12 @@ export function createSaveActions({
     const storageBinding = getStorageBinding()
     const downloadName = getDownloadName()
 
-    if (isTauri() && filePath && !storageBinding) {
+    if (isDesktop() && filePath && !storageBinding) {
       const currentName = documentNameFromFigPath(filePath)
       const targetName = state.documentName.trim()
       if (targetName && currentName !== targetName) {
         try {
-          const electron = (window as any).electron || (window as any).electronAPI
+          const electron = getDesktopBridge()
           const dir = electron?.path?.dirname
             ? electron.path.dirname(filePath)
             : filePath.slice(0, Math.max(filePath.lastIndexOf('/'), filePath.lastIndexOf('\\')))
@@ -120,12 +120,12 @@ export function createSaveActions({
           })
         }
       }
-    } else if (isTauri()) {
+    } else if (isDesktop()) {
       // First save of a new document goes straight to Documents/openweave
       // without a picker; only Save As asks where.
       const data = await buildFigFile()
-      const path = await defaultTauriFigSavePath(state.documentName)
-      await persistTauriSave(path, data)
+      const path = await defaultDesktopFigSavePath(state.documentName)
+      await persistDesktopSave(path, data)
     } else if (downloadName) {
       downloadBlob(new Uint8Array(await buildFigFile()), downloadName, 'application/octet-stream')
     } else {
@@ -133,7 +133,7 @@ export function createSaveActions({
     }
   }
 
-  async function persistTauriSave(path: string, data: Uint8Array): Promise<boolean> {
+  async function persistDesktopSave(path: string, data: Uint8Array): Promise<boolean> {
     setStorageBinding(null)
     setFilePath(path)
     setFileHandle(null)
@@ -154,11 +154,11 @@ export function createSaveActions({
   }
 
   async function saveFigFileAs() {
-    if (isTauri()) {
-      const path = await chooseTauriFigSavePath(state.documentName)
+    if (isDesktop()) {
+      const path = await chooseDesktopFigSavePath(state.documentName)
       if (!path) return
       const data = await buildFigFile()
-      await persistTauriSave(path, data)
+      await persistDesktopSave(path, data)
       return
     }
 

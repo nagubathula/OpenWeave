@@ -26,7 +26,21 @@ export class CanvasHelper {
     await this.page.evaluate(() => new Promise(requestAnimationFrame))
   }
 
+  /**
+   * Plain app URLs land on the Home screen; enter the editor the way a user
+   * does, via "Design file", which reuses the blank startup tab.
+   */
+  async openEditorFromHome() {
+    const canvasReady = this.page
+      .getByTestId('canvas-element')
+      .and(this.page.locator('[data-ready="1"]'))
+    const newDesign = this.page.getByRole('button', { name: 'Design file', exact: true })
+    await canvasReady.or(newDesign).first().waitFor({ timeout: 30000 })
+    if (await newDesign.isVisible()) await newDesign.click()
+  }
+
   async waitForInit() {
+    await this.openEditorFromHome()
     await this.page
       .getByTestId('canvas-element')
       .and(this.page.locator('[data-ready="1"]'))

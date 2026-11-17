@@ -547,7 +547,6 @@
   "ignorePatterns": [
     "node_modules",
     "dist",
-    "desktop",
     "*.config.*",
     "src/stories"
   ],

@@ -8,7 +8,11 @@ type PageChildSummary = {
   type: string
 }
 
-async function installTauriClipboardMock(page: Page) {
+/**
+ * Installs a fake Electron preload bridge (`window.electron`). Clipboard calls
+ * are recorded; every other bridge method resolves to a harmless default.
+ */
+async function installDesktopClipboardMock(page: Page) {
   await page.addInitScript(() => {
     const state = {
       text: '',
@@ -21,63 +25,64 @@ async function installTauriClipboardMock(page: Page) {
       value: state
     })
 
-    let callbackId = 1
-    const callbacks = new Map<number, unknown>()
-
-    Object.defineProperty(window, '__TAURI_INTERNALS__', {
-      configurable: true,
-      value: {
-        callbacks,
-        metadata: {
-          currentWindow: { label: 'main' },
-          currentWebview: { label: 'main' }
+    const clipboard = {
+      writeHtml: async (html: string, altText?: string) => {
+        state.writes.push({ cmd: 'clipboard.writeHtml', args: { html, altText } })
+        state.html = html
+        state.text = altText ?? html
+      },
+      writeText: async (text: string) => {
+        state.writes.push({ cmd: 'clipboard.writeText', args: { text } })
+        state.text = text
+        state.html = ''
+      },
+      readText: async () => state.text,
+      readHtml: async () => state.html || null
+    }
+    const overrides: Record<string, Record<string, unknown>> = {
+      clipboard,
+      fonts: { listFamilies: async () => [], loadFont: async () => null },
+      app: {
+        getPath: async () => '/mock/user-data',
+        takePendingOpenFiles: async () => [],
+        onOpenFiles: () => () => {}
+      },
+      menu: { onCommand: () => () => {} },
+      path: {
+        join: async (...parts: string[]) => parts.join('/'),
+        dirname: (p: string) => p.slice(0, p.lastIndexOf('/')),
+        basename: (p: string) => p.slice(p.lastIndexOf('/') + 1),
+        extname: (p: string) => (p.includes('.') ? p.slice(p.lastIndexOf('.')) : '')
+      },
+      fs: {
+        readFile: async () => {
+          throw new Error('ENOENT')
         },
-        convertFileSrc: (filePath: string) => filePath,
-        invoke: async (cmd: string, args?: Record<string, unknown>) => {
-          state.writes.push({ cmd, args })
-          switch (cmd) {
-            case 'plugin:clipboard-manager|write_html': {
-              state.html = String(args?.html ?? '')
-              state.text = String(args?.altText ?? state.html)
-              return null
-            }
-            case 'plugin:clipboard-manager|write_text': {
-              state.text = String(args?.text ?? '')
-              state.html = ''
-              return null
-            }
-            case 'plugin:clipboard-manager|read_text':
-              return state.html || state.text
-            case 'list_system_fonts':
-            case 'take_pending_open':
-              return []
-            case 'load_system_font':
-              return null
-            case 'plugin:event|listen':
-            case 'plugin:event|unlisten':
-            case 'plugin:process|exit':
-            case 'plugin:process|restart':
-              return null
-            default:
-              return null
-          }
-        },
-        transformCallback: (callback: unknown) => {
-          const id = callbackId++
-          callbacks.set(id, callback)
-          return id
-        },
-        unregisterCallback: (id: number) => {
-          callbacks.delete(id)
-        },
-        runCallback: () => null
+        exists: async () => false
+      },
+      updater: { check: async () => ({ status: 'unsupported' }) },
+      credentials: {
+        availability: async () => ({ ok: true, value: 'available' }),
+        status: async () => ({ ok: true, value: 'missing' }),
+        read: async () => ({ ok: true, value: null })
       }
+    }
+    const namespace = (name: string) =>
+      new Proxy(overrides[name] ?? {}, {
+        get: (target, key: string) => target[key] ?? (async () => null)
+      })
+    const base: { isElectron: true; platform: string } = { isElectron: true, platform: 'linux' }
+    const bridge = new Proxy(base, {
+      get: (target, key: string) =>
+        key === 'isElectron' || key === 'platform' ? target[key] : namespace(key),
+      has: () => true
     })
+    Object.defineProperty(window, 'electron', { configurable: true, value: bridge })
   })
 }
 
-async function createTauriEditorPage(page: Page) {
-  await installTauriClipboardMock(page)
+async function createDesktopEditorPage(page: Page) {
+  await installDesktopClipboardMock(page)
   await page.goto('/')
   const canvas = new CanvasHelper(page)
   await canvas.waitForInit()
@@ -113,10 +118,10 @@ async function dispatchClipboardEvent(page: Page, type: 'copy' | 'cut' | 'paste'
   }, type)
 }
 
-test('Tauri copy writes selected design HTML without requiring ClipboardEvent.clipboardData', async ({
+test('desktop copy writes selected design HTML without requiring ClipboardEvent.clipboardData', async ({
   page
 }) => {
-  const canvas = await createTauriEditorPage(page)
+  const canvas = await createDesktopEditorPage(page)
   await canvas.drawRect(160, 160, 96, 72)
 
   await dispatchClipboardEvent(page, 'copy')
@@ -128,15 +133,15 @@ test('Tauri copy writes selected design HTML without requiring ClipboardEvent.cl
     })
   const clipboard = await testClipboard(page)
   expect(clipboard.html).toContain('(figma)')
-  expect(
-    clipboard.writes.some((entry) => entry.cmd === 'plugin:clipboard-manager|write_html')
-  ).toBe(true)
+  expect(clipboard.writes.some((entry) => entry.cmd === 'clipboard.writeHtml')).toBe(true)
   await expect(page.getByText('Clipboard access is blocked in this browser context')).toHaveCount(0)
   canvas.assertNoErrors()
 })
 
-test('Tauri paste restores copied design data from plugin clipboard text', async ({ page }) => {
-  const canvas = await createTauriEditorPage(page)
+test('desktop paste restores copied design data from the main-process clipboard', async ({
+  page
+}) => {
+  const canvas = await createDesktopEditorPage(page)
   await canvas.drawRect(160, 160, 96, 72)
   await dispatchClipboardEvent(page, 'copy')
   await expect.poll(() => testClipboard(page)).toMatchObject({ text: 'Rectangle' })
@@ -155,10 +160,10 @@ test('Tauri paste restores copied design data from plugin clipboard text', async
   canvas.assertNoErrors()
 })
 
-test('Tauri cut writes design data and deletes selection only after clipboard write succeeds', async ({
+test('desktop cut writes design data and deletes selection only after clipboard write succeeds', async ({
   page
 }) => {
-  const canvas = await createTauriEditorPage(page)
+  const canvas = await createDesktopEditorPage(page)
   await canvas.drawRect(160, 160, 96, 72)
 
   await dispatchClipboardEvent(page, 'cut')
@@ -172,10 +177,10 @@ test('Tauri cut writes design data and deletes selection only after clipboard wr
   canvas.assertNoErrors()
 })
 
-test('Tauri context-menu copy uses plugin clipboard fallback instead of blocked browser command', async ({
+test('desktop context-menu copy uses the bridge clipboard instead of blocked browser command', async ({
   page
 }) => {
-  const canvas = await createTauriEditorPage(page)
+  const canvas = await createDesktopEditorPage(page)
   await canvas.drawRect(160, 160, 96, 72)
 
   const box = await canvas.canvas.boundingBox()

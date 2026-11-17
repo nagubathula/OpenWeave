@@ -37,7 +37,7 @@ SceneGraph → NodeChange[] → Kiwi encode → compress (Zstd/deflate)
 
 Export uses <kbd>⌘</kbd><kbd>S</kbd> (Save) and <kbd>⇧</kbd><kbd>⌘</kbd><kbd>S</kbd> (Save As) with native OS dialogs on the desktop app. The exported file includes a `thumbnail.png` required by Figma for file preview.
 
-Compression uses Zstd via Tauri Rust command on desktop, with deflate fallback in the browser.
+Export compression uses deflate via `fflate` in both the browser and the desktop app.
 
 ## Kiwi Binary Codec
 
@@ -56,7 +56,7 @@ Figma's schema uses non-contiguous field IDs (e.g. 1, 2, 5, 10 with gaps). The k
 
 ### Compression
 
-`.fig` files use Zstd compression for both the schema and message payloads. Decompression uses the `fzstd` library. For export, Zstd compression is offloaded to a Tauri Rust command on the desktop app (better performance, correct frame headers). In the browser, deflate via `fflate` is used as a fallback.
+`.fig` files use Zstd compression for both the schema and message payloads. Decompression uses the `fzstd` library. For export, OpenWeave writes deflate-compressed payloads via `fflate` in both the browser and the desktop app.
 
 ## Supported Formats
 

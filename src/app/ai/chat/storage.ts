@@ -1,6 +1,6 @@
 import { atom, computed } from 'nanostores'
 
-import { IS_TAURI } from '@openweave/core/constants'
+import { IS_DESKTOP } from '@openweave/core/constants'
 import { setPexelsApiKey, setUnsplashAccessKey } from '@openweave/core/tools'
 
 import {
@@ -41,7 +41,7 @@ export const isACPProvider = computed(providerID, (provider) => provider.startsW
 export const isConfigured = computed(
   [isACPProvider, apiKeyStatus, providerID, customBaseURL],
   (acpProvider, keyStatus, provider, baseURL) => {
-    if (acpProvider) return IS_TAURI
+    if (acpProvider) return IS_DESKTOP
     if (keyStatus !== 'configured') return false
     const needsBaseURL = provider === 'openai-compatible' || provider === 'anthropic-compatible'
     return !needsBaseURL || Boolean(baseURL)

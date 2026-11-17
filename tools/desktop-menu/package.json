@@ -1,0 +1,8 @@
+{
+  "name": "@openweave/desktop-menu-tools",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "bun test tests"
+  }
+}

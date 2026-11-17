@@ -2,13 +2,9 @@ import { describe, test, expect, vi, beforeEach, afterEach } from 'bun:test'
 
 import { openExternalLink } from '@/app/shell/ui'
 
-import { clearTauriMocks, mockTauriIPC } from '#tests/helpers/tauri/mocks'
+import { clearDesktopMocks } from '#tests/helpers/desktop-mocks'
 
-/**
- * Tests for the browser (window.open) path only.
- * The Tauri path (dynamic import of @tauri-apps/plugin-opener) cannot be
- * exercised in bun:test since IS_TAURI evaluates to false outside Tauri.
- */
+/** Browser (window.open) and desktop (Electron shell) link opening. */
 describe('openExternalLink', () => {
   let mockOpen: ReturnType<typeof vi.fn>
 
@@ -17,9 +13,8 @@ describe('openExternalLink', () => {
     globalThis.window = { open: mockOpen } as Window & typeof globalThis
   })
 
-  afterEach(async () => {
-    await clearTauriMocks()
-    Reflect.deleteProperty(globalThis, 'window')
+  afterEach(() => {
+    clearDesktopMocks()
     vi.restoreAllMocks()
   })
 

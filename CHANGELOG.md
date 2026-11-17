@@ -56,6 +56,9 @@
 
 ### Changed
 
+- Ship the desktop app on Electron with installers for macOS (dmg/zip), Windows (NSIS), and Linux (AppImage/deb), `.fig`/`.pen` file associations, and in-app updates from GitHub Releases via **Check for Updates…**.
+- Build the desktop menu bar from the same menu definition as the in-app menu, so every item works and shows the right shortcut.
+- Desktop: replace the native title bar and menu row with a Figma-style title bar — Home, document tabs, and a new-design button in a draggable strip, with native window controls. Desktop-only items such as **Check for Updates…** and **Developer Tools** appear in the in-app menu.
 - Redesign the editor chrome and Design panel with denser, better-aligned controls, clearer selection and section states, improved menus and overlays, consistent light/dark theming, and better keyboard and screen-reader support.
 - Choose Freeform, vertical, horizontal, or grid flow directly from the contextual Layout section, with sizing controls grouped alongside it.
 - Choose Auto width, Auto height, or Fixed size directly from the Layout section for text layers.
@@ -67,6 +70,12 @@
 
 ### Fixed
 
+- Start a new design from Home in the blank startup document instead of leaving an extra empty "Untitled" tab, and open the demo and bare `?no-chrome` embeds directly in the editor.
+- Desktop: load the packaged app from a stable `app://openweave` origin instead of falling back to a dev server, and serve the same build to invitees through the ngrok share tunnel.
+- Desktop: detect edits made to an open file outside OpenWeave, and keep downloaded font caches in the app data folder.
+- Desktop: read and write design clipboard HTML again with Electron's clipboard API, keeping the size limit for very large Figma pastes.
+- Desktop: list system fonts by their real family and weight names, including fonts in subfolders and `.ttc` collections.
+- Desktop: route AI provider and storage requests through the main process again so they are not blocked by CORS.
 - Scale proportion-constrained `.fig` instance geometry through fixed wrapper layers so imported logos and icons retain their intended size.
 - Match Figma auto-layout spacing, padding, min/max constraints, scalar variable bindings, CanvasKit-shaped generated text, imported text bounds, and nested instance geometry more closely.
 - Match Figma Plugin API vector path and network editing, including bounds, transforms, winding rules, region fills, validation, and handle mirroring. (#444)
@@ -105,6 +114,8 @@
 
 ### Security
 
+- Desktop: store API keys and storage credentials encrypted with the OS keychain (Keychain, DPAPI, libsecret/KWallet) instead of browser storage, and never fall back to plaintext.
+- Desktop: answer privileged IPC only from the app's own window and origin, open external links in the system browser, and adopt existing ngrok tunnels only when they forward the app's port.
 - Update the collaboration WebSocket dependency to address a protocol-length advisory.
 
 ## 0.13.2 — 2026-05-30

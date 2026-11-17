@@ -1,6 +1,6 @@
 import { readFigFile } from '@openweave/core/io/formats/fig'
 
-import { isTauri } from '@/app/tauri/env'
+import { getDesktopBridge, isDesktop } from '@/app/desktop/env'
 
 export type ReloadSourceOptions = {
   documentName: string
@@ -13,9 +13,8 @@ export async function readReloadSource({
   filePath,
   fileHandle
 }: ReloadSourceOptions) {
-  if (filePath && isTauri()) {
-    const electron =
-      typeof window !== 'undefined' ? (window as any).electron || (window as any).electronAPI : null
+  if (filePath && isDesktop()) {
+    const electron = getDesktopBridge()
     if (electron?.fs?.readFile) {
       const bytes = await electron.fs.readFile(filePath)
       const blob = new Blob([bytes])

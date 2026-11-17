@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test'
 
-import { withAbortSignal } from '@/app/tauri/http'
+import { withAbortSignal } from '@/app/desktop/http'
 
 describe('withAbortSignal', () => {
   test('resolves with the wrapped promise', async () => {

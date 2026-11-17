@@ -1,4 +1,4 @@
-import { isTauri } from '@/app/tauri/env'
+import { getDesktopBridge, isDesktop } from '@/app/desktop/env'
 import type { ToastVariant } from '@/components/ui/toast'
 
 export type { ToastVariant } from '@/components/ui/toast'
@@ -127,9 +127,8 @@ export const toast = {
 }
 
 export async function openExternalLink(url: string) {
-  if (isTauri()) {
-    const electron =
-      typeof window !== 'undefined' ? (window as any).electron || (window as any).electronAPI : null
+  if (isDesktop()) {
+    const electron = getDesktopBridge()
     if (electron?.shell?.openExternal) {
       await electron.shell.openExternal(url)
       return
@@ -147,7 +146,7 @@ export function initials(name: string): string {
       .slice(0, 2) || '?'
   )
 }
-export function decodeTauriStderr(raw: Uint8Array | number[] | string): string {
+export function decodeProcessStderr(raw: Uint8Array | number[] | string): string {
   if (typeof raw === 'string') return raw
   return new TextDecoder().decode(raw instanceof Uint8Array ? raw : new Uint8Array(raw))
 }

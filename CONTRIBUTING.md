@@ -12,11 +12,11 @@ bun install
 ## Development
 
 ```bash
-bun run dev          # Vite dev server on localhost:1420
-bun run tauri dev    # Tauri desktop app with hot reload
+bun run dev            # Next dev server on localhost:1420
+bun run desktop:dev    # Electron desktop app with hot reload
 
-# For macOS release builds with ad-hoc signing (no Apple Developer account, local testing only):
-APPLE_SIGNING_IDENTITY=- bun run tauri build -c '{"bundle": { "createUpdaterArtifacts": false }}'
+# Unsigned local installers (no signing certificate needed):
+CSC_IDENTITY_AUTO_DISCOVERY=false bun run desktop:build
 ```
 
 ## Pull requests
@@ -62,7 +62,8 @@ bun run test         # Playwright E2E (auto-starts dev server)
 - `packages/cli` — headless CLI for .fig inspection and export
 - `packages/mcp` — MCP server for AI tools (stdio + HTTP)
 - `packages/docs` — VitePress documentation site (openweave.dev)
-- `src/` — Tauri/Vite desktop editor
+- `src/` — Next.js editor app
+- `desktop-electron/` — Electron desktop shell
 
 ## Conventions
 

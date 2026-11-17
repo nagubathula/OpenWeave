@@ -1,4 +1,4 @@
-import { tauriFetch } from '@/app/tauri/http'
+import { desktopFetch } from '@/app/desktop/http'
 
 type ClipboardImageFetch = (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>
 
@@ -38,7 +38,7 @@ async function sha1Hex(bytes: Uint8Array): Promise<string> {
 export async function resolveFigmaClipboardImages(
   fileKey: string,
   hashes: string[],
-  fetcher: ClipboardImageFetch = tauriFetch,
+  fetcher: ClipboardImageFetch = desktopFetch,
   timeoutMs = IMAGE_FETCH_TIMEOUT_MS
 ): Promise<ReadonlyMap<string, Uint8Array>> {
   const uniqueHashes = [...new Set(hashes)]

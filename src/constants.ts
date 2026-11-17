@@ -1,10 +1,10 @@
-import { IS_BROWSER, IS_TAURI } from '@openweave/core/constants'
+import { IS_BROWSER, IS_DESKTOP } from '@openweave/core/constants'
 
 import ACP_DESIGN_CONTEXT from '@/app/ai/acp/design-context'
 
 export {
   IS_BROWSER,
-  IS_TAURI,
+  IS_DESKTOP,
   SELECTION_COLOR,
   COMPONENT_COLOR,
   SNAP_COLOR,
@@ -73,7 +73,7 @@ export const WEB_APP_ORIGIN =
     : 'http://localhost:1420'
 
 export function getShareUrl(roomId: string, isProtected = false): string {
-  const base = !IS_BROWSER || IS_TAURI ? WEB_APP_ORIGIN : window.location.origin
+  const base = !IS_BROWSER || IS_DESKTOP ? WEB_APP_ORIGIN : window.location.origin
   // Query-param form: compatible with static export (`output: 'export'`), where
   // a /share/[roomId] path segment could never serve arbitrary room ids.
   return `${base}/share?room=${roomId}${isProtected ? '&pwd=1' : ''}`
