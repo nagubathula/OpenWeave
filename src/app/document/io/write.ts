@@ -1,9 +1,9 @@
 import type { EditorState } from '@openweave/core/editor'
 
+import { getDesktopBridge, isDesktop } from '@/app/desktop/env'
 import type { StorageDocumentBinding } from '@/app/integrations/storage/types'
 import { extractFigThumbnail } from '@/app/storage/fig-thumbnail'
 import { persistStorageCanvasLocally } from '@/app/storage/sync/persist'
-import { isTauri } from '@/app/tauri/env'
 
 type WriteDocumentState = EditorState & { documentName: string }
 
@@ -42,8 +42,8 @@ export function createDocumentWriter({
 
     const filePath = getFilePath()
     const fileHandle = getFileHandle()
-    if (filePath && isTauri()) {
-      const electron = (window as any).electron || (window as any).electronAPI
+    if (filePath && isDesktop()) {
+      const electron = getDesktopBridge()
       if (electron?.fs?.writeFile) {
         await electron.fs.writeFile(filePath, data)
         setSavedVersion(state.sceneVersion)

@@ -10,6 +10,7 @@ import { useAIChat } from '@/app/ai/chat/use'
 import { connectAutomation } from '@/app/automation/bridge/server'
 import { spawnMCPIfNeeded } from '@/app/automation/mcp/spawn'
 import { CollabProvider, useCollab } from '@/app/collab/use'
+import { getDesktopBridge } from '@/app/desktop/env'
 import { getActiveEditorStore } from '@/app/editor/active-store'
 import {
   detectMobileFrameDimensions,
@@ -25,7 +26,6 @@ import { loadEditorLayout, saveEditorLayout } from '@/app/shell/layout-storage'
 import { openFileFromPath } from '@/app/shell/menu/files'
 import { useMenu } from '@/app/shell/menu/use'
 import { activeTabId, getActiveStore } from '@/app/tabs'
-import { isDesktop, isTauri } from '@/app/tauri/env'
 import AcpPermissionDialog from '@/components/chat/AcpPermissionDialog'
 import CommandPalette from '@/components/command-palette/CommandPalette'
 import EditorCanvas from '@/components/editor-canvas/EditorCanvas'
@@ -84,7 +84,7 @@ export function EditorLayout() {
   // save (Cmd+S / Cmd+Shift+S), arrow-nudge, space-to-pan.
   useAppKeyboard()
 
-  // Native (Tauri) application menu — no-ops in the browser.
+  // Native Electron application menu — no-ops in the browser.
   useMenu()
 
   // Collaboration session: created once per shell mount (useCollab is a plain
@@ -154,8 +154,8 @@ export function EditorLayout() {
   useEventListener('wheel', onWheel, docRef, { passive: false })
 
   // Ported from src/views/EditorView.vue onMounted: spawn the MCP sidecar,
-  // connect the automation bridge (dev + Tauri), and handle OS "Open With"
-  // file associations (Tauri).
+  // connect the automation bridge (dev + desktop), and handle OS "Open With"
+  // file associations (desktop).
   useEffect(() => {
     let disposed = false
     let mcpCleanup: (() => void) | null = null
@@ -163,13 +163,9 @@ export function EditorLayout() {
     let fileAssociationCleanup: (() => void) | null = null
 
     async function openPendingAssociatedFiles() {
-      if (typeof window !== 'undefined' && (window as any).electron?.app?.takePendingOpenFiles) {
-        const files = await (window as any).electron.app.takePendingOpenFiles()
-        for (const file of files) {
-          if (file?.path) {
-            await openFileFromPath(file.path)
-          }
-        }
+      const files = (await getDesktopBridge()?.app.takePendingOpenFiles()) ?? []
+      for (const file of files) {
+        if (file?.path) await openFileFromPath(file.path)
       }
     }
 
@@ -189,18 +185,11 @@ export function EditorLayout() {
       }
 
       try {
-        if (!isDesktop() && !isTauri()) return
-        const onOpen = () => {
+        const desktop = getDesktopBridge()
+        if (!desktop || disposed) return
+        fileAssociationCleanup = desktop.app.onOpenFiles(() => {
           void openPendingAssociatedFiles().catch((e) => console.error('[Open With]', e))
-        }
-        window.addEventListener('openweave-open-associated-files', onOpen)
-        if (disposed) {
-          window.removeEventListener('openweave-open-associated-files', onOpen)
-          return
-        }
-        fileAssociationCleanup = () => {
-          window.removeEventListener('openweave-open-associated-files', onOpen)
-        }
+        })
         await openPendingAssociatedFiles()
       } catch (e) {
         console.error('[Open With]', e)

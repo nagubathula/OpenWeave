@@ -8,9 +8,10 @@ function getInitialHomeOpen(): boolean {
   if (typeof window === 'undefined') return true
   const path = window.location.pathname
   const params = new URLSearchParams(window.location.search)
-  if (path.startsWith('/share') || params.has('room')) {
-    return false
-  }
+  // Share links, the demo document, and bare embeds (`?no-chrome`) open
+  // straight into the editor; everything else lands on Home.
+  if (path.startsWith('/share') || path.startsWith('/demo') || params.has('room')) return false
+  if (params.has('no-chrome')) return false
   return true
 }
 

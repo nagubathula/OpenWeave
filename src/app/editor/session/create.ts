@@ -18,7 +18,7 @@ import {
 } from '@/app/editor/session/modules'
 import { createObservableState } from '@/app/editor/session/observable-state'
 import { createInitialAppEditorState, type AppEditorState } from '@/app/editor/session/types'
-import { IS_TAURI } from '@/constants'
+import { IS_DESKTOP } from '@/constants'
 
 export { EDITOR_TOOLS as TOOLS, TOOL_SHORTCUTS } from '@openweave/core/editor'
 export type { EditorToolDef as ToolDef, Tool } from '@openweave/core/editor'
@@ -37,7 +37,7 @@ export function createEditorStore(initialGraph?: SceneGraph) {
     graph,
     state,
     loadFont,
-    resolveFigmaClipboardImages: IS_TAURI ? resolveFigmaClipboardImages : undefined,
+    resolveFigmaClipboardImages: IS_DESKTOP ? resolveFigmaClipboardImages : undefined,
     skipInitialGraphSetup: !!initialGraph,
     getViewportSize: () =>
       viewportSize.width > 0 && viewportSize.height > 0

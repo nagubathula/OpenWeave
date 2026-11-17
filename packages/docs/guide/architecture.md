@@ -4,7 +4,7 @@
 
 ```mermaid
 graph TB
-    subgraph Tauri["Tauri v2 Shell"]
+    subgraph Desktop["Electron Shell"]
         subgraph Editor["Editor (Web)"]
             UI["React UI<br/>Toolbar · Panels · Properties<br/>Layers · Color Picker"]
             Skia["Skia CanvasKit (WASM, 7MB)<br/>Vector rendering · Text shaping<br/>Effects · Export"]

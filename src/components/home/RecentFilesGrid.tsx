@@ -3,6 +3,7 @@ import * as AlertDialogPrimitive from '@radix-ui/react-alert-dialog'
 import { ExternalLink, FileText, FolderOpen, Plus, Trash2 } from 'lucide-react'
 import React, { useCallback, useEffect, useState } from 'react'
 
+import { getDesktopBridge, isDesktop } from '@/app/desktop/env'
 import {
   addRecentFile,
   getRecentFiles,
@@ -20,12 +21,12 @@ import {
   allTabs,
   closeTab,
   createTab,
+  openNewDesignTab,
   getTabsSnapshot,
   openStorageDocumentInNewTab,
   openTemplateInTab,
   switchTab
 } from '@/app/tabs'
-import { isDesktop, isTauri } from '@/app/tauri/env'
 import { AppAlertDialogRoot } from '@/components/ui/dialog'
 
 export interface RecentDocItem {
@@ -89,11 +90,9 @@ function DocumentThumbnail({
           }
         }
 
-        if (path && (isDesktop() || isTauri()) && format === 'fig') {
-          let fileBytes: Uint8Array | null = null
-          if (typeof window !== 'undefined' && (window as any).electron?.fs) {
-            fileBytes = await (window as any).electron.fs.readFile(path).catch(() => null)
-          }
+        if (path && isDesktop() && format === 'fig') {
+          const desktop = getDesktopBridge()
+          const fileBytes = desktop ? await desktop.fs.readFile(path).catch(() => null) : null
           if (!active || !fileBytes) return
           const thumbBytes = extractFigThumbnail(fileBytes)
           if (thumbBytes && thumbBytes.length > 0) {
@@ -269,11 +268,11 @@ export default function RecentFilesGrid({ onCountChange }: RecentFilesGridProps)
       }
 
       // 4. Collect files from default documents directory on Desktop
-      if (isDesktop() || isTauri()) {
+      if (isDesktop()) {
         try {
-          const { defaultTauriSaveDir } = await import('@/app/document/io/save-targets')
-          const saveDir = await defaultTauriSaveDir()
-          const electron = typeof window !== 'undefined' ? (window as any).electron : null
+          const { defaultDesktopSaveDir } = await import('@/app/document/io/save-targets')
+          const saveDir = await defaultDesktopSaveDir()
+          const electron = getDesktopBridge()
           if (electron?.fs && electron?.path) {
             const entries = await electron.fs.readDir(saveDir).catch(() => [])
             for (const entry of entries) {
@@ -437,15 +436,10 @@ export default function RecentFilesGrid({ onCountChange }: RecentFilesGridProps)
     let movedToTrash = false
     if (doc.path) {
       removeRecentFile(doc.path)
-      if (isDesktop() || isTauri()) {
+      if (isDesktop()) {
         try {
-          if (typeof window !== 'undefined' && window.electron?.shell?.trashItem) {
-            movedToTrash = await window.electron.shell.trashItem(doc.path).catch(() => false)
-          } else if (typeof window !== 'undefined' && window.electron?.fs?.trashItem) {
-            movedToTrash = await window.electron.fs.trashItem(doc.path).catch(() => false)
-          } else if (typeof window !== 'undefined' && window.electron?.fs?.remove) {
-            await window.electron.fs.remove(doc.path).catch(() => false)
-          }
+          const desktop = getDesktopBridge()
+          if (desktop) movedToTrash = await desktop.shell.trashItem(doc.path).catch(() => false)
         } catch {
           // Ignore removal failure
         }
@@ -545,8 +539,7 @@ export default function RecentFilesGrid({ onCountChange }: RecentFilesGridProps)
           <button
             type="button"
             onClick={() => {
-              createTab()
-              closeHome()
+              openNewDesignTab()
             }}
             className="flex items-center gap-2 rounded-lg bg-accent px-4 py-2 text-xs font-semibold text-accent-fg shadow-sm transition-opacity hover:opacity-90 active:scale-98"
           >

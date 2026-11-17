@@ -1,0 +1,57 @@
+# Desktop packaging for OpenWeave (Electron). Run `bun run desktop:build`.
+# Main/preload are bundled into desktop-electron/dist by `desktop:bundle`, and
+# the renderer is the Next static export in dist/, so no node_modules ship.
+appId: dev.openweave.app
+productName: OpenWeave
+copyright: Copyright © OpenWeave contributors
+directories:
+  output: desktop-electron/release
+  buildResources: desktop-electron/resources
+files:
+  - package.json
+  - desktop-electron/dist/**
+  - desktop-electron/resources/icon.png
+  - dist/**
+  - '!**/node_modules/**'
+  - '!dist/**/*.map'
+  # `next dev` shares distDir with the export; never ship its cache.
+  - '!dist/dev/**'
+  - '!dist/cache/**'
+  - '!dist/mockServiceWorker.js'
+asar: true
+fileAssociations:
+  - ext: fig
+    name: Figma Design
+    role: Editor
+  - ext: pen
+    name: Pencil Design
+    role: Editor
+publish:
+  provider: github
+  owner: nagubathula
+  repo: OpenWeave
+  releaseType: draft
+mac:
+  category: public.app-category.graphics-design
+  icon: icon.icns
+  target:
+    - target: dmg
+      arch: [arm64, x64]
+    - target: zip
+      arch: [arm64, x64]
+win:
+  icon: icon.ico
+  target:
+    - target: nsis
+      arch: [x64, arm64]
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+linux:
+  icon: icon.png
+  maintainer: OpenWeave contributors
+  category: Graphics
+  target:
+    - AppImage
+    - deb

@@ -1,4 +1,4 @@
-import { IS_TAURI } from '@openweave/core/constants'
+import { IS_DESKTOP } from '@openweave/core/constants'
 
 import { BrowserCredentialStore } from '@/app/settings/credentials/browser'
 import { MemoryCredentialStore } from '@/app/settings/credentials/memory'
@@ -11,7 +11,7 @@ export type BrowserCredentialPersistence = 'session' | 'remembered'
 export function createCredentialStore(
   browserPersistence: BrowserCredentialPersistence = 'session'
 ): CredentialStore {
-  if (IS_TAURI) return new NativeCredentialStore()
+  if (IS_DESKTOP) return new NativeCredentialStore()
   return browserPersistence === 'remembered'
     ? new BrowserCredentialStore()
     : new MemoryCredentialStore()

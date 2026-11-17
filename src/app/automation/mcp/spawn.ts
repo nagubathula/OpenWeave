@@ -2,9 +2,8 @@ import { AUTOMATION_HTTP_PORT } from '@openweave/core/constants'
 import { randomHex } from '@openweave/core/random'
 import type { DiscoveryInfo } from '@openweave/mcp/discovery'
 
-import { decodeTauriStderr } from '@/app/shell/ui'
-import { resolvePlatformCommand } from '@/app/tauri/command'
-import { isDesktop, isTauri } from '@/app/tauri/env'
+import { getDesktopBridge, isDesktop } from '@/app/desktop/env'
+import { decodeProcessStderr } from '@/app/shell/ui'
 
 interface AutomationHealth {
   status: 'ok' | 'no_app'
@@ -20,7 +19,7 @@ export interface AutomationServerHandle {
 }
 
 const DEV_AUTOMATION_AUTH_TOKEN =
-  import.meta.env.DEV && typeof __OPENWEAVE_LOCAL_AUTOMATION_TOKEN__ === 'string'
+  process.env.NODE_ENV === 'development' && typeof __OPENWEAVE_LOCAL_AUTOMATION_TOKEN__ === 'string'
     ? __OPENWEAVE_LOCAL_AUTOMATION_TOKEN__
     : null
 const APP_VERSION =
@@ -30,14 +29,14 @@ const noop = () => undefined
 let runtimeAutomationAuthToken: string | null = DEV_AUTOMATION_AUTH_TOKEN
 
 /**
- * Reads the auth token from the MCP discovery file via Tauri's FS plugin.
+ * Reads the auth token from the MCP discovery file through the desktop bridge.
  * The discovery file path is computed locally (not from the /health endpoint)
  * to prevent an unauthenticated /health response from directing file reads
  * to an attacker-controlled path.
  */
 async function readDiscoveryToken(discoveryPath: string): Promise<string | null> {
   try {
-    const electron = typeof window !== 'undefined' ? (window as any).electron : null
+    const electron = getDesktopBridge()
     if (electron?.fs?.readFile) {
       const bytes = await electron.fs.readFile(discoveryPath)
       const raw = new TextDecoder().decode(bytes)
@@ -53,7 +52,7 @@ async function readDiscoveryToken(discoveryPath: string): Promise<string | null>
 /** Check whether the discovery file exists on disk. */
 async function discoveryFileExists(discoveryPath: string): Promise<boolean> {
   try {
-    const electron = typeof window !== 'undefined' ? (window as any).electron : null
+    const electron = getDesktopBridge()
     if (electron?.fs?.exists) {
       return await electron.fs.exists(discoveryPath)
     }
@@ -68,7 +67,7 @@ async function discoveryFileExists(discoveryPath: string): Promise<boolean> {
  * logic as the server's getDiscoveryPath(), via desktop Electron APIs.
  */
 async function computeExpectedDiscoveryPath(): Promise<string> {
-  const electron = typeof window !== 'undefined' ? (window as any).electron : null
+  const electron = getDesktopBridge()
   const home = (await electron?.app?.getPath?.('home')) ?? ''
   if (!home) throw new Error('home path returned empty')
 
@@ -110,7 +109,7 @@ async function resolveDiscoveryPath(healthDiscoveryPath?: string): Promise<strin
       // Validate the server-reported path before accepting it. The /health
       // endpoint is unauthenticated, so we only accept paths within the
       // user's home directory ending in mcp.json.
-      const electron = typeof window !== 'undefined' ? (window as any).electron : null
+      const electron = getDesktopBridge()
       const home = (await electron?.app?.getPath?.('home')) ?? ''
       const sep = home.includes('\\') ? '\\' : '/'
       const hasTraversal = healthDiscoveryPath.split(/[\\/]/).some((segment) => segment === '..')
@@ -214,7 +213,7 @@ export async function getAutomationAuthToken(): Promise<string | null> {
 }
 
 export async function spawnMCPIfNeeded(): Promise<AutomationServerHandle | null> {
-  if (import.meta.env.DEV || (!isDesktop() && !isTauri())) {
+  if (process.env.NODE_ENV === 'development' || !isDesktop()) {
     return DEV_AUTOMATION_AUTH_TOKEN
       ? { disconnect: noop, authToken: DEV_AUTOMATION_AUTH_TOKEN }
       : null
@@ -241,18 +240,17 @@ export async function spawnMCPIfNeeded(): Promise<AutomationServerHandle | null>
   const authToken = randomHex(32)
   // Cache only after MCP startup is confirmed healthy.
 
-  const electron = typeof window !== 'undefined' ? (window as any).electron : null
-  const mcpRoot = await resolveTauriHomeDir()
-  const resolved = resolvePlatformCommand('openweave-mcp-http')
+  const electron = getDesktopBridge()
+  const mcpRoot = await resolveDesktopHomeDir()
   let spawnedToken: string | null = null
 
-  if (!electron?.process?.spawn) {
+  if (!electron) {
     throw new Error('Process spawning is only supported in desktop environment.')
   }
 
   const child = await electron.process.spawn({
-    command: resolved.command,
-    args: resolved.args,
+    command: 'openweave-mcp-http',
+    args: [],
     env: {
       PORT: String(AUTOMATION_HTTP_PORT),
       OPENWEAVE_MCP_AUTH_TOKEN: authToken,
@@ -261,7 +259,7 @@ export async function spawnMCPIfNeeded(): Promise<AutomationServerHandle | null>
       OPENWEAVE_MCP_ROOT: mcpRoot
     },
     onStderr: (raw: string) => {
-      console.error('[MCP]', decodeTauriStderr(raw))
+      console.error('[MCP]', decodeProcessStderr(raw))
     },
     onClose: (code: number | null) => {
       console.error(`[MCP] Server exited (code ${code ?? 'null'})`)
@@ -314,9 +312,9 @@ export async function spawnMCPIfNeeded(): Promise<AutomationServerHandle | null>
  * so file-scoped tools operate on paths inside ~, which is writable and
  * matches user expectations.
  */
-async function resolveTauriHomeDir(): Promise<string> {
+async function resolveDesktopHomeDir(): Promise<string> {
   try {
-    const electron = typeof window !== 'undefined' ? (window as any).electron : null
+    const electron = getDesktopBridge()
     const dir = await electron?.app?.getPath?.('home')
     if (!dir) {
       throw new Error('home directory returned an empty string')

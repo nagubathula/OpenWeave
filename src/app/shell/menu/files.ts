@@ -1,7 +1,7 @@
 import { setOpenWeaveOpenFileHandler } from '@/app/browser-bridge'
+import { getDesktopBridge, isDesktop } from '@/app/desktop/env'
 import { resolveBrowserFileURL } from '@/app/document/io/browser'
 import { openFileInNewTab } from '@/app/tabs'
-import { isTauri } from '@/app/tauri/env'
 import { IS_BROWSER } from '@/constants'
 
 /** Fallback file picker for browsers without `showOpenFilePicker`. */
@@ -27,9 +27,8 @@ if (IS_BROWSER && 'window' in globalThis) {
   })
 }
 
-export async function readTauriDesignFile(path: string): Promise<File> {
-  const electron =
-    typeof window !== 'undefined' ? (window as any).electron || (window as any).electronAPI : null
+export async function readDesktopDesignFile(path: string): Promise<File> {
+  const electron = getDesktopBridge()
   if (electron?.fs?.readFile) {
     const bytes = await electron.fs.readFile(path)
     const name = path.split(/[/\\]/).pop() ?? 'file.fig'
@@ -38,9 +37,8 @@ export async function readTauriDesignFile(path: string): Promise<File> {
   throw new Error('Electron fs not available')
 }
 
-export async function chooseTauriOpenPath(): Promise<string | null> {
-  const electron =
-    typeof window !== 'undefined' ? (window as any).electron || (window as any).electronAPI : null
+export async function chooseDesktopOpenPath(): Promise<string | null> {
+  const electron = getDesktopBridge()
   if (electron?.dialog?.showOpenDialog) {
     const paths = await electron.dialog.showOpenDialog({
       filters: [{ name: 'Design file', extensions: ['fig', 'pen', 'html', 'htm', 'xhtml'] }],
@@ -52,14 +50,14 @@ export async function chooseTauriOpenPath(): Promise<string | null> {
 }
 
 export async function openFileFromPath(path: string) {
-  if (!isTauri()) return
-  const file = await readTauriDesignFile(path)
+  if (!isDesktop()) return
+  const file = await readDesktopDesignFile(path)
   await openFileInNewTab(file, undefined, path)
 }
 
 export async function openFileDialog() {
-  if (isTauri()) {
-    const path = await chooseTauriOpenPath()
+  if (isDesktop()) {
+    const path = await chooseDesktopOpenPath()
     if (!path) return
     await openFileFromPath(path)
     return

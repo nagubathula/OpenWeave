@@ -1,13 +1,13 @@
 import { extractImageFilesFromClipboard } from '@openweave/react'
 
+import { isDesktop } from '@/app/desktop/env'
 import type { EditorStore } from '@/app/editor/active-store'
 import {
-  copySelectionToTauriClipboard,
+  copySelectionToDesktopClipboard,
   pasteFromBrowserClipboard,
-  pasteFromTauriClipboard
+  pasteFromDesktopClipboard
 } from '@/app/editor/clipboard/system'
 import { isEditing } from '@/app/shell/keyboard/focus'
-import { isTauri } from '@/app/tauri/env'
 
 function cursorPosition(store: EditorStore) {
   const { cursorCanvasX: ccx, cursorCanvasY: ccy } = store.state
@@ -18,8 +18,8 @@ export function bindEditorClipboard(store: EditorStore) {
   const onCopy = (e: ClipboardEvent) => {
     if (isEditing(e)) return
     e.preventDefault()
-    if (isTauri()) {
-      void copySelectionToTauriClipboard(store).catch(() => {})
+    if (isDesktop()) {
+      void copySelectionToDesktopClipboard(store).catch(() => {})
       return
     }
     if (e.clipboardData) void store.writeCopyData(e.clipboardData)
@@ -28,8 +28,8 @@ export function bindEditorClipboard(store: EditorStore) {
   const onCut = (e: ClipboardEvent) => {
     if (isEditing(e)) return
     e.preventDefault()
-    if (isTauri()) {
-      void copySelectionToTauriClipboard(store)
+    if (isDesktop()) {
+      void copySelectionToDesktopClipboard(store)
         .then((copied) => {
           if (copied) store.deleteSelected()
           return undefined
@@ -57,13 +57,13 @@ export function bindEditorClipboard(store: EditorStore) {
       return
     }
 
-    // In Tauri, DO NOT call getData('text/html') — WebView2 allocates the entire
+    // On desktop, DO NOT call getData('text/html') — Chromium allocates the entire
     // clipboard as a V8 string before returning, which OOMs the renderer for large
-    // Figma presentations. The Rust command reads CF_HTML via arboard and enforces
+    // Figma presentations. The Electron main process reads the HTML Blob and enforces
     // a size limit *before* any bytes cross the Rust→JS IPC boundary.
-    if (isTauri()) {
-      void pasteFromTauriClipboard(store, cursorPos).catch((err) => {
-        console.warn('Failed to paste from Tauri clipboard', err)
+    if (isDesktop()) {
+      void pasteFromDesktopClipboard(store, cursorPos).catch((err) => {
+        console.warn('Failed to paste from desktop clipboard', err)
       })
       return
     }

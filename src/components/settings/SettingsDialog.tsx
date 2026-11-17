@@ -20,7 +20,7 @@ import { settingsDialogSection } from '@/app/settings/dialog'
 import ModelsPanel from '@/components/settings/models/ModelsPanel'
 import StorageSettingsPanel from '@/components/settings/StorageSettingsPanel'
 import { AppSwitch } from '@/components/ui/AppSwitch'
-import { IS_TAURI } from '@/constants'
+import { IS_DESKTOP } from '@/constants'
 
 type SettingsSection = 'ai' | 'models' | 'vectorize' | 'appearance' | 'storage'
 type ThemeSetting = 'light' | 'dark' | 'auto'
@@ -369,7 +369,7 @@ export function SettingsDialog({ open, onClose }: SettingsDialogProps) {
 
         <div className="flex items-center justify-between border-t border-border px-4 py-2.5">
           <div className="mr-auto flex items-center gap-2">
-            {!IS_TAURI && (
+            {!IS_DESKTOP && (
               <AppSwitch
                 value={remembered}
                 onValueChange={(value: boolean) => {
@@ -381,7 +381,7 @@ export function SettingsDialog({ open, onClose }: SettingsDialogProps) {
               />
             )}
             <div>
-              {!IS_TAURI && (
+              {!IS_DESKTOP && (
                 <p className="text-[10px] text-surface">{dialogs.rememberCredentials}</p>
               )}
               <p className="text-[10px] text-muted" data-test-id="settings-credential-backend">

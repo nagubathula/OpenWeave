@@ -1,6 +1,8 @@
 import { persistentAtom } from '@nanostores/persistent'
 import { atom } from 'nanostores'
 
+import { getDesktopBridge } from '@/app/desktop/env'
+
 /**
  * ngrok share tunnel. Collaboration is P2P (Trystero/WebRTC), so
  * the hosted web app's only role is delivering the editor to invitees. The
@@ -36,8 +38,7 @@ export function setCustomTunnelUrl(rawUrl: string): void {
 }
 
 export function isDesktopAvailable(): boolean {
-  if (typeof window === 'undefined') return false
-  return Boolean(window.electron?.tunnel || window.__TAURI_INTERNALS__?.invoke)
+  return getDesktopBridge() !== null
 }
 
 export function getTunnelShareUrl(baseUrl: string, roomId: string, isProtected = false): string {
@@ -59,16 +60,10 @@ async function queryLocalNgrokApi(): Promise<string | null> {
   }
 }
 
-async function desktopInvoke<T>(command: string): Promise<T> {
-  if (typeof window === 'undefined') throw new Error('Window not available')
-  if (window.electron?.tunnel) {
-    if (command === 'start_share_tunnel') return (await window.electron.tunnel.start()) as T
-    if (command === 'stop_share_tunnel') return (await window.electron.tunnel.stop()) as T
-    if (command === 'share_tunnel_status') return (await window.electron.tunnel.status()) as T
-  }
-  const invoke = window.__TAURI_INTERNALS__?.invoke
-  if (invoke) return invoke<T>(command)
-  throw new Error('Native desktop runtime not available')
+function desktopTunnel() {
+  const bridge = getDesktopBridge()
+  if (!bridge) throw new Error('Native desktop runtime not available')
+  return bridge.tunnel
 }
 
 export async function startShareTunnel(): Promise<string | null> {
@@ -78,11 +73,10 @@ export async function startShareTunnel(): Promise<string | null> {
 
   shareTunnelState.set({ status: 'starting' })
 
-  // 1. Try native desktop backend (Electron / Tauri)
+  // 1. Try native desktop backend (Electron main process)
   if (isDesktopAvailable()) {
     try {
-      const res = await desktopInvoke<{ url: string } | string>('start_share_tunnel')
-      const url = typeof res === 'string' ? res : res?.url
+      const { url } = await desktopTunnel().start()
       if (url) {
         shareTunnelState.set({ status: 'active', url })
         return url
@@ -112,7 +106,7 @@ export async function stopShareTunnel(): Promise<void> {
   shareTunnelState.set({ status: 'idle' })
   if (isDesktopAvailable()) {
     try {
-      await desktopInvoke('stop_share_tunnel')
+      await desktopTunnel().stop()
     } catch {
       // Already stopped.
     }
@@ -128,7 +122,7 @@ export async function syncShareTunnelStatus(): Promise<void> {
 
   if (isDesktopAvailable()) {
     try {
-      const url = await desktopInvoke<string | null>('share_tunnel_status')
+      const url = await desktopTunnel().status()
       if (url) {
         savedTunnelUrl.set(url)
         shareTunnelState.set({ status: 'active', url })

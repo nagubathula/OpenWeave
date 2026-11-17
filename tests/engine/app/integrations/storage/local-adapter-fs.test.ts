@@ -3,14 +3,11 @@ import { afterEach, describe, expect, test } from 'bun:test'
 import { createFsLocalDeviceStorageAdapter } from '@/app/integrations/storage/local/fs'
 
 import { expectDefined } from '#tests/helpers/assert'
-import { clearTauriMocks, mockTauriIPC } from '#tests/helpers/tauri/mocks'
+import { clearDesktopMocks, installDesktopBridgeMock } from '#tests/helpers/desktop-mocks'
 
-const STORAGE_DIR = 'storage/local/v1'
-
-/** In-memory filesystem answering the plugin-fs IPC commands the adapter uses. */
+/** In-memory filesystem behind a mocked desktop bridge. */
 function mockFilesystem() {
   const files = new Map<string, Uint8Array>()
-  const relative = (path: string) => path.replace(`${STORAGE_DIR}/`, '')
 
   return {
     files,
@@ -18,8 +15,7 @@ function mockFilesystem() {
       files.set(name, bytes)
     },
     installElectron() {
-      const windowLike = (globalThis.window || {}) as any
-      windowLike.electron = {
+      installDesktopBridgeMock({
         app: {
           getPath: async () => 'mock/app-local-data'
         },
@@ -62,65 +58,19 @@ function mockFilesystem() {
             return { size: bytes.byteLength }
           }
         }
-      }
-      globalThis.window = windowLike
-    },
-    handler(cmd: string, args: unknown, options?: unknown) {
-      if (cmd === 'plugin:fs|mkdir') return null
-      if (cmd === 'plugin:fs|write_file') {
-        const headers = (options as { headers: { path: string } }).headers
-        const name = relative(decodeURIComponent(headers.path))
-        files.set(name, new Uint8Array(args as ArrayBuffer))
-        return null
-      }
-      const path = (args as { path: string }).path
-      if (cmd === 'plugin:fs|read_file') {
-        const bytes = files.get(relative(path))
-        if (!bytes) throw new Error(`No such file: ${path}`)
-        return [...bytes]
-      }
-      if (cmd === 'plugin:fs|read_dir') {
-        return [...files.keys()].map((name) => ({
-          name,
-          isFile: true,
-          isDirectory: false,
-          isSymlink: false
-        }))
-      }
-      if (cmd === 'plugin:fs|exists') return files.has(relative(path))
-      if (cmd === 'plugin:fs|remove') {
-        files.delete(relative(path))
-        return null
-      }
-      if (cmd === 'plugin:fs|stat') {
-        const bytes = files.get(relative(path))
-        if (!bytes) throw new Error(`No such file: ${path}`)
-        return {
-          isFile: true,
-          isDirectory: false,
-          isSymlink: false,
-          size: bytes.byteLength,
-          mtime: null,
-          atime: null,
-          birthtime: null,
-          readonly: false
-        }
-      }
-      throw new Error(`Unexpected IPC command: ${cmd}`)
+      } as never)
     }
   }
 }
 
-afterEach(async () => {
-  await clearTauriMocks()
-  Reflect.deleteProperty(globalThis, 'window')
+afterEach(() => {
+  clearDesktopMocks()
 })
 
-describe('local device storage adapter (Tauri filesystem backend)', () => {
+describe('local device storage adapter (desktop filesystem backend)', () => {
   test('round-trips documents and thumbnails as files on disk', async () => {
     const disk = mockFilesystem()
     disk.installElectron()
-    await mockTauriIPC(disk.handler)
     const adapter = createFsLocalDeviceStorageAdapter()
 
     expect(await adapter.listDocuments()).toEqual([])
@@ -167,7 +117,6 @@ describe('local device storage adapter (Tauri filesystem backend)', () => {
     const disk = mockFilesystem()
     disk.installElectron()
     disk.write('orphan.fig', new Uint8Array([1]))
-    await mockTauriIPC(disk.handler)
     const adapter = createFsLocalDeviceStorageAdapter()
 
     const listed = await adapter.listDocuments()
@@ -185,7 +134,6 @@ describe('local device storage adapter (Tauri filesystem backend)', () => {
   test('deletes all sidecars and stays idempotent', async () => {
     const disk = mockFilesystem()
     disk.installElectron()
-    await mockTauriIPC(disk.handler)
     const adapter = createFsLocalDeviceStorageAdapter()
 
     await adapter.putDocument('doc-1', new Uint8Array([7]), {

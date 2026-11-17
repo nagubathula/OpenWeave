@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 
-import { IS_BROWSER, IS_TAURI } from '@/constants'
+import { IS_BROWSER, IS_DESKTOP } from '@/constants'
 
 /**
  * Ported from src/components/SafariBanner.vue.
@@ -23,7 +23,7 @@ export default function SafariBanner() {
     setSupported('showSaveFilePicker' in window)
   }, [])
 
-  const show = !IS_TAURI && IS_BROWSER && !supported && !dismissed
+  const show = !IS_DESKTOP && IS_BROWSER && !supported && !dismissed
   if (!show) return null
 
   const dismiss = () => {

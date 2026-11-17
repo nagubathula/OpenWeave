@@ -6,12 +6,12 @@ import React, { useState, useRef, useEffect, useReducer } from 'react'
 
 import type { MenuEntry } from '@openweave/react'
 
+import { isDesktop } from '@/app/desktop/env'
 import { useEditorStore } from '@/app/editor/active-store'
 import { useEditorState } from '@/app/editor/session/use-editor-state'
 import { openSettingsDialog, settingsDialogOpen } from '@/app/settings/dialog'
 import { useAppMenu } from '@/app/shell/menu/app-menu'
 import { isMenuAction, isMenuCheckbox } from '@/app/shell/menu/entry'
-import { isTauri } from '@/app/tauri/env'
 import { SettingsDialog } from '@/components/settings/SettingsDialog'
 import AppShortcutText from '@/components/ui/AppShortcutText'
 import { useMenuUI } from '@/components/ui/menu'
@@ -126,7 +126,7 @@ export default function AppMenu() {
   }, [isEditing])
 
   useEffect(() => {
-    if (isTauri() && documentName && documentName !== 'Untitled') {
+    if (isDesktop() && documentName && documentName !== 'Untitled') {
       void store.saveFigFile?.()
     }
   }, [documentName, store])

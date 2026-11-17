@@ -5,10 +5,9 @@ import type { Color } from '@openweave/scene-graph/primitives'
 // the guard — these client chunks also run inside Web Workers, where `window`
 // does not exist and a folded guard crashes module evaluation.
 export const IS_BROWSER = 'window' in globalThis
-export const IS_ELECTRON =
-  IS_BROWSER && ('electron' in globalThis.window || Boolean((globalThis.window as any).electron))
+/** True inside the Electron desktop shell, whose preload exposes `window.electron`. */
+export const IS_ELECTRON = IS_BROWSER && 'electron' in globalThis.window
 export const IS_DESKTOP = IS_ELECTRON
-export const IS_TAURI = false
 
 export const BLACK: Color = { r: 0, g: 0, b: 0, a: 1 }
 export const TRANSPARENT: Color = { r: 0, g: 0, b: 0, a: 0 }
@@ -33,7 +32,8 @@ export const CANVAS_BG_COLOR_DARK = { r: 0.173, g: 0.173, b: 0.173, a: 1 } satis
 export function getDefaultCanvasBgColor(): Color {
   if (IS_BROWSER) {
     const params = new URLSearchParams(window.location.search)
-    if ('env' in import.meta && import.meta.env.DEV && params.has('test')) {
+    const isDevBuild = typeof process !== 'undefined' && process.env.NODE_ENV !== 'production'
+    if (isDevBuild && params.has('test')) {
       return CANVAS_BG_COLOR
     }
   }

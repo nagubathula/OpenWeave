@@ -18,7 +18,7 @@ src/
   components/        React components (canvas, panels, toolbar, color picker)
     properties/      Property panel sections (Appearance, Fill, Stroke, etc.)
   constants.ts       UI colors, defaults, thresholds
-desktop/             Tauri v2 (Rust + config)
+desktop-electron/    Electron shell (main, preload, packaging)
 tests/
   e2e/               Playwright visual regression
   engine/            Unit tests (bun:test)
@@ -79,7 +79,7 @@ component nesting.
 
 ### AI Agent Conventions
 
-Developers and AI agents working on the codebase should read `AGENTS.md` in the repo root ([view on GitHub](https://github.com/openweave/openweave/blob/master/AGENTS.md)). Covers rendering, scene graph, components & instances, layout, UI, file format, Tauri conventions, and known issues.
+Developers and AI agents working on the codebase should read `AGENTS.md` in the repo root ([view on GitHub](https://github.com/openweave/openweave/blob/master/AGENTS.md)). Covers rendering, scene graph, components & instances, layout, UI, file format, desktop (Electron) conventions, and known issues.
 
 ## Making Changes
 

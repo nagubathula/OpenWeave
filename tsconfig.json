@@ -43,6 +43,9 @@
       "#tests/*": [
         "./tests/*"
       ],
+      "#desktop/*": [
+        "./desktop-electron/*"
+      ],
       "@openweave/react": [
         "./packages/react/src/index.ts"
       ],

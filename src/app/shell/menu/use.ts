@@ -3,6 +3,7 @@ import { useEffect, useRef } from 'react'
 import { useEditorCommands, useI18n } from '@openweave/react'
 import type { EditorCommandId } from '@openweave/react'
 
+import { getDesktopBridge } from '@/app/desktop/env'
 import { useEditorStore } from '@/app/editor/active-store'
 import { openSettingsDialog } from '@/app/settings/dialog'
 import { createSharedEditorMenuActions } from '@/app/shell/menu/editor-actions'
@@ -10,9 +11,8 @@ import { importFileDialog, openFileDialog } from '@/app/shell/menu/files'
 import { APP_MENU_SCHEMA, type AppMenuEntry } from '@/app/shell/menu/schema'
 import { createSelectionMenuActions } from '@/app/shell/menu/selection-actions'
 import { useAppTheme } from '@/app/shell/theme'
-import { checkForAppUpdate } from '@/app/shell/updater'
+import { checkForAppUpdate, scheduleStartupUpdateCheck } from '@/app/shell/updater'
 import { createTab, closeTab, activeTab } from '@/app/tabs'
-import { isTauri } from '@/app/tauri/env'
 import { openStorageWorkspace } from '@/components/storage/StorageWorkspace'
 
 function commandMenuIds(entries: readonly AppMenuEntry[]): EditorCommandId[] {
@@ -30,13 +30,12 @@ export { importFileDialog, openFileDialog }
 export { openFileFromPath } from '@/app/shell/menu/files'
 
 /**
- * Binds the native (Tauri) application menu to editor commands and actions.
+ * Binds the native Electron application menu to editor commands and actions.
  *
  * React hook: call once from the editor shell. No-ops in the browser. The
- * Tauri `menu-event` listener is registered in an effect and unbound on
- * unmount (the old Vue version used `tryOnScopeDispose`, which silently
- * no-ops outside a Vue effect scope — this replaces it). The editor store is
- * resolved lazily so the menu isn't pinned to whichever tab existed at mount.
+ * menu listener is registered in an effect and unbound on unmount. The editor
+ * store is resolved lazily so the menu isn't pinned to whichever tab existed
+ * at mount.
  */
 export function useMenu() {
   const { setTheme } = useAppTheme()
@@ -47,7 +46,9 @@ export function useMenu() {
   latest.current = { setTheme, dialogs, runCommand }
 
   useEffect(() => {
-    if (!isTauri()) return
+    const desktop = getDesktopBridge()
+    if (!desktop) return
+    scheduleStartupUpdateCheck(() => latest.current.dialogs)
 
     const store = () => useEditorStore()
     const actions: Partial<Record<string, () => void>> = {
@@ -85,19 +86,12 @@ export function useMenu() {
       ...createSharedEditorMenuActions((theme) => latest.current.setTheme(theme))
     }
 
-    const handleMenuEvent = (e: Event) => {
-      const menuId = (e as CustomEvent<string>).detail
+    return desktop.menu.onCommand((menuId) => {
       if (COMMAND_MENU_IDS.has(menuId as EditorCommandId)) {
         latest.current.runCommand(menuId as EditorCommandId)
         return
       }
       actions[menuId]?.()
-    }
-
-    window.addEventListener('openweave-menu-event', handleMenuEvent)
-
-    return () => {
-      window.removeEventListener('openweave-menu-event', handleMenuEvent)
-    }
+    })
   }, [])
 }

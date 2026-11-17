@@ -10,8 +10,8 @@ import type {
 import { renderNodesToImage } from '@openweave/core/io/formats/raster'
 import type { SceneGraph } from '@openweave/scene-graph'
 
+import { getDesktopBridge, isDesktop } from '@/app/desktop/env'
 import type { ExportOptions } from '@/app/document/export/types'
-import { isTauri } from '@/app/tauri/env'
 
 type ExportData = string | ArrayBuffer | Uint8Array
 
@@ -130,9 +130,8 @@ export function createExportTargetActions(editor: Editor, state: EditorState, io
   return { renderExportImage, getSelectionExportTarget, listSelectionExportFormats }
 }
 
-export async function chooseTauriExportPath(fileName: string, format: string, ext: string) {
-  const electron =
-    typeof window !== 'undefined' ? (window as any).electron || (window as any).electronAPI : null
+export async function chooseDesktopExportPath(fileName: string, format: string, ext: string) {
+  const electron = getDesktopBridge()
   if (electron?.dialog?.showSaveDialog) {
     return electron.dialog.showSaveDialog({
       defaultPath: fileName,
@@ -142,9 +141,8 @@ export async function chooseTauriExportPath(fileName: string, format: string, ex
   return null
 }
 
-export async function writeTauriExportFile(path: string, data: Uint8Array) {
-  const electron =
-    typeof window !== 'undefined' ? (window as any).electron || (window as any).electronAPI : null
+export async function writeDesktopExportFile(path: string, data: Uint8Array) {
+  const electron = getDesktopBridge()
   if (electron?.fs?.writeFile) {
     await electron.fs.writeFile(path, data)
   }
@@ -158,10 +156,10 @@ export async function saveExportedFile(
   mime: string,
   downloadBlob: DownloadBlob
 ) {
-  if (isTauri()) {
-    const path = await chooseTauriExportPath(fileName, format, ext)
+  if (isDesktop()) {
+    const path = await chooseDesktopExportPath(fileName, format, ext)
     if (!path) return
-    await writeTauriExportFile(path, data)
+    await writeDesktopExportFile(path, data)
     return
   }
 

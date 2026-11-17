@@ -364,6 +364,30 @@ export async function openFileInNewTab(
   }
 }
 
+/**
+ * The active tab when it is still the blank startup document: untitled, never
+ * edited, and not backed by a file or storage document. Home actions reuse it
+ * instead of leaving an empty "Untitled" tab behind.
+ */
+function untouchedActiveTab(): Tab | undefined {
+  const current = activeTab.get()
+  if (!current) return undefined
+  const { store } = current
+  const untouched =
+    store.state.documentName === 'Untitled' &&
+    !store.undo.canUndo &&
+    !store.getDocumentFilePath() &&
+    !store.getStorageBinding()
+  return untouched ? current : undefined
+}
+
+/** Opens a blank design from Home, reusing the untouched startup tab when possible. */
+export function openNewDesignTab(): Tab {
+  const tab = untouchedActiveTab() ?? createTab()
+  closeHome()
+  return tab
+}
+
 export function openTemplateInTab(template: HomeTemplate): Tab {
   const existing = tabsAtom.get().find((t) => t.store.state.documentName === template.name)
   if (existing) {
@@ -376,11 +400,9 @@ export function openTemplateInTab(template: HomeTemplate): Tab {
   const firstPageId = graph.getPages()[0]?.id
   if (firstPageId) computeAllLayouts(graph, firstPageId)
 
-  const current = activeTab.get()
-  const isUntouched =
-    current?.store.state.documentName === 'Untitled' && !current.store.undo.canUndo
-  const tab = isUntouched ? current : createTab(undefined, graph)
-  if (isUntouched) {
+  const untouched = untouchedActiveTab()
+  const tab = untouched ?? createTab(undefined, graph)
+  if (untouched) {
     tab.store.replaceGraph(graph)
   }
   tab.store.state.documentName = template.name

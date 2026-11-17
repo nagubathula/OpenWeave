@@ -168,6 +168,7 @@ export const APP_MENU_SCHEMA = [
       { type: 'separator' },
       { id: 'toggle-ui', label: 'Toggle UI', shortcut: 'MOD+\\' },
       { id: 'settings', label: 'Settings…' },
+      { id: 'check-updates', label: 'Check for Updates…', target: 'native' },
       { type: 'separator' },
       { id: 'profiler', label: 'Profiler', checkbox: true, target: 'browser' },
       {

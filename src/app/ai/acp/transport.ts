@@ -15,7 +15,7 @@ import SYSTEM_PROMPT from '@/app/ai/chat/system-prompt.md'
 import { mapUpdate } from './map-update'
 import { spawnAcpProcess } from './process'
 
-type TauriChild = Awaited<ReturnType<typeof spawnAcpProcess>>['child']
+type DesktopChild = Awaited<ReturnType<typeof spawnAcpProcess>>['child']
 
 interface ACPDebugEntry {
   ts: number
@@ -26,13 +26,13 @@ interface ACPDebugEntry {
 interface ACPSession {
   connection: ClientSideConnection
   sessionId: string
-  child: TauriChild
+  child: DesktopChild
   onUpdate: ((params: SessionNotification) => void) | null
   dead: boolean
 }
 
 const MAX_LOG_AGE_MS = 5 * 60 * 1000
-const IS_DEV = import.meta.env.DEV
+const IS_DEV = process.env.NODE_ENV === 'development'
 
 const acpDebugLog: ACPDebugEntry[] = []
 

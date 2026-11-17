@@ -1,3 +1,5 @@
+import { getDesktopBridge } from '@/app/desktop/env'
+
 import { authoritativeStoredMetadata, encodeStoredMetadata, parseStoredMetadata } from '../metadata'
 import type {
   StorageAdapter,
@@ -29,8 +31,8 @@ function documentIdFromEntryName(name: string): string | null {
 }
 
 function getElectron() {
-  if (typeof window !== 'undefined' && (window as any).electron) {
-    return (window as any).electron
+  if (typeof window !== 'undefined' && getDesktopBridge()) {
+    return getDesktopBridge()
   }
   return null
 }
@@ -40,7 +42,7 @@ async function getStorageDir(): Promise<string> {
   if (electron?.app?.getPath) {
     const userData = await electron.app.getPath('userData')
     if (electron.path?.join) {
-      return await electron.path.join(userData, 'storage', 'local', 'v1')
+      return electron.path.join(userData, 'storage', 'local', 'v1')
     }
     return `${userData}/storage/local/v1`
   }
@@ -51,7 +53,7 @@ async function entryPath(id: string, suffix: string): Promise<string> {
   const dir = await getStorageDir()
   const electron = getElectron()
   if (electron?.path?.join) {
-    return await electron.path.join(dir, entryName(id, suffix))
+    return electron.path.join(dir, entryName(id, suffix))
   }
   return `${dir}/${entryName(id, suffix)}`
 }

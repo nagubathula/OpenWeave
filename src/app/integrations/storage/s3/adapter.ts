@@ -1,4 +1,4 @@
-import { isTauri } from '@/app/tauri/env'
+import { isDesktop } from '@/app/desktop/env'
 
 import { authoritativeStoredMetadata, encodeStoredMetadata, parseStoredMetadata } from '../metadata'
 import {
@@ -75,7 +75,7 @@ export function createS3StorageAdapter(runtime: StorageProviderRuntime): S3Stora
         await listObjects(config, STORAGE_DOCUMENTS_PREFIX)
       } catch (error) {
         const isCors =
-          error instanceof CloudCorsError || (!isTauri() && isLikelyCorsOrNetworkError(error))
+          error instanceof CloudCorsError || (!isDesktop() && isLikelyCorsOrNetworkError(error))
         return {
           ok: false,
           message: connectionErrorMessage(error, isCors),

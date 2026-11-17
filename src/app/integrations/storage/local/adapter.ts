@@ -1,4 +1,4 @@
-import { isTauri } from '@/app/tauri/env'
+import { isDesktop } from '@/app/desktop/env'
 
 import type { StorageAdapter } from '../types'
 import { createFsLocalDeviceStorageAdapter } from './fs'
@@ -11,5 +11,5 @@ import { createIdbLocalDeviceStorageAdapter } from './idb'
  * outbox, and workspace UI work unchanged without any cloud account.
  */
 export function createLocalDeviceStorageAdapter(): StorageAdapter {
-  return isTauri() ? createFsLocalDeviceStorageAdapter() : createIdbLocalDeviceStorageAdapter()
+  return isDesktop() ? createFsLocalDeviceStorageAdapter() : createIdbLocalDeviceStorageAdapter()
 }

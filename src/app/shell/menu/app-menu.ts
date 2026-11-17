@@ -1,6 +1,7 @@
 import type { MenuEntry } from '@openweave/react'
 import { useEditorCommands, useI18n } from '@openweave/react'
 
+import { getDesktopBridge, isDesktop } from '@/app/desktop/env'
 import { useEditorStore } from '@/app/editor/active-store'
 import { openSettingsDialog } from '@/app/settings/dialog'
 import { createSharedEditorMenuActions } from '@/app/shell/menu/editor-actions'
@@ -10,6 +11,7 @@ import { APP_MENU_SCHEMA } from '@/app/shell/menu/schema'
 import { createSelectionMenuActions } from '@/app/shell/menu/selection-actions'
 import { appMenuShortcutLabel } from '@/app/shell/menu/shortcut'
 import { useAppTheme } from '@/app/shell/theme'
+import { checkForAppUpdate } from '@/app/shell/updater'
 import { closeTab, activeTab, createTab } from '@/app/tabs'
 import { openStorageWorkspace } from '@/components/storage/StorageWorkspace'
 
@@ -22,8 +24,9 @@ export interface AppMenuGroup {
 // `useAppTheme`'s watchers on every menu render.
 const { theme, setTheme } = useAppTheme()
 
+/** Native-only entries also show in-app on desktop, where Windows/Linux hide the native menu bar. */
 function isVisible(entry: { target?: string }): boolean {
-  return entry.target !== 'native'
+  return entry.target !== 'native' || isDesktop()
 }
 
 function isSeparator(entry: AppMenuEntry): entry is Extract<AppMenuEntry, { type: 'separator' }> {
@@ -44,7 +47,7 @@ export function useAppMenu(): { topMenus: AppMenuGroup[] } {
     otherPages,
     moveSelectionToPage
   } = useEditorCommands()
-  const { menu, locale, availableLocales, localeLabels, setLocale } = useI18n()
+  const { menu, dialogs, locale, availableLocales, localeLabels, setLocale } = useI18n()
 
   const translatedMenuItemLabels: Partial<Record<string, keyof typeof menu>> = {
     new: 'new',
@@ -112,6 +115,8 @@ export function useAppMenu(): { topMenus: AppMenuGroup[] } {
       if (activeTab.get()) closeTab(activeTab.get()!.id)
     },
     settings: openSettingsDialog,
+    'dev-tools': () => void getDesktopBridge()?.devtools.toggle(),
+    'check-updates': () => void checkForAppUpdate({ messages: () => dialogs }),
     'export-png': () => exportSelection('png'),
     'export-svg': () => exportSelection('svg'),
     'export-pptx': () => exportSelection('pptx'),

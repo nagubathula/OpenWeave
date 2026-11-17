@@ -17,7 +17,7 @@ than a few months as unverified.
 ## Provider CORS support
 
 Whether the **web build** can reach the provider at all. The desktop build bypasses CORS entirely
-(it routes through `tauriFetch`), so a ❌ here still works on desktop.
+(it routes through the Electron main process via `desktopFetch`), so a ❌ here still works on desktop.
 
 | Provider             | Base URL                                          | Browser | Notes                                                                                          | Tested     |
 | -------------------- | ------------------------------------------------- | ------- | ---------------------------------------------------------------------------------------------- | ---------- |

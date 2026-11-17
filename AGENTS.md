@@ -1,6 +1,6 @@
 # OpenWeave
 
-React/Next.js + CanvasKit (Skia WASM) + Yoga WASM design editor. Tauri v2 desktop, also runs in browser.
+React/Next.js + CanvasKit (Skia WASM) + Yoga WASM design editor. Electron desktop app, also runs in browser.
 
 **Roadmap:** `packages/docs/development/roadmap.md` tracks product direction, Figma compatibility gaps, and raw metadata coverage. This file keeps agent-facing architecture, conventions, and commands; detailed public docs live under `packages/docs/**`.
 
@@ -19,7 +19,7 @@ Bun workspace packages:
 - `packages/mcp` — `@openweave/mcp`: MCP server for AI coding tools. Stdio + HTTP (Hono). Reuses core tools.
 - `packages/docs` — `@openweave/docs`: published VitePress documentation site. Run with `bun run docs:dev`.
 
-The root app (`src/`) is the Tauri/Vite desktop editor. App-specific editor, document, AI, collaboration, shell, tabs, demo, and automation code lives under `src/app/*`. The app consumes scene graph primitives from `@openweave/scene-graph`, editor/rendering services through targeted `@openweave/core` subpath exports, and `@openweave/react` through the public React SDK entrypoint.
+The root app (`src/`) is the Next.js editor, packaged for desktop by the Electron shell in `desktop-electron/`. App-specific editor, document, AI, collaboration, shell, tabs, demo, and automation code lives under `src/app/*`. The app consumes scene graph primitives from `@openweave/scene-graph`, editor/rendering services through targeted `@openweave/core` subpath exports, and `@openweave/react` through the public React SDK entrypoint.
 
 ### Public package exports
 
@@ -54,7 +54,7 @@ Property-panel anatomy in `packages/react/src/primitives/PropertySection/`, `Seg
 
 Credential persistence lives under `src/app/settings/credentials/`. Settings components receive `CredentialManager` and may inspect status, replace, or clear credentials; runtime adapters receive `CredentialResolver`. Components must not read saved secrets or keep them in long-lived reactive refs. Non-secret provider preferences remain in normal settings storage.
 
-Tauri stores secrets in the native system credential store through `desktop/src/credentials.rs`; browsers default to WebCrypto-encrypted IndexedDB storage and may explicitly opt out to session-only memory. Native failures must never silently fall back to browser or plaintext storage. New integration credentials use stable `CredentialRef` values and join the unified Settings surface rather than adding feature-local key forms.
+The desktop app stores secrets in the main process (`desktop-electron/credentials.ts`), encrypted with Electron `safeStorage` (Keychain, DPAPI, libsecret/KWallet); Linux's plaintext `basic_text` backend reports as unavailable; browsers default to WebCrypto-encrypted IndexedDB storage and may explicitly opt out to session-only memory. Native failures must never silently fall back to browser or plaintext storage. New integration credentials use stable `CredentialRef` values and join the unified Settings surface rather than adding feature-local key forms.
 
 Storage-provider schemas and runtime adapters live under `src/app/integrations/storage/`; non-secret preferences and credential references stay separate, and adapters resolve secrets at operation time. Local-first document caching and outbox synchronization live under `src/app/storage/`. A remote storage binding augments document source state and must not replace local file identity.
 
@@ -72,21 +72,24 @@ App dialogs compose the Reka-backed components under `src/components/ui/dialog/`
 - `bun run format` — oxfmt with import sorting
 - `bun run test:unit` — engine/unit tests
 - `bun run test` — Playwright E2E and visual regression tests
-- `bun run tauri dev` — desktop app with hot reload
+- `bun run desktop:dev` — Electron desktop app against the Next dev server (hot reload)
+- `bun run desktop:preview` — Electron against the current `dist/` static export, served from `app://openweave`
+- `bun run desktop:build` — full build plus electron-builder installers in `desktop-electron/release/`
+- `bun run check:desktop` — typecheck Electron main/preload and verify the generated native menu is current
 - `bun openweave --help` — list CLI commands. Common commands include `info`, `tree`, `find`, `node`, `pages`, `variables`, `export`, `import`, `convert`, `lint`, `query`, `selection`, `formats`, `analyze ...`, and `eval` for Figma Plugin API scripting.
 
 ## Releases & CI
 
 ### How to release
 
-1. Update version in the root `package.json`, publishable `packages/*/package.json`, `desktop/tauri.conf.json`, and `desktop/Cargo.toml`
+1. Update version in the root `package.json` (also the desktop app version) and publishable `packages/*/package.json`
 2. Update `CHANGELOG.md` — move "Unreleased" items under new version heading with date
 3. Commit: `Release v0.x.y`
 4. Tag: `git tag v0.x.y && git push --tags`
-5. Ensure GitHub release secrets include `TAURI_SIGNING_PRIVATE_KEY` (and `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` if the updater key is password-protected); the public updater key is configured in `desktop/tauri.conf.json`.
+5. Optional code-signing secrets: `MAC_CSC_LINK`/`MAC_CSC_KEY_PASSWORD` plus `APPLE_ID`/`APPLE_APP_SPECIFIC_PASSWORD`/`APPLE_TEAM_ID` for notarized macOS builds, `WIN_CSC_LINK`/`WIN_CSC_KEY_PASSWORD` for Windows. Unsigned builds still package; macOS auto-update needs a signed app.
 6. The `build.yml` workflow triggers on `v*` tags and:
-   - Builds Tauri binaries for macOS (arm64 + x64), Windows (x64 + arm64), Linux (x64)
-   - Creates a draft GitHub Release with all platform binaries
+   - Packages Electron installers with electron-builder (`desktop-electron/electron-builder.yml`): macOS dmg/zip (arm64 + x64), Windows NSIS (x64 + arm64), Linux AppImage/deb
+   - Uploads them plus the electron-updater feed (`latest*.yml`) to a draft GitHub Release
    - Publishes public workspace packages to npm with provenance. Keep the exact package list in sync with `.github/workflows/build.yml`.
 7. The production web app/docs deploy workflows (`app.yml`, `docs.yml`) also trigger on `v*` tags. They do **not** deploy on ordinary `master` pushes.
 8. Go to GitHub Releases → edit the draft → paste changelog section → publish
@@ -114,7 +117,7 @@ Use Conventional Commits for regular development commits: `feat`, `fix`, `refact
 - Put rationale and implementation details in the commit body
 - Keep the commit type lowercase (`fix:`, `feat:`, `docs:`), but start each body line/bullet with an uppercase word
 - Preserve product/domain casing in subjects and bodies: `DOM/CSS`, `CSS`, `HTML`, `JSX`, `Tailwind`, `Kiwi`, `.fig`, `MCP`, `CLI`, `AI`, `ACP`, `i18n`. Do not flatten acronyms to lowercase prose such as `dom css documents`.
-- Prefer scopes that match the project structure: `app`, `tauri`, `core`, `cli`, `dom-css`, `mcp`, `react`, `docs`, or focused domains like `editor`, `scene-graph`, `canvas`, `tools`, `kiwi`, `io`, `text`, `vector`, `color`, `acp`, `ai`, `collab`, `automation`, `i18n`
+- Prefer scopes that match the project structure: `app`, `desktop`, `core`, `cli`, `dom-css`, `mcp`, `react`, `docs`, or focused domains like `editor`, `scene-graph`, `canvas`, `tools`, `kiwi`, `io`, `text`, `vector`, `color`, `acp`, `ai`, `collab`, `automation`, `i18n`
 - Use the narrowest honest scope, or omit it if the change spans multiple unrelated areas
 
 Example:
@@ -152,7 +155,7 @@ Release commits are the exception: keep using `Release v0.x.y`.
 Keep this section light; implementation details move often.
 
 - ACP UI/transport lives under `src/app/ai/acp/**`; provider definitions live in `packages/core/src/constants.ts`; app prompts live under `src/app/ai/**`. Direct model configuration lives under `src/app/ai/models/**`: reusable profiles reference provider connections, roles resolve to profiles, and runtime creation resolves credentials lazily. Keep model profiles, provider connections, and role assignments separate rather than returning to singleton provider/model settings. Public docs: `packages/docs/programmable/ai-chat.md` and `packages/docs/programmable/mcp-server.md`.
-- ACP transport uses Tauri shell permissions, so check `desktop/capabilities/**` when changing agent launch behavior.
+- ACP agents and the MCP server are spawned by the Electron main process (`process:spawn` in `desktop-electron/main.ts`); Windows runs them through the shell so npm `.cmd` shims resolve.
 - Collaboration lives under `src/app/collab/**` and is documented in `packages/docs/programmable/collaboration.md`. It uses Trystero + Yjs + awareness; preserve crypto-safe room IDs and peer cleanup semantics when changing it.
 
 ## Code conventions
@@ -294,14 +297,14 @@ Self-review checklist:
 - Editor commands share `packages/react/src/editor/commands/registry.ts` as the canonical source for shortcut display tokens, keyboard bindings, and context-menu test IDs. Store portable shortcuts such as `MOD+D`, `MOD+SHIFT+H`, and `MOD+ALT+K`; format them with `formatShortcut()` at render time so macOS shows `⌘`/`⌥` and Windows/Linux show `Ctrl`/`Alt`.
 - Labels and translations must not contain shortcut text. Keep labels semantic (`Add auto layout`, `Show/Hide`) and render shortcuts from command metadata. Steiger enforces this for `packages/react/src/i18n/messages.ts` and locale JSON files.
 - Canvas context-menu structure lives in `packages/react/src/editor/menu-model/canvas.ts`. Do not hand-build command grouping in `src/components/canvas/CanvasMenu.tsx`; the component should render menu entries and provide app-specific actions only when unavoidable.
-- Browser and Tauri menus share `src/app/shell/menu/schema.ts` as the canonical menu model. Do not add menu items directly in `src/components/shell/AppMenu.tsx` or `desktop/src/menu.rs`.
-- Regenerate the native menu with `bun run generate:tauri-menu` after editing the shared menu schema; `desktop/generated/menu.json` is consumed by the Tauri menu builder. Tauri also runs this generator from `desktop/tauri.conf.json` via `beforeDevCommand` and `beforeBuildCommand`.
+- Browser and desktop menus share `src/app/shell/menu/schema.ts` as the canonical menu model. Do not add menu items directly in `src/components/shell/AppMenu.tsx` or `desktop-electron/menu.ts`.
+- Regenerate the native menu with `bun run generate:desktop-menu` after editing the shared menu schema; `desktop-electron/generated/menu.json` is consumed by `desktop-electron/menu.ts`. `desktop:bundle` regenerates it and `check:desktop` fails when it is stale. Native accelerators are display-only; the renderer keyboard layer owns shortcuts, and copy/cut/paste use Electron roles.
 - Every shared menu item with an `id` must be handled by `src/app/shell/menu/use.ts`, an editor command, or explicitly marked browser/native-only in the schema.
 - Tailwind 4 for styling — no inline CSS, no component-level `<style>` blocks
 - Use `Tip` / tooltip components for hover help; do not add native `title` attributes in React UI.
 - Mac keyboards: use `e.code` not `e.key` for shortcuts with modifiers (Option transforms characters)
 - Icons: use unplugin-icons with Iconify/Lucide (`<icon-lucide-*>`) — don't use raw SVG or Unicode symbols
-- App menu (`src/components/shell/AppMenu.tsx`) — browser-only menu bar using reka-ui Menubar components; Tauri uses native menus, so menu is hidden when `IS_TAURI` is true
+- App menu (`src/components/shell/AppMenu.tsx`) — in-app menu bar using Radix Menubar components; the desktop app also installs the native Electron menu
 - Binding-aware fields must not mutate or detach on focus. Start detach/edit-variable transactions only on the first actual value mutation; opening the variable picker is also non-destructive.
 - Preserve established UI gotchas in nearby components before refactoring: splitter handle sizing, NumberField pointer ownership, section drag targets, side-panel containment, and global number-spinner styling.
 
@@ -311,17 +314,21 @@ Self-review checklist:
 - `@openweave/fig` owns SceneGraph ⇄ NodeChange conversion in `packages/fig/src/node-change/**`, component/instance interpretation in `packages/fig/src/instance-overrides/**`, and effective raw metadata policy in `packages/fig/src/source-metadata.ts`.
 - Core owns `.fig` IO orchestration in `packages/core/src/io/formats/fig/**`, runtime font/glyph integration, workers, and CanvasKit thumbnails. Keep Fig behavior covered by package-local tests and dist smoke.
 - Vector data uses reverse-engineered `vectorNetworkBlob` binary format — encoder/decoder in `packages/core/src/vector/` and scene-graph vector-network types in `@openweave/scene-graph`.
-- `showOpenFilePicker` / `showSaveFilePicker` are File System Access API (Chrome/Edge), not Tauri-only; code must keep browser fallbacks.
+- `showOpenFilePicker` / `showSaveFilePicker` are File System Access API (Chrome/Edge), not desktop-only; code must keep browser fallbacks.
 - Safari save: no File System Access API → use an `<a>` download fallback with deferred `revokeObjectURL`. SafariBanner warns users about limitations.
-- Tauri detection: use `IS_TAURI` from `@openweave/core/constants` / `src/constants.ts`; don't inline `__TAURI_INTERNALS__` checks.
-- `.fig` export compression uses fflate in browser paths and Tauri Rust commands where available.
+- Desktop detection: use `getDesktopBridge()` / `isDesktop()` from `src/app/desktop/env.ts` in app code (or `IS_DESKTOP` from `@openweave/core/constants` for module-level constants); don't read `window.electron` directly.
+- `.fig` export compression uses fflate.
 - Test `.fig` round-trip by exporting and reimporting in Figma when changing file-format behavior.
 - Test fixtures (`tests/fixtures/*.fig`) are Git LFS. If no `.fig` fixtures changed, `git push --no-verify` can skip the slow LFS pre-push hook; use regular `git push` when fixtures changed.
 
-## Tauri
+## Desktop (Electron)
 
-- Tauri v2 desktop app lives under `desktop/`; check `desktop/Cargo.toml`, `desktop/capabilities/**`, and `desktop/tauri.conf.json` before adding desktop capabilities.
-- File system and shell permissions must be configured explicitly; vague "Internal error" save failures often mean missing permissions.
+- The Electron shell lives under `desktop-electron/`: `main.ts` (window, IPC handlers), `preload.ts` (the typed `window.electron` bridge), and focused main-process modules (`credentials.ts`, `http-proxy.ts`, `clipboard.ts`, `fonts.ts`, `tunnel.ts`, `updater.ts`, `app-assets.ts`, `menu.ts`).
+- `src/app/desktop/types.ts` is the bridge contract (`DesktopBridge`) shared by preload and renderer. Add a capability by extending that type, the preload, and a `handle()`d IPC channel in `main.ts`; never expose `ipcRenderer` itself.
+- IPC handlers only answer the main window's top frame on the trusted origin (`app://openweave` packaged, `DEV_URL` in dev). Keep new handlers behind `handle()`.
+- The window is frameless-style (`titleBarStyle: 'hidden'`): `src/components/tab-bar/TabBar.tsx` is the title bar on desktop (always visible, `-webkit-app-region: drag`, controls `no-drag`), with native controls via `titleBarOverlay` on Windows/Linux and traffic lights on macOS. Windows/Linux show no native menu bar, so `target: 'native'` schema items also render in the in-app menu on desktop.
+- Packaged builds load the static export from the privileged `app://openweave` scheme (a stable origin, so storage persists across launches); the ngrok share tunnel serves the same files over a loopback HTTP server.
+- Main-process modules that don't import `electron` are unit-tested in `tests/engine/desktop/`.
 - Dev tools: add or use a menu item to toggle, don't rely on keyboard shortcuts.
 
 ## Publishing
