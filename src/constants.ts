@@ -72,11 +72,17 @@ export const WEB_APP_ORIGIN =
     ? process.env.NEXT_PUBLIC_APP_ORIGIN
     : 'http://localhost:1420'
 
-export function getShareUrl(roomId: string, isProtected = false): string {
-  const base = !IS_BROWSER || IS_DESKTOP ? WEB_APP_ORIGIN : window.location.origin
+/** Same-origin share path, safe for `history.replaceState` on any origin. */
+export function getSharePath(roomId: string, isProtected = false): string {
   // Query-param form: compatible with static export (`output: 'export'`), where
   // a /share/[roomId] path segment could never serve arbitrary room ids.
-  return `${base}/share?room=${roomId}${isProtected ? '&pwd=1' : ''}`
+  return `/share?room=${roomId}${isProtected ? '&pwd=1' : ''}`
+}
+
+/** Share link for a room; `origin` overrides the default (e.g. a desktop LAN share). */
+export function getShareUrl(roomId: string, isProtected = false, origin?: string): string {
+  const base = origin ?? (!IS_BROWSER || IS_DESKTOP ? WEB_APP_ORIGIN : window.location.origin)
+  return `${base}${getSharePath(roomId, isProtected)}`
 }
 
 export const PEER_COLORS: Color[] = [

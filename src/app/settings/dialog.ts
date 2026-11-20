@@ -1,6 +1,6 @@
 import { atom } from 'nanostores'
 
-export type SettingsSection = 'ai' | 'media' | 'storage'
+export type SettingsSection = 'ai' | 'media' | 'storage' | 'sharing'
 
 export const settingsDialogOpen = atom(false)
 export const settingsDialogSection = atom<SettingsSection>('ai')

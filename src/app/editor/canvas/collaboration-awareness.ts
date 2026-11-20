@@ -1,16 +1,26 @@
-import type { useCollabInjected } from '@/app/collab/use'
+import { useEffect } from 'react'
+
+import { collabForStore } from '@/app/collab/tabs'
 import type { EditorStore } from '@/app/editor/active-store'
 
-type Collaboration = ReturnType<typeof useCollabInjected>
+/**
+ * Publishes the local cursor and selection to the collaboration room of the
+ * tab that owns `store` (each tab has its own room, if any).
+ */
+export function useCanvasCollaborationAwareness(store: EditorStore) {
+  useEffect(
+    () =>
+      store.onEditorEvent('selection:changed', (ids) =>
+        collabForStore(store)?.updateSelection(ids)
+      ),
+    [store]
+  )
 
-export function useCanvasCollaborationAwareness(store: EditorStore, collab: Collaboration) {
   function updateCursor(cx: number, cy: number) {
     store.state.cursorCanvasX = cx
     store.state.cursorCanvasY = cy
-    collab?.updateCursor(cx, cy, store.state.currentPageId)
+    collabForStore(store)?.updateCursor(cx, cy, store.state.currentPageId)
   }
-
-  store.onEditorEvent('selection:changed', (ids) => collab?.updateSelection(ids))
 
   return { updateCursor }
 }

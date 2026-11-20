@@ -56,6 +56,10 @@
 
 ### Changed
 
+- Host collaboration from the desktop app. A built-in relay runs next to the files the ngrok tunnel serves, so share links need no public signaling brokers or STUN servers, and they work on networks where peer-to-peer WebRTC fails. Wrong passwords and closed rooms now show an error, dropped connections reconnect automatically, and the desktop app can join another host's room from a pasted share link.
+- Desktop: build the ngrok tunnel into the app, so sharing no longer needs a separate ngrok install. Paste an authtoken in **Settings › Sharing** (stored in the system credential store), or keep using an existing `NGROK_AUTHTOKEN` or ngrok agent config. Tunnel errors now say whether the authtoken is missing or rejected and link to Settings.
+- Share several files at once: each tab has its own collaboration room and link, all served through the same ngrok tunnel. Joining a link opens the file in a new tab, shared tabs show a people icon, and closing a tab leaves its room. Switching tabs no longer ends the current share.
+- Desktop: **Share locally only** now gives a link on your local network address that works for collaborators on the same network without internet or ngrok, instead of a `localhost` link only you could open.
 - Ship the desktop app on Electron with installers for macOS (dmg/zip), Windows (NSIS), and Linux (AppImage/deb), `.fig`/`.pen` file associations, and in-app updates from GitHub Releases via **Check for Updates…**.
 - Build the desktop menu bar from the same menu definition as the in-app menu, so every item works and shows the right shortcut.
 - Desktop: replace the native title bar and menu row with a Figma-style title bar — Home, document tabs, and a new-design button in a draggable strip, with native window controls. Desktop-only items such as **Check for Updates…** and **Developer Tools** appear in the in-app menu.
@@ -70,6 +74,8 @@
 
 ### Fixed
 
+- Desktop: name the Windows installer `OpenWeave-Setup-<version>.exe` so in-app updates find it on GitHub Releases, and add a Windows-only release workflow (`desktop-v*` tags).
+- Collaboration: large documents now reach invitees joining over a slow tunnel. The relay no longer disconnects a peer that is still downloading the initial sync, edits send only the properties that changed instead of the whole layer, and one layer that fails to apply no longer blocks the rest.
 - Start a new design from Home in the blank startup document instead of leaving an extra empty "Untitled" tab, and open the demo and bare `?no-chrome` embeds directly in the editor.
 - Desktop: load the packaged app from a stable `app://openweave` origin instead of falling back to a dev server, and serve the same build to invitees through the ngrok share tunnel.
 - Desktop: detect edits made to an open file outside OpenWeave, and keep downloaded font caches in the app data folder.

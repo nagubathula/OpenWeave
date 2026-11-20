@@ -8,6 +8,14 @@ import { tv } from 'tailwind-variants'
 import { colorToCSS } from '@openweave/core/color'
 import { useI18n } from '@openweave/react'
 
+import { localShareState, startLocalShare, syncLocalShareStatus } from '@/app/collab/local-share'
+import {
+  activeCollab,
+  collabForTab,
+  leaveRoom,
+  tabForJoin,
+  takePendingRoomFromUrl
+} from '@/app/collab/tabs'
 import {
   getTunnelShareUrl,
   setCustomTunnelUrl,
@@ -22,6 +30,7 @@ import {
   type CollabState,
   type RemotePeer
 } from '@/app/collab/use'
+import { openSettingsDialog } from '@/app/settings/dialog'
 import { initials, toast } from '@/app/shell/ui'
 import { AppInput } from '@/components/ui/AppInput'
 import {
@@ -32,7 +41,7 @@ import {
 } from '@/components/ui/dialog'
 import { usePopoverUI } from '@/components/ui/popover'
 import Tip from '@/components/ui/Tip'
-import { getShareUrl } from '@/constants'
+import { getSharePath, getShareUrl } from '@/constants'
 import collaborationTheme from '@/theme/collaboration'
 
 /**
@@ -63,6 +72,16 @@ function extractRoomId(input: string): string {
   return trimmed.replace(/.*\/share\//, '')
 }
 
+/** Origin of a pasted share link, so the room is joined through that host's relay. */
+function extractHostOrigin(input: string): string | undefined {
+  try {
+    const url = new URL(input.trim())
+    return /^https?:$/.test(url.protocol) ? url.origin : undefined
+  } catch {
+    return undefined
+  }
+}
+
 function useCollabPanelState() {
   const collab = useCollabInjected()
   const { dialogs } = useI18n()
@@ -72,6 +91,7 @@ function useCollabPanelState() {
   const peers = useStore(collab?.remotePeers ?? noCollabPeers)
   const followingPeer = useStore(collab?.followingPeer ?? noCollabFollowing)
   const tunnel = useStore(shareTunnelState)
+  const localShare = useStore(localShareState)
 
   const [joinInput, setJoinInput] = useState('')
   const [nameDraft, setNameDraft] = useState(collab?.state.get().localName ?? '')
@@ -84,16 +104,15 @@ function useCollabPanelState() {
   const [copied, setCopied] = useState(false)
   const copyTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  // Pending room from the URL (?room=...): auto-open the join dialog.
+  // A share link (?room=...) opens the join dialog once per page load; this
+  // panel remounts on every tab switch, so the registry hands it out once.
   useEffect(() => {
-    if (typeof window === 'undefined') return
-    const params = new URLSearchParams(window.location.search)
-    const roomId = params.get('room')
-    const hasPwd = params.has('pwd') || params.get('protected') === '1'
-    setPendingRoomId(roomId)
-    setIsRoomPasswordProtected(hasPwd)
-    if (roomId && !collab?.state.get().connected) setJoinDialogOpen(true)
-  }, [collab])
+    const pending = takePendingRoomFromUrl()
+    if (!pending) return
+    setPendingRoomId(pending.roomId)
+    setIsRoomPasswordProtected(pending.isProtected)
+    if (!activeCollab.get()?.state.get().roomId) setJoinDialogOpen(true)
+  }, [])
 
   useEffect(() => {
     if (state.localName && !nameDraft) {
@@ -110,10 +129,19 @@ function useCollabPanelState() {
   // A tunnel started before a webview reload keeps running in the backend.
   useEffect(() => {
     void syncShareTunnelStatus()
+    void syncLocalShareStatus()
   }, [])
 
   const isProtected = state.isProtected ?? Boolean(passwordDraft.trim())
-  const shareUrl = state.roomId ? getShareUrl(state.roomId, isProtected) : ''
+  // Desktop: a joined room lives on its host's server; a hosted one on ours.
+  const localOrigin = state.hostOrigin ?? localShare?.origin
+  const shareUrl = state.roomId ? getShareUrl(state.roomId, isProtected, localOrigin) : ''
+  const localLinkScope =
+    !state.hostOrigin && localShare?.scope === 'loopback'
+      ? 'This computer only'
+      : !state.hostOrigin && localShare
+        ? 'Local network'
+        : 'Local'
   const tunnelShareUrl =
     tunnel.status === 'active' && state.roomId
       ? getTunnelShareUrl(tunnel.url, state.roomId, isProtected)
@@ -152,14 +180,15 @@ function useCollabPanelState() {
     void stopShareTunnel()
   }
 
-  const share = () => {
+  const share = async () => {
     if (!collab || !nameDraft.trim()) return
     collab.setLocalName(nameDraft.trim())
     const pwd = passwordDraft.trim() || undefined
     const roomId = collab.shareCurrentDoc(pwd)
-    const localUrl = getShareUrl(roomId, Boolean(pwd))
+    const local = await startLocalShare()
+    const localUrl = getShareUrl(roomId, Boolean(pwd), local?.origin)
     if (typeof window !== 'undefined') {
-      window.history.replaceState(null, '', localUrl)
+      window.history.replaceState(null, '', getSharePath(roomId, Boolean(pwd)))
     }
     const activeTunnel = tunnel.status === 'active' ? tunnel.url : null
     if (activeTunnel) {
@@ -178,14 +207,18 @@ function useCollabPanelState() {
     collab.setLocalName(nameDraft.trim())
     const pwd = passwordDraft.trim() || undefined
     const roomId = collab.shareCurrentDoc(pwd)
-    const localUrl = getShareUrl(roomId, Boolean(pwd))
     if (typeof window !== 'undefined') {
-      window.history.replaceState(null, '', localUrl)
+      window.history.replaceState(null, '', getSharePath(roomId, Boolean(pwd)))
     }
-    const url = await startShareTunnel()
+    const [url, local] = await Promise.all([startShareTunnel(), startLocalShare()])
+    const localUrl = getShareUrl(roomId, Boolean(pwd), local?.origin)
+    const tunnelState = shareTunnelState.get()
     if (url) {
       copy(getTunnelShareUrl(url, roomId, Boolean(pwd)))
       toast.info('Public ngrok link copied to clipboard!')
+    } else if (tunnelState.status === 'error') {
+      // The room is open; the panel shows the error and how to fix it.
+      toast.error(tunnelState.error)
     } else {
       copy(localUrl)
       toast.info(dialogs.linkCopiedToClipboard)
@@ -193,15 +226,18 @@ function useCollabPanelState() {
   }
 
   const joinRoom = () => {
-    if (!collab) return
     const roomId = pendingRoomId || extractRoomId(joinInput)
     if (!roomId || !nameDraft.trim()) return
-    collab.setLocalName(nameDraft.trim())
+    // Join in its own tab so the current file (or another room) stays put.
+    const session = collabForTab(tabForJoin())
+    session.setLocalName(nameDraft.trim())
     const pwd = joinPassword.trim() || undefined
-    collab.connect(roomId, pwd)
-    const url = getShareUrl(roomId, Boolean(pwd || isRoomPasswordProtected))
+    session.connect(roomId, pwd, pendingRoomId ? undefined : extractHostOrigin(joinInput))
+    setPendingRoomId(null)
+    setJoinInput('')
     if (typeof window !== 'undefined') {
-      window.history.replaceState(null, '', url)
+      const path = getSharePath(roomId, Boolean(pwd || isRoomPasswordProtected))
+      window.history.replaceState(null, '', path)
     }
     setPopoverOpen(false)
     setJoinDialogOpen(false)
@@ -209,8 +245,7 @@ function useCollabPanelState() {
 
   const disconnect = () => {
     if (!collab) return
-    collab.disconnect()
-    void stopShareTunnel()
+    leaveRoom(collab)
     setPasswordDraft('')
     setJoinPassword('')
     setIsRoomPasswordProtected(false)
@@ -246,6 +281,7 @@ function useCollabPanelState() {
     peers,
     followingPeer,
     shareUrl,
+    localLinkScope,
     tunnel,
     tunnelShareUrl,
     isJoining,
@@ -352,6 +388,17 @@ function NgrokShareSection() {
       {collab.tunnel.status === 'error' && (
         <div className="mb-2 text-[10px] text-red-400" data-test-id="collab-ngrok-error">
           {collab.tunnel.error}
+          {(collab.tunnel.code === 'missing-authtoken' ||
+            collab.tunnel.code === 'invalid-authtoken') && (
+            <button
+              type="button"
+              data-test-id="collab-ngrok-settings"
+              className="mt-1 block cursor-pointer text-accent underline"
+              onClick={() => openSettingsDialog('sharing')}
+            >
+              {collab.dialogs.openSharingSettings}
+            </button>
+          )}
         </div>
       )}
 
@@ -452,7 +499,9 @@ function ConnectedRoom() {
 
           {showLocal && (
             <div className="mb-3 rounded border border-border bg-subtle p-2">
-              <div className="mb-1 text-[11px] font-medium text-muted">Local Link</div>
+              <div className="mb-1 text-[11px] font-medium text-muted">
+                Room link ({collab.localLinkScope})
+              </div>
               <div className="flex items-center gap-1.5">
                 <AppInput
                   value={collab.shareUrl}
@@ -476,7 +525,9 @@ function ConnectedRoom() {
       ) : (
         <>
           <div className="mb-1.5 flex items-center justify-between text-xs font-medium text-surface">
-            <span>{collab.dialogs.roomLink} (Local)</span>
+            <span>
+              {collab.dialogs.roomLink} ({collab.localLinkScope})
+            </span>
             {collab.state.isProtected && (
               <span className="flex items-center gap-1 rounded bg-accent/20 px-1.5 py-0.5 text-[10px] font-medium text-accent">
                 <Lock className="size-2.5" />

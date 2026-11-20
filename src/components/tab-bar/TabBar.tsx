@@ -1,8 +1,9 @@
 import { useStore } from '@nanostores/react'
-import { File as FileIcon, Home, Plus, X } from 'lucide-react'
+import { File as FileIcon, Home, Plus, Users, X } from 'lucide-react'
 import React from 'react'
 import { tv } from 'tailwind-variants'
 
+import { sharedTabIds } from '@/app/collab/tabs'
 import { getDesktopBridge } from '@/app/desktop/env'
 import { closeHome, isHomeOpen, openHome } from '@/app/home/store'
 import { allTabs, closeTab, createTab, openNewDesignTab, switchTab } from '@/app/tabs'
@@ -27,6 +28,7 @@ function newDesign() {
 export default function TabBar() {
   const openTabs = useStore(allTabs)
   const homeActive = useStore(isHomeOpen)
+  const sharedTabs = useStore(sharedTabIds)
   const desktop = getDesktopBridge()
   const chrome = desktop ? 'desktop' : 'browser'
   const platform = desktop?.platform === 'darwin' ? 'darwin' : 'other'
@@ -67,6 +69,9 @@ export default function TabBar() {
           {openTabs.map((tab) => {
             const active = !homeActive && tab.isActive
             const tabUI = tabBar({ chrome, platform, active })
+            const shared = sharedTabs.has(tab.id)
+            // A file in a collaboration room shows the people icon.
+            const TabIcon = shared ? Users : FileIcon
             return (
               <div
                 key={tab.id}
@@ -74,6 +79,7 @@ export default function TabBar() {
                 aria-selected={active}
                 data-test-id="tabbar-tab"
                 data-active={active || undefined}
+                data-shared={shared || undefined}
                 onClick={() => {
                   closeHome()
                   switchTab(tab.id)
@@ -81,8 +87,9 @@ export default function TabBar() {
                 onMouseDown={(e) => onMiddleClick(e, tab.id)}
                 className={tabUI.trigger()}
               >
-                <FileIcon className={tabUI.icon()} />
+                <TabIcon className={tabUI.icon()} />
                 <span className={tabUI.label()}>{tab.name}</span>
+                {shared && <span className="sr-only">(shared)</span>}
                 <button
                   type="button"
                   data-test-id="tabbar-close"

@@ -1,3 +1,4 @@
+import { isEqual } from 'es-toolkit/predicate'
 import * as Y from 'yjs'
 
 import type { SceneNode } from '@openweave/scene-graph'
@@ -38,9 +39,14 @@ function logCollabSyncError(context: string, error: unknown) {
   console.error(`[Collab] ${context}:`, error)
 }
 
-// Clone across the graph/Yjs boundary to avoid shared mutable nested data.
+/**
+ * Writes only the properties that changed. Rewriting every key on each edit
+ * made every drag tick ship the whole node to every peer.
+ * Clones across the graph/Yjs boundary to avoid shared mutable nested data.
+ */
 export function syncNodePropsToYMap(node: SceneNode, ynode: Y.Map<unknown>) {
   for (const [key, value] of Object.entries(node)) {
+    if (ynode.has(key) && isEqual(ynode.get(key), value)) continue
     ynode.set(key, structuredClone(value))
   }
 }
@@ -219,7 +225,8 @@ export function createYjsGraphSync({
         for (const [key, change] of event.changes.keys) {
           if (change.action === 'add') {
             const ynode = ynodes.get(key)
-            if (ynode) applyYnodeToGraph(key, ynode)
+            // One malformed node must not drop the rest of a (large) sync.
+            if (ynode) applyYnodeSafely(key, ynode)
           } else if (change.action === 'delete') {
             const existingNode = store.graph.getNode(key)
             if (existingNode) {
@@ -243,13 +250,24 @@ export function createYjsGraphSync({
         const nodeId = findNodeIdForYMap(event.target)
         if (nodeId) {
           const ynode = ynodes.get(nodeId)
-          if (ynode) applyYnodeToGraph(nodeId, ynode)
+          if (ynode) applyYnodeSafely(nodeId, ynode)
         }
       }
     }
   }
 
+  function applyYnodeSafely(nodeId: string, ynode: Y.Map<unknown>) {
+    try {
+      applyYnodeToGraph(nodeId, ynode)
+    } catch (error) {
+      logCollabSyncError(`Failed to apply remote node ${nodeId}`, error)
+    }
+  }
+
   function findNodeIdForYMap(ymap: Y.Map<unknown>): string | null {
+    // A nested map's key in its parent map; avoids scanning every node.
+    const parentKey = ymap._item?.parentSub
+    if (parentKey) return parentKey
     const ynodes = getYnodes()
     if (!ynodes) return null
     for (const [key, value] of ynodes.entries()) {

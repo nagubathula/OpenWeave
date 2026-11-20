@@ -9,7 +9,8 @@ import { useViewportKind } from '@openweave/react'
 import { useAIChat } from '@/app/ai/chat/use'
 import { connectAutomation } from '@/app/automation/bridge/server'
 import { spawnMCPIfNeeded } from '@/app/automation/mcp/spawn'
-import { CollabProvider, useCollab } from '@/app/collab/use'
+import { activeCollab } from '@/app/collab/tabs'
+import { CollabProvider } from '@/app/collab/use'
 import { getDesktopBridge } from '@/app/desktop/env'
 import { getActiveEditorStore } from '@/app/editor/active-store'
 import {
@@ -87,14 +88,11 @@ export function EditorLayout() {
   // Native Electron application menu — no-ops in the browser.
   useMenu()
 
-  // Collaboration session: created once per shell mount (useCollab is a plain
-  // Vue-reactive factory, not a React hook, so lazy useState init is safe) and
-  // torn down on unmount — the session's old Vue `tryOnScopeDispose` cleanup
-  // no-ops in React, so disconnecting here is what actually closes the room.
-  const [collab] = useState(() => useCollab(getActiveStore))
-  useEffect(() => {
-    return () => collab.disconnect()
-  }, [collab])
+  // Collaboration: one session per tab (see src/app/collab/tabs.ts); the
+  // provider exposes the active tab's. This layout remounts on every tab switch
+  // (EditorProvider is keyed by tab), so it must not leave rooms on unmount:
+  // closing a tab leaves its room, and closing the window drops the sockets.
+  const collab = useStore(activeCollab)
 
   // `showUI` (from the editor store) toggles the full panel chrome; `?no-chrome`
   // (from the URL) drops to a bare canvas. Both mirror src/views/EditorView.vue.

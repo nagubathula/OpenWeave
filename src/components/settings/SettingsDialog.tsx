@@ -1,5 +1,5 @@
 import { useStore } from '@nanostores/react'
-import { Sparkles, Palette, Cloud, X, Wand2 } from 'lucide-react'
+import { Sparkles, Palette, Cloud, Globe, X, Wand2 } from 'lucide-react'
 import React, { useEffect, useState, useCallback } from 'react'
 import { createPortal } from 'react-dom'
 import { useEventListener } from 'usehooks-ts'
@@ -17,12 +17,14 @@ import {
 import type { VectorizeProviderID } from '@/app/editor/vectorize'
 import { appCredentialServices } from '@/app/settings/credentials/app'
 import { settingsDialogSection } from '@/app/settings/dialog'
+import { CredentialKeyField, settingsInputClass } from '@/components/settings/CredentialKeyField'
 import ModelsPanel from '@/components/settings/models/ModelsPanel'
+import SharingSettingsPanel from '@/components/settings/SharingSettingsPanel'
 import StorageSettingsPanel from '@/components/settings/StorageSettingsPanel'
 import { AppSwitch } from '@/components/ui/AppSwitch'
 import { IS_DESKTOP } from '@/constants'
 
-type SettingsSection = 'ai' | 'models' | 'vectorize' | 'appearance' | 'storage'
+type SettingsSection = 'ai' | 'models' | 'vectorize' | 'appearance' | 'storage' | 'sharing'
 type ThemeSetting = 'light' | 'dark' | 'auto'
 
 const THEME_STORAGE_KEY = 'openweave:theme'
@@ -55,9 +57,6 @@ function applyThemeSetting(setting: ThemeSetting): void {
 
 const navButtonClass =
   'flex w-full items-center gap-2 rounded px-2 py-1.5 text-left text-xs text-muted transition-colors hover:bg-hover hover:text-surface data-[active=true]:bg-hover data-[active=true]:text-surface'
-
-const inputClass =
-  'w-full rounded border border-border bg-input px-2 py-1 text-xs text-surface outline-none focus:border-accent'
 
 const labelClass = 'block text-[11px] font-medium text-surface'
 
@@ -112,7 +111,7 @@ function AppearancePanel() {
                 step="0.5"
                 value={nudge.small}
                 onChange={(e) => setNudgeSettings({ small: Number(e.target.value) || 1 })}
-                className={inputClass}
+                className={settingsInputClass}
               />
               <span className="absolute right-2 top-1 text-[10px] text-muted pointer-events-none">
                 px
@@ -128,7 +127,7 @@ function AppearancePanel() {
                 step="1"
                 value={nudge.big}
                 onChange={(e) => setNudgeSettings({ big: Number(e.target.value) || 10 })}
-                className={inputClass}
+                className={settingsInputClass}
               />
               <span className="absolute right-2 top-1 text-[10px] text-muted pointer-events-none">
                 px
@@ -144,12 +143,10 @@ function AppearancePanel() {
 function VectorizePanel() {
   const { dialogs } = useI18n()
   const providerID = useStore(vectorizeProviderID)
-  const [keyDraft, setKeyDraft] = useState('')
   const [status, setStatus] =
     useState<Awaited<ReturnType<typeof vectorizeCredentialStatus>>>('missing')
 
   const provider = VECTORIZE_PROVIDER_DEFINITIONS.find((definition) => definition.id === providerID)
-  const configured = status === 'configured'
 
   useEffect(() => {
     let active = true
@@ -161,21 +158,8 @@ function VectorizePanel() {
     }
   }, [providerID])
 
-  const changeProvider = (id: VectorizeProviderID) => {
-    vectorizeProviderID.set(id)
-    setKeyDraft('')
-  }
-
-  const save = async () => {
-    if (!keyDraft.trim()) return
-    await setVectorizeCredential(providerID, keyDraft)
-    setKeyDraft('')
-    setStatus(await vectorizeCredentialStatus(providerID))
-  }
-
-  const clear = async () => {
-    await setVectorizeCredential(providerID, '')
-    setKeyDraft('')
+  const update = async (value: string) => {
+    await setVectorizeCredential(providerID, value)
     setStatus(await vectorizeCredentialStatus(providerID))
   }
 
@@ -193,10 +177,10 @@ function VectorizePanel() {
       <label className="flex flex-col gap-1 text-[11px] text-muted">
         {dialogs.vectorizeProvider}
         <select
-          className={inputClass}
+          className={settingsInputClass}
           value={providerID}
           data-test-id="settings-vectorize-provider"
-          onChange={(e) => changeProvider(e.target.value as VectorizeProviderID)}
+          onChange={(e) => vectorizeProviderID.set(e.target.value as VectorizeProviderID)}
         >
           {VECTORIZE_PROVIDER_DEFINITIONS.map((definition) => (
             <option key={definition.id} value={definition.id}>
@@ -207,53 +191,23 @@ function VectorizePanel() {
       </label>
 
       {provider && (
-        <label className="flex flex-col gap-1 text-[11px] text-muted">
-          <span className="flex items-center justify-between">
-            {dialogs.vectorizeAPIKey}
-            {configured && (
-              <span className="text-[10px] text-green-500">{dialogs.vectorizeSavedKey}</span>
-            )}
-          </span>
-          <input
-            type="password"
-            className={inputClass}
-            value={keyDraft}
-            data-test-id="provider-settings-api-key"
-            placeholder={
-              configured ? dialogs.vectorizeSavedKeyPlaceholder : provider.keyPlaceholder
-            }
-            onChange={(e) => setKeyDraft(e.target.value)}
-          />
-          <div className="mt-1 flex items-center gap-2">
-            <button
-              type="button"
-              className="rounded bg-accent px-2 py-1 text-[11px] font-medium text-white hover:bg-accent/90 disabled:opacity-50"
-              disabled={!keyDraft.trim()}
-              onClick={() => void save()}
-            >
-              {dialogs.vectorizeSaveKey}
-            </button>
-            {configured && (
-              <button
-                type="button"
-                className="rounded border border-border px-2 py-1 text-[11px] text-muted hover:bg-hover hover:text-surface"
-                onClick={() => void clear()}
-              >
-                {dialogs.vectorizeClearKey}
-              </button>
-            )}
-            {provider.keyURL && (
-              <a
-                href={provider.keyURL}
-                target="_blank"
-                rel="noreferrer"
-                className="ml-auto text-[10px] text-accent underline"
-              >
-                {dialogs.vectorizeGetAPIKey}
-              </a>
-            )}
-          </div>
-        </label>
+        <CredentialKeyField
+          key={providerID}
+          labels={{
+            label: dialogs.vectorizeAPIKey,
+            saved: dialogs.vectorizeSavedKey,
+            placeholder: provider.keyPlaceholder,
+            savedPlaceholder: dialogs.vectorizeSavedKeyPlaceholder,
+            save: dialogs.vectorizeSaveKey,
+            clear: dialogs.vectorizeClearKey,
+            getKey: dialogs.vectorizeGetAPIKey
+          }}
+          status={status}
+          keyURL={provider.keyURL}
+          data-test-id="provider-settings-api-key"
+          onSave={update}
+          onClear={() => update('')}
+        />
       )}
     </div>
   )
@@ -309,7 +263,16 @@ export function SettingsDialog({ open, onClose }: SettingsDialogProps) {
     { id: 'ai', label: dialogs.settingsAIAndAgents, icon: <Sparkles className="size-3.5" /> },
     { id: 'vectorize', label: dialogs.settingsMedia, icon: <Wand2 className="size-3.5" /> },
     { id: 'appearance', label: dialogs.settingsAppearance, icon: <Palette className="size-3.5" /> },
-    { id: 'storage', label: dialogs.settingsStorage, icon: <Cloud className="size-3.5" /> }
+    { id: 'storage', label: dialogs.settingsStorage, icon: <Cloud className="size-3.5" /> },
+    ...(IS_DESKTOP
+      ? [
+          {
+            id: 'sharing' as const,
+            label: dialogs.settingsSharing,
+            icon: <Globe className="size-3.5" />
+          }
+        ]
+      : [])
   ]
 
   // Portal to <body>: these dialogs mount inside panels that set
@@ -364,6 +327,7 @@ export function SettingsDialog({ open, onClose }: SettingsDialogProps) {
             {section === 'vectorize' && <VectorizePanel />}
             {section === 'appearance' && <AppearancePanel />}
             {section === 'storage' && <StorageSettingsPanel onClose={onClose} />}
+            {section === 'sharing' && IS_DESKTOP && <SharingSettingsPanel />}
           </div>
         </div>
 

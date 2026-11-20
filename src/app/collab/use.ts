@@ -8,6 +8,7 @@ import {
   createCollabRuntime,
   createInitialCollabState
 } from '@/app/collab/session'
+import type { CollabTransportError } from '@/app/collab/transport'
 import { DEFAULT_COLLAB_STATE, type CollabState, type RemotePeer } from '@/app/collab/types'
 import { createYjsGraphSync } from '@/app/collab/yjs-sync'
 import type { EditorStore } from '@/app/editor/active-store'
@@ -15,6 +16,18 @@ import type { EditorStore } from '@/app/editor/active-store'
 export { CollabContext, CollabProvider, useCollabInjected } from '@/app/collab/context'
 export { DEFAULT_COLLAB_STATE }
 export type { CollabState, RemotePeer }
+
+const TRANSPORT_ERROR_MESSAGES: Record<CollabTransportError, string> = {
+  unauthorized: 'Wrong room password',
+  'room-not-found': 'Room not found. The host may have stopped sharing.',
+  'room-full': 'This room is full',
+  rejected: 'The host rejected the connection'
+}
+
+async function toastTransportError(reason: CollabTransportError) {
+  const { toast } = await import('@/app/shell/ui')
+  toast.error(TRANSPORT_ERROR_MESSAGES[reason])
+}
 
 export function useCollab(storeOrGetter: EditorStore | (() => EditorStore)) {
   const getStore = () =>
@@ -74,7 +87,8 @@ export function useCollab(storeOrGetter: EditorStore | (() => EditorStore)) {
     broadcastAwareness,
     applyYjsToGraph,
     syncNodeToYjs,
-    resetFollow
+    resetFollow,
+    onTransportError: (reason) => void toastTransportError(reason)
   })
 
   function shareCurrentDoc(password?: string): string {

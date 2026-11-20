@@ -1,4 +1,5 @@
 import { spawn, type ChildProcess } from 'node:child_process'
+import { randomBytes } from 'node:crypto'
 import * as fs from 'node:fs'
 import * as path from 'node:path'
 
@@ -15,9 +16,12 @@ import {
   type OpenDialogOptions
 } from 'electron'
 
+import { COLLAB_RELAY_PATH } from '../src/app/collab/relay/protocol'
+import { NGROK_AUTHTOKEN_CREDENTIAL } from '../src/app/collab/tunnel/credential'
 import type {
   DesktopCredentialRef,
   DesktopHttpRequest,
+  DesktopLocalShare,
   DesktopOpenDialogOptions,
   DesktopSaveDialogOptions,
   DesktopSpawnOptions
@@ -29,11 +33,15 @@ import {
   writeClipboardHtml,
   writeClipboardText
 } from './clipboard'
+import { createCollabRelay, createRelayOriginCheck } from './collab-relay'
 import { DesktopCredentialStore, type CredentialCipher } from './credentials'
 import { listSystemFontFamilies, loadSystemFont } from './fonts'
 import { proxyHttpRequest } from './http-proxy'
+import { pickLanAddress } from './lan-address'
 import { buildAppMenu } from './menu'
-import { shareTunnelStatus, startShareTunnel, stopShareTunnel } from './tunnel'
+import { startShareServer, type ShareServer } from './share-server'
+import { createShareTunnel, loadNgrokSdk } from './tunnel'
+import { resolveNgrokAuthtoken } from './tunnel/authtoken'
 import { checkForUpdate, downloadUpdate, installUpdateAndRestart } from './updater'
 
 const DOCUMENT_EXTENSIONS = new Set(['.fig', '.pen', '.html', '.htm', '.xhtml'])
@@ -47,11 +55,35 @@ const APP_ROOT = app.getAppPath()
 const DIST_ROOT = path.join(APP_ROOT, 'dist')
 const PRELOAD_PATH = path.join(APP_ROOT, 'desktop-electron', 'dist', 'preload.cjs')
 const ICON_PATH = path.join(APP_ROOT, 'desktop-electron', 'resources', 'icon.png')
+/** Holds `node_modules/@ngrok`: unpacked into resources/ when packaged (see electron-builder.yml). */
+const NGROK_MODULE_ROOT = app.isPackaged ? process.resourcesPath : APP_ROOT
 /** Native window controls over the 40px tab strip; colors match its dark surface. */
 const TITLE_BAR_OVERLAY = { color: '#2c2c2c', symbolColor: '#e5e5e5', height: 40 }
 
 let mainWindow: BrowserWindow | null = null
 const pendingOpenFiles: string[] = []
+
+/** Lets the host window open collab rooms on the relay; regenerated per launch. */
+const RELAY_HOST_TOKEN = randomBytes(32).toString('hex')
+let shareServer: Promise<ShareServer> | null = null
+
+/** Starts the loopback share server (app files + collab relay) on first use. */
+function ensureShareServer(): Promise<ShareServer> {
+  shareServer ??= startShareServer({
+    distRoot: DIST_ROOT,
+    devOrigin: DEV_URL,
+    relay: createCollabRelay({
+      hostToken: RELAY_HOST_TOKEN,
+      isAllowedOrigin: createRelayOriginCheck(
+        DEV_URL ? [APP_ORIGIN, new URL(DEV_URL).origin] : [APP_ORIGIN]
+      )
+    })
+  }).catch((error: unknown) => {
+    shareServer = null
+    throw error
+  })
+  return shareServer
+}
 
 protocol.registerSchemesAsPrivileged([
   {
@@ -220,7 +252,7 @@ function registerProcessHandlers() {
   app.on('before-quit', () => {
     for (const child of running.values()) child.kill()
     running.clear()
-    stopShareTunnel()
+    void shareServer?.then((server) => server.close())
   })
 }
 
@@ -325,14 +357,40 @@ function registerIpcHandlers() {
     }
   })
 
-  handle('collab:startShareTunnel', () =>
-    startShareTunnel({
-      devPort: DEV_URL ? Number(new URL(DEV_URL).port || 80) : null,
-      distRoot: DIST_ROOT
-    })
-  )
-  handle('collab:stopShareTunnel', stopShareTunnel)
-  handle('collab:shareTunnelStatus', shareTunnelStatus)
+  handle('collab:relayEndpoint', async () => {
+    const { port } = await ensureShareServer()
+    return { url: `ws://127.0.0.1:${port}${COLLAB_RELAY_PATH}`, hostToken: RELAY_HOST_TOKEN }
+  })
+  handle('collab:startLocalShare', async (): Promise<DesktopLocalShare> => {
+    const server = await ensureShareServer()
+    const address = pickLanAddress()
+    if (!address) return { origin: `http://127.0.0.1:${server.port}`, scope: 'loopback' }
+    return { origin: `http://${address}:${await server.startLan()}`, scope: 'lan' }
+  })
+  handle('collab:stopLocalShare', async () => (await shareServer)?.stopLan())
+  handle('collab:localShareStatus', async (): Promise<DesktopLocalShare | null> => {
+    const server = await shareServer
+    if (!server) return null
+    const port = server.lanPort()
+    const address = pickLanAddress()
+    if (port && address) return { origin: `http://${address}:${port}`, scope: 'lan' }
+    return { origin: `http://127.0.0.1:${server.port}`, scope: 'loopback' }
+  })
+
+  const shareTunnel = createShareTunnel({
+    loadSdk: () => loadNgrokSdk(NGROK_MODULE_ROOT),
+    resolveAuthtoken: () =>
+      resolveNgrokAuthtoken({
+        saved: async () => {
+          const saved = await credentials.read(NGROK_AUTHTOKEN_CREDENTIAL)
+          return saved.ok ? saved.value : null
+        }
+      })
+  })
+  app.on('before-quit', () => void shareTunnel.stop())
+  handle('collab:startShareTunnel', async () => shareTunnel.start((await ensureShareServer()).port))
+  handle('collab:stopShareTunnel', shareTunnel.stop)
+  handle('collab:shareTunnelStatus', shareTunnel.status)
 
   handle('credentials:availability', () => credentials.availability())
   handle('credentials:status', (reference: DesktopCredentialRef) => credentials.status(reference))

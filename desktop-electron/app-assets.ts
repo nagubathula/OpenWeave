@@ -1,6 +1,6 @@
 import { createReadStream } from 'node:fs'
 import { stat } from 'node:fs/promises'
-import { createServer, type Server } from 'node:http'
+import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'node:http'
 import * as path from 'node:path'
 import { Readable } from 'node:stream'
 
@@ -99,30 +99,38 @@ export function createAppProtocolHandler(root: string) {
   }
 }
 
-/** Starts a loopback HTTP server for the share tunnel on a random port. */
-export async function startAssetServer(root: string): Promise<{ server: Server; port: number }> {
-  const server = createServer((req, res) => {
-    if (req.method !== 'GET' && req.method !== 'HEAD') {
-      res.writeHead(405).end()
-      return
-    }
-    const pathname = new URL(req.url ?? '/', 'http://localhost').pathname
-    respond(root, pathname)
-      .then(({ status, file }) => {
-        if (!file) return res.writeHead(404).end('Not found')
-        res.writeHead(status, { 'content-type': mimeTypeFor(file) })
-        if (req.method === 'HEAD') return res.end()
-        return createReadStream(file)
-          .on('error', () => res.destroy())
-          .pipe(res)
-      })
-      .catch(() => res.writeHead(500).end())
-  })
+/** Serves one HTTP request from the static export in `root`. */
+export function serveAssetRequest(root: string, req: IncomingMessage, res: ServerResponse) {
+  if (req.method !== 'GET' && req.method !== 'HEAD') {
+    res.writeHead(405).end()
+    return
+  }
+  const pathname = new URL(req.url ?? '/', 'http://localhost').pathname
+  respond(root, pathname)
+    .then(({ status, file }) => {
+      if (!file) return res.writeHead(404).end('Not found')
+      res.writeHead(status, { 'content-type': mimeTypeFor(file) })
+      if (req.method === 'HEAD') return res.end()
+      return createReadStream(file)
+        .on('error', () => res.destroy())
+        .pipe(res)
+    })
+    .catch(() => res.writeHead(500).end())
+}
+
+/** Binds `server` to a random loopback port and returns that port. */
+export async function listenOnLoopback(server: Server): Promise<number> {
   await new Promise<void>((resolve, reject) => {
     server.once('error', reject)
     server.listen(0, '127.0.0.1', () => resolve())
   })
   const address = server.address()
   if (!address || typeof address === 'string') throw new Error('Share server has no TCP address')
-  return { server, port: address.port }
+  return address.port
+}
+
+/** Starts a loopback HTTP server over the static export on a random port. */
+export async function startAssetServer(root: string): Promise<{ server: Server; port: number }> {
+  const server = createServer((req, res) => serveAssetRequest(root, req, res))
+  return { server, port: await listenOnLoopback(server) }
 }

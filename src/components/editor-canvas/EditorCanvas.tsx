@@ -18,7 +18,6 @@ import {
 } from '@openweave/react'
 
 import { useAIChat } from '@/app/ai/chat/use'
-import { useCollabInjected } from '@/app/collab/use'
 import { useEditorStore } from '@/app/editor/active-store'
 import { useCanvasCollaborationAwareness } from '@/app/editor/canvas/collaboration-awareness'
 import { createCanvasContextSelection } from '@/app/editor/canvas/context-selection'
@@ -34,12 +33,11 @@ export default function EditorCanvas() {
   const { activeTab: activeTabAtom } = useAIChat()
   const activeTab = useStore(activeTabAtom)
 
-  const collab = useCollabInjected()
   const containerRef = useRef<HTMLDivElement>(null)
   const sceneCanvasRef = useRef<HTMLCanvasElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
-  const { updateCursor } = useCanvasCollaborationAwareness(store, collab)
+  const { updateCursor } = useCanvasCollaborationAwareness(store)
   const { selectAtContextPoint } = createCanvasContextSelection(canvasRef, store)
 
   useCanvas(sceneCanvasRef, store, {

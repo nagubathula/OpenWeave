@@ -1,6 +1,7 @@
 import { AI_PROVIDERS } from '@openweave/core/constants'
 
 import { aiModelSettings, modelConnectionCredentialRef } from '@/app/ai/models'
+import { NGROK_AUTHTOKEN_CREDENTIAL } from '@/app/collab/tunnel/credential'
 import { VECTORIZE_CREDENTIAL_REFS } from '@/app/editor/vectorize/credentials'
 import { storageCredentialRefs, storageProviderRegistry } from '@/app/integrations/storage'
 import {
@@ -34,6 +35,7 @@ export function appCredentialRefs(): CredentialRef[] {
     PEXELS_CREDENTIAL,
     UNSPLASH_CREDENTIAL,
     ...VECTORIZE_CREDENTIAL_REFS,
+    NGROK_AUTHTOKEN_CREDENTIAL,
     ...storageCredentials
   ])
 }

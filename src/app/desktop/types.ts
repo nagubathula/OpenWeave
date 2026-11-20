@@ -78,6 +78,26 @@ export type DesktopResult<T> =
   | { ok: true; value: T }
   | { ok: false; error: { code: DesktopCredentialErrorCode; message: string } }
 
+/**
+ * Origin for share links that skip the internet: the share server on this
+ * computer's LAN address (`lan`), or loopback when there is no network
+ * (`loopback`, reachable only from this computer).
+ */
+export interface DesktopLocalShare {
+  origin: string
+  scope: 'lan' | 'loopback'
+}
+
+export type DesktopShareTunnelErrorCode =
+  | 'missing-authtoken'
+  | 'invalid-authtoken'
+  | 'session-limit'
+  | 'failed'
+
+export type DesktopShareTunnelStart =
+  | { ok: true; url: string }
+  | { ok: false; code: DesktopShareTunnelErrorCode; message: string }
+
 export type DesktopCredentialAvailability = 'available' | 'locked' | 'unavailable'
 export type DesktopCredentialStatus = 'configured' | 'missing' | 'locked' | 'unavailable'
 
@@ -136,6 +156,12 @@ export interface DesktopUpdateDownload {
   bytes: number
 }
 
+export interface DesktopCollabRelayEndpoint {
+  /** `ws://127.0.0.1:<port>/collab` on the loopback share server. */
+  url: string
+  hostToken: string
+}
+
 export interface DesktopBridge {
   isElectron: true
   platform: DesktopPlatform
@@ -188,8 +214,16 @@ export interface DesktopBridge {
   process: {
     spawn: (options: DesktopSpawnOptions) => Promise<DesktopChildProcess>
   }
+  collab: {
+    /** Loopback collab relay the host window connects to, plus its room-opening token. */
+    relayEndpoint: () => Promise<DesktopCollabRelayEndpoint>
+    /** Serves the app and relay on the local network; idempotent. */
+    startLocalShare: () => Promise<DesktopLocalShare>
+    stopLocalShare: () => Promise<void>
+    localShareStatus: () => Promise<DesktopLocalShare | null>
+  }
   tunnel: {
-    start: () => Promise<{ url: string }>
+    start: () => Promise<DesktopShareTunnelStart>
     stop: () => Promise<void>
     status: () => Promise<string | null>
   }

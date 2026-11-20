@@ -251,5 +251,17 @@
   "zoomForMobileLabel": "Zoom para pantalla móvil",
   "displayPresetsTitle": "Ajustes predefinidos de pantalla",
   "saveAndZoomRealSize": "Guardar y hacer zoom a tamaño real",
-  "resetToDefault": "Restablecer a valores predeterminados"
+  "resetToDefault": "Restablecer a valores predeterminados",
+  "settingsSharing": "Compartir",
+  "sharingTunnel": "Túnel de ngrok",
+  "sharingTunnelDescription": "Los enlaces para compartir usan un túnel de ngrok integrado en OpenWeave. Pega tu authtoken de ngrok; el plan gratuito funciona.",
+  "sharingAuthtoken": "Authtoken",
+  "sharingAuthtokenPlaceholder": "Pega tu authtoken de ngrok",
+  "sharingSavedAuthtoken": "Guardado",
+  "sharingSavedAuthtokenPlaceholder": "Guardado: introduce un authtoken nuevo para reemplazarlo",
+  "sharingSaveAuthtoken": "Guardar authtoken",
+  "sharingClearAuthtoken": "Borrar",
+  "sharingGetAuthtoken": "Obtener authtoken",
+  "sharingAuthtokenFallback": "Sin un authtoken guardado, OpenWeave usa NGROK_AUTHTOKEN o la configuración de tu agente de ngrok, si existe.",
+  "openSharingSettings": "Abrir ajustes de Compartir"
 }

@@ -1,5 +1,4 @@
 import type { WritableAtom } from 'nanostores'
-import type { Room } from 'trystero'
 import { IndexeddbPersistence } from 'y-indexeddb'
 import * as awarenessProtocol from 'y-protocols/awareness'
 import type { Awareness } from 'y-protocols/awareness'
@@ -8,6 +7,7 @@ import * as Y from 'yjs'
 import { randomIndex } from '@openweave/core/random'
 
 import { connectCollabRoom } from '@/app/collab/room'
+import type { CollabTransportError, CollabTransportRoom } from '@/app/collab/transport'
 import type { CollabState } from '@/app/collab/types'
 import { bindCollabGraphEvents, registerYjsObservers } from '@/app/collab/yjs-sync'
 import type { EditorStore } from '@/app/editor/active-store'
@@ -18,7 +18,7 @@ export type CollabRuntime = {
   awareness: awarenessProtocol.Awareness | null
   ynodes: Y.Map<Y.Map<unknown>> | null
   yimages: Y.Map<Uint8Array> | null
-  room: Room | null
+  room: CollabTransportRoom | null
   persistence: IndexeddbPersistence | null
   connectedStore: EditorStore | null
   suppressGraphSync: boolean
@@ -30,6 +30,8 @@ export type CollabRuntime = {
 type ConnectCollabSessionOptions = {
   roomId: string
   password?: string
+  hostOrigin?: string
+  onTransportError?: (error: CollabTransportError) => void
   runtime: CollabRuntime
   state: WritableAtom<CollabState>
   store: EditorStore
@@ -51,11 +53,12 @@ type CollabConnectionActionsOptions = {
   applyYjsToGraph: (events: Y.YEvent<Y.Map<unknown>>[]) => void
   syncNodeToYjs: (nodeId: string) => void
   resetFollow: () => void
+  onTransportError?: (error: CollabTransportError) => void
 }
 
 type CollabSessionResources = {
   store: EditorStore
-  room: Room | null
+  room: CollabTransportRoom | null
   awareness: awarenessProtocol.Awareness | null
   persistence: IndexeddbPersistence | null
   ydoc: Y.Doc | null
@@ -99,12 +102,19 @@ export function createCollabConnectionActions({
   broadcastAwareness,
   applyYjsToGraph,
   syncNodeToYjs,
-  resetFollow
+  resetFollow,
+  onTransportError
 }: CollabConnectionActionsOptions) {
-  function connect(roomId: string, password?: string) {
+  /** `hostOrigin` is the share link's origin when joining another host's room. */
+  function connect(roomId: string, password?: string, hostOrigin?: string) {
     connectCollabSession({
       roomId,
       password,
+      hostOrigin,
+      onTransportError: (error) => {
+        disconnect()
+        onTransportError?.(error)
+      },
       runtime,
       state,
       store: getStore(),
@@ -152,6 +162,8 @@ export function watchAwarenessZoom(store: EditorStore, getAwareness: () => Aware
 export function connectCollabSession({
   roomId,
   password,
+  hostOrigin,
+  onTransportError,
   runtime,
   state,
   store,
@@ -166,7 +178,7 @@ export function connectCollabSession({
 
   const isProtected = Boolean(password?.trim())
   runtime.connectedStore = store
-  state.set({ ...state.get(), roomId, isProtected })
+  state.set({ ...state.get(), roomId, isProtected, hostOrigin })
   runtime.ydoc = new Y.Doc()
   runtime.awareness = new awarenessProtocol.Awareness(runtime.ydoc)
   runtime.ynodes = runtime.ydoc.getMap('nodes')
@@ -192,6 +204,11 @@ export function connectCollabSession({
   const roomConnection = connectCollabRoom({
     roomId,
     password,
+    hostOrigin,
+    onError: (error) => {
+      // Ignore late errors from a room this runtime already replaced.
+      if (runtime.room === roomConnection.room) onTransportError?.(error)
+    },
     ydoc: runtime.ydoc,
     awareness: runtime.awareness,
     setConnected: () => {
@@ -230,7 +247,13 @@ export function resetCollabRuntime(runtime: CollabRuntime) {
 }
 
 export function resetCollabConnectionState(state: WritableAtom<CollabState>) {
-  state.set({ ...state.get(), connected: false, roomId: null, peers: [] })
+  state.set({
+    ...state.get(),
+    connected: false,
+    roomId: null,
+    peers: [],
+    hostOrigin: undefined
+  })
 }
 
 export function disposeCollabSessionResources(resources: CollabSessionResources) {

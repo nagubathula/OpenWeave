@@ -251,5 +251,17 @@
   "zoomForMobileLabel": "手机屏幕实机缩放比",
   "displayPresetsTitle": "显示器预设",
   "saveAndZoomRealSize": "保存并缩放到实际尺寸",
-  "resetToDefault": "恢复默认设置"
+  "resetToDefault": "恢复默认设置",
+  "settingsSharing": "共享",
+  "sharingTunnel": "ngrok 隧道",
+  "sharingTunnelDescription": "共享链接通过 OpenWeave 内置的 ngrok 隧道运行。粘贴你的 ngrok authtoken；免费套餐即可使用。",
+  "sharingAuthtoken": "Authtoken",
+  "sharingAuthtokenPlaceholder": "粘贴你的 ngrok authtoken",
+  "sharingSavedAuthtoken": "已保存",
+  "sharingSavedAuthtokenPlaceholder": "已保存 — 输入新的 authtoken 以替换",
+  "sharingSaveAuthtoken": "保存 authtoken",
+  "sharingClearAuthtoken": "清除",
+  "sharingGetAuthtoken": "获取 authtoken",
+  "sharingAuthtokenFallback": "未保存 authtoken 时，OpenWeave 会使用 NGROK_AUTHTOKEN 或你的 ngrok 代理配置（如有）。",
+  "openSharingSettings": "打开共享设置"
 }

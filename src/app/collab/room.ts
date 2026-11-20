@@ -1,13 +1,17 @@
-import type { Room } from 'trystero'
-import { joinRoom as joinTrysteroRoom } from 'trystero/mqtt'
 import * as awarenessProtocol from 'y-protocols/awareness'
 import * as Y from 'yjs'
 
-import { TRYSTERO_APP_ID } from '@/constants'
+import {
+  openCollabTransport,
+  type CollabTransportError,
+  type CollabTransportRoom
+} from '@/app/collab/transport'
 
 type CollabRoomOptions = {
   roomId: string
   password?: string
+  hostOrigin?: string
+  onError?: (error: CollabTransportError) => void
   ydoc: Y.Doc
   awareness: awarenessProtocol.Awareness
   setConnected: () => void
@@ -15,7 +19,7 @@ type CollabRoomOptions = {
 }
 
 export type CollabRoomConnection = {
-  room: Room
+  room: CollabTransportRoom
   sendYjsUpdate: (data: Uint8Array, peerId?: string) => void
   sendAwareness: (data: Uint8Array, peerId?: string) => void
   sendSyncStep1: (data: Uint8Array, peerId?: string) => void
@@ -24,39 +28,19 @@ export type CollabRoomConnection = {
 export function connectCollabRoom({
   roomId,
   password,
+  hostOrigin,
+  onError,
   ydoc,
   awareness,
   setConnected,
   updatePeersList
 }: CollabRoomOptions): CollabRoomConnection {
-  const room = joinTrysteroRoom(
-    {
-      appId: TRYSTERO_APP_ID,
-      password: password?.trim() || undefined,
-      relayUrls: ['wss://broker.hivemq.com:8884/mqtt', 'wss://test.mosquitto.org:8081/mqtt'],
-      rtcConfig: {
-        iceServers: [
-          { urls: 'stun:stun.l.google.com:19302' },
-          { urls: 'stun:stun1.l.google.com:19302' },
-          { urls: 'stun:stun2.l.google.com:19302' },
-          { urls: 'stun:stun.cloudflare.com:3478' }
-        ]
-      }
-    },
-    roomId
-  )
+  const room = openCollabTransport({ roomId, password, hostOrigin, onError })
 
-  const [sendUpdate, getUpdate] = room.makeAction<Uint8Array>('yjs-update')
-  const [sendAw, getAw] = room.makeAction<Uint8Array>('awareness')
-  const [sendSync, getSync] = room.makeAction<Uint8Array>('sync-step1')
-  const [sendSyncReply, getSyncReply] = room.makeAction<Uint8Array>('sync-reply')
-
-  const sendYjsUpdate = (data: Uint8Array, peerId?: string) =>
-    void (peerId ? sendUpdate(data, peerId) : sendUpdate(data))
-  const sendAwareness = (data: Uint8Array, peerId?: string) =>
-    void (peerId ? sendAw(data, peerId) : sendAw(data))
-  const sendSyncStep1 = (data: Uint8Array, peerId?: string) =>
-    void (peerId ? sendSync(data, peerId) : sendSync(data))
+  const [sendYjsUpdate, getUpdate] = room.makeAction('yjs-update')
+  const [sendAwareness, getAw] = room.makeAction('awareness')
+  const [sendSyncStep1, getSync] = room.makeAction('sync-step1')
+  const [sendSyncReply, getSyncReply] = room.makeAction('sync-reply')
 
   getUpdate((data) => {
     Y.applyUpdate(ydoc, new Uint8Array(data), 'remote')
@@ -69,7 +53,7 @@ export function connectCollabRoom({
   getSync((data, peerId) => {
     const sv = new Uint8Array(data)
     const update = Y.encodeStateAsUpdate(ydoc, sv)
-    void sendSyncReply(update, peerId)
+    sendSyncReply(update, peerId)
   })
 
   getSyncReply((data) => {

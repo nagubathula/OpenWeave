@@ -94,6 +94,12 @@ const bridge: DesktopBridge = {
   process: {
     spawn: spawnProcess
   },
+  collab: {
+    relayEndpoint: () => ipcRenderer.invoke('collab:relayEndpoint'),
+    startLocalShare: () => ipcRenderer.invoke('collab:startLocalShare'),
+    stopLocalShare: () => ipcRenderer.invoke('collab:stopLocalShare'),
+    localShareStatus: () => ipcRenderer.invoke('collab:localShareStatus')
+  },
   tunnel: {
     start: () => ipcRenderer.invoke('collab:startShareTunnel'),
     stop: () => ipcRenderer.invoke('collab:stopShareTunnel'),

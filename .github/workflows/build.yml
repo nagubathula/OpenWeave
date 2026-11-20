@@ -27,6 +27,10 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - uses: ./.github/actions/setup-bun
+        with:
+          # Installs the ngrok native addon for every architecture packaged
+          # on this runner (e.g. Windows x64 and arm64), not just the host's.
+          install-args: --frozen-lockfile '--cpu=*'
 
       # Tags publish installers plus the electron-updater feed (latest*.yml)
       # to a draft GitHub Release; manual runs only upload workflow artifacts.

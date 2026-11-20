@@ -2,24 +2,24 @@ import { persistentAtom } from '@nanostores/persistent'
 import { atom } from 'nanostores'
 
 import { getDesktopBridge } from '@/app/desktop/env'
+import type { DesktopShareTunnelErrorCode } from '@/app/desktop/types'
 
 /**
- * ngrok share tunnel. Collaboration is P2P (Trystero/WebRTC), so
- * the hosted web app's only role is delivering the editor to invitees. The
- * desktop or local server can serve through an ngrok ephemeral URL instead,
- * so sharing works without a public domain.
+ * ngrok share tunnel. The desktop app serves the editor and its collab relay
+ * from one loopback server and tunnels it with the bundled ngrok SDK, so
+ * invitees load the app and collaborate through the same public URL without
+ * any other service.
  */
+
+export type ShareTunnelErrorCode = DesktopShareTunnelErrorCode | 'unsupported'
 
 export type ShareTunnelState =
   | { status: 'idle' }
   | { status: 'starting' }
   | { status: 'active'; url: string }
-  | { status: 'error'; error: string }
+  | { status: 'error'; code: ShareTunnelErrorCode; error: string }
 
-export const savedTunnelUrl = persistentAtom<string>(
-  'op-ngrok-url',
-  'https://smoked-puritan-swarm.ngrok-free.dev'
-)
+export const savedTunnelUrl = persistentAtom<string>('op-ngrok-url', '')
 
 export const shareTunnelState = atom<ShareTunnelState>(
   savedTunnelUrl.get() ? { status: 'active', url: savedTunnelUrl.get() } : { status: 'idle' }
@@ -73,30 +73,36 @@ export async function startShareTunnel(): Promise<string | null> {
 
   shareTunnelState.set({ status: 'starting' })
 
-  // 1. Try native desktop backend (Electron main process)
+  // Desktop: the main process tunnels its share server (app files + relay).
+  // Any other local ngrok tunnel would not carry the relay, so don't adopt one.
   if (isDesktopAvailable()) {
     try {
-      const { url } = await desktopTunnel().start()
-      if (url) {
-        shareTunnelState.set({ status: 'active', url })
-        return url
+      const result = await desktopTunnel().start()
+      if (result.ok) {
+        savedTunnelUrl.set(result.url)
+        shareTunnelState.set({ status: 'active', url: result.url })
+        return result.url
       }
+      shareTunnelState.set({ status: 'error', code: result.code, error: result.message })
     } catch {
-      // Fall through to check direct 4040 API before reporting error
+      shareTunnelState.set({
+        status: 'error',
+        code: 'failed',
+        error: 'The ngrok tunnel could not be started.'
+      })
     }
+    return null
   }
 
-  // 2. Try direct local ngrok API (e.g. if running in browser or already spawned)
   const localUrl = await queryLocalNgrokApi()
   if (localUrl) {
     shareTunnelState.set({ status: 'active', url: localUrl })
     return localUrl
   }
-
   shareTunnelState.set({
     status: 'error',
-    error:
-      'ngrok tunnel could not be started. Ensure ngrok is installed or run "ngrok http 1420" in terminal.'
+    code: 'unsupported',
+    error: 'ngrok tunnel could not be started. Share from the OpenWeave desktop app.'
   })
   return null
 }
@@ -121,16 +127,16 @@ export async function syncShareTunnelStatus(): Promise<void> {
   }
 
   if (isDesktopAvailable()) {
+    // The main process is authoritative: a URL saved by an earlier launch
+    // forwarded a share server port that no longer exists.
     try {
       const url = await desktopTunnel().status()
-      if (url) {
-        savedTunnelUrl.set(url)
-        shareTunnelState.set({ status: 'active', url })
-        return
-      }
+      savedTunnelUrl.set(url ?? '')
+      shareTunnelState.set(url ? { status: 'active', url } : { status: 'idle' })
     } catch {
-      // Fall through
+      shareTunnelState.set({ status: 'idle' })
     }
+    return
   }
 
   const localUrl = await queryLocalNgrokApi()

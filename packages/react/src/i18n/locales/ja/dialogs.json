@@ -251,5 +251,17 @@
   "zoomForMobileLabel": "モバイル画面用のズーム率",
   "displayPresetsTitle": "ディスプレイのプリセット",
   "saveAndZoomRealSize": "保存して実寸大にズーム",
-  "resetToDefault": "デフォルトに戻す"
+  "resetToDefault": "デフォルトに戻す",
+  "settingsSharing": "共有",
+  "sharingTunnel": "ngrok トンネル",
+  "sharingTunnelDescription": "共有リンクは OpenWeave に組み込まれた ngrok トンネルを経由します。ngrok の authtoken を貼り付けてください（無料プランで利用できます）。",
+  "sharingAuthtoken": "Authtoken",
+  "sharingAuthtokenPlaceholder": "ngrok の authtoken を貼り付け",
+  "sharingSavedAuthtoken": "保存済み",
+  "sharingSavedAuthtokenPlaceholder": "保存済み — 置き換えるには新しい authtoken を入力",
+  "sharingSaveAuthtoken": "authtoken を保存",
+  "sharingClearAuthtoken": "クリア",
+  "sharingGetAuthtoken": "authtoken を取得",
+  "sharingAuthtokenFallback": "authtoken が保存されていない場合、OpenWeave は NGROK_AUTHTOKEN または ngrok エージェントの設定を使用します。",
+  "openSharingSettings": "共有設定を開く"
 }

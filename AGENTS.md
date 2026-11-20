@@ -94,6 +94,10 @@ App dialogs compose the Reka-backed components under `src/components/ui/dialog/`
 7. The production web app/docs deploy workflows (`app.yml`, `docs.yml`) also trigger on `v*` tags. They do **not** deploy on ordinary `master` pushes.
 8. Go to GitHub Releases → edit the draft → paste changelog section → publish
 
+### Windows-only desktop release
+
+To ship just the Windows app (no npm publish, no web/docs deploy), set the root `package.json` version, commit, and push a `desktop-v<version>` tag (e.g. `git tag desktop-v0.14.0 && git push origin desktop-v0.14.0`). `.github/workflows/desktop-windows.yml` builds the NSIS installer (x64 + arm64) and creates a draft GitHub Release under that tag with the installer, blockmap, and `latest.yml` updater feed. Publish the draft (marked Latest) for in-app updates to see it. Never publish it under a `v*` tag: that would trigger the full release pipeline.
+
 ### CI workflows
 
 Key workflows live in `.github/workflows/`. Use `build.yml` as the source of truth for release packaging and npm publishing, `ci.yml` / `heavy-tests.yml` for validation gates, and `app.yml` / `docs.yml` for Cloudflare Pages deploys.
@@ -156,7 +160,7 @@ Keep this section light; implementation details move often.
 
 - ACP UI/transport lives under `src/app/ai/acp/**`; provider definitions live in `packages/core/src/constants.ts`; app prompts live under `src/app/ai/**`. Direct model configuration lives under `src/app/ai/models/**`: reusable profiles reference provider connections, roles resolve to profiles, and runtime creation resolves credentials lazily. Keep model profiles, provider connections, and role assignments separate rather than returning to singleton provider/model settings. Public docs: `packages/docs/programmable/ai-chat.md` and `packages/docs/programmable/mcp-server.md`.
 - ACP agents and the MCP server are spawned by the Electron main process (`process:spawn` in `desktop-electron/main.ts`); Windows runs them through the shell so npm `.cmd` shims resolve.
-- Collaboration lives under `src/app/collab/**` and is documented in `packages/docs/programmable/collaboration.md`. It uses Trystero + Yjs + awareness; preserve crypto-safe room IDs and peer cleanup semantics when changing it.
+- Collaboration lives under `src/app/collab/**` with one session per tab (`src/app/collab/tabs.ts`; `CollabProvider` exposes the active tab's, and canvas awareness resolves the session by store) and is documented in `packages/docs/programmable/collaboration.md`. It uses Yjs + awareness over a transport chosen in `src/app/collab/transport/`: the desktop app hosts a WebSocket relay (`desktop-electron/collab-relay.ts`, wire protocol in `src/app/collab/relay/protocol.ts`) on the same loopback share server that ngrok tunnels, and Trystero WebRTC remains the fallback for statically hosted web builds. Only the host window's per-launch token may open relay rooms. Preserve crypto-safe room IDs and peer cleanup semantics when changing it.
 
 ## Code conventions
 
@@ -323,11 +327,12 @@ Self-review checklist:
 
 ## Desktop (Electron)
 
-- The Electron shell lives under `desktop-electron/`: `main.ts` (window, IPC handlers), `preload.ts` (the typed `window.electron` bridge), and focused main-process modules (`credentials.ts`, `http-proxy.ts`, `clipboard.ts`, `fonts.ts`, `tunnel.ts`, `updater.ts`, `app-assets.ts`, `menu.ts`).
+- The Electron shell lives under `desktop-electron/`: `main.ts` (window, IPC handlers), `preload.ts` (the typed `window.electron` bridge), and focused main-process modules (`credentials.ts`, `http-proxy.ts`, `clipboard.ts`, `fonts.ts`, `tunnel/`, `share-server.ts`, `collab-relay.ts`, `updater.ts`, `app-assets.ts`, `menu.ts`).
 - `src/app/desktop/types.ts` is the bridge contract (`DesktopBridge`) shared by preload and renderer. Add a capability by extending that type, the preload, and a `handle()`d IPC channel in `main.ts`; never expose `ipcRenderer` itself.
 - IPC handlers only answer the main window's top frame on the trusted origin (`app://openweave` packaged, `DEV_URL` in dev). Keep new handlers behind `handle()`.
 - The window is frameless-style (`titleBarStyle: 'hidden'`): `src/components/tab-bar/TabBar.tsx` is the title bar on desktop (always visible, `-webkit-app-region: drag`, controls `no-drag`), with native controls via `titleBarOverlay` on Windows/Linux and traffic lights on macOS. Windows/Linux show no native menu bar, so `target: 'native'` schema items also render in the in-app menu on desktop.
-- Packaged builds load the static export from the privileged `app://openweave` scheme (a stable origin, so storage persists across launches); the ngrok share tunnel serves the same files over a loopback HTTP server.
+- Packaged builds load the static export from the privileged `app://openweave` scheme (a stable origin, so storage persists across launches); the ngrok share tunnel forwards a loopback share server (`share-server.ts`) that serves the same files (or proxies the Next dev server in dev) and hosts the collab relay at `/collab`. "Share locally" adds a second listener on all interfaces (`startLan()`), and links use the address from `lan-address.ts`.
+- The share tunnel runs in-process with the `@ngrok/ngrok` SDK (`desktop-electron/tunnel/`). Its native addon cannot load from `app.asar`, so `desktop:bundle` stages it with `tools/desktop-ngrok` and electron-builder copies it into `resources/node_modules` per platform/arch (CI installs every arch with `--cpu=*`). The main process reads the authtoken (`NGROK_AUTHTOKEN_CREDENTIAL`, set in Settings › Sharing) from its own credential store, then falls back to `NGROK_AUTHTOKEN` and the ngrok agent config.
 - Main-process modules that don't import `electron` are unit-tested in `tests/engine/desktop/`.
 - Dev tools: add or use a menu item to toggle, don't rely on keyboard shortcuts.
 

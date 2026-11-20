@@ -251,5 +251,17 @@
   "zoomForMobileLabel": "Масштаб для экрана смартфона",
   "displayPresetsTitle": "Предустановки дисплея",
   "saveAndZoomRealSize": "Сохранить и масштабировать в 1:1",
-  "resetToDefault": "Сбросить по умолчанию"
+  "resetToDefault": "Сбросить по умолчанию",
+  "settingsSharing": "Общий доступ",
+  "sharingTunnel": "Туннель ngrok",
+  "sharingTunnelDescription": "Ссылки для общего доступа работают через встроенный в OpenWeave туннель ngrok. Вставьте свой authtoken ngrok; бесплатного тарифа достаточно.",
+  "sharingAuthtoken": "Authtoken",
+  "sharingAuthtokenPlaceholder": "Вставьте authtoken ngrok",
+  "sharingSavedAuthtoken": "Сохранено",
+  "sharingSavedAuthtokenPlaceholder": "Сохранено — введите новый authtoken для замены",
+  "sharingSaveAuthtoken": "Сохранить authtoken",
+  "sharingClearAuthtoken": "Очистить",
+  "sharingGetAuthtoken": "Получить authtoken",
+  "sharingAuthtokenFallback": "Если authtoken не сохранён, OpenWeave использует NGROK_AUTHTOKEN или конфигурацию агента ngrok, если она есть.",
+  "openSharingSettings": "Открыть настройки общего доступа"
 }

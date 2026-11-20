@@ -8,7 +8,15 @@
     "esModuleInterop": true,
     "resolveJsonModule": true,
     "noEmit": true,
-    "types": ["node"]
+    "types": ["node"],
+    "paths": { "@/*": ["../src/*"] }
   },
-  "include": ["*.ts", "generated/*.json", "../src/app/desktop/types.ts"]
+  "include": [
+    "*.ts",
+    "tunnel/*.ts",
+    "generated/*.json",
+    "../src/app/desktop/types.ts",
+    "../src/app/collab/relay/protocol.ts",
+    "../src/app/collab/tunnel/credential.ts"
+  ]
 }

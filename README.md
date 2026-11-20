@@ -30,7 +30,7 @@ Or download from the [releases page](https://github.com/openweave/openweave/rele
 - **Image vectorization** — convert image layers into editable vector layers with Recraft or fal.ai
 - **Design-to-code export** — export selections as JSX/Tailwind, generate token outputs, and map designs into component-oriented code workflows
 - **React SDK for custom editors** — headless components and composables for embedding OpenWeave into other apps or building workflow-specific editing surfaces. [Read the SDK docs →](https://openweave.dev/programmable/sdk/)
-- **Real-time collaboration** — P2P via WebRTC, no server, no account. Cursors, presence, follow mode
+- **Real-time collaboration** — hosted by the desktop app and shared over one ngrok link, no account or cloud service. Cursors, presence, follow mode
 - **Auto layout & CSS Grid** — flex and grid layout via Yoga WASM, with gap, padding, alignment, track sizing
 - **Desktop app** — Electron for macOS, Windows, and Linux, with OS-keychain credential storage and auto-updates. Also runs in the browser as a PWA
 
@@ -232,12 +232,13 @@ For documentation-aware agents, the docs site publishes [llms.txt](https://openw
 
 ## Collaboration
 
-Share a link to co-edit in real time. No server, no account — peers connect directly via WebRTC.
+Share a link to co-edit in real time. The desktop app hosts the session and ngrok exposes it, so there is no account or cloud service, and editing works offline.
 
-1. Click the share button in the top-right panel
-2. Share the generated link (`app.openweave.dev/share/<room-id>`)
-3. Collaborators see your cursor, selection, and edits in real time
-4. Click a peer's avatar to follow their viewport
+1. Add your [ngrok authtoken](https://dashboard.ngrok.com/get-started/your-authtoken) in **Settings › Sharing** (once; the free plan works). ngrok is built into the app, so there's nothing else to install
+2. Click the share button in the top-right panel and choose **Share via ngrok tunnel** (or **Share locally only** for people on your network, no internet needed)
+3. Share the generated link (`https://<your-tunnel>/share?room=<room-id>`); invitees only need a browser
+4. Collaborators see your cursor, selection, and edits in real time
+5. Click a peer's avatar to follow their viewport
 
 ## Why
 
@@ -293,7 +294,7 @@ tests/            E2E, visual, engine, and integration tests
 | Layout        | Yoga WASM (flex + grid via [fork](https://github.com/openweave/yoga/tree/grid)) |
 | UI            | React/Next.js, Reka UI, Tailwind CSS 4                                                    |
 | File format   | Kiwi binary + Zstd + ZIP                                                          |
-| Collaboration | Trystero (WebRTC P2P) + Yjs (CRDT)                                                |
+| Collaboration | Desktop-hosted WebSocket relay over ngrok + Yjs (CRDT); Trystero WebRTC fallback  |
 | Desktop       | Electron + electron-builder                                                       |
 | AI/MCP        | Multi-provider (Anthropic, OpenAI, Google AI, OpenRouter), MCP SDK, Hono          |
 

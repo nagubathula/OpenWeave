@@ -1,6 +1,8 @@
 # Desktop packaging for OpenWeave (Electron). Run `bun run desktop:build`.
 # Main/preload are bundled into desktop-electron/dist by `desktop:bundle`, and
-# the renderer is the Next static export in dist/, so no node_modules ship.
+# the renderer is the Next static export in dist/, so no node_modules ship in
+# the asar. The one runtime package, the ngrok SDK (a native addon), is staged
+# by `desktop:bundle` and copied unpacked into resources/node_modules.
 appId: dev.openweave.app
 productName: OpenWeave
 copyright: Copyright © OpenWeave contributors
@@ -19,6 +21,13 @@ files:
   - '!dist/cache/**'
   - '!dist/mockServiceWorker.js'
 asar: true
+extraResources:
+  # The SDK plus only the addon for the platform and architecture being built.
+  - from: desktop-electron/dist/node_modules/@ngrok
+    to: node_modules/@ngrok
+    filter:
+      - ngrok/**
+      - ngrok-${platform}-${arch}*/**
 fileAssociations:
   - ext: fig
     name: Figma Design
@@ -45,6 +54,9 @@ win:
     - target: nsis
       arch: [x64, arm64]
 nsis:
+  # No spaces: GitHub turns spaces in asset names into dots, but the
+  # electron-updater feed (latest.yml) expects dashes.
+  artifactName: ${productName}-Setup-${version}.${ext}
   oneClick: false
   perMachine: false
   allowToChangeInstallationDirectory: true

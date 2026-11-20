@@ -251,5 +251,17 @@
   "zoomForMobileLabel": "Zoom dla ekranu telefonu",
   "displayPresetsTitle": "Profile wyświetlacza",
   "saveAndZoomRealSize": "Zapisz i powiększ do rozmiaru rzeczywistego",
-  "resetToDefault": "Przywróć domyślne"
+  "resetToDefault": "Przywróć domyślne",
+  "settingsSharing": "Udostępnianie",
+  "sharingTunnel": "Tunel ngrok",
+  "sharingTunnelDescription": "Linki do udostępniania działają przez tunel ngrok wbudowany w OpenWeave. Wklej swój authtoken ngrok; darmowy plan wystarczy.",
+  "sharingAuthtoken": "Authtoken",
+  "sharingAuthtokenPlaceholder": "Wklej swój authtoken ngrok",
+  "sharingSavedAuthtoken": "Zapisano",
+  "sharingSavedAuthtokenPlaceholder": "Zapisano — wpisz nowy authtoken, aby go zastąpić",
+  "sharingSaveAuthtoken": "Zapisz authtoken",
+  "sharingClearAuthtoken": "Wyczyść",
+  "sharingGetAuthtoken": "Pobierz authtoken",
+  "sharingAuthtokenFallback": "Bez zapisanego authtokenu OpenWeave używa NGROK_AUTHTOKEN lub konfiguracji agenta ngrok, jeśli istnieje.",
+  "openSharingSettings": "Otwórz ustawienia udostępniania"
 }

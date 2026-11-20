@@ -15,6 +15,8 @@ export interface CollabState {
   localName: string
   localColor: Color
   isProtected?: boolean
+  /** Origin of the host's share server when this window joined another host's room. */
+  hostOrigin?: string
 }
 
 export const DEFAULT_COLLAB_STATE: CollabState = {

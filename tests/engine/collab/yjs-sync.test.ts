@@ -237,6 +237,84 @@ describe('collab yjs-sync', () => {
     })
   })
 
+  test('a large multi-page document with images reaches the peer in one initial sync', () => {
+    withSyncedStores(({ hostStore, peerStore, hostSync }) => {
+      const graph = hostStore.graph
+      const pages = [firstPage(graph), graph.addPage('Page 2'), graph.addPage('Page 3')]
+      const image = new Uint8Array(4 * 1024 * 1024).fill(7)
+      graph.images.set('hash-big', image)
+      for (const page of pages) {
+        for (let screen = 0; screen < 40; screen++) {
+          const frame = graph.createNode('FRAME', page.id, { name: `screen-${screen}` })
+          for (let layer = 0; layer < 10; layer++) {
+            graph.createNode('RECTANGLE', frame.id, { x: layer * 10, width: 8, height: 8 })
+          }
+        }
+      }
+      const imageLayer = graph.createNode('RECTANGLE', pages[0].id, { name: 'image' })
+      graph.updateNode(imageLayer.id, {
+        fills: [
+          { type: 'IMAGE', imageHash: 'hash-big', scaleMode: 'FILL', visible: true, opacity: 1 }
+        ] as Fill[]
+      })
+
+      hostSync.syncAllNodesToYjs()
+
+      expect(peerStore.graph.getPages().map((page) => page.name)).toEqual([
+        'Page 1',
+        'Page 2',
+        'Page 3'
+      ])
+      expect(peerStore.graph.getAllNodes().length).toBe(graph.getAllNodes().length)
+      expect(peerStore.graph.images.get('hash-big')?.byteLength).toBe(image.byteLength)
+    })
+  })
+
+  test('a node that fails to apply does not block the rest of the sync', () => {
+    withSyncedStores(({ hostStore, peerStore, hostSync }) => {
+      const hostPage = firstPage(hostStore.graph)
+      const bad = hostStore.graph.createNode('RECTANGLE', hostPage.id, { name: 'bad' })
+      const good = hostStore.graph.createNode('RECTANGLE', hostPage.id, { name: 'good' })
+      const createNodeWithId = peerStore.graph.createNodeWithId.bind(peerStore.graph)
+      peerStore.graph.createNodeWithId = (id, ...rest) => {
+        if (id === bad.id) throw new Error('malformed node')
+        return createNodeWithId(id, ...rest)
+      }
+      const originalError = console.error
+      console.error = () => {}
+      try {
+        hostSync.syncAllNodesToYjs()
+      } finally {
+        console.error = originalError
+      }
+
+      expect(peerStore.graph.getNode(bad.id)).toBeUndefined()
+      expect(getNodeOrThrow(peerStore.graph, good.id).name).toBe('good')
+    })
+  })
+
+  test('re-syncing a node writes only the properties that changed', () => {
+    const graph = new SceneGraph()
+    const rect = graph.createNode('RECTANGLE', firstPage(graph).id, { width: 50, height: 50 })
+    const doc = new Y.Doc()
+    const ynode = new Y.Map<unknown>()
+    doc.getMap<Y.Map<unknown>>('nodes').set(rect.id, ynode)
+    syncNodePropsToYMap(rect, ynode)
+
+    let changed: string[] = []
+    ynode.observe((event) => changed.push(...event.keysChanged))
+    graph.updateNode(rect.id, { x: 12 })
+    syncNodePropsToYMap(getNodeOrThrow(graph, rect.id), ynode)
+    expect(changed).toContain('x')
+    for (const untouched of ['width', 'height', 'fills', 'strokes', 'name', 'childIds']) {
+      expect(changed).not.toContain(untouched)
+    }
+
+    changed = []
+    syncNodePropsToYMap(getNodeOrThrow(graph, rect.id), ynode)
+    expect(changed).toEqual([])
+  })
+
   test('live-created and edited nodes sync in both directions', () => {
     withSyncedStores(({ hostStore, peerStore, hostSync, peerSync }) => {
       const hostPage = firstPage(hostStore.graph)
