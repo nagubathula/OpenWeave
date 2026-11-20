@@ -263,5 +263,15 @@
   "sharingClearAuthtoken": "クリア",
   "sharingGetAuthtoken": "authtoken を取得",
   "sharingAuthtokenFallback": "authtoken が保存されていない場合、OpenWeave は NGROK_AUTHTOKEN または ngrok エージェントの設定を使用します。",
-  "openSharingSettings": "共有設定を開く"
+  "openSharingSettings": "共有設定を開く",
+  "pluginsDescription": "Figma 形式のプラグインを実行します。プラグインのコードはサンドボックス内で動作し、ファイル、保存済みの認証情報、ネットワークにはアクセスできません。",
+  "installPluginFolder": "フォルダからインストール…",
+  "noPluginsInstalled": "プラグインはまだありません。manifest.json を含むプラグインフォルダをインストールしてください。",
+  "runPlugin": "実行",
+  "removePlugin": "削除",
+  "pluginInstalled": "{name} をインストールしました",
+  "pluginInstallFailed": "プラグインをインストールできませんでした: {reason}",
+  "pluginRunning": "{name} を実行中",
+  "stopPlugin": "停止",
+  "noLastPlugin": "まだプラグインを実行していません。プラグイン › プラグインを管理… から実行してください。"
 }

@@ -162,6 +162,10 @@ Keep this section light; implementation details move often.
 - ACP agents and the MCP server are spawned by the Electron main process (`process:spawn` in `desktop-electron/main.ts`); Windows runs them through the shell so npm `.cmd` shims resolve.
 - Collaboration lives under `src/app/collab/**` with one session per tab (`src/app/collab/tabs.ts`; `CollabProvider` exposes the active tab's, and canvas awareness resolves the session by store) and is documented in `packages/docs/programmable/collaboration.md`. It uses Yjs + awareness over a transport chosen in `src/app/collab/transport/`: the desktop app hosts a WebSocket relay (`desktop-electron/collab-relay.ts`, wire protocol in `src/app/collab/relay/protocol.ts`) on the same loopback share server that ngrok tunnels, and Trystero WebRTC remains the fallback for statically hosted web builds. Only the host window's per-launch token may open relay rooms. Preserve crypto-safe room IDs and peer cleanup semantics when changing it.
 
+## Plugins
+
+Figma-style plugins live under `src/app/plugins/`: `sandbox/` runs plugin code in QuickJS (`quickjs-emscripten-core` with the single-file WASM build) behind a handle/proxy bridge (`codec.ts` on the host, `bootstrap.ts` inside the sandbox); `host.ts` adds the plugin-only `figma` members (UI, messages, notify, clientStorage, events, live viewport) and keeps selection, page, layout, render, and undo in step after each call into the sandbox; `install.ts`, `manifest.ts`, and `storage.ts` (IndexedDB) handle installation. The UI lives in `src/components/plugins/` and mounts at page level, outside the per-tab `EditorProvider`, so a running plugin survives tab switches. Never run plugin code with `new Function`/`eval` in the page, and keep the UI iframe without `allow-same-origin`. Public docs: `packages/docs/programmable/plugins.md`.
+
 ## Code conventions
 
 - Do not place code or tests ad hoc. Before adding or moving files, inspect the existing folder structure and nearby patterns, then put changes in the established domain-specific location. If no proper location exists, create one deliberately and update docs/conventions as needed.

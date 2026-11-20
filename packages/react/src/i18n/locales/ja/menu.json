@@ -65,5 +65,8 @@
   "zoomRealSize": "実寸大",
   "zoomRealMobile": "実寸大モバイル",
   "calibrateScale": "ディスプレイ比率を調整…",
-  "insertCreditCard": "カードの縮尺参照を挿入"
+  "insertCreditCard": "カードの縮尺参照を挿入",
+  "plugins": "プラグイン",
+  "managePlugins": "プラグインを管理…",
+  "runLastPlugin": "前回のプラグインを実行"
 }

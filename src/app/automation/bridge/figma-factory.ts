@@ -13,10 +13,12 @@ export function makeFigmaFromStore(
   api.currentPage.selection = [...store.state.selectedIds]
     .map((id) => api.getNodeById(id))
     .filter((n): n is NonNullable<typeof n> => n !== null)
+  const viewportWidth = typeof window !== 'undefined' ? window.innerWidth : 0
+  const viewportHeight = typeof window !== 'undefined' ? window.innerHeight : 0
   api.viewport = {
     center: {
-      x: (-store.state.panX + window.innerWidth / 2) / store.state.zoom,
-      y: (-store.state.panY + window.innerHeight / 2) / store.state.zoom
+      x: (-store.state.panX + viewportWidth / 2) / store.state.zoom,
+      y: (-store.state.panY + viewportHeight / 2) / store.state.zoom
     },
     zoom: store.state.zoom
   }

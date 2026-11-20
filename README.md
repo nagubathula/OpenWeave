@@ -30,6 +30,7 @@ Or download from the [releases page](https://github.com/openweave/openweave/rele
 - **Image vectorization** — convert image layers into editable vector layers with Recraft or fal.ai
 - **Design-to-code export** — export selections as JSX/Tailwind, generate token outputs, and map designs into component-oriented code workflows
 - **React SDK for custom editors** — headless components and composables for embedding OpenWeave into other apps or building workflow-specific editing surfaces. [Read the SDK docs →](https://openweave.dev/programmable/sdk/)
+- **Figma-style plugins** — install plugin folders and run them sandboxed against the Figma-compatible plugin API, with their own UI. [Plugin docs →](https://openweave.dev/programmable/plugins)
 - **Real-time collaboration** — hosted by the desktop app and shared over one ngrok link, no account or cloud service. Cursors, presence, follow mode
 - **Auto layout & CSS Grid** — flex and grid layout via Yoga WASM, with gap, padding, alignment, track sizing
 - **Desktop app** — Electron for macOS, Windows, and Linux, with OS-keychain credential storage and auto-updates. Also runs in the browser as a PWA

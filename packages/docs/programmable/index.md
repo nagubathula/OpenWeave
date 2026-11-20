@@ -6,7 +6,7 @@ description: AI chat, CLI, JSX renderer, MCP server, and other automation surfac
 
 # Automation
 
-OpenWeave treats design files as data. Every operation available in the editor — creating shapes, setting fills, managing auto-layout, exporting assets — is also available from the terminal, from AI agents, and from code. No plugins to install, no API keys, no waiting list.
+OpenWeave treats design files as data. Every operation available in the editor — creating shapes, setting fills, managing auto-layout, exporting assets — is also available from the terminal, from AI agents, from plugins, and from code. No API keys, no waiting list.
 
 The editor UI and the automation interfaces use the same engine. If you can do it by clicking, you can do it by scripting.
 
@@ -26,9 +26,15 @@ The built-in assistant has access to 87 tools that cover the full surface of the
 
 ## Collaboration
 
-Real-time multiplayer editing over peer-to-peer WebRTC. No server, no account. Share a room link and edit together with live cursors and follow mode. Document state syncs via CRDT, so edits merge automatically even on flaky connections.
+Real-time multiplayer editing hosted by the desktop app and shared over one ngrok link, or over your local network with no internet at all. No account. Share a room link and edit together with live cursors and follow mode. Document state syncs via CRDT, so edits merge automatically even on flaky connections.
 
 [Collaboration →](./collaboration)
+
+## Plugins
+
+Run Figma-style plugins: install a plugin folder with a `manifest.json`, and its code runs in a sandbox against the Figma-compatible plugin API, with its UI in an isolated iframe.
+
+[Plugins →](./plugins)
 
 ## React SDK
 

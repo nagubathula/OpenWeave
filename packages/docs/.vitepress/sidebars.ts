@@ -77,6 +77,8 @@ export const programmableSidebar = (
           ]
         : []),
       { text: labels.collaboration, link: `${prefix}/programmable/collaboration` },
+      // English-only for now: localized sidebars link to the canonical page.
+      { text: labels.plugins, link: '/programmable/plugins' },
     ],
   },
 ]

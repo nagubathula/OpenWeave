@@ -263,5 +263,15 @@
   "sharingClearAuthtoken": "Borrar",
   "sharingGetAuthtoken": "Obtener authtoken",
   "sharingAuthtokenFallback": "Sin un authtoken guardado, OpenWeave usa NGROK_AUTHTOKEN o la configuración de tu agente de ngrok, si existe.",
-  "openSharingSettings": "Abrir ajustes de Compartir"
+  "openSharingSettings": "Abrir ajustes de Compartir",
+  "pluginsDescription": "Ejecuta plugins al estilo de Figma. El código del plugin se ejecuta en un entorno aislado sin acceso a tus archivos, credenciales guardadas ni a la red.",
+  "installPluginFolder": "Instalar desde carpeta…",
+  "noPluginsInstalled": "Aún no hay plugins. Instala una carpeta de plugin que contenga un manifest.json.",
+  "runPlugin": "Ejecutar",
+  "removePlugin": "Quitar",
+  "pluginInstalled": "{name} instalado",
+  "pluginInstallFailed": "No se pudo instalar el plugin: {reason}",
+  "pluginRunning": "{name} se está ejecutando",
+  "stopPlugin": "Detener",
+  "noLastPlugin": "Aún no se ha ejecutado ningún plugin. Abre Plugins › Gestionar plugins… para ejecutar uno."
 }

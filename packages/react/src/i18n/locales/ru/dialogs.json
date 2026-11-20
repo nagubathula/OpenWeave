@@ -263,5 +263,15 @@
   "sharingClearAuthtoken": "Очистить",
   "sharingGetAuthtoken": "Получить authtoken",
   "sharingAuthtokenFallback": "Если authtoken не сохранён, OpenWeave использует NGROK_AUTHTOKEN или конфигурацию агента ngrok, если она есть.",
-  "openSharingSettings": "Открыть настройки общего доступа"
+  "openSharingSettings": "Открыть настройки общего доступа",
+  "pluginsDescription": "Запускайте плагины в стиле Figma. Код плагина выполняется в песочнице без доступа к вашим файлам, сохранённым учётным данным и сети.",
+  "installPluginFolder": "Установить из папки…",
+  "noPluginsInstalled": "Плагинов пока нет. Установите папку плагина с файлом manifest.json.",
+  "runPlugin": "Запустить",
+  "removePlugin": "Удалить",
+  "pluginInstalled": "{name} установлен",
+  "pluginInstallFailed": "Не удалось установить плагин: {reason}",
+  "pluginRunning": "{name} работает",
+  "stopPlugin": "Остановить",
+  "noLastPlugin": "Плагины ещё не запускались. Откройте Плагины › Управление плагинами…, чтобы запустить плагин."
 }

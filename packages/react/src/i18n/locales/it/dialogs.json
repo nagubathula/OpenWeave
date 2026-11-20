@@ -263,5 +263,15 @@
   "sharingClearAuthtoken": "Cancella",
   "sharingGetAuthtoken": "Ottieni authtoken",
   "sharingAuthtokenFallback": "Senza un authtoken salvato, OpenWeave usa NGROK_AUTHTOKEN o la configurazione dell’agente ngrok, se presente.",
-  "openSharingSettings": "Apri impostazioni di condivisione"
+  "openSharingSettings": "Apri impostazioni di condivisione",
+  "pluginsDescription": "Esegui plugin in stile Figma. Il codice del plugin gira in una sandbox senza accesso ai tuoi file, alle credenziali salvate o alla rete.",
+  "installPluginFolder": "Installa da cartella…",
+  "noPluginsInstalled": "Nessun plugin. Installa una cartella di plugin che contiene un manifest.json.",
+  "runPlugin": "Esegui",
+  "removePlugin": "Rimuovi",
+  "pluginInstalled": "{name} installato",
+  "pluginInstallFailed": "Impossibile installare il plugin: {reason}",
+  "pluginRunning": "{name} è in esecuzione",
+  "stopPlugin": "Interrompi",
+  "noLastPlugin": "Nessun plugin è stato ancora eseguito. Apri Plugin › Gestisci plugin… per eseguirne uno."
 }

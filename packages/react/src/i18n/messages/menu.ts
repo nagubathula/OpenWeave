@@ -7,6 +7,9 @@ export const menuMessageDefaults = {
   object: 'Object',
   arrange: 'Arrange',
   text: 'Text',
+  plugins: 'Plugins',
+  managePlugins: 'Manage plugins…',
+  runLastPlugin: 'Run last plugin',
 
   new: 'New',
   open: 'Open…',

@@ -466,5 +466,18 @@
         "label": "Distribute Vertical Spacing"
       }
     ]
+  },
+  {
+    "label": "Plugins",
+    "items": [
+      {
+        "id": "plugins.manage",
+        "label": "Manage Plugins…"
+      },
+      {
+        "id": "plugins.run-last",
+        "label": "Run Last Plugin"
+      }
+    ]
   }
 ]

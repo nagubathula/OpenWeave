@@ -65,5 +65,8 @@
   "zoomRealSize": "实际尺寸",
   "zoomRealMobile": "真实手机尺寸",
   "calibrateScale": "校准屏幕比例…",
-  "insertCreditCard": "插入信用卡参照物"
+  "insertCreditCard": "插入信用卡参照物",
+  "plugins": "插件",
+  "managePlugins": "管理插件…",
+  "runLastPlugin": "运行上次的插件"
 }

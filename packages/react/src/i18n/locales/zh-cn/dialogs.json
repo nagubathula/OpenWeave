@@ -263,5 +263,15 @@
   "sharingClearAuthtoken": "清除",
   "sharingGetAuthtoken": "获取 authtoken",
   "sharingAuthtokenFallback": "未保存 authtoken 时，OpenWeave 会使用 NGROK_AUTHTOKEN 或你的 ngrok 代理配置（如有）。",
-  "openSharingSettings": "打开共享设置"
+  "openSharingSettings": "打开共享设置",
+  "pluginsDescription": "运行 Figma 风格的插件。插件代码在沙箱中运行，无法访问你的文件、已保存的凭据或网络。",
+  "installPluginFolder": "从文件夹安装…",
+  "noPluginsInstalled": "还没有插件。请安装包含 manifest.json 的插件文件夹。",
+  "runPlugin": "运行",
+  "removePlugin": "移除",
+  "pluginInstalled": "已安装 {name}",
+  "pluginInstallFailed": "无法安装插件：{reason}",
+  "pluginRunning": "{name} 正在运行",
+  "stopPlugin": "停止",
+  "noLastPlugin": "还没有运行过插件。打开 插件 › 管理插件… 来运行一个。"
 }

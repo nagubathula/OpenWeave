@@ -351,5 +351,12 @@ export const APP_MENU_SCHEMA = [
         command: 'selection.distributeVertical'
       }
     ]
+  },
+  {
+    label: 'Plugins',
+    items: [
+      { id: 'plugins.manage', label: 'Manage Plugins…' },
+      { id: 'plugins.run-last', label: 'Run Last Plugin' }
+    ]
   }
 ] satisfies AppMenuGroupSchema[]

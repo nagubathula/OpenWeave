@@ -11,6 +11,8 @@ import { closeHome } from '@/app/home/store'
 import { kickSyncEngine } from '@/app/storage/sync'
 import { activeTabId, createTab, tabCount } from '@/app/tabs'
 import { EditorLayout } from '@/components/layout/EditorLayout'
+import PluginsDialog from '@/components/plugins/PluginsDialog'
+import PluginWindow from '@/components/plugins/PluginWindow'
 
 /**
  * Collab share entry point.
@@ -42,8 +44,13 @@ export default function SharePage() {
   if (!isReady || !store) return null
 
   return (
-    <EditorProvider key={currentTabId} value={store}>
-      <EditorLayout />
-    </EditorProvider>
+    <>
+      <EditorProvider key={currentTabId} value={store}>
+        <EditorLayout />
+      </EditorProvider>
+      {/* Outside the per-tab provider: a running plugin survives tab switches. */}
+      <PluginsDialog />
+      <PluginWindow />
+    </>
   )
 }

@@ -13,6 +13,8 @@
 
 ### Added
 
+- Run Figma-style plugins: install a plugin folder from **Plugins › Manage plugins…** and run it or one of its menu commands. Plugin code runs sandboxed in QuickJS against the Figma-compatible API (`showUI`, UI messaging, `notify`, `clientStorage`, events, viewport), its UI runs in an isolated iframe that honors `networkAccess`, and each batch of plugin edits is one undo step.
+- Plugin API: paints set without `opacity` or `visible` now default to `1` and `true`, as in Figma, instead of rendering invisible.
 - Measure distances dynamically on canvas with <kbd>Alt</kbd> (Option), rendering Figma-style target outlines, projection lines, and numeric dimension pills.
 - Create and manage canvas ruler guides by dragging from top and left rulers onto the canvas with live coordinate badges, existing guide repositioning, and deletion when dragged back onto rulers.
 - Full .fig prototype round-trip and canvas hotspot link connections, preserving variant CHANGE_TO (SWAP_STATE), spring & custom cubic bezier easing curves, overlay positions and scrim settings, flow starting point flags, and multi-action colored noodles.

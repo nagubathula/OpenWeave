@@ -34,6 +34,7 @@ export interface ProgrammableLabels {
   mcpServer: string
   aiChat: string
   collaboration: string
+  plugins: string
 }
 
 export interface NavLabels {
@@ -56,7 +57,8 @@ export const EN_PROG: ProgrammableLabels = {
   jsxRenderer: 'JSX Renderer',
   mcpServer: 'MCP Server',
   aiChat: 'AI Chat',
-  collaboration: 'Collaboration'
+  collaboration: 'Collaboration',
+  plugins: 'Plugins'
 }
 export const DE_PROG: ProgrammableLabels = {
   overview: 'Überblick',
@@ -68,7 +70,8 @@ export const DE_PROG: ProgrammableLabels = {
   jsxRenderer: 'JSX-Renderer',
   mcpServer: 'MCP-Server',
   aiChat: 'KI-Chat',
-  collaboration: 'Zusammenarbeit'
+  collaboration: 'Zusammenarbeit',
+  plugins: 'Plugins'
 }
 export const IT_PROG: ProgrammableLabels = {
   overview: 'Panoramica',
@@ -80,7 +83,8 @@ export const IT_PROG: ProgrammableLabels = {
   jsxRenderer: 'Renderer JSX',
   mcpServer: 'Server MCP',
   aiChat: 'Chat IA',
-  collaboration: 'Collaborazione'
+  collaboration: 'Collaborazione',
+  plugins: 'Plugin'
 }
 export const FR_PROG: ProgrammableLabels = {
   overview: 'Vue d’ensemble',
@@ -92,7 +96,8 @@ export const FR_PROG: ProgrammableLabels = {
   jsxRenderer: 'Moteur JSX',
   mcpServer: 'Serveur MCP',
   aiChat: 'Chat IA',
-  collaboration: 'Collaboration'
+  collaboration: 'Collaboration',
+  plugins: 'Plugins'
 }
 export const ES_PROG: ProgrammableLabels = {
   overview: 'Resumen',
@@ -104,7 +109,8 @@ export const ES_PROG: ProgrammableLabels = {
   jsxRenderer: 'Renderizador JSX',
   mcpServer: 'Servidor MCP',
   aiChat: 'Chat IA',
-  collaboration: 'Colaboración'
+  collaboration: 'Colaboración',
+  plugins: 'Plugins'
 }
 export const PL_PROG: ProgrammableLabels = {
   overview: 'Przegląd',
@@ -116,7 +122,8 @@ export const PL_PROG: ProgrammableLabels = {
   jsxRenderer: 'Renderer JSX',
   mcpServer: 'Serwer MCP',
   aiChat: 'Czat AI',
-  collaboration: 'Współpraca'
+  collaboration: 'Współpraca',
+  plugins: 'Wtyczki'
 }
 export const RU_PROG: ProgrammableLabels = {
   overview: 'Обзор',
@@ -128,7 +135,8 @@ export const RU_PROG: ProgrammableLabels = {
   jsxRenderer: 'JSX-рендерер',
   mcpServer: 'MCP-сервер',
   aiChat: 'ИИ-чат',
-  collaboration: 'Совместная работа'
+  collaboration: 'Совместная работа',
+  plugins: 'Плагины'
 }
 
 export const EN: SidebarLabels = {

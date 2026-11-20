@@ -3,6 +3,7 @@ import { useEditorCommands, useI18n } from '@openweave/react'
 
 import { getDesktopBridge, isDesktop } from '@/app/desktop/env'
 import { useEditorStore } from '@/app/editor/active-store'
+import { PLUGIN_MENU_ACTIONS } from '@/app/plugins/menu'
 import { openSettingsDialog } from '@/app/settings/dialog'
 import { createSharedEditorMenuActions } from '@/app/shell/menu/editor-actions'
 import { openFileDialog } from '@/app/shell/menu/files'
@@ -86,7 +87,9 @@ export function useAppMenu(): { topMenus: AppMenuGroup[] } {
     'arrange.align-right': 'arrangeAlignRight',
     'arrange.align-top': 'arrangeAlignTop',
     'arrange.align-middle': 'arrangeAlignMiddle',
-    'arrange.align-bottom': 'arrangeAlignBottom'
+    'arrange.align-bottom': 'arrangeAlignBottom',
+    'plugins.manage': 'managePlugins',
+    'plugins.run-last': 'runLastPlugin'
   }
 
   const languageMenu: MenuEntry[] = availableLocales.map((code) => ({
@@ -121,7 +124,8 @@ export function useAppMenu(): { topMenus: AppMenuGroup[] } {
     'export-svg': () => exportSelection('svg'),
     'export-pptx': () => exportSelection('pptx'),
     'export-fig': () => exportSelection('fig'),
-    ...createSharedEditorMenuActions(setTheme)
+    ...createSharedEditorMenuActions(setTheme),
+    ...PLUGIN_MENU_ACTIONS
   }
 
   function itemAction(item: AppMenuActionItem): (() => void) | undefined {

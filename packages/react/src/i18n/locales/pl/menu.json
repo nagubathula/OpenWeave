@@ -65,5 +65,8 @@
   "zoomRealSize": "Rzeczywisty rozmiar",
   "zoomRealMobile": "Rzeczywisty rozmiar telefonu",
   "calibrateScale": "Kalibruj skalę ekranu…",
-  "insertCreditCard": "Wstaw odniesienie karty"
+  "insertCreditCard": "Wstaw odniesienie karty",
+  "plugins": "Wtyczki",
+  "managePlugins": "Zarządzaj wtyczkami…",
+  "runLastPlugin": "Uruchom ostatnią wtyczkę"
 }

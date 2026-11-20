@@ -5,6 +5,7 @@ import type { EditorCommandId } from '@openweave/react'
 
 import { getDesktopBridge } from '@/app/desktop/env'
 import { useEditorStore } from '@/app/editor/active-store'
+import { PLUGIN_MENU_ACTIONS } from '@/app/plugins/menu'
 import { openSettingsDialog } from '@/app/settings/dialog'
 import { createSharedEditorMenuActions } from '@/app/shell/menu/editor-actions'
 import { importFileDialog, openFileDialog } from '@/app/shell/menu/files'
@@ -83,7 +84,8 @@ export function useMenu() {
           messages: () => latest.current.dialogs
         }),
       settings: openSettingsDialog,
-      ...createSharedEditorMenuActions((theme) => latest.current.setTheme(theme))
+      ...createSharedEditorMenuActions((theme) => latest.current.setTheme(theme)),
+      ...PLUGIN_MENU_ACTIONS
     }
 
     return desktop.menu.onCommand((menuId) => {

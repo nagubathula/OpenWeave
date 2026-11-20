@@ -65,5 +65,8 @@
   "zoomRealSize": "Tamaño real",
   "zoomRealMobile": "Tamaño móvil real",
   "calibrateScale": "Calibrar escala de pantalla…",
-  "insertCreditCard": "Insertar referencia de tarjeta"
+  "insertCreditCard": "Insertar referencia de tarjeta",
+  "plugins": "Plugins",
+  "managePlugins": "Gestionar plugins…",
+  "runLastPlugin": "Ejecutar el último plugin"
 }

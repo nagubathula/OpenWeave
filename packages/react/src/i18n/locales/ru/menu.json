@@ -65,5 +65,8 @@
   "zoomRealSize": "Реальный размер",
   "zoomRealMobile": "Реальный размер смартфона",
   "calibrateScale": "Калибровать масштаб экрана…",
-  "insertCreditCard": "Вставить кредитную карту"
+  "insertCreditCard": "Вставить кредитную карту",
+  "plugins": "Плагины",
+  "managePlugins": "Управление плагинами…",
+  "runLastPlugin": "Запустить последний плагин"
 }

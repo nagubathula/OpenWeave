@@ -65,5 +65,8 @@
   "zoomRealSize": "Tatsächliche Größe",
   "zoomRealMobile": "Reale Smartphone-Größe",
   "calibrateScale": "Bildschirmmaßstab kalibrieren…",
-  "insertCreditCard": "Kreditkarten-Referenz einfügen"
+  "insertCreditCard": "Kreditkarten-Referenz einfügen",
+  "plugins": "Plugins",
+  "managePlugins": "Plugins verwalten…",
+  "runLastPlugin": "Letztes Plugin ausführen"
 }

@@ -263,5 +263,15 @@
   "sharingClearAuthtoken": "Wyczyść",
   "sharingGetAuthtoken": "Pobierz authtoken",
   "sharingAuthtokenFallback": "Bez zapisanego authtokenu OpenWeave używa NGROK_AUTHTOKEN lub konfiguracji agenta ngrok, jeśli istnieje.",
-  "openSharingSettings": "Otwórz ustawienia udostępniania"
+  "openSharingSettings": "Otwórz ustawienia udostępniania",
+  "pluginsDescription": "Uruchamiaj wtyczki w stylu Figmy. Kod wtyczki działa w piaskownicy bez dostępu do Twoich plików, zapisanych danych logowania ani sieci.",
+  "installPluginFolder": "Zainstaluj z folderu…",
+  "noPluginsInstalled": "Brak wtyczek. Zainstaluj folder wtyczki zawierający plik manifest.json.",
+  "runPlugin": "Uruchom",
+  "removePlugin": "Usuń",
+  "pluginInstalled": "Zainstalowano {name}",
+  "pluginInstallFailed": "Nie udało się zainstalować wtyczki: {reason}",
+  "pluginRunning": "{name} działa",
+  "stopPlugin": "Zatrzymaj",
+  "noLastPlugin": "Żadna wtyczka nie była jeszcze uruchomiona. Otwórz Wtyczki › Zarządzaj wtyczkami…, aby jakąś uruchomić."
 }
