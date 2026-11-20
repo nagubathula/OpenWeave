@@ -1,0 +1,80 @@
+name: Desktop (Windows)
+
+# Windows-only desktop release. Push a `desktop-v<version>` tag (matching the
+# root package.json version) to build the NSIS installer (x64 + arm64) and
+# attach it, with the electron-updater feed, to a draft GitHub Release.
+#
+# Unlike `v*` tags (build.yml, app.yml, docs.yml), this publishes no npm
+# packages and deploys no web app or docs. The release is created with the
+# pushed `desktop-v*` tag, so publishing the draft never creates a `v*` tag.
+# Manual runs build the installer and upload it as a workflow artifact only.
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'desktop-v*'
+
+permissions:
+  contents: write
+
+jobs:
+  windows:
+    name: Windows installer
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/setup-bun
+        with:
+          # Installs the ngrok native addon for x64 and arm64, not just the runner's.
+          install-args: --frozen-lockfile '--cpu=*'
+
+      - name: Check the tag matches the app version
+        if: startsWith(github.ref, 'refs/tags/desktop-v')
+        shell: bash
+        run: |
+          version=$(node -p "require('./package.json').version")
+          if [ "${GITHUB_REF_NAME#desktop-v}" != "$version" ]; then
+            echo "Tag $GITHUB_REF_NAME does not match package.json version $version" >&2
+            exit 1
+          fi
+
+      - name: Build Windows installer
+        shell: bash
+        env:
+          # Optional signing. Without these, the installer is unsigned and
+          # Windows SmartScreen warns on first run.
+          CSC_LINK: ${{ secrets.WIN_CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
+        run: |
+          if [ -z "$CSC_LINK" ]; then
+            unset CSC_LINK CSC_KEY_PASSWORD
+            export CSC_IDENTITY_AUTO_DISCOVERY=false
+          fi
+          bun run desktop:build --win --publish never
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: openweave-windows
+          path: |
+            desktop-electron/release/*.exe
+            desktop-electron/release/*.blockmap
+            desktop-electron/release/latest.yml
+          if-no-files-found: error
+
+      - name: Create draft GitHub Release
+        if: startsWith(github.ref, 'refs/tags/desktop-v')
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          version="${GITHUB_REF_NAME#desktop-v}"
+          # Release notes: the CHANGELOG "Unreleased" section.
+          awk '/^## Unreleased/{flag=1; next} /^## /{flag=0} flag' CHANGELOG.md > release-notes.md
+          gh release create "$GITHUB_REF_NAME" \
+            --draft \
+            --title "OpenWeave $version for Windows" \
+            --notes-file release-notes.md \
+            desktop-electron/release/*.exe \
+            desktop-electron/release/*.blockmap \
+            desktop-electron/release/latest.yml
