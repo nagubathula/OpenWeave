@@ -21,8 +21,11 @@ export function installVisualNodeProxyAccessors(
       },
       set(this: ProxyThis, value: readonly Fill[]) {
         updateNode(this, internals, {
+          // Figma plugin paints may omit opacity/visible; Figma defaults them.
           fills: value.map((fill) => ({
             ...fill,
+            opacity: fill.opacity ?? 1,
+            visible: fill.visible ?? true,
             color: normalizeColor(fill.color),
             gradientStops: fill.gradientStops?.map((stop) => ({
               ...stop,
@@ -38,7 +41,14 @@ export function installVisualNodeProxyAccessors(
       },
       set(this: ProxyThis, value: readonly Stroke[]) {
         updateNode(this, internals, {
-          strokes: value.map((stroke) => ({ ...stroke, color: normalizeColor(stroke.color) }))
+          strokes: value.map((stroke) => ({
+            ...stroke,
+            opacity: stroke.opacity ?? 1,
+            visible: stroke.visible ?? true,
+            weight: stroke.weight ?? 1,
+            align: stroke.align ?? 'INSIDE',
+            color: normalizeColor(stroke.color)
+          }))
         })
       }
     },

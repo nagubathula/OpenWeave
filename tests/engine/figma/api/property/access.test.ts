@@ -27,6 +27,20 @@ describe('property access', () => {
     expect(frame.height).toBe(200)
   })
 
+  test('paints without opacity or visible get Figma defaults', () => {
+    const api = createAPI()
+    const rect = api.createRectangle()
+    // Figma plugin code commonly sets paints with only type and an RGB color.
+    rect.fills = [{ type: 'SOLID', color: { r: 1, g: 0.5, b: 0 } }] as never
+    rect.strokes = [{ color: { r: 0, g: 0, b: 0 } }] as never
+    expect(rect.fills[0]).toMatchObject({
+      opacity: 1,
+      visible: true,
+      color: { r: 1, g: 0.5, b: 0, a: 1 }
+    })
+    expect(rect.strokes[0]).toMatchObject({ opacity: 1, visible: true, weight: 1, align: 'INSIDE' })
+  })
+
   test('fills get/set', () => {
     const api = createAPI()
     const rect = api.createRectangle()
